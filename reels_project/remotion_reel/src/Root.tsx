@@ -6,6 +6,8 @@ import {TradeReel} from './trade/TradeReel';
 import {totalTradeFrames} from './trade/data';
 import {AbsorptionReel} from './absorption/AbsorptionReel';
 import {totalAbsFrames} from './absorption/data';
+import {StopHuntReel} from './stophunt/StopHuntReel';
+import {totalStopFrames} from './stophunt/data';
 
 export const RemotionRoot: React.FC = () => (
   <>
@@ -21,6 +23,14 @@ export const RemotionRoot: React.FC = () => (
       id="AbsorptionReel"
       component={AbsorptionReel}
       durationInFrames={totalAbsFrames}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+    <Composition
+      id="StopHuntReel"
+      component={StopHuntReel}
+      durationInFrames={totalStopFrames}
       fps={30}
       width={1080}
       height={1920}
