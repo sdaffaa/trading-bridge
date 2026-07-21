@@ -4,8 +4,9 @@ import {TransitionSeries, springTiming, linearTiming} from '@remotion/transition
 import {fade} from '@remotion/transitions/fade';
 import {slide} from '@remotion/transitions/slide';
 import {wipe} from '@remotion/transitions/wipe';
-import {SCENES, TRANS, totalAbsFrames} from './data';
+import {SCENES, TRANS, INTRO_DUR, INTRO_TRANS, totalAbsFrames} from './data';
 import {AbsScene} from './AbsScene';
+import {Intro} from './Intro';
 import '../fonts';
 
 const trans = (i: number) => {
@@ -22,6 +23,10 @@ export const AbsorptionReel: React.FC = () => {
     <AbsoluteFill style={{backgroundColor: '#03060b'}}>
       <AbsoluteFill style={{opacity: vig}}>
         <TransitionSeries>
+          <TransitionSeries.Sequence durationInFrames={INTRO_DUR}>
+            <Intro />
+          </TransitionSeries.Sequence>
+          <TransitionSeries.Transition presentation={fade()} timing={linearTiming({durationInFrames: INTRO_TRANS})} />
           {SCENES.map((s, i) => (
             <React.Fragment key={s.page}>
               <TransitionSeries.Sequence durationInFrames={s.dur}>
@@ -32,7 +37,7 @@ export const AbsorptionReel: React.FC = () => {
           ))}
         </TransitionSeries>
       </AbsoluteFill>
-      <Audio src={staticFile('music/bed60.wav')} volume={0.85} />
+      <Audio src={staticFile('music/bed62.wav')} volume={0.85} />
     </AbsoluteFill>
   );
 };

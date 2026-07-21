@@ -58,4 +58,8 @@ export const SCENES: AScene[] = [
   },
 ];
 
-export const totalAbsFrames = SCENES.reduce((a, s) => a + s.dur, 0) - TRANS * (SCENES.length - 1);
+export const INTRO_DUR = 72;      // ~2s hook card
+export const INTRO_TRANS = 12;    // fast fade into scene 1
+
+export const totalAbsFrames =
+  INTRO_DUR - INTRO_TRANS + SCENES.reduce((a, s) => a + s.dur, 0) - TRANS * (SCENES.length - 1);
