@@ -13,3 +13,8 @@ captions/_test_*.png
 audio/
 images/
 output/reels_final.mp4
+
+# remotion large/regenerable assets
+remotion_reel/public/music/*.wav
+remotion_reel/out/
+remotion_reel/node_modules/

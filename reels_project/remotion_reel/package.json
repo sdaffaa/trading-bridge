@@ -1,0 +1,20 @@
+{
+  "name": "liquidity-reel",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.495",
+    "@remotion/transitions": "4.0.495",
+    "@remotion/fonts": "4.0.495",
+    "remotion": "4.0.495",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.0.0",
+    "typescript": "5.5.4"
+  }
+}
