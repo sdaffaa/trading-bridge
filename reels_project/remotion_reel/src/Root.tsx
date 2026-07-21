@@ -4,6 +4,8 @@ import {Reel} from './Reel';
 import {FPS, totalFrames} from './data';
 import {TradeReel} from './trade/TradeReel';
 import {totalTradeFrames} from './trade/data';
+import {AbsorptionReel} from './absorption/AbsorptionReel';
+import {totalAbsFrames} from './absorption/data';
 
 export const RemotionRoot: React.FC = () => (
   <>
@@ -12,6 +14,14 @@ export const RemotionRoot: React.FC = () => (
       component={Reel}
       durationInFrames={totalFrames}
       fps={FPS}
+      width={1080}
+      height={1920}
+    />
+    <Composition
+      id="AbsorptionReel"
+      component={AbsorptionReel}
+      durationInFrames={totalAbsFrames}
+      fps={30}
       width={1080}
       height={1920}
     />
