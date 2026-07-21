@@ -1,0 +1,15 @@
+# virtualenv & caches
+.venv/
+__pycache__/
+*.pyc
+combined-ca.crt
+
+# regenerable intermediates
+segments/
+qa/
+music/*.wav
+music/_len.txt
+captions/_test_*.png
+audio/
+images/
+output/reels_final.mp4
