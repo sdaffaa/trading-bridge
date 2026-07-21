@@ -19,12 +19,12 @@ export type AScene = {
 export const SCENES: AScene[] = [
   {
     page: 1, img: 'absorption/s1.png', dur: 150, bar: true, kind: 'hook',
-    kb: {s0: 1.14, s1: 1.24, x0: 0, x1: 0, y0: -46, y1: 54},
+    kb: {s0: 1.15, s1: 1.30, x0: 0, x1: 0, y0: -58, y1: 78},
     beats: [{a: 14, b: 38, c: 146, d: 150, text: 'وفجأة وقف… مو لأن البيع خلص', size: 52, emph: true}],
   },
   {
     page: 2, img: 'absorption/s2.png', dur: 610, bar: true, kind: 'wall',
-    kb: {s0: 1.10, s1: 1.30, x0: 0, x1: 0, y0: -28, y1: 30, oy: '55%'},
+    kb: {s0: 1.15, s1: 1.42, x0: -20, x1: 24, y0: -34, y1: 40, oy: '55%'},
     beats: [
       {a: 10, b: 34, c: 150, d: 172, text: 'تخيّل واحد يدز جدار', size: 62, emph: true},
       {a: 172, b: 196, c: 312, d: 334, text: 'يدز ويدز… والجدار ما يتحرك', size: 54},
@@ -34,7 +34,7 @@ export const SCENES: AScene[] = [
   },
   {
     page: 3, img: 'absorption/s3.png', dur: 480, bar: true, kind: 'signs',
-    kb: {s0: 1.20, s1: 1.20, x0: 0, x1: 0, y0: 96, y1: -150},
+    kb: {s0: 1.22, s1: 1.26, x0: 0, x1: 0, y0: 150, y1: -190},
     beats: [
       {a: 10, b: 34, c: 122, d: 144, text: '3 علامات تكشف الامتصاص', size: 58, emph: true},
       {a: 144, b: 168, c: 250, d: 272, text: '1) حجم عالي عند المستوى', size: 52},
@@ -44,7 +44,7 @@ export const SCENES: AScene[] = [
   },
   {
     page: 4, img: 'absorption/s4.png', dur: 380, bar: true, kind: 'chart',
-    kb: {s0: 1.12, s1: 1.28, x0: 6, x1: -40, y0: 40, y1: -18, oy: '58%'},
+    kb: {s0: 1.16, s1: 1.36, x0: 10, x1: -54, y0: 48, y1: -26, oy: '58%'},
     beats: [
       {a: 10, b: 34, c: 150, d: 172, text: 'بيع 4 أضعاف الطبيعي', size: 56, emph: true},
       {a: 172, b: 196, c: 272, d: 294, text: 'والسعر ما نزل ولا نقطة', size: 54},
@@ -53,7 +53,7 @@ export const SCENES: AScene[] = [
   },
   {
     page: 5, img: 'absorption/s5.png', dur: 240, bar: false, kind: 'shield',
-    kb: {s0: 1.18, s1: 1.06, x0: 0, x1: 0, y0: 0, y1: 0},
+    kb: {s0: 1.26, s1: 1.14, x0: 0, x1: 0, y0: -10, y1: 14},
     beats: [],
   },
 ];

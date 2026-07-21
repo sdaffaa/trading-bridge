@@ -21,14 +21,30 @@ const CapWin: React.FC<{beat: Beat}> = ({beat}) => {
 export const AbsScene: React.FC<{scene: AScene}> = ({scene}) => {
   const frame = useCurrentFrame();
   const {kb, dur} = scene;
-  const scale = interpolate(frame, [0, dur], [kb.s0, kb.s1], {extrapolateRight: 'clamp'});
+  const p = scene.page;
+  // base Ken Burns
+  const baseScale = interpolate(frame, [0, dur], [kb.s0, kb.s1], {extrapolateRight: 'clamp'});
   const tx = interpolate(frame, [0, dur], [kb.x0, kb.x1], {extrapolateRight: 'clamp'});
   const ty = interpolate(frame, [0, dur], [kb.y0, kb.y1], {extrapolateRight: 'clamp'});
+  // continuous life: breathing + drift + gentle 3D float (never static)
+  const breathe = 1 + 0.016 * Math.sin(frame / 34 + p);
+  const scale = baseScale * breathe;
+  const dx = tx + 16 * Math.sin(frame / 52 + p * 1.3);
+  const dy = ty + 12 * Math.sin(frame / 68 + p * 0.7);
+  const rotY = 0.9 * Math.sin(frame / 84 + p);
+  const rotX = 0.6 * Math.sin(frame / 104 + p * 0.5);
 
   return (
     <AbsoluteFill style={{backgroundColor: '#03060b'}}>
-      <AbsoluteFill style={{transform: `scale(${scale}) translate(${tx}px, ${ty}px)`, transformOrigin: `${kb.ox || '50%'} ${kb.oy || '50%'}`}}>
-        <Img src={staticFile(scene.img)} style={{width: 1080, height: 1920, objectFit: 'cover'}} />
+      <AbsoluteFill style={{perspective: 1800}}>
+        <AbsoluteFill
+          style={{
+            transform: `scale(${scale}) translate(${dx}px, ${dy}px) rotateY(${rotY}deg) rotateX(${rotX}deg)`,
+            transformOrigin: `${kb.ox || '50%'} ${kb.oy || '50%'}`,
+          }}
+        >
+          <Img src={staticFile(scene.img)} style={{width: 1080, height: 1920, objectFit: 'cover'}} />
+        </AbsoluteFill>
       </AbsoluteFill>
 
       {/* per-kind motion */}

@@ -40,8 +40,8 @@ export const Intro: React.FC = () => {
 
   return (
     <AbsoluteFill style={{backgroundColor: '#03060b'}}>
-      {/* blurred chart texture (no readable text) */}
-      <AbsoluteFill style={{opacity: 0.16}}>
+      {/* blurred chart texture (no readable text), slowly drifting */}
+      <AbsoluteFill style={{opacity: 0.16, transform: `scale(${1.15 + 0.05 * Math.sin(frame / 40)}) translateY(${interpolate(frame, [0, 72], [30, -30])}px)`}}>
         <Img src={staticFile('absorption/s1.png')} style={{width: 1080, height: 1920, objectFit: 'cover', filter: 'blur(14px)'}} />
       </AbsoluteFill>
       <AbsoluteFill style={{background: 'radial-gradient(75% 55% at 50% 45%, rgba(8,20,30,0.5), rgba(3,6,11,0.96))'}} />
