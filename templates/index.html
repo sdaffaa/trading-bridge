@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>توصيات التداول</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --bg-soft: #141a2e;
+      --card: #1a2138;
+      --card-2: #212a45;
+      --line: #2a3350;
+      --text: #e7ecf6;
+      --muted: #8b96b3;
+      --buy: #16c784;
+      --sell: #ea3943;
+      --neutral: #8b96b3;
+      --accent: #f0b90b;
+      --shadow: 0 8px 30px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, system-ui, sans-serif;
+      background: radial-gradient(1200px 600px at 80% -10%, rgba(240,185,11,.06) 0, transparent 60%), var(--bg);
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      padding: 26px 20px 18px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--bg-soft), transparent);
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), #ff8a00);
+      display: grid; place-items: center; font-size: 22px; box-shadow: var(--shadow);
+    }
+    h1 { font-size: 22px; margin: 0; }
+    .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      margin: 18px auto 4px; max-width: 1180px; padding: 0 20px;
+    }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      border: 1px solid var(--line); background: var(--card);
+      color: var(--text); padding: 8px 14px; border-radius: 999px;
+      cursor: pointer; font-size: 13px; transition: .15s;
+    }
+    .chip:hover { border-color: var(--accent); }
+    .chip.active { background: var(--accent); color: #1a1a1a; border-color: var(--accent); font-weight: 700; }
+    .refresh {
+      margin-inline-start: auto; border: 1px solid var(--line); background: var(--card-2);
+      color: var(--text); padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 13px;
+    }
+    .refresh:hover { border-color: var(--accent); }
+    main { max-width: 1180px; margin: 0 auto; padding: 16px 20px 60px; }
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;
+    }
+    .card {
+      background: linear-gradient(180deg, var(--card), var(--card-2));
+      border: 1px solid var(--line); border-radius: 16px; padding: 16px;
+      box-shadow: var(--shadow); position: relative; overflow: hidden;
+    }
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .name { font-size: 17px; font-weight: 700; }
+    .name small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
+    .price { text-align: end; font-variant-numeric: tabular-nums; }
+    .price .v { font-size: 18px; font-weight: 700; }
+    .price .lbl { font-size: 11px; color: var(--muted); }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+      border-radius: 999px; font-weight: 800; font-size: 13px; letter-spacing: .3px;
+    }
+    .badge.BUY { background: rgba(22,199,132,.14); color: var(--buy); border: 1px solid rgba(22,199,132,.35); }
+    .badge.SELL { background: rgba(234,57,67,.14); color: var(--sell); border: 1px solid rgba(234,57,67,.35); }
+    .badge.NEUTRAL { background: rgba(139,150,179,.14); color: var(--neutral); border: 1px solid rgba(139,150,179,.35); }
+    .conf { margin-top: 14px; }
+    .conf-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .bar { height: 8px; border-radius: 999px; background: var(--bg-soft); overflow: hidden; }
+    .bar > span { display: block; height: 100%; border-radius: 999px; }
+    .levels { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 14px; }
+    .lvl {
+      background: var(--bg-soft); border: 1px solid var(--line); border-radius: 10px;
+      padding: 9px 11px; font-variant-numeric: tabular-nums;
+    }
+    .lvl .k { font-size: 11px; color: var(--muted); }
+    .lvl .val { font-size: 15px; font-weight: 700; margin-top: 2px; }
+    .lvl.entry .val { color: var(--accent); }
+    .lvl.sl .val { color: var(--sell); }
+    .lvl.tp .val { color: var(--buy); }
+    .summary { margin-top: 14px; font-size: 14px; line-height: 1.7; }
+    .reasons { margin: 10px 0 0; padding: 0; list-style: none; }
+    .reasons li { font-size: 12.5px; color: var(--muted); padding-inline-start: 16px; position: relative; margin-bottom: 4px; }
+    .reasons li::before { content: "▸"; position: absolute; inset-inline-start: 0; color: var(--accent); }
+    .meta { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+    .tag { font-size: 11px; padding: 3px 9px; border-radius: 8px; background: var(--bg-soft); color: var(--muted); border: 1px solid var(--line); }
+    .tag.ai { color: #7aa2ff; border-color: rgba(122,162,255,.4); }
+    .risk { font-size: 11px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
+    .skeleton { animation: pulse 1.2s ease-in-out infinite; }
+    .skeleton .name, .skeleton .price .v { color: transparent; background: var(--card-2); border-radius: 6px; }
+    @keyframes pulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+    .err { color: var(--sell); font-size: 13px; margin-top: 10px; }
+    .disclaimer {
+      max-width: 1180px; margin: 8px auto 0; padding: 12px 20px; color: var(--muted);
+      font-size: 12px; line-height: 1.7; border-top: 1px solid var(--line);
+    }
+    @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap brand">
+      <div class="logo">📈</div>
+      <div>
+        <h1>توصيات التداول</h1>
+        <div class="sub">تحليل فني آلي مدعوم بالذكاء الاصطناعي — الذهب، الفوركس، الكريبتو والمؤشرات</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="filters" id="filters">
+      <button class="chip active" data-cat="all">الكل</button>
+    </div>
+    <button class="refresh" id="refresh">↻ تحديث</button>
+  </div>
+
+  <main>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <div class="disclaimer">
+    ⚠️ هذه التوصيات لأغراض تعليمية وتحليلية فقط، وليست نصيحة استثمارية. الأسواق المالية تنطوي على مخاطر،
+    والقرار النهائي مسؤوليتك. التزم دائماً بإدارة رأس المال ووقف الخسارة.
+  </div>
+
+  <script>
+    const INSTRUMENTS = {{ instruments | tojson }};
+    const CATEGORIES = {{ categories | tojson }};
+    const grid = document.getElementById('grid');
+    const filters = document.getElementById('filters');
+    let activeCat = 'all';
+
+    // build category chips
+    Object.entries(CATEGORIES).forEach(([key, label]) => {
+      const b = document.createElement('button');
+      b.className = 'chip';
+      b.dataset.cat = key;
+      b.textContent = label;
+      filters.appendChild(b);
+    });
+    filters.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      activeCat = chip.dataset.cat;
+      [...filters.children].forEach(c => c.classList.toggle('active', c === chip));
+      render();
+    });
+    document.getElementById('refresh').addEventListener('click', () => loadAll(true));
+
+    function visibleInstruments() {
+      return INSTRUMENTS.filter(i => activeCat === 'all' || i.category === activeCat);
+    }
+
+    const state = {}; // id -> {loading, data, error}
+
+    function fmt(n, decimals) {
+      if (n === null || n === undefined || isNaN(n)) return '—';
+      return Number(n).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+
+    function dirLabel(d) {
+      return { BUY: 'شراء', SELL: 'بيع', NEUTRAL: 'محايد' }[d] || d;
+    }
+    function barColor(d) {
+      return { BUY: 'var(--buy)', SELL: 'var(--sell)', NEUTRAL: 'var(--neutral)' }[d];
+    }
+
+    function cardHTML(inst) {
+      const s = state[inst.id] || {};
+      if (s.loading || !s.data) {
+        return `<div class="card skeleton">
+          <div class="card-top"><div class="name">${inst.name_ar}<small>${inst.name_en}</small></div>
+          <div class="price"><div class="v">····</div><div class="lbl">جاري التحميل…</div></div></div>
+          <div class="conf"><div class="bar"><span style="width:40%;background:var(--card-2)"></span></div></div>
+        </div>`;
+      }
+      if (s.error) {
+        return `<div class="card">
+          <div class="card-top"><div class="name">${inst.name_ar}<small>${inst.name_en}</small></div></div>
+          <div class="err">تعذّر جلب التوصية: ${s.error}</div>
+        </div>`;
+      }
+      const d = s.data;
+      const rec = d.recommendation;
+      const dec = d.instrument.decimals;
+      const reasons = (rec.reasons_ar || []).map(r => `<li>${r}</li>`).join('');
+      const engineTag = rec.engine === 'ai'
+        ? '<span class="tag ai">🤖 تحليل Claude</span>'
+        : '<span class="tag">⚙️ تحليل بالقواعد</span>';
+      return `<div class="card">
+        <div class="card-top">
+          <div class="name">${d.instrument.name_ar}<small>${d.instrument.name_en}</small></div>
+          <div class="price"><div class="v">${fmt(d.snapshot.price, dec)}</div><div class="lbl">السعر الحالي</div></div>
+        </div>
+        <div style="margin-top:12px"><span class="badge ${rec.direction}">${dirLabel(rec.direction)}</span></div>
+        <div class="conf">
+          <div class="conf-row"><span>قوة الإشارة</span><span>${rec.confidence}%</span></div>
+          <div class="bar"><span style="width:${rec.confidence}%;background:${barColor(rec.direction)}"></span></div>
+        </div>
+        <div class="levels">
+          <div class="lvl entry"><div class="k">الدخول</div><div class="val">${fmt(rec.entry, dec)}</div></div>
+          <div class="lvl sl"><div class="k">وقف الخسارة</div><div class="val">${fmt(rec.stop_loss, dec)}</div></div>
+          <div class="lvl tp"><div class="k">الهدف الأول</div><div class="val">${fmt(rec.take_profit_1, dec)}</div></div>
+          <div class="lvl tp"><div class="k">الهدف الثاني</div><div class="val">${fmt(rec.take_profit_2, dec)}</div></div>
+        </div>
+        <div class="summary">${rec.summary_ar || ''}</div>
+        <ul class="reasons">${reasons}</ul>
+        <div class="meta">${engineTag}<span class="tag">⏱ ${rec.timeframe || ''}</span>
+          <span class="tag">RSI ${d.snapshot.rsi14 ?? '—'}</span></div>
+        <div class="risk">${rec.risk_note_ar || ''}</div>
+      </div>`;
+    }
+
+    function render() {
+      const list = visibleInstruments();
+      grid.innerHTML = list.map(cardHTML).join('');
+    }
+
+    async function loadOne(inst) {
+      state[inst.id] = { loading: true };
+      render();
+      try {
+        const res = await fetch('/api/recommendation/' + inst.id);
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || ('HTTP ' + res.status));
+        state[inst.id] = { data: json };
+      } catch (e) {
+        state[inst.id] = { error: e.message };
+      }
+      render();
+    }
+
+    async function loadAll(force) {
+      const list = force ? INSTRUMENTS : visibleInstruments();
+      if (force) Object.keys(state).forEach(k => delete state[k]);
+      render();
+      // small concurrency to be gentle on the data provider
+      const queue = [...list];
+      const workers = Array.from({ length: 3 }, async () => {
+        while (queue.length) await loadOne(queue.shift());
+      });
+      await Promise.all(workers);
+    }
+
+    render();
+    loadAll(false);
+  </script>
+</body>
+</html>
