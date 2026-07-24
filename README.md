@@ -76,6 +76,33 @@ env / the notify module — never in the model's context.
 **Go live deliberately:** watch several dry-run runs in the logs, confirm the
 decisions and would-have sends look right, then set `AGENT_DRY_RUN=0`.
 
+## Tests
+
+No network or API key needed — the Claude call is stubbed:
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+CI runs the same suite on every push/PR (`.github/workflows/ci.yml`).
+
+## Deployment
+
+**Docker** (persists idempotency state in a volume):
+
+```bash
+docker build -t trading-bridge .
+docker run -p 5000:5000 --env-file .env -v tb-data:/data trading-bridge
+```
+
+**systemd** (non-Docker): see `deploy/trading-bridge.service` — copy it to
+`/etc/systemd/system/`, point `EnvironmentFile` at a root-only `.env`, and
+`systemctl enable --now trading-bridge`.
+
+Both run under gunicorn with one worker and several threads — the request handler
+returns fast and the agent runs on a background thread, so a single worker fits.
+
 ## Notes
 
 - This bridge **notifies**; it does not place orders. Auto-execution is out of

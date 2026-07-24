@@ -1,9 +1,10 @@
+.git
 __pycache__/
 *.pyc
 .env
 .venv/
 venv/
-/tmp/agent-state/
-data/
 .pytest_cache/
+tests/
 *.log
+data/
