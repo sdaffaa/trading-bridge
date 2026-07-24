@@ -128,4 +128,9 @@ def summary() -> dict:
         "heartbeat_max_silence_s": HEARTBEAT_MAX_SILENCE_S,
         "enable_execution": ENABLE_EXECUTION,
         "broker": BROKER if ENABLE_EXECUTION else None,
+        "vision_mode": VISION_MODE,
+        "vision_schools": sorted(VISION_SCHOOLS) if VISION_MODE else [],
+        "account_balance_set": ACCOUNT_BALANCE > 0,
+        "risk_percent": RISK_PERCENT,
+        "min_rr": MIN_RR,
     }

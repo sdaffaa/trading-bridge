@@ -37,8 +37,12 @@ CONFLUENCE = (
     f"- {SMC}\n- {ICT}\n- {VOLUME_PROFILE}\n- {FOOTPRINT}\n"
     "GRADE the setup by agreement: A-setup = 3-4 schools align (confidence ~0.8), "
     "B-setup = 2 align (~0.6), C-setup = 1 (~0.4). If schools conflict, choose "
-    "no_trade or alert_human. In your reason, name which schools aligned and the "
-    "key levels (entry zone, invalidation at a swing, target at liquidity/VAH-VAL).")
+    "no_trade or alert_human.\n"
+    "DEFINE THE TRADE with risk: entry at the POI/FVG/value edge; stop-loss beyond "
+    "the structural invalidation (past the swing that would break the idea); "
+    "take-profit at the opposing liquidity or value-area edge. Require reward:risk "
+    ">= the configured minimum or downgrade to no_trade. In your reason, name which "
+    "schools aligned and the exact levels (entry, invalidation, target).")
 
 _MAP = {"ict": ICT, "smc": SMC, "volume_profile": VOLUME_PROFILE,
         "footprint": FOOTPRINT, "confluence": CONFLUENCE}

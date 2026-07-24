@@ -35,3 +35,27 @@ def telegram_post(message: str) -> bool:
             jlog("notify_retry", error=str(e), attempt=attempt)
         time.sleep(2 ** attempt)
     return False
+
+
+def telegram_photo(png: bytes, caption: str) -> bool:
+    """Send a chart image with a caption via Telegram sendPhoto."""
+    token = config.TELEGRAM_TOKEN
+    chat_id = config.TELEGRAM_CHAT_ID
+    if not (token and chat_id):
+        jlog("notify_error", reason="missing_telegram_env")
+        return False
+    url = f"https://api.telegram.org/bot{token}/sendPhoto"
+    for attempt in range(4):
+        try:
+            r = requests.post(url, data={"chat_id": chat_id, "caption": caption[:1024]},
+                              files={"photo": ("chart.png", png, "image/png")}, timeout=30)
+            if r.status_code < 400:
+                return True
+            if r.status_code != 429 and r.status_code < 500:
+                jlog("notify_error", status=r.status_code, body=r.text[:200])
+                return False
+            jlog("notify_retry", status=r.status_code, attempt=attempt)
+        except requests.RequestException as e:
+            jlog("notify_retry", error=str(e), attempt=attempt)
+        time.sleep(2 ** attempt)
+    return False

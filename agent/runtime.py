@@ -76,7 +76,10 @@ def run_alert(raw: dict) -> dict:
 
     tools.new_context(run_id, alert["id"], alert)
     jlog("run_start", run=run_id, id=alert["id"], alert=alert,
-         dry_run=config.DRY_RUN, model=config.MODEL)
+         dry_run=config.DRY_RUN, model=config.MODEL, vision=config.VISION_MODE)
+
+    if config.VISION_MODE:
+        return _run_vision(alert, run_id)
 
     prompt = (
         f"TradingView alert:\n"
@@ -131,6 +134,79 @@ def run_alert(raw: dict) -> dict:
               "decision": decision, "dry_run": config.DRY_RUN}
     jlog("run_end", **result)
     return result
+
+
+def _run_vision(alert: dict, run_id: str) -> dict:
+    """Vision path: open the chart, run the four school markups + coordinator,
+    then send the chart image + trade plan (gated)."""
+    import os
+    from . import chartshot, vision, notify
+
+    png, markups = None, []
+    png = chartshot.capture(alert["symbol"], alert["timeframe"])
+    if not png:
+        decision = {"action": "alert_human", "confidence": 0.0, "grade": "none",
+                    "reason": "chart screenshot failed (browser/network on the host)"}
+        monitoring.record_run(False, "chartshot failed")
+    else:
+        try:
+            out = vision.analyze(png, alert["symbol"], alert["timeframe"])
+            decision, markups = out["decision"], out["markups"]
+            monitoring.record_run(True)
+        except Exception as e:
+            jlog("vision_error", run=run_id, id=alert["id"], error=str(e))
+            monitoring.record_run(False, str(e)[:200])
+            decision = {"action": "alert_human", "confidence": 0.0, "grade": "none",
+                        "reason": f"vision analysis failed: {e}"}
+            png = None
+
+    tools.ctx.decision = decision
+    idempotency.mark(f"run:{alert['id']}")
+    store.record_decision(alert["id"], run_id, alert["symbol"], decision, config.DRY_RUN)
+
+    caption = _format_plan(alert, decision, markups)
+    _send_plan(alert["id"], png, caption)
+
+    result = {"status": "ok", "id": alert["id"], "run": run_id,
+              "decision": decision, "dry_run": config.DRY_RUN}
+    jlog("run_end", **result)
+    return result
+
+
+def _format_plan(alert: dict, d: dict, markups=None) -> str:
+    head = f"{alert['symbol']} {alert['timeframe']}"
+    if d.get("action") in ("no_trade", "alert_human", None):
+        return f"{head} — {str(d.get('action','')).upper()} [{d.get('grade','-')}]\n{d.get('reason','')}"
+    lines = [f"{head} — {d['action'].upper()} [{d.get('grade','-')}-setup] "
+             f"conf {round(d.get('confidence',0),2)}",
+             f"Entry {d.get('entry')} | SL {d.get('stop_loss')} | TP {d.get('take_profit')}"]
+    if d.get("risk_reward"):
+        lines.append(f"R:R {d['risk_reward']}")
+    if d.get("risk_amount"):
+        lines.append(f"Risk {d.get('risk_percent')}% ≈ {d['risk_amount']} "
+                     f"(~{d.get('suggested_units')} units)")
+    lines.append(d.get("reason", ""))
+    return "\n".join(str(x) for x in lines)
+
+
+def _send_plan(event_id: str, png, caption: str) -> None:
+    """Gate the outbound notification: kill switch -> idempotency -> dry-run."""
+    import os
+    from . import notify
+    if os.path.exists(config.KILL_SWITCH_FILE):
+        jlog("act_blocked", tool="telegram", id=event_id, reason="kill_switch")
+        return
+    key = f"telegram:{event_id}"
+    if idempotency.seen(key):
+        jlog("act_skipped", tool="telegram", id=event_id, reason="idempotent")
+        return
+    if config.DRY_RUN:
+        jlog("act_dryrun", tool="telegram", id=event_id, would_send=caption[:200])
+        return
+    ok = notify.telegram_photo(png, caption) if png else notify.telegram_post(caption)
+    if ok:
+        idempotency.mark(key)
+    jlog("act", tool="telegram", id=event_id, ok=ok, has_image=bool(png))
 
 
 def _account_tokens(message) -> None:

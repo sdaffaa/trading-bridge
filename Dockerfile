@@ -13,6 +13,13 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
+# Vision mode opens the chart in a headless browser. Install Chromium + system
+# deps. Set INSTALL_CHROMIUM=0 to skip (smaller image, no vision). Needs a 2GB+
+# host to run Chromium.
+ARG INSTALL_CHROMIUM=1
+RUN if [ "$INSTALL_CHROMIUM" = "1" ]; then playwright install --with-deps chromium; fi
+ENV PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
+
 COPY . .
 
 # Persist idempotency state across restarts (mount a volume at /data).
