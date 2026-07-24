@@ -182,6 +182,56 @@ def evaluate_open_trades(png: bytes, symbol: str, timeframe: str, trades: list) 
     return out
 
 
+_LOCATE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "entry_y": {"type": "number"},
+        "stop_y": {"type": "number"},
+        "target_y": {"type": "number"},
+    },
+    "required": ["entry_y", "stop_y", "target_y"],
+    "additionalProperties": False,
+}
+
+
+def locate_levels(png: bytes, symbol: str, timeframe: str, decision: dict) -> dict:
+    """Find where the trade's price levels sit on the image, so they can be drawn.
+
+    Returns each level's vertical position as a fraction 0.0 (top edge) .. 1.0
+    (bottom edge), read against the right-hand price axis. Empty on failure.
+    """
+    entry, sl, tp = (decision.get("entry"), decision.get("stop_loss"),
+                     decision.get("take_profit"))
+    if None in (entry, sl, tp):
+        return {}
+    prompt = (
+        f"On this {symbol} {timeframe} chart, give the VERTICAL position of each price "
+        "level as it appears in the image, as a fraction from 0.0 (very top edge) to 1.0 "
+        "(very bottom edge). Read against the right-hand price axis and interpolate "
+        f"between the visible gridline prices:\n- entry = {entry} -> entry_y\n"
+        f"- stop_loss = {sl} -> stop_y\n- take_profit = {tp} -> target_y\n"
+        "Higher price = smaller fraction (nearer the top).")
+    try:
+        resp = _c().messages.create(
+            model=config.MODEL, max_tokens=600, thinking={"type": "adaptive"},
+            output_config={"effort": "high",
+                           "format": {"type": "json_schema", "schema": _LOCATE_SCHEMA}},
+            messages=[{"role": "user",
+                       "content": [_img(png), {"type": "text", "text": prompt}]}])
+        text = next((b.text for b in resp.content if b.type == "text"), "{}")
+        raw = json.loads(text)
+    except Exception as e:
+        jlog("vision_locate_error", symbol=symbol, error=str(e)[:200])
+        return {}
+    out = {}
+    for k in ("entry_y", "stop_y", "target_y"):
+        v = raw.get(k)
+        if v is not None:
+            out[k] = min(1.0, max(0.0, float(v)))
+    jlog("vision_locate", symbol=symbol, **out)
+    return out
+
+
 def analyze(png: bytes, symbol: str, timeframe: str) -> dict:
     """Run the four school markups + coordinator. Returns {decision, markups}."""
     return _finalize(_run_schools(png, symbol, timeframe), png, symbol, timeframe)

@@ -140,7 +140,7 @@ def _run_vision(alert: dict, run_id: str) -> dict:
     """Vision path: open the chart, run the four school markups + coordinator,
     then send the chart image + trade plan (gated)."""
     import os
-    from . import chartshot, vision, notify
+    from . import chartshot, vision, notify, annotate
 
     # top-down multi-timeframe (e.g. 240 for bias, 15 for entry) when configured;
     # otherwise the alert's own single timeframe.
@@ -179,6 +179,15 @@ def _run_vision(alert: dict, run_id: str) -> dict:
     tools.ctx.decision = decision
     idempotency.mark(f"run:{alert['id']}")
     store.record_decision(alert["id"], run_id, alert["symbol"], decision, config.DRY_RUN)
+
+    # draw the trade markup (entry / SL / TP zones) onto the image that gets sent
+    if png and decision.get("action") in ("long", "short"):
+        try:
+            ys = vision.locate_levels(png, alert["symbol"], ltf, decision)
+            if ys:
+                png = annotate.render(png, decision, ys)
+        except Exception as e:
+            jlog("annotate_error", run=run_id, id=alert["id"], error=str(e)[:200])
 
     caption = _format_plan(alert, decision, markups)
     _send_plan(alert["id"], png, caption)

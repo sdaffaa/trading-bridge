@@ -13,6 +13,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
+# DejaVu fonts so the on-chart markup labels (Entry/SL/TP + numbers) render crisply.
+RUN apt-get update && apt-get install -y --no-install-recommends fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
 # Vision mode opens the chart in a headless browser. Install Chromium + system
 # deps. Set INSTALL_CHROMIUM=0 to skip (smaller image, no vision). Needs a 2GB+
 # host to run Chromium.

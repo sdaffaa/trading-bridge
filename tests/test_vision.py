@@ -101,6 +101,55 @@ def test_evaluate_open_trades_empty_shortcircuits():
     assert vision.evaluate_open_trades(b"png", "X", "15", []) == {}
 
 
+def test_locate_levels_clamps_fractions(monkeypatch):
+    ys = {"entry_y": 0.5, "stop_y": 1.4, "target_y": -0.2}   # out-of-range on purpose
+
+    class LocMsgs:
+        def create(self, **kw):
+            return _Resp(json.dumps(ys))
+    monkeypatch.setattr(vision, "_client", type("C", (), {"messages": LocMsgs()})())
+    out = vision.locate_levels(b"png", "OANDA:XAUUSD", "15",
+                               {"entry": 2000, "stop_loss": 1990, "take_profit": 2030})
+    assert out["entry_y"] == 0.5
+    assert out["stop_y"] == 1.0        # clamped to [0,1]
+    assert out["target_y"] == 0.0
+
+
+def test_locate_levels_needs_prices():
+    assert vision.locate_levels(b"png", "X", "15", {"entry": None}) == {}
+
+
+# --- on-chart markup rendering --------------------------------------------
+def _blank_png(w=800, h=600):
+    import io
+    from PIL import Image
+    buf = io.BytesIO()
+    Image.new("RGB", (w, h), (20, 22, 28)).save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def test_annotate_draws_on_trade():
+    from agent import annotate
+    png = _blank_png()
+    d = {"action": "long", "grade": "B", "entry": 2000, "stop_loss": 1990,
+         "take_profit": 2030, "risk_reward": 3.0}
+    out = annotate.render(png, d, {"entry_y": 0.5, "stop_y": 0.62, "target_y": 0.3})
+    assert out != png and len(out) > len(png)      # something was drawn
+
+
+def test_annotate_noop_without_levels():
+    from agent import annotate
+    png = _blank_png()
+    d = {"action": "long", "entry": 2000, "stop_loss": 1990, "take_profit": 2030}
+    assert annotate.render(png, d, {}) == png       # no ys -> unchanged
+
+
+def test_annotate_noop_on_no_trade():
+    from agent import annotate
+    png = _blank_png()
+    assert annotate.render(png, {"action": "no_trade"}, {}) == png
+
+
 def test_vision_handles_bad_coordinator(monkeypatch):
     monkeypatch.setattr(config, "VISION_SCHOOLS", {"ict"})
 
