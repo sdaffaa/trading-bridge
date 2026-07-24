@@ -71,6 +71,9 @@ RESPECT_MARKET_HOURS = _flag("AGENT_RESPECT_MARKET_HOURS", "1")
 # --- methodology the agent analyzes with (ict | smc | volume_profile | footprint | confluence) ---
 METHODOLOGY = _csv("AGENT_METHODOLOGY", "confluence")
 
+# --- notifications: by default only ping on actionable setups, not every no_trade ---
+NOTIFY_ON_NO_TRADE = _flag("AGENT_NOTIFY_ON_NO_TRADE", "0")
+
 # --- risk management (the agent defines the trade + appropriate risk) ---
 ACCOUNT_BALANCE = float(os.environ.get("AGENT_ACCOUNT_BALANCE", "0"))  # 0 = unknown
 RISK_PERCENT = float(os.environ.get("AGENT_RISK_PERCENT", "1.0"))      # % risked per trade

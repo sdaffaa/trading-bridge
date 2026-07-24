@@ -190,9 +190,13 @@ def _format_plan(alert: dict, d: dict, markups=None) -> str:
 
 
 def _send_plan(event_id: str, png, caption: str) -> None:
-    """Gate the outbound notification: kill switch -> idempotency -> dry-run."""
+    """Gate the outbound notification: mute -> kill switch -> idempotency -> dry-run."""
     import os
     from . import notify
+    action = (tools.ctx.decision or {}).get("action")
+    if action == "no_trade" and not config.NOTIFY_ON_NO_TRADE:
+        jlog("act_skipped", tool="telegram", id=event_id, reason="no_trade_muted")
+        return
     if os.path.exists(config.KILL_SWITCH_FILE):
         jlog("act_blocked", tool="telegram", id=event_id, reason="kill_switch")
         return

@@ -127,6 +127,13 @@ def send_telegram(message: str) -> str:
 
     Call this once, after submit_decision, with a short human-readable summary.
     """
+    # skip quiet no_trade pings unless explicitly enabled (avoid spam)
+    action = (ctx.decision or {}).get("action")
+    if action == "no_trade" and not config.NOTIFY_ON_NO_TRADE:
+        jlog("act_skipped", tool="send_telegram", run=ctx.run_id, id=ctx.event_id,
+             reason="no_trade_muted")
+        return "skipped: no_trade notifications are muted"
+
     # gate order: kill switch -> idempotency -> dry-run -> effect
     if kill_switch_engaged():
         jlog("act_blocked", tool="send_telegram", run=ctx.run_id, id=ctx.event_id,
