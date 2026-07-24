@@ -66,6 +66,7 @@ h2{font-weight:900;line-height:1.16;letter-spacing:-.4px}
 .panel{background:linear-gradient(160deg,#12272F,#0F2027);border:1px solid var(--border);
   border-radius:22px;padding:16px 12px 8px;position:relative}
 .panel .tag{position:absolute;top:16px;right:20px;font-weight:800;font-size:22px;color:var(--txt2);z-index:3}
+.panel .verdict{text-align:center;font-weight:800;font-size:22px;color:var(--txt2);margin:2px 0 6px}
 svg{display:block}
 .axis{fill:var(--txt3);font-family:'Tajawal';font-weight:600;font-size:15px}
 .note{font-family:'Tajawal';font-weight:800}
@@ -264,16 +265,18 @@ svg{display:block}
   </div>
   <div class="progress"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
   <div class="body" style="justify-content:flex-start;padding-top:22px">
-    <div class="kicker red">أمثلة فاشلة حقيقية</div>
+    <div class="kicker red">أمثلة حقيقية · الذهب XAUUSD يومي</div>
     <h2 style="font-size:46px;margin-bottom:22px">شوف كيف <span class="hlr">تكنس الستوب</span> وتكمّل عكسك</h2>
     <div style="display:flex;flex-direction:column;gap:20px">
-      <div class="panel"><div class="tag">قمة كاذبة</div><svg id="chA" width="900" height="290" viewBox="0 0 900 290"></svg></div>
-      <div class="panel"><div class="tag">قاع كاذب</div><svg id="chB" width="900" height="290" viewBox="0 0 900 290"></svg></div>
+      <div class="panel"><div class="tag">قمة كاذبة · ديسمبر 2025</div><svg id="chA" width="852" height="290" viewBox="0 0 852 290"></svg>
+        <div class="verdict">❌ كنس الستوب وواصل <span class="hlr">صعود +167$</span></div></div>
+      <div class="panel"><div class="tag">قاع كاذب · مايو 2026</div><svg id="chB" width="852" height="290" viewBox="0 0 852 290"></svg>
+        <div class="verdict">❌ كنس الستوب وواصل <span class="hlr">هبوط −136$</span></div></div>
     </div>
   </div>
   <div class="foot">
     <div class="l"><span class="gem"></span><span>Liquidity State</span></div>
-    <span class="edu">لغرض تعليمي · إعادة رسم بستايل البراند</span>
+    <span class="edu">لغرض تعليمي · بيانات حقيقية (فريم يومي)</span>
   </div>
 </section>
 
@@ -361,7 +364,7 @@ document.querySelectorAll('.gem').forEach(e=>e.innerHTML=GEM);
 /* ---------- candlestick renderer ---------- */
 function renderChart(id, data, opts){
   const svg=document.getElementById(id); if(!svg)return;
-  const W=900,H=290, pad={t:22,b:26,l:14,r:64};
+  const W=852,H=290, pad={t:22,b:26,l:14,r:82};
   const extra=opts.extra||[];
   const vals=data.flatMap(d=>[d.h,d.l]).concat(extra);
   let min=Math.min(...vals),max=Math.max(...vals);
@@ -374,7 +377,7 @@ function renderChart(id, data, opts){
   for(let k=0;k<=4;k++){
     const v=min+(max-min)*k/4, y=Y(v);
     g+=`<line x1="${pad.l}" y1="${y.toFixed(1)}" x2="${W-pad.r}" y2="${y.toFixed(1)}" stroke="rgba(159,180,188,.07)" stroke-width="1"/>`;
-    g+=`<text x="${W-pad.r+10}" y="${(y+5).toFixed(1)}" class="axis">${v.toFixed(1)}</text>`;
+    g+=`<text x="${W-pad.r+12}" y="${(y+5).toFixed(1)}" class="axis">${v.toFixed(1)}</text>`;
   }
   // candles
   data.forEach((d,i)=>{
@@ -410,41 +413,47 @@ function renderChart(id, data, opts){
   svg.innerHTML=g;
 }
 
-/* Chart A — bearish pin bar at a top FAILS (uptrend continues) */
+/* Chart A — REAL: bearish pin bar at a top FAILS (Gold, 8–22 Dec 2025) */
 renderChart('chA',[
-  {o:100,h:103,l:99,c:102},{o:102,h:106,l:101,c:105},{o:105,h:109,l:104,c:108},
-  {o:108,h:112,l:107,c:111},
-  {o:111,h:126,l:110.5,c:112},           /* idx4 pin bar: long upper wick */
-  {o:112,h:113,l:107,c:108},             /* small dip = ربح صغير */
-  {o:108,h:116,l:107.5,c:115},
-  {o:115,h:128,l:114,c:127},             /* breaks pin high = SL hit */
-  {o:127,h:134,l:126,c:133},{o:133,h:139,l:132,c:138}
+  {o:4228.1,h:4247.9,l:4204,c:4217.7},   /* 12-08 */
+  {o:4219.6,h:4251.7,l:4197.8,c:4236.2}, /* 12-09 */
+  {o:4237.5,h:4268.8,l:4207.8,c:4224.7}, /* 12-10 */
+  {o:4258.3,h:4317.3,l:4231.2,c:4313},   /* 12-11 */
+  {o:4309.1,h:4387.8,l:4286,c:4328.3},   /* 12-12 PIN — long upper wick at a high */
+  {o:4330,h:4384.3,l:4315.9,c:4335.2},   /* 12-15 dip = ربح صغير للبائع */
+  {o:4334.3,h:4367.9,l:4297.4,c:4332.3}, /* 12-16 */
+  {o:4333.5,h:4383.6,l:4330.7,c:4373.9}, /* 12-17 */
+  {o:4371.5,h:4409.5,l:4338,c:4364.5},   /* 12-18 breaks pin high = SL hit */
+  {o:4363.6,h:4389,l:4336.3,c:4387.3},   /* 12-19 */
+  {o:4369.9,h:4484.5,l:4367.9,c:4469.4}  /* 12-22 waصل صعود */
 ],{
-  extra:[126,138],
+  extra:[4197,4505],
   annos:[
-    {type:'pin',i:4,at:126,dy:-42},
-    {type:'entry',i:4,price:112,dir:'sell',label:'دخول بيع'},
-    {type:'sl',price:126},
-    {type:'fail',i:8,at:141,label:'❌ واصل صعود'}
+    {type:'pin',i:4,at:4387.8,dy:-74},
+    {type:'entry',i:4,price:4330,dir:'sell',label:'دخول بيع'},
+    {type:'sl',price:4392}
   ]
 });
 
-/* Chart B — bullish pin bar at a bottom FAILS (downtrend continues) */
+/* Chart B — REAL: bullish pin bar at a bottom FAILS (Gold, 21 May–5 Jun 2026) */
 renderChart('chB',[
-  {o:138,h:139,l:135,c:136},{o:136,h:137,l:132,c:133},{o:133,h:134,l:129,c:130},
-  {o:130,h:131,l:126,c:127},
-  {o:127,h:127.5,l:112,c:126},           /* idx4 pin bar: long lower wick */
-  {o:126,h:131,l:125,c:130},             /* small bounce = ربح صغير */
-  {o:130,h:131,l:123,c:124},
-  {o:124,h:125,l:110,c:111},             /* breaks pin low = SL hit */
-  {o:111,h:112,l:104,c:105},{o:105,h:106,l:99,c:100}
+  {o:4548,h:4572.4,l:4488.3,c:4542.5},   /* 05-21 */
+  {o:4544.2,h:4547,l:4488,c:4523.2},     /* 05-22 */
+  {o:4532,h:4583.3,l:4480,c:4502.3},     /* 05-25 */
+  {o:4507.4,h:4528.1,l:4398.5,c:4448.4}, /* 05-27 */
+  {o:4488,h:4547.1,l:4395.6,c:4532.4},   /* 05-28 PIN — long lower wick at a low */
+  {o:4527.6,h:4627.1,l:4519.5,c:4593},   /* 05-29 bounce = ربح صغير للمشتري */
+  {o:4575.2,h:4577.3,l:4476,c:4506.3},   /* 06-01 */
+  {o:4515.8,h:4571.3,l:4492.3,c:4519.9}, /* 06-02 */
+  {o:4520,h:4525.1,l:4454,c:4466.9},     /* 06-03 */
+  {o:4462.6,h:4543.2,l:4450.1,c:4505},   /* 06-04 */
+  {o:4503,h:4508.7,l:4336.6,c:4365.3}    /* 06-05 breaks pin low = SL hit, واصل هبوط */
 ],{
-  extra:[112,100],
+  extra:[4320,4627],
   annos:[
-    {type:'pin',i:4,at:112,dy:26},
-    {type:'entry',i:4,price:126,dir:'buy',label:'دخول شراء'},
-    {type:'sl',price:112},
-    {type:'fail',i:8,at:101,label:'❌ واصل هبوط'}
+    {type:'pin',i:4,at:4395.6,dy:28},
+    {type:'entry',i:4,price:4532,dir:'buy',label:'دخول شراء'},
+    {type:'sl',price:4390}
   ]
 });
 </script>
