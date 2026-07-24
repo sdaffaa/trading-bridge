@@ -35,6 +35,8 @@ def capture(symbol: str, timeframe: str) -> bytes:
             page.wait_for_timeout(config.SHOT_WAIT_MS)
             _dismiss(page)
             page.wait_for_timeout(1500)
+            _dismiss(page)                 # catch late cookie/sign-in banners
+            page.wait_for_timeout(500)
             png = page.screenshot(type="png")
             browser.close()
         jlog("chartshot_ok", symbol=symbol, timeframe=timeframe, bytes=len(png))
@@ -55,7 +57,8 @@ def _tv_interval(tf: str) -> str:
 def _dismiss(page):
     """Best-effort close of TradingView's sign-in / cookie popups."""
     for sel in ('button[aria-label="Close"]', 'button:has-text("Accept all")',
-                '.tv-dialog__close', '[data-name="close"]'):
+                'button:has-text("Accept All")', 'button:has-text("I accept")',
+                'button:has-text("Got it")', '.tv-dialog__close', '[data-name="close"]'):
         try:
             el = page.locator(sel).first
             if el.count() and el.is_visible():

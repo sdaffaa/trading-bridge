@@ -137,14 +137,19 @@ def _coordinate(markups, png, symbol, timeframe, htf_context: str = "") -> dict:
         "price2 for a zone's other edge), and kind (bull=support/demand, bear=supply/"
         "resistance, neutral=reference)."
         f"{tf_note}{htf_block}\n\n{lenses}")
+    # generous budget: with a multi-timeframe chain the context is large and the
+    # structured output carries the plan + drawing coordinates + key_levels + an
+    # Arabic reason. Too small a cap truncates the JSON and it fails to parse.
     resp = _c().messages.create(
-        model=config.MODEL, max_tokens=1500, thinking={"type": "adaptive"},
+        model=config.MODEL, max_tokens=4000, thinking={"type": "adaptive"},
         output_config={"effort": "high", "format": {"type": "json_schema", "schema": _PLAN_SCHEMA}},
         messages=[{"role": "user", "content": [_img(png), {"type": "text", "text": prompt}]}])
-    text = next((b.text for b in resp.content if b.type == "text"), "{}")
+    text = next((b.text for b in resp.content if b.type == "text"), "") or ""
     try:
-        plan = json.loads(text)
+        plan = json.loads(text) if text.strip() else {}
     except json.JSONDecodeError:
+        plan = {}
+    if not plan:
         plan = {"action": "alert_human", "grade": "none", "confidence": 0.0,
                 "entry": 0, "stop_loss": 0, "take_profit": 0,
                 "reason": "coordinator returned unparseable output"}
