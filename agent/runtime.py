@@ -148,7 +148,7 @@ def _run_vision(alert: dict, run_id: str) -> dict:
     htf, ltf = (tfs[0], tfs[-1]) if tfs else (None, alert["timeframe"])
     tf_label = f"{htf}→{ltf}" if tfs else ltf
 
-    png, markups, levels = None, [], {}
+    png, markups, levels, key_levels = None, [], {}, []
     htf_png = chartshot.capture(alert["symbol"], htf) if tfs else None
     png = chartshot.capture(alert["symbol"], ltf)      # entry chart (also the image sent)
     if not png or (tfs and not htf_png):
@@ -168,6 +168,7 @@ def _run_vision(alert: dict, run_id: str) -> dict:
                 out = vision.analyze(png, alert["symbol"], ltf)
             decision, markups = out["decision"], out["markups"]
             levels = out.get("levels") or {}
+            key_levels = out.get("key_levels") or []
             monitoring.record_run(True)
         except Exception as e:
             jlog("vision_error", run=run_id, id=alert["id"], error=str(e))
@@ -187,7 +188,7 @@ def _run_vision(alert: dict, run_id: str) -> dict:
         try:
             ys = levels or vision.locate_levels(png, alert["symbol"], ltf, decision)
             if ys:
-                png = annotate.render(png, decision, ys)
+                png = annotate.render(png, decision, ys, key_levels)
             else:
                 jlog("annotate_skipped", run=run_id, id=alert["id"], reason="no_levels")
         except Exception as e:

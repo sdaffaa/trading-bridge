@@ -170,6 +170,40 @@ def test_annotate_noop_on_no_trade():
     assert annotate.render(png, {"action": "no_trade"}, {}) == png
 
 
+def test_annotate_draws_school_levels():
+    from agent import annotate
+    png = _blank_png()
+    d = {"action": "long", "grade": "A", "entry": 4055, "stop_loss": 4038,
+         "take_profit": 4090, "risk_reward": 2.06}
+    ys = {"entry_y": 0.52, "stop_y": 0.63, "target_y": 0.30}
+    kl = [{"label": "FVG", "price": 4050, "price2": 4060, "kind": "bull"},
+          {"label": "POC", "price": 4055, "kind": "neutral"}]
+    out = annotate.render(png, d, ys, kl)
+    assert out != png and len(out) > len(png)
+
+
+def test_price_to_y_linear_fit():
+    from agent.annotate import _price_to_y
+    f = _price_to_y([(4055, 0.5), (4038, 0.63), (4090, 0.3)])
+    assert f is not None
+    # higher price maps nearer the top (smaller fraction)
+    assert f(4090) < f(4055) < f(4038)
+
+
+def test_vision_analyze_extracts_key_levels(monkeypatch):
+    monkeypatch.setattr(config, "VISION_SCHOOLS", {"ict"})
+    plan = {"action": "long", "grade": "B", "confidence": 0.7,
+            "entry": 2000, "stop_loss": 1990, "take_profit": 2030, "reason": "up",
+            "entry_y": 0.5, "stop_y": 0.6, "target_y": 0.3,
+            "key_levels": [{"label": "FVG", "price": 1995, "price2": 1998, "kind": "bull"},
+                           {"label": "bad", "price": "x", "kind": "bull"}]}
+    monkeypatch.setattr(vision, "_client", _Client(plan))
+    out = vision.analyze(b"png", "OANDA:XAUUSD", "15")
+    assert len(out["key_levels"]) == 1               # the non-numeric price is dropped
+    assert out["key_levels"][0]["label"] == "FVG"
+    assert out["key_levels"][0]["price2"] == 1998.0
+
+
 def test_vision_handles_bad_coordinator(monkeypatch):
     monkeypatch.setattr(config, "VISION_SCHOOLS", {"ict"})
 

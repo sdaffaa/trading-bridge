@@ -50,8 +50,36 @@ def _label(draw, x: int, y: int, text: str, fg, bg, font):
     draw.text((x + pad, y - th // 2 - t), text, fill=fg, font=font)
 
 
-def render(png: bytes, decision: dict, ys: dict) -> bytes:
-    """Return a PNG with the trade markup drawn on it (or the original on any issue)."""
+def _price_to_y(anchors):
+    """Least-squares fit of price -> y-fraction from the (price, y) trade anchors.
+    Returns a function price->fraction, or None if the prices are degenerate."""
+    pts = [(p, y) for p, y in anchors if p is not None and y is not None]
+    if len(pts) < 2:
+        return None
+    n = len(pts)
+    sp = sum(p for p, _ in pts)
+    sy = sum(y for _, y in pts)
+    spp = sum(p * p for p, _ in pts)
+    spy = sum(p * y for p, y in pts)
+    denom = n * spp - sp * sp
+    if denom == 0:
+        return None
+    a = (n * spy - sp * sy) / denom
+    b = (sy - a * sp) / n
+    return lambda price: a * price + b
+
+
+def _kind_color(kind):
+    return {"bull": _GREEN, "bear": _RED}.get(kind, (96, 165, 250))   # neutral = blue
+
+
+def render(png: bytes, decision: dict, ys: dict, key_levels=None) -> bytes:
+    """Return a PNG with the trade markup drawn on it (or the original on any issue).
+
+    Draws the position box (entry/SL/TP) plus, when the schools supplied them,
+    their key levels/zones (FVG, order blocks, POC, liquidity) mapped onto the
+    chart by fitting price->pixel from the trade anchors.
+    """
     try:
         from PIL import Image, ImageDraw
     except ImportError:
@@ -69,6 +97,30 @@ def render(png: bytes, decision: dict, ys: dict) -> bytes:
         overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         d = ImageDraw.Draw(overlay)
 
+        # --- the schools' key levels/zones (drawn first, under the trade box) ---
+        p2y = _price_to_y([(entry, ey), (sl, sy), (tp, ty)])
+        drawn_levels = 0
+        if p2y and key_levels:
+            sf = _font(max(11, int(h * 0.018)))
+            for lvl in key_levels[:6]:
+                price = lvl.get("price")
+                if price is None:
+                    continue
+                col = _kind_color(lvl.get("kind"))
+                yv = int(min(1.0, max(0.0, p2y(price))) * h)
+                p2 = lvl.get("price2")
+                if p2 is not None:                       # a zone
+                    yv2 = int(min(1.0, max(0.0, p2y(p2))) * h)
+                    d.rectangle([0, min(yv, yv2), w, max(yv, yv2)], fill=col + (28,))
+                _dash(d, yv, w, col + (170,), dash=10, gap=10, width=1)
+                # right-align the label so a long one never runs off the edge
+                label = lvl.get("label", "")
+                bb = d.textbbox((0, 0), label, font=sf)
+                lx = max(8, w - (bb[2] - bb[0]) - int(w * 0.03))
+                _label(d, lx, yv, label, (255, 255, 255, 255), col + (210,), sf)
+                drawn_levels += 1
+
+        # --- the position box (entry / SL / TP), drawn on top ---
         pe, ps, pt = int(ey * h), int(sy * h), int(ty * h)
         x0 = int(w * 0.58)                 # box sits on the right, like the position tool
 
@@ -94,7 +146,7 @@ def render(png: bytes, decision: dict, ys: dict) -> bytes:
         out = Image.alpha_composite(base, overlay).convert("RGB")
         buf = io.BytesIO()
         out.save(buf, format="PNG")
-        jlog("annotate_ok", action=action)
+        jlog("annotate_ok", action=action, key_levels=drawn_levels)
         return buf.getvalue()
     except Exception as e:                 # markup must never block the send
         jlog("annotate_error", error=str(e)[:200])

@@ -57,6 +57,22 @@ _PLAN_SCHEMA = {
         "entry_y": {"type": "number"},
         "stop_y": {"type": "number"},
         "target_y": {"type": "number"},
+        # the schools' key levels/zones to draw on the chart (FVG, order blocks,
+        # POC/VAH/VAL, liquidity, BOS/CHoCH). price2 marks a zone's other bound.
+        "key_levels": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "label": {"type": "string"},
+                    "price": {"type": "number"},
+                    "price2": {"type": "number"},
+                    "kind": {"type": "string", "enum": ["bull", "bear", "neutral"]},
+                },
+                "required": ["label", "price", "kind"],
+                "additionalProperties": False,
+            },
+        },
     },
     "required": ["action", "grade", "confidence", "entry", "stop_loss",
                  "take_profit", "reason"],
@@ -114,7 +130,12 @@ def _coordinate(markups, png, symbol, timeframe, htf_context: str = "") -> dict:
         "If action is long or short, ALSO return entry_y, stop_y and target_y: the "
         "vertical position of the entry, stop and target on THIS image as a fraction "
         "from 0.0 (very top edge) to 1.0 (very bottom edge), read against the right-hand "
-        "price axis (higher price = smaller fraction)."
+        "price axis (higher price = smaller fraction). ALSO return key_levels: up to 6 of "
+        "the most important levels/zones the schools identified to draw on the chart — "
+        "FVG, order blocks, POC/VAH/VAL, liquidity pools, BOS/CHoCH levels — each with a "
+        "short English label (e.g. 'FVG', 'OB', 'POC', 'BSL', 'SSL'), its price (and "
+        "price2 for a zone's other edge), and kind (bull=support/demand, bear=supply/"
+        "resistance, neutral=reference)."
         f"{tf_note}{htf_block}\n\n{lenses}")
     resp = _c().messages.create(
         model=config.MODEL, max_tokens=1500, thinking={"type": "adaptive"},
@@ -279,9 +300,27 @@ def _finalize(markups, png, symbol, timeframe, htf_context=""):
         if v is not None:
             levels[k] = min(1.0, max(0.0, float(v)))
     levels = levels if len(levels) == 3 else {}
+    # the schools' key levels/zones to draw on the chart
+    key_levels = []
+    for it in (plan.get("key_levels") or [])[:6]:
+        try:
+            price = float(it.get("price"))
+        except (TypeError, ValueError):
+            continue
+        lvl = {"label": str(it.get("label", ""))[:20], "price": price,
+               "kind": it.get("kind", "neutral")}
+        p2 = it.get("price2")
+        if p2 not in (None, 0):
+            try:
+                lvl["price2"] = float(p2)
+            except (TypeError, ValueError):
+                pass
+        key_levels.append(lvl)
     jlog("vision_decision", symbol=symbol, action=decision["action"],
-         grade=decision["grade"], rr=decision.get("risk_reward"), located=bool(levels))
-    return {"decision": decision, "markups": markups, "levels": levels}
+         grade=decision["grade"], rr=decision.get("risk_reward"),
+         located=bool(levels), key_levels=len(key_levels))
+    return {"decision": decision, "markups": markups, "levels": levels,
+            "key_levels": key_levels}
 
 
 def analyze_mtf(htf_png, ltf_png, symbol, htf, ltf) -> dict:
