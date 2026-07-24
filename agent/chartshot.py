@@ -45,8 +45,9 @@ def capture(symbol: str, timeframe: str) -> bytes:
 
 
 def _tv_interval(tf: str) -> str:
-    # TradingView URL intervals: 1,5,15,60,240,1D,1W
-    m = {"1": "1", "5": "5", "15": "15", "30": "30", "60": "60", "1H": "60",
+    # TradingView URL intervals: 1,2,3,5,10,15,30,60,120,240,1D,1W
+    m = {"1": "1", "2": "2", "3": "3", "5": "5", "10": "10", "15": "15",
+         "30": "30", "60": "60", "1H": "60", "120": "120", "2H": "120",
          "240": "240", "4H": "240", "1D": "1D", "D": "1D", "1W": "1W", "W": "1W"}
     return m.get(str(tf), str(tf))
 
