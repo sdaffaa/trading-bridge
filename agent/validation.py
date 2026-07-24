@@ -18,7 +18,13 @@ def validate_alert(data) -> dict:
         raise Reject("payload is not a JSON object")
 
     symbol = data.get("symbol")
-    if symbol not in config.ALLOWED_SYMBOLS:
+    # Match tolerantly: TradingView sends the bare ticker ("XAUUSD") while the
+    # allowlist may carry an exchange prefix ("OANDA:XAUUSD"). Compare by the
+    # part after ":" so both forms work.
+    def _bare(s):
+        return str(s).split(":")[-1].strip().upper()
+    allowed_bare = {_bare(x) for x in config.ALLOWED_SYMBOLS}
+    if symbol not in config.ALLOWED_SYMBOLS and _bare(symbol) not in allowed_bare:
         raise Reject(f"symbol not allowed: {symbol!r}")
 
     action = str(data.get("action", "")).lower()
