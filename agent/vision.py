@@ -212,14 +212,16 @@ def locate_levels(png: bytes, symbol: str, timeframe: str, decision: dict) -> di
         f"- stop_loss = {sl} -> stop_y\n- take_profit = {tp} -> target_y\n"
         "Higher price = smaller fraction (nearer the top).")
     try:
+        # ample max_tokens: adaptive thinking must not starve the JSON output
+        # (a tight cap makes the model spend the budget thinking and emit nothing).
         resp = _c().messages.create(
-            model=config.MODEL, max_tokens=600, thinking={"type": "adaptive"},
+            model=config.MODEL, max_tokens=2000, thinking={"type": "adaptive"},
             output_config={"effort": "high",
                            "format": {"type": "json_schema", "schema": _LOCATE_SCHEMA}},
             messages=[{"role": "user",
                        "content": [_img(png), {"type": "text", "text": prompt}]}])
-        text = next((b.text for b in resp.content if b.type == "text"), "{}")
-        raw = json.loads(text)
+        text = next((b.text for b in resp.content if b.type == "text"), "") or ""
+        raw = json.loads(text) if text.strip() else {}
     except Exception as e:
         jlog("vision_locate_error", symbol=symbol, error=str(e)[:200])
         return {}
@@ -228,8 +230,9 @@ def locate_levels(png: bytes, symbol: str, timeframe: str, decision: dict) -> di
         v = raw.get(k)
         if v is not None:
             out[k] = min(1.0, max(0.0, float(v)))
-    jlog("vision_locate", symbol=symbol, **out)
-    return out
+    complete = len(out) == 3
+    jlog("vision_locate", symbol=symbol, ok=complete, **out)
+    return out if complete else {}
 
 
 def analyze(png: bytes, symbol: str, timeframe: str) -> dict:
