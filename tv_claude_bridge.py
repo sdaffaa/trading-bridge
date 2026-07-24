@@ -19,11 +19,15 @@ import hmac
 
 from flask import Flask, request, jsonify
 
-from agent import config
+from agent import config, scheduler
 from agent.runtime import dispatch, run_alert, Reject
 from agent.logging_setup import jlog
 
 app = Flask(__name__)
+
+# Start the autonomous scheduler at import time so it runs under gunicorn too
+# (no __main__). No-op unless AGENT_SCHEDULE_SECONDS > 0; idempotent.
+scheduler.start_if_enabled()
 
 
 def _authorized(req) -> bool:

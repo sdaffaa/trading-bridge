@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from agent import config, validation, idempotency, tools
+from agent import config, validation, idempotency, tools, scheduler
 import agent.runtime as runtime
 import tv_claude_bridge as bridge
 
@@ -100,6 +100,27 @@ def test_run_alert_survives_agent_error(monkeypatch):
     monkeypatch.setattr(runtime, "_client", Boom())
     out = runtime.run_alert({"symbol": "OANDA:XAUUSD", "action": "buy", "price": 1, "id": "E"})
     assert out["status"] == "error"                  # caught, not raised
+
+
+# --- scheduler ------------------------------------------------------------
+def test_scheduler_off_by_default(monkeypatch):
+    monkeypatch.setattr(config, "SCHEDULE_SECONDS", 0)
+    monkeypatch.setattr(scheduler, "_started", False)
+    assert scheduler.start_if_enabled() is False
+
+
+def test_scheduler_symbols_fallback(monkeypatch):
+    monkeypatch.setattr(config, "SCHEDULE_SYMBOLS", set())
+    monkeypatch.setattr(config, "ALLOWED_SYMBOLS", {"OANDA:XAUUSD", "FX:EURUSD"})
+    # empty schedule set -> first allowed symbol (sorted)
+    assert config.schedule_symbols() == {"FX:EURUSD"}
+
+
+def test_scheduler_starts_when_enabled(monkeypatch):
+    monkeypatch.setattr(config, "SCHEDULE_SECONDS", 3600)  # long, won't tick in-test
+    monkeypatch.setattr(scheduler, "_started", False)
+    assert scheduler.start_if_enabled() is True
+    assert scheduler.start_if_enabled() is True             # idempotent
 
 
 # --- webhook endpoints ----------------------------------------------------

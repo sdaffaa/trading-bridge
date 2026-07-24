@@ -76,6 +76,34 @@ env / the notify module — never in the model's context.
 **Go live deliberately:** watch several dry-run runs in the logs, confirm the
 decisions and would-have sends look right, then set `AGENT_DRY_RUN=0`.
 
+## Getting it running
+
+One command, then it runs on its own:
+
+```bash
+cp .env.example .env         # fill ANTHROPIC_API_KEY + Telegram; keep AGENT_DRY_RUN=1 at first
+docker compose up -d         # or: ./start.sh   (venv + gunicorn, no Docker)
+```
+
+**How analysis starts without you.** The agent begins on an *event*, not a
+command. Two ways:
+
+- **Webhook (reactive).** Point a TradingView alert at `https://<host>/webhook`
+  with a JSON message like
+  `{"symbol":"OANDA:XAUUSD","action":"buy","price":{{close}},"timeframe":"{{interval}}"}`.
+  When the market condition fires, TradingView calls the webhook and the agent
+  runs — hands-off.
+- **Scheduler (autonomous).** Set `AGENT_SCHEDULE_SECONDS` > 0 and the system
+  analyzes the configured symbols on that interval by itself — no webhook, no
+  command:
+
+  ```bash
+  AGENT_SCHEDULE_SECONDS=3600 AGENT_SCHEDULE_SYMBOLS=OANDA:XAUUSD AGENT_SCHEDULE_TIMEFRAME=240
+  ```
+
+Both run through the same validated, deduped, gated pipeline. `GET /status`
+reflects the live config (including the schedule).
+
 ## Tests
 
 No network or API key needed — the Claude call is stubbed:

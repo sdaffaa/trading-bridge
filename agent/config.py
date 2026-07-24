@@ -37,6 +37,16 @@ STATE_DIR = os.environ.get("AGENT_STATE_DIR", "/tmp/agent-state")
 # --- optional capabilities ---
 ENABLE_CHART_READS = _flag("AGENT_ENABLE_CHART_READS", "0")  # drives the TV skill
 
+# --- scheduled (autonomous) trigger: the system analyzes on its own, no webhook ---
+SCHEDULE_SECONDS = int(os.environ.get("AGENT_SCHEDULE_SECONDS", "0"))  # 0 = off
+SCHEDULE_SYMBOLS = _csv("AGENT_SCHEDULE_SYMBOLS", "")                    # empty = first allowed
+SCHEDULE_TIMEFRAME = os.environ.get("AGENT_SCHEDULE_TIMEFRAME", "240")
+
+
+def schedule_symbols() -> set:
+    """Symbols the scheduler analyzes; falls back to the first allowed symbol."""
+    return SCHEDULE_SYMBOLS or set(sorted(ALLOWED_SYMBOLS)[:1])
+
 # --- webhook ---
 WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "")       # optional shared secret
 PORT = int(os.environ.get("PORT", "5000"))
@@ -60,4 +70,7 @@ def summary() -> dict:
         "enable_chart_reads": ENABLE_CHART_READS,
         "webhook_secret_set": bool(WEBHOOK_SECRET),
         "telegram_configured": bool(TELEGRAM_TOKEN and TELEGRAM_CHAT_ID),
+        "schedule_seconds": SCHEDULE_SECONDS,
+        "schedule_symbols": sorted(schedule_symbols()) if SCHEDULE_SECONDS > 0 else [],
+        "schedule_timeframe": SCHEDULE_TIMEFRAME,
     }
