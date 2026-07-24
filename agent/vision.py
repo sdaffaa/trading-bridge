@@ -52,6 +52,11 @@ _PLAN_SCHEMA = {
         "stop_loss": {"type": "number"},
         "take_profit": {"type": "number"},
         "reason": {"type": "string"},
+        # vertical position (0=top edge .. 1=bottom edge) of each level on THIS
+        # chart image, so the markup can be drawn on it. Filled for long/short.
+        "entry_y": {"type": "number"},
+        "stop_y": {"type": "number"},
+        "target_y": {"type": "number"},
     },
     "required": ["action", "grade", "confidence", "entry", "stop_loss",
                  "take_profit", "reason"],
@@ -105,7 +110,11 @@ def _coordinate(markups, png, symbol, timeframe, htf_context: str = "") -> dict:
         "take_profit at the opposing liquidity / value-area edge. If no valid trade, "
         "use action no_trade (or alert_human if a human should look). Read levels from "
         "the chart axis. Write the 'reason' field in ARABIC — a concise sentence citing "
-        "the schools that agree and the key levels (اكتب حقل reason بالعربية)."
+        "the schools that agree and the key levels (اكتب حقل reason بالعربية). "
+        "If action is long or short, ALSO return entry_y, stop_y and target_y: the "
+        "vertical position of the entry, stop and target on THIS image as a fraction "
+        "from 0.0 (very top edge) to 1.0 (very bottom edge), read against the right-hand "
+        "price axis (higher price = smaller fraction)."
         f"{tf_note}{htf_block}\n\n{lenses}")
     resp = _c().messages.create(
         model=config.MODEL, max_tokens=1500, thinking={"type": "adaptive"},
@@ -263,9 +272,16 @@ def _finalize(markups, png, symbol, timeframe, htf_context=""):
     }
     decision.update(risk.compute(decision["action"], plan.get("entry", 0),
                                  plan.get("stop_loss", 0), plan.get("take_profit", 0)))
+    # coordinator-provided drawing coordinates (primary source for the markup)
+    levels = {}
+    for k in ("entry_y", "stop_y", "target_y"):
+        v = plan.get(k)
+        if v is not None:
+            levels[k] = min(1.0, max(0.0, float(v)))
+    levels = levels if len(levels) == 3 else {}
     jlog("vision_decision", symbol=symbol, action=decision["action"],
-         grade=decision["grade"], rr=decision.get("risk_reward"))
-    return {"decision": decision, "markups": markups}
+         grade=decision["grade"], rr=decision.get("risk_reward"), located=bool(levels))
+    return {"decision": decision, "markups": markups, "levels": levels}
 
 
 def analyze_mtf(htf_png, ltf_png, symbol, htf, ltf) -> dict:

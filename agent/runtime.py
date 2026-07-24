@@ -148,7 +148,7 @@ def _run_vision(alert: dict, run_id: str) -> dict:
     htf, ltf = (tfs[0], tfs[-1]) if tfs else (None, alert["timeframe"])
     tf_label = f"{htf}→{ltf}" if tfs else ltf
 
-    png, markups = None, []
+    png, markups, levels = None, [], {}
     htf_png = chartshot.capture(alert["symbol"], htf) if tfs else None
     png = chartshot.capture(alert["symbol"], ltf)      # entry chart (also the image sent)
     if not png or (tfs and not htf_png):
@@ -167,6 +167,7 @@ def _run_vision(alert: dict, run_id: str) -> dict:
             else:
                 out = vision.analyze(png, alert["symbol"], ltf)
             decision, markups = out["decision"], out["markups"]
+            levels = out.get("levels") or {}
             monitoring.record_run(True)
         except Exception as e:
             jlog("vision_error", run=run_id, id=alert["id"], error=str(e))
@@ -180,12 +181,15 @@ def _run_vision(alert: dict, run_id: str) -> dict:
     idempotency.mark(f"run:{alert['id']}")
     store.record_decision(alert["id"], run_id, alert["symbol"], decision, config.DRY_RUN)
 
-    # draw the trade markup (entry / SL / TP zones) onto the image that gets sent
+    # draw the trade markup (entry / SL / TP zones) onto the image that gets sent.
+    # Prefer the coordinator's own coordinates; fall back to a dedicated locate call.
     if png and decision.get("action") in ("long", "short"):
         try:
-            ys = vision.locate_levels(png, alert["symbol"], ltf, decision)
+            ys = levels or vision.locate_levels(png, alert["symbol"], ltf, decision)
             if ys:
                 png = annotate.render(png, decision, ys)
+            else:
+                jlog("annotate_skipped", run=run_id, id=alert["id"], reason="no_levels")
         except Exception as e:
             jlog("annotate_error", run=run_id, id=alert["id"], error=str(e)[:200])
 
