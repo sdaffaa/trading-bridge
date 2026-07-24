@@ -162,9 +162,12 @@ _REVIEW_SCHEMA = {
                     "id": {"type": "string"},
                     "status": {"type": "string",
                                "enum": ["tp_hit", "sl_hit", "running", "unclear"]},
+                    "manage": {"type": "string",
+                               "enum": ["hold", "move_sl_be", "partial_tp",
+                                        "trail_sl", "tighten_sl", "exit"]},
                     "note": {"type": "string"},
                 },
-                "required": ["id", "status", "note"],
+                "required": ["id", "status", "manage", "note"],
                 "additionalProperties": False,
             },
         }
@@ -188,15 +191,23 @@ def evaluate_open_trades(png: bytes, symbol: str, timeframe: str, trades: list) 
         f"وقف {t.get('sl')} | هدف {t.get('tp')}" for t in trades)
     prompt = (
         f"These are OPEN trades previously signalled on {symbol} {timeframe}. Using the "
-        "attached current chart, judge each one from price action since entry: has price "
-        "reached take_profit (tp_hit), hit stop_loss (sl_hit), or is it still running "
-        "(running)? Use 'unclear' only if the levels are off-screen. For a LONG, tp is "
-        "above and sl is below entry; for a SHORT, the reverse. Read levels from the "
-        "right-hand axis. Write each 'note' in ARABIC (سطر قصير بالعربية).\n\n"
+        "attached current chart, for EACH trade decide two things:\n"
+        "1) status — has price reached take_profit (tp_hit), hit stop_loss (sl_hit), or "
+        "is it still running (running)? Use 'unclear' only if the levels are off-screen. "
+        "For a LONG, tp is above and sl is below entry; for a SHORT, the reverse.\n"
+        "2) manage — a trade-management recommendation from the current price action "
+        "(only meaningful while running): 'hold' (on track, do nothing), 'move_sl_be' "
+        "(in decent profit — move stop to entry/breakeven), 'partial_tp' (near a level / "
+        "extended — bank partial profit), 'trail_sl' (trending your way — trail the stop "
+        "behind structure), 'tighten_sl' (momentum fading — tighten the stop), or 'exit' "
+        "(structure/context flipped against the trade — close early). Be conservative: "
+        "prefer 'hold' unless the chart clearly warrants an action.\n"
+        "Read levels from the right-hand axis. Write each 'note' in ARABIC — a short "
+        "sentence justifying the management call (سطر قصير بالعربية).\n\n"
         f"{listing}")
     try:
         resp = _c().messages.create(
-            model=config.MODEL, max_tokens=1200, thinking={"type": "adaptive"},
+            model=config.MODEL, max_tokens=1500, thinking={"type": "adaptive"},
             output_config={"effort": "high",
                            "format": {"type": "json_schema", "schema": _REVIEW_SCHEMA}},
             messages=[{"role": "user",
@@ -206,7 +217,8 @@ def evaluate_open_trades(png: bytes, symbol: str, timeframe: str, trades: list) 
     except Exception as e:
         jlog("vision_review_error", symbol=symbol, error=str(e)[:200])
         return {}
-    out = {r["id"]: {"status": r.get("status", "unclear"), "note": r.get("note", "")}
+    out = {r["id"]: {"status": r.get("status", "unclear"),
+                     "manage": r.get("manage", "hold"), "note": r.get("note", "")}
            for r in reviews if r.get("id")}
     jlog("vision_review", symbol=symbol, reviewed=len(out))
     return out

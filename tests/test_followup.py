@@ -1,5 +1,5 @@
 """Arabic trade formatting + open-trade follow-up (the feedback loop)."""
-from agent import config, store
+from agent import config, store, idempotency
 import agent.runtime as runtime
 
 
@@ -66,7 +66,29 @@ def test_followup_sl_hit_records_loss(monkeypatch):
 def test_followup_running_keeps_trade_open(monkeypatch):
     monkeypatch.setattr(config, "DRY_RUN", True)
     _seed_open_trade()
-    vision = _FakeVision({"evt-1": {"status": "running", "note": "ما زالت جارية"}})
+    vision = _FakeVision({"evt-1": {"status": "running", "manage": "hold",
+                                    "note": "ما زالت جارية"}})
     runtime._followup_open_trades({"symbol": "OANDA:XAUUSD", "timeframe": "15"},
                                   b"png", vision, "15")
     assert len(store.open_trades("OANDA:XAUUSD")) == 1   # still open
+
+
+def test_followup_running_management_recommendation(monkeypatch):
+    monkeypatch.setattr(config, "DRY_RUN", True)
+    _seed_open_trade()
+    vision = _FakeVision({"evt-1": {"status": "running", "manage": "move_sl_be",
+                                    "note": "الصفقة في ربح جيد"}})
+    runtime._followup_open_trades({"symbol": "OANDA:XAUUSD", "timeframe": "3"},
+                                  b"png", vision, "3")
+    assert len(store.open_trades("OANDA:XAUUSD")) == 1        # still open, managed
+    assert idempotency.seen("manage:evt-1:move_sl_be")       # rec sent (deduped)
+
+
+def test_followup_running_hold_is_silent(monkeypatch):
+    monkeypatch.setattr(config, "DRY_RUN", True)
+    _seed_open_trade()
+    vision = _FakeVision({"evt-1": {"status": "running", "manage": "hold",
+                                    "note": "سليمة"}})
+    runtime._followup_open_trades({"symbol": "OANDA:XAUUSD", "timeframe": "3"},
+                                  b"png", vision, "3")
+    assert not idempotency.seen("manage:evt-1:hold")         # no message for 'hold'

@@ -197,7 +197,7 @@ def _run_vision(alert: dict, run_id: str) -> dict:
     # Prefer the coordinator's own coordinates; fall back to a dedicated locate call.
     if png and decision.get("action") in ("long", "short"):
         try:
-            ys = levels or vision.locate_levels(png, alert["symbol"], ltf, decision)
+            ys = levels or vision.locate_levels(png, alert["symbol"], entry_tf, decision)
             if ys:
                 png = annotate.render(png, decision, ys, key_levels)
             else:
@@ -239,17 +239,30 @@ def _followup_open_trades(alert: dict, png, vision, timeframe=None) -> None:
             _send_followup(t["id"],
                            f"❌ ضرب الوقف\n📊 {t['symbol']} — {side}\n"
                            f"الدخول: {t.get('entry')} ← الوقف: {t.get('sl')}\n{note}")
-        # 'running' / 'unclear' stay open — no message, re-checked next run
+        elif status == "running":
+            # active trade management: send an actionable recommendation once per
+            # distinct action (deduped by manage key), stay silent on plain 'hold'.
+            manage = r.get("manage", "hold")
+            if manage in _AR_MANAGE:
+                _send_followup(
+                    t["id"],
+                    f"🛠️ إدارة الصفقة\n📊 {t['symbol']} — {side}\n"
+                    f"الدخول: {t.get('entry')} | الوقف: {t.get('sl')} | "
+                    f"الهدف: {t.get('tp')}\nالتوصية: {_AR_MANAGE[manage]}\n{note}",
+                    key=f"manage:{t['id']}:{manage}")
+        # 'unclear' stays open — re-checked next run
 
 
-def _send_followup(trade_id, message: str) -> None:
-    """Send a follow-up status message once (gated like any outbound notice)."""
+def _send_followup(trade_id, message: str, key: str = None) -> None:
+    """Send a follow-up message once (gated like any outbound notice). The dedupe
+    key defaults to one-per-trade; pass an action-specific key to allow a distinct
+    management message each time the recommendation changes."""
     import os
     from . import notify
     if os.path.exists(config.KILL_SWITCH_FILE):
         jlog("act_blocked", tool="telegram", id=trade_id, reason="kill_switch")
         return
-    key = f"followup:{trade_id}"
+    key = key or f"followup:{trade_id}"
     if idempotency.seen(key):
         return
     if config.DRY_RUN:
@@ -263,6 +276,16 @@ def _send_followup(trade_id, message: str) -> None:
 
 _AR_ACTION = {"long": "شراء 🟢", "short": "بيع 🔴",
               "no_trade": "لا توجد صفقة", "alert_human": "تدخل بشري ⚠️"}
+
+# active trade-management recommendations (Arabic). 'hold' is intentionally absent
+# so an on-track trade produces no message.
+_AR_MANAGE = {
+    "move_sl_be": "انقل وقف الخسارة إلى نقطة الدخول (تعادل) 🛡️",
+    "partial_tp": "جني أرباح جزئي وتأمين الباقي 💰",
+    "trail_sl": "حرّك الوقف خلف الهيكل (تتبّع الربح) 📈",
+    "tighten_sl": "قرّب وقف الخسارة — الزخم يضعف ⚠️",
+    "exit": "أغلق الصفقة الآن — السياق انقلب 🚪",
+}
 
 
 def _format_plan(alert: dict, d: dict, markups=None) -> str:
