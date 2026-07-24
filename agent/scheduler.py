@@ -9,7 +9,7 @@ deduped, gated pipeline the webhook uses.
 import time
 import threading
 
-from . import config
+from . import config, market_hours
 from .logging_setup import jlog
 
 _started = False
@@ -36,6 +36,9 @@ def _loop() -> None:
     while True:
         tick = int(time.time())
         for symbol in sorted(config.schedule_symbols()):
+            if config.RESPECT_MARKET_HOURS and not market_hours.is_open(symbol):
+                jlog("scheduler_skip_closed", symbol=symbol)
+                continue
             alert = {
                 "symbol": symbol,
                 "action": "info",

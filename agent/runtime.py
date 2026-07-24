@@ -10,7 +10,7 @@ import threading
 
 from anthropic import Anthropic
 
-from . import config, tools
+from . import config, tools, budget, monitoring, store
 from .validation import validate_alert, Reject  # re-exported for callers
 from . import idempotency
 from .logging_setup import jlog
@@ -20,17 +20,27 @@ __all__ = ["run_alert", "dispatch", "Reject"]
 _client = None
 _client_lock = threading.Lock()
 
-SYSTEM = (
-    "You are an automated trading-signal analyst agent inside a bridge that "
-    "receives TradingView alerts. For each alert:\n"
-    "1) If you need precise current prices, call read_chart; otherwise judge from "
-    "the alert fields.\n"
-    "2) Call submit_decision exactly once with action in "
-    "{long, short, no_trade, alert_human}, a confidence 0-1, and a one-line reason.\n"
-    "3) Then call send_telegram exactly once with a short human-readable summary "
-    "of your decision and why.\n"
-    "Be concise and decisive. You are NOT authorized to place or modify orders."
-)
+
+def _system() -> str:
+    lines = [
+        "You are an automated trading-signal analyst agent inside a bridge that "
+        "receives TradingView alerts. For each alert:",
+        "1) Call read_price for a current quote (and read_chart if enabled) before "
+        "judging; if data is unavailable, judge conservatively or escalate.",
+        "2) Call submit_decision exactly once with action in "
+        "{long, short, no_trade, alert_human}, a confidence 0-1, and a one-line reason.",
+    ]
+    if config.ENABLE_EXECUTION:
+        lines.append(
+            "3) If action is long/short and confidence is high, call place_order with "
+            "that side (it is capped and gated). Then call send_telegram once with a "
+            "short summary.")
+    else:
+        lines.append(
+            "3) Then call send_telegram exactly once with a short human-readable "
+            "summary of your decision and why. You are NOT authorized to place orders.")
+    lines.append("Use action alert_human when a human should look; be concise and decisive.")
+    return "\n".join(lines)
 
 
 def _client_singleton() -> Anthropic:
@@ -50,6 +60,11 @@ def run_alert(raw: dict) -> dict:
     if idempotency.seen(f"run:{alert['id']}"):
         jlog("skip_duplicate", run=run_id, id=alert["id"])
         return {"status": "duplicate", "id": alert["id"], "run": run_id}
+
+    allowed, why = budget.allow_run()                 # cost / rate control
+    if not allowed:
+        jlog("run_throttled", run=run_id, id=alert["id"], reason=why)
+        return {"status": "throttled", "id": alert["id"], "run": run_id, "reason": why}
 
     tools.new_context(run_id, alert["id"], alert)
     jlog("run_start", run=run_id, id=alert["id"], alert=alert,
@@ -71,14 +86,15 @@ def run_alert(raw: dict) -> dict:
             model=config.MODEL,
             max_tokens=config.MAX_TOKENS,
             thinking={"type": "adaptive"},
-            system=SYSTEM,
+            system=_system(),
             tools=tools.build_toolset(),
             messages=[{"role": "user", "content": prompt}],
         )
         deadline = time.time() + config.RUN_TIMEOUT_S
         iterations = 0
-        for _message in runner:
+        for message in runner:
             iterations += 1
+            _account_tokens(message)                   # daily budget accounting
             if iterations >= config.MAX_ITERATIONS:
                 jlog("run_capped", run=run_id, id=alert["id"], iterations=iterations)
                 break
@@ -87,13 +103,31 @@ def run_alert(raw: dict) -> dict:
                 break
     except Exception as e:                             # never crash the worker
         jlog("run_error", run=run_id, id=alert["id"], error=str(e))
+        monitoring.record_run(False, detail=str(e)[:200])
         return {"status": "error", "id": alert["id"], "run": run_id, "error": str(e)}
 
     idempotency.mark(f"run:{alert['id']}")
+    decision = tools.ctx.decision
+    store.record_decision(alert["id"], run_id, alert["symbol"], decision, config.DRY_RUN)
+    monitoring.record_run(True)
+    if decision and decision.get("action") == "alert_human":
+        monitoring.alert_operator(
+            f"🚨 escalation [{alert['symbol']}]: {decision.get('reason', '')}")
     result = {"status": "ok", "id": alert["id"], "run": run_id,
-              "decision": tools.ctx.decision, "dry_run": config.DRY_RUN}
+              "decision": decision, "dry_run": config.DRY_RUN}
     jlog("run_end", **result)
     return result
+
+
+def _account_tokens(message) -> None:
+    """Best-effort daily token accounting from the message usage."""
+    try:
+        u = getattr(message, "usage", None)
+        if u is not None:
+            budget.add_usage((getattr(u, "input_tokens", 0) or 0) +
+                             (getattr(u, "output_tokens", 0) or 0))
+    except Exception:
+        pass
 
 
 def dispatch(raw: dict) -> str:

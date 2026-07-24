@@ -5,24 +5,34 @@ loop runs but calls nothing.
 """
 import pytest
 
-from agent import config, idempotency, tools
+from agent import config, store, budget, monitoring, tools
 import agent.runtime as runtime
 
 
 @pytest.fixture(autouse=True)
 def isolate(tmp_path, monkeypatch):
-    """Per-test isolation: fresh state dir, dry-run on, deterministic policy."""
+    """Per-test isolation: fresh SQLite store, dry-run on, deterministic policy."""
     monkeypatch.setattr(config, "STATE_DIR", str(tmp_path / "state"))
     monkeypatch.setattr(config, "DRY_RUN", True)
     monkeypatch.setattr(config, "ENABLE_CHART_READS", False)
+    monkeypatch.setattr(config, "ENABLE_EXECUTION", False)
+    monkeypatch.setattr(config, "RESPECT_MARKET_HOURS", True)
+    monkeypatch.setattr(config, "DATA_PROVIDER", "none")
     monkeypatch.setattr(config, "KILL_SWITCH_FILE", str(tmp_path / "kill"))
     monkeypatch.setattr(config, "ALLOWED_SYMBOLS", {"OANDA:XAUUSD", "BINANCE:BTCUSDT"})
     monkeypatch.setattr(config, "ALLOWED_ACTIONS", {"buy", "sell", "info"})
     monkeypatch.setattr(config, "WEBHOOK_SECRET", "")
-    # reset the file-backed idempotency cache between tests
-    monkeypatch.setattr(idempotency, "_SEEN", set())
-    monkeypatch.setattr(idempotency, "_LOADED", False)
+    monkeypatch.setattr(config, "DAILY_TOKEN_BUDGET", 0)
+    monkeypatch.setattr(config, "MIN_RUN_INTERVAL_S", 0)
+    # fresh durable store bound to this test's dir
+    store.reset_for_tests()
+    # reset in-memory counters between tests
+    monkeypatch.setattr(budget, "_day", None)
+    monkeypatch.setattr(budget, "_tokens_used", 0)
+    monkeypatch.setattr(budget, "_last_run_ts", 0.0)
+    monkeypatch.setattr(monitoring, "_consecutive_failures", 0)
     yield
+    store.reset_for_tests()
 
 
 class _FakeMessages:

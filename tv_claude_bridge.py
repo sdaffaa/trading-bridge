@@ -19,15 +19,16 @@ import hmac
 
 from flask import Flask, request, jsonify
 
-from agent import config, scheduler
+from agent import config, scheduler, monitoring, store, budget
 from agent.runtime import dispatch, run_alert, Reject
 from agent.logging_setup import jlog
 
 app = Flask(__name__)
 
-# Start the autonomous scheduler at import time so it runs under gunicorn too
-# (no __main__). No-op unless AGENT_SCHEDULE_SECONDS > 0; idempotent.
+# Start background workers at import time so they run under gunicorn too
+# (no __main__). Each is a no-op unless configured; all idempotent.
 scheduler.start_if_enabled()
+monitoring.start_watchdog_if_enabled()
 
 
 def _authorized(req) -> bool:
@@ -64,12 +65,47 @@ def webhook():
 
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"status": "ok"}), 200
+    h = monitoring.health()
+    h["budget"] = budget.remaining()
+    return jsonify(h), 200
 
 
 @app.route("/status", methods=["GET"])
 def status():
     return jsonify(config.summary()), 200
+
+
+@app.route("/stats", methods=["GET"])
+def stats():
+    """Decision counts, accuracy, and P&L (the feedback loop)."""
+    out = store.stats()
+    out["recent"] = store.recent_decisions(limit=10)
+    return jsonify(out), 200
+
+
+@app.route("/outcome", methods=["POST"])
+def outcome():
+    """Record the outcome of a past decision: {id, outcome, pnl?}.
+
+    outcome is "win" | "loss" | "flat" (or any label); pnl is optional numeric.
+    """
+    if not _authorized(request):
+        return jsonify({"status": "unauthorized"}), 401
+    data = request.get_json(silent=True) or {}
+    event_id = data.get("id")
+    result = str(data.get("outcome", "")).strip()
+    if not event_id or not result:
+        return jsonify({"status": "bad_request", "reason": "need id and outcome"}), 400
+    pnl = data.get("pnl")
+    try:
+        pnl = float(pnl) if pnl is not None else None
+    except (TypeError, ValueError):
+        return jsonify({"status": "bad_request", "reason": "pnl must be numeric"}), 400
+    ok = store.record_outcome(event_id, result, pnl)
+    if not ok:
+        return jsonify({"status": "not_found", "id": event_id}), 404
+    jlog("outcome_recorded", id=event_id, outcome=result, pnl=pnl)
+    return jsonify({"status": "ok", "id": event_id}), 200
 
 
 def _run_once(payload_str: str) -> int:

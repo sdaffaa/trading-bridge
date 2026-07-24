@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from agent import config, validation, idempotency, tools, scheduler
+from agent import config, validation, idempotency, tools, scheduler, store
 import agent.runtime as runtime
 import tv_claude_bridge as bridge
 
@@ -40,9 +40,8 @@ def test_idempotency_persists_and_dedupes():
     assert not idempotency.seen("run:X")
     idempotency.mark("run:X")
     assert idempotency.seen("run:X")
-    # a fresh in-memory cache re-reads from disk
-    idempotency._SEEN.clear()
-    idempotency._LOADED = False
+    # reconnecting to the SQLite file (restart) still sees the key
+    store.reset_for_tests()
     assert idempotency.seen("run:X")
 
 
@@ -77,8 +76,10 @@ def test_read_chart_disabled_returns_hint():
     assert "disabled" in json.loads(tools.read_chart("OANDA:XAUUSD", "240"))["error"]
 
 
-def test_toolset_has_three_tools():
-    assert len(tools.build_toolset()) == 3
+def test_toolset_default_tools(monkeypatch):
+    # read_price, read_chart, submit_decision, send_telegram (no place_order)
+    monkeypatch.setattr(config, "ENABLE_EXECUTION", False)
+    assert len(tools.build_toolset()) == 4
 
 
 # --- runtime loop + dedupe (Claude stubbed) -------------------------------

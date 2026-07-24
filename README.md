@@ -22,17 +22,32 @@ keyed by run and event id.
 
 | Module | Responsibility |
 |---|---|
-| `tv_claude_bridge.py` | Flask entry: `/webhook`, `/health`, `/status`, and a `--once` CLI |
+| `tv_claude_bridge.py` | Flask entry: `/webhook`, `/health`, `/status`, `/stats`, `/outcome`, `--once` CLI |
 | `agent/config.py` | All settings from env; safe defaults (dry-run on) |
 | `agent/validation.py` | Reject malformed/out-of-policy alerts at the door; derive idempotency id |
-| `agent/idempotency.py` | File-backed dedupe so replays/restarts don't double-fire |
+| `agent/store.py` | Durable SQLite: idempotency keys, decision log, outcomes, metrics |
+| `agent/idempotency.py` | Dedupe (delegates to the store) so replays/restarts don't double-fire |
+| `agent/marketdata.py` | Live quotes (fmp / generic HTTP) so scheduled analysis uses real data |
+| `agent/market_hours.py` | Skip scheduled runs when the market is closed (crypto = 24/7) |
+| `agent/budget.py` | Cost/rate controls: daily token budget + min-interval throttle |
+| `agent/monitoring.py` | Run success/failure tracking, failure alerts, silence watchdog |
+| `agent/broker.py` | Optional execution layer (paper broker default) — OFF by default |
 | `agent/tools.py` | Agent tools — **the safety boundary**: read (auto) vs act (gated) |
-| `agent/runtime.py` | The agent loop + reliability envelope (timeout, iteration cap, logging) |
+| `agent/runtime.py` | The agent loop + reliability envelope (budget, timeout, logging) |
+| `agent/scheduler.py` | Autonomous trigger — analyze on an interval, no webhook |
 | `agent/notify.py` | Telegram side effect, isolated; secrets stay here |
 | `agent/logging_setup.py` | Structured JSON logging |
 
 Design guidance for extending it lives in the skills under
 `.claude/skills/` (`agent-automation`, `tradingview-browse-select`).
+
+**Endpoints:** `POST /webhook` (intake), `GET /health` (deep: last success,
+failures, budget), `GET /status` (config), `GET /stats` (decisions, accuracy,
+P&L), `POST /outcome` (`{id, outcome, pnl}` — closes the feedback loop).
+
+**The feedback loop.** Every decision is persisted. Report how a call turned out
+with `POST /outcome`, and `GET /stats` gives running accuracy and P&L — so the
+agent's performance is measurable, not fire-and-forget.
 
 ## Setup
 

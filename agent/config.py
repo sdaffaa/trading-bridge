@@ -56,6 +56,34 @@ HOST = os.environ.get("HOST", "0.0.0.0")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
+# --- live market data (so the scheduler analyzes real data, no browser) ---
+# provider: "none" | "fmp" | "generic"
+DATA_PROVIDER = os.environ.get("AGENT_DATA_PROVIDER", "none").strip().lower()
+DATA_API_KEY = os.environ.get("AGENT_DATA_API_KEY", "")
+# generic provider: an HTTPS URL with {symbol}, and a dot-path to the price
+DATA_URL_TEMPLATE = os.environ.get("AGENT_DATA_URL_TEMPLATE", "")
+DATA_PRICE_PATH = os.environ.get("AGENT_DATA_PRICE_PATH", "price")
+DATA_TIMEOUT_S = float(os.environ.get("AGENT_DATA_TIMEOUT_S", "10"))
+
+# --- market-hours awareness (skip scheduled runs when the market is closed) ---
+RESPECT_MARKET_HOURS = _flag("AGENT_RESPECT_MARKET_HOURS", "1")
+
+# --- cost / rate controls ---
+DAILY_TOKEN_BUDGET = int(os.environ.get("AGENT_DAILY_TOKEN_BUDGET", "0"))  # 0 = unlimited
+MIN_RUN_INTERVAL_S = float(os.environ.get("AGENT_MIN_RUN_INTERVAL_S", "0"))  # throttle
+
+# --- self-monitoring / failure alerting ---
+ALERT_ON_FAILURE = _flag("AGENT_ALERT_ON_FAILURE", "1")
+ALERT_FAILS_THRESHOLD = int(os.environ.get("AGENT_ALERT_FAILS_THRESHOLD", "3"))
+HEARTBEAT_MAX_SILENCE_S = int(os.environ.get("AGENT_HEARTBEAT_MAX_SILENCE_S", "0"))  # 0=off
+
+# --- optional execution layer (place orders) — OFF by default, deliberately ---
+ENABLE_EXECUTION = _flag("AGENT_ENABLE_EXECUTION", "0")
+BROKER = os.environ.get("AGENT_BROKER", "paper").strip().lower()  # "paper" | ...
+MAX_POSITION_SIZE = float(os.environ.get("AGENT_MAX_POSITION_SIZE", "0.01"))
+MAX_OPEN_POSITIONS = int(os.environ.get("AGENT_MAX_OPEN_POSITIONS", "1"))
+MIN_CONFIDENCE_TO_TRADE = float(os.environ.get("AGENT_MIN_CONFIDENCE_TO_TRADE", "0.7"))
+
 
 def summary() -> dict:
     """Non-secret view of the active config — safe to log at startup."""
@@ -73,4 +101,12 @@ def summary() -> dict:
         "schedule_seconds": SCHEDULE_SECONDS,
         "schedule_symbols": sorted(schedule_symbols()) if SCHEDULE_SECONDS > 0 else [],
         "schedule_timeframe": SCHEDULE_TIMEFRAME,
+        "data_provider": DATA_PROVIDER,
+        "respect_market_hours": RESPECT_MARKET_HOURS,
+        "daily_token_budget": DAILY_TOKEN_BUDGET,
+        "min_run_interval_s": MIN_RUN_INTERVAL_S,
+        "alert_on_failure": ALERT_ON_FAILURE,
+        "heartbeat_max_silence_s": HEARTBEAT_MAX_SILENCE_S,
+        "enable_execution": ENABLE_EXECUTION,
+        "broker": BROKER if ENABLE_EXECUTION else None,
     }
