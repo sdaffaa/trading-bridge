@@ -71,6 +71,21 @@ RESPECT_MARKET_HOURS = _flag("AGENT_RESPECT_MARKET_HOURS", "1")
 # --- methodology the agent analyzes with (ict | smc | volume_profile | footprint | confluence) ---
 METHODOLOGY = _csv("AGENT_METHODOLOGY", "confluence")
 
+# --- risk management (the agent defines the trade + appropriate risk) ---
+ACCOUNT_BALANCE = float(os.environ.get("AGENT_ACCOUNT_BALANCE", "0"))  # 0 = unknown
+RISK_PERCENT = float(os.environ.get("AGENT_RISK_PERCENT", "1.0"))      # % risked per trade
+MIN_RR = float(os.environ.get("AGENT_MIN_RR", "2.0"))                  # min reward:risk
+
+# --- vision mode: agents open the chart, screenshot it, and mark it up visually ---
+VISION_MODE = _flag("AGENT_VISION_MODE", "0")
+CHROMIUM_PATH = os.environ.get("PLAYWRIGHT_BROWSERS_PATH", "/opt/pw-browsers") + "/chromium"
+CHART_URL_TEMPLATE = os.environ.get(
+    "AGENT_CHART_URL",
+    "https://www.tradingview.com/chart/?symbol={symbol}&interval={interval}")
+SHOT_WAIT_MS = int(os.environ.get("AGENT_SHOT_WAIT_MS", "10000"))
+# which schools each get their own vision markup agent
+VISION_SCHOOLS = _csv("AGENT_VISION_SCHOOLS", "ict,smc,volume_profile,footprint")
+
 # --- cost / rate controls ---
 DAILY_TOKEN_BUDGET = int(os.environ.get("AGENT_DAILY_TOKEN_BUDGET", "0"))  # 0 = unlimited
 MIN_RUN_INTERVAL_S = float(os.environ.get("AGENT_MIN_RUN_INTERVAL_S", "0"))  # throttle
