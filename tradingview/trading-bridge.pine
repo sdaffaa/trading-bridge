@@ -1,0 +1,67 @@
+//@version=6
+// Trading Bridge — Confluence Feed
+// Computes the technical picture ON TradingView (your chart, your data) and
+// sends it as JSON to the bridge webhook. No external data platform is used —
+// the agent analyzes TradingView's own numbers.
+//
+// HOW TO USE
+// 1) TradingView -> Pine Editor -> paste this -> "Add to chart".
+// 2) Create an alert (Alt+A):
+//      Condition:     "Trading Bridge — Confluence Feed"  ->  "Any alert() function call"
+//      Notifications: enable Webhook URL, paste:
+//         http://164.90.236.195:5000/webhook?secret=YOUR_WEBHOOK_SECRET
+//      (Leave the Message box as-is; the message comes from the alert() call below.)
+// 3) Create. It fires on the signal you choose below and POSTs the JSON.
+
+indicator("Trading Bridge — Confluence Feed", overlay = true)
+
+// ---- inputs -------------------------------------------------------------
+emaFastLen = input.int(20,  "EMA fast")
+emaSlowLen = input.int(50,  "EMA slow")
+rsiLen     = input.int(14,  "RSI length")
+atrLen     = input.int(14,  "ATR length")
+swingLen   = input.int(30,  "Swing lookback")
+sigMode    = input.string("EMA cross", "Signal", options = ["EMA cross", "Every bar close"])
+
+// ---- indicators (computed on TradingView chart data) --------------------
+emaFast = ta.ema(close, emaFastLen)
+emaSlow = ta.ema(close, emaSlowLen)
+rsi     = ta.rsi(close, rsiLen)
+atr     = ta.atr(atrLen)
+rHigh   = ta.highest(high, swingLen)
+rLow    = ta.lowest(low,  swingLen)
+volSma  = ta.sma(volume, 20)
+
+trend = close > emaFast and emaFast > emaSlow ? "uptrend" :
+         close < emaFast and emaFast < emaSlow ? "downtrend" : "ranging"
+
+volState = na(volSma) or volume == 0 ? "no_volume_data" :
+            volume > volSma * 1.5 ? "expanding" :
+            volume < volSma * 0.6 ? "contracting" : "average"
+
+// simple 3-bar Fair Value Gap (ICT)
+bullFVG = low > high[2]
+bearFVG = high < low[2]
+fvg = bullFVG ? "bullish" : bearFVG ? "bearish" : "none"
+
+// ---- signal / action ----------------------------------------------------
+longSig  = ta.crossover(close, emaFast)
+shortSig = ta.crossunder(close, emaFast)
+fire     = sigMode == "Every bar close" ? barstate.isconfirmed : (longSig or shortSig)
+action   = longSig ? "buy" : shortSig ? "sell" : "info"
+
+// ---- build JSON payload -------------------------------------------------
+f(x) => str.tostring(x)
+msg = '{"symbol":"' + syminfo.ticker + '","action":"' + action +
+   '","price":' + f(close) + ',"timeframe":"' + timeframe.period +
+   '","ta":{"ema_fast":' + f(emaFast) + ',"ema_slow":' + f(emaSlow) +
+   ',"rsi":' + f(rsi) + ',"atr":' + f(atr) + ',"trend":"' + trend +
+   '","recent_high":' + f(rHigh) + ',"recent_low":' + f(rLow) +
+   ',"fvg":"' + fvg + '","vol_state":"' + volState + '"}}'
+
+if fire
+    alert(msg, alert.freq_once_per_bar_close)
+
+// visual aids
+plot(emaFast, "EMA fast", color.new(color.orange, 0))
+plot(emaSlow, "EMA slow", color.new(color.blue, 0))

@@ -24,6 +24,13 @@ def test_validate_derives_stable_id():
     assert validation.validate_alert(payload)["id"] == validation.validate_alert(payload)["id"]
 
 
+def test_validate_passes_through_tradingview_ta():
+    a = validation.validate_alert({
+        "symbol": "OANDA:XAUUSD", "action": "buy", "price": 2400,
+        "ta": {"trend": "uptrend", "rsi": 58.2, "fvg": "bullish"}})
+    assert a["ta"]["trend"] == "uptrend" and a["ta"]["rsi"] == 58.2
+
+
 @pytest.mark.parametrize("bad", [
     {"symbol": "BAD:X", "action": "buy", "price": 1},
     {"symbol": "OANDA:XAUUSD", "action": "hodl", "price": 1},

@@ -26,10 +26,11 @@ def _system() -> str:
         "You are an automated TECHNICAL ANALYST agent inside a bridge that receives "
         "TradingView alerts. Base every decision on technical analysis of the chart, "
         "not on the bare alert. For each alert:",
-        "1) Call analyze_chart(symbol, timeframe) to get the technical picture: "
-        "indicators (trend, SMA20/50, EMA20, RSI, ATR), market_structure and swings, "
-        "fair_value_gaps, volume_profile (POC/VAH/VAL), and volume_state. "
-        "(Optionally read_price for the latest quote.)",
+        "1) DATA SOURCE: if the alert already includes a 'technicals' block, those "
+        "were computed on TradingView (your chart) — use them as the source of truth. "
+        "Otherwise call analyze_chart(symbol, timeframe) for the technical picture "
+        "(trend, EMA/SMA, RSI, ATR, market structure, fair value gaps, volume profile, "
+        "volume state). Prefer the TradingView-provided technicals when both exist.",
         "2) Analyze using this methodology:\n" + methodology.instructions(),
         "3) Call submit_decision exactly once with action in "
         "{long, short, no_trade, alert_human}, confidence 0-1 reflecting confluence "
@@ -84,9 +85,15 @@ def run_alert(raw: dict) -> dict:
         f"- price: {alert['price']}\n"
         f"- timeframe: {alert['timeframe']}\n"
         f"- note: {alert['note']}\n"
-        f"- id: {alert['id']}\n\n"
-        f"Assess this signal and follow your instructions."
+        f"- id: {alert['id']}\n"
     )
+    if alert.get("ta"):
+        import json as _json
+        prompt += (
+            "- technicals (computed on TradingView, treat as source of truth): "
+            f"{_json.dumps(alert['ta'])}\n"
+        )
+    prompt += "\nAssess this signal and follow your instructions."
 
     try:
         runner = _client_singleton().beta.messages.tool_runner(

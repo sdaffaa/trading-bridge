@@ -41,7 +41,7 @@ def validate_alert(data) -> dict:
         event_id = hashlib.sha256(
             json.dumps(basis, sort_keys=True).encode()).hexdigest()[:16]
 
-    return {
+    result = {
         "id": event_id,
         "symbol": symbol,
         "action": action,
@@ -49,3 +49,9 @@ def validate_alert(data) -> dict:
         "timeframe": timeframe,
         "note": str(data.get("note", "") or "")[:500],
     }
+    # TradingView-computed technicals (from the Pine feed) — pass through so the
+    # agent analyzes TradingView's own numbers, no external data platform needed.
+    ta = data.get("ta")
+    if isinstance(ta, dict):
+        result["ta"] = {str(k)[:32]: v for k, v in list(ta.items())[:32]}
+    return result
