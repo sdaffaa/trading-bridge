@@ -117,15 +117,25 @@ def test_scheduler_off_by_default(monkeypatch):
     assert scheduler.start_if_enabled() is False
 
 
-def test_scheduler_symbols_fallback(monkeypatch):
+def test_scheduler_symbols_default_all_prefixed(monkeypatch):
     monkeypatch.setattr(config, "SCHEDULE_SYMBOLS", set())
+    # empty schedule set -> ALL allowed exchange-prefixed symbols; bare aliases skipped
+    monkeypatch.setattr(config, "ALLOWED_SYMBOLS",
+                        {"OANDA:XAUUSD", "FX:EURUSD", "XAUUSD", "EURUSD"})
+    assert config.schedule_symbols() == {"OANDA:XAUUSD", "FX:EURUSD"}
+
+
+def test_scheduler_symbols_explicit_wins(monkeypatch):
+    monkeypatch.setattr(config, "SCHEDULE_SYMBOLS", {"BINANCE:BTCUSDT"})
     monkeypatch.setattr(config, "ALLOWED_SYMBOLS", {"OANDA:XAUUSD", "FX:EURUSD"})
-    # empty schedule set -> first allowed symbol (sorted)
-    assert config.schedule_symbols() == {"FX:EURUSD"}
+    assert config.schedule_symbols() == {"BINANCE:BTCUSDT"}
 
 
 def test_scheduler_starts_when_enabled(monkeypatch):
     monkeypatch.setattr(config, "SCHEDULE_SECONDS", 3600)  # long, won't tick in-test
+    # no symbols -> the loop does no real analysis (keeps the test hermetic)
+    monkeypatch.setattr(config, "SCHEDULE_SYMBOLS", set())
+    monkeypatch.setattr(config, "ALLOWED_SYMBOLS", set())
     monkeypatch.setattr(scheduler, "_started", False)
     assert scheduler.start_if_enabled() is True
     assert scheduler.start_if_enabled() is True             # idempotent

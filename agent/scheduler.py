@@ -34,6 +34,8 @@ def start_if_enabled() -> bool:
 def _loop() -> None:
     from . import runtime  # late import to avoid an import cycle
     while True:
+        if config.SCHEDULE_SECONDS <= 0:   # disabled at runtime -> exit cleanly
+            return
         tick = int(time.time())
         for symbol in sorted(config.schedule_symbols()):
             if config.RESPECT_MARKET_HOURS and not market_hours.is_open(symbol):
@@ -48,9 +50,12 @@ def _loop() -> None:
                 "id": f"sched:{symbol}:{tick}",
             }
             try:
-                runtime.dispatch(alert)
+                # Run SEQUENTIALLY (blocking) — not dispatch() — so only one chart
+                # browser/vision pipeline runs at a time. With several symbols on a
+                # small host, parallel Chromium instances would exhaust memory.
+                runtime.run_alert(alert)
             except runtime.Reject as e:
                 jlog("scheduler_reject", symbol=symbol, reason=str(e))
-            except Exception as e:  # a bad tick must not kill the loop
+            except Exception as e:  # a bad symbol must not kill the loop
                 jlog("scheduler_error", symbol=symbol, error=str(e))
-        time.sleep(config.SCHEDULE_SECONDS)
+        time.sleep(max(1, config.SCHEDULE_SECONDS))

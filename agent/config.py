@@ -44,8 +44,13 @@ SCHEDULE_TIMEFRAME = os.environ.get("AGENT_SCHEDULE_TIMEFRAME", "240")
 
 
 def schedule_symbols() -> set:
-    """Symbols the scheduler analyzes; falls back to the first allowed symbol."""
-    return SCHEDULE_SYMBOLS or set(sorted(ALLOWED_SYMBOLS)[:1])
+    """Symbols the scheduler analyzes. If AGENT_SCHEDULE_SYMBOLS is unset, default
+    to ALL allowed exchange-prefixed symbols (e.g. OANDA:XAUUSD) — the bare aliases
+    like XAUUSD are skipped since the chart needs the exchange-qualified symbol."""
+    if SCHEDULE_SYMBOLS:
+        return SCHEDULE_SYMBOLS
+    prefixed = {s for s in ALLOWED_SYMBOLS if ":" in s}
+    return prefixed or set(sorted(ALLOWED_SYMBOLS)[:1])
 
 # --- webhook ---
 WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "")       # optional shared secret
