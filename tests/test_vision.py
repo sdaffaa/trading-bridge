@@ -67,6 +67,40 @@ def test_vision_analyze_builds_decision(monkeypatch):
     assert len(out["markups"]) == 2           # one per school
 
 
+def test_vision_analyze_mtf_uses_lower_tf_and_tags(monkeypatch):
+    monkeypatch.setattr(config, "VISION_SCHOOLS", {"ict", "smc"})
+    plan = {"action": "long", "grade": "B", "confidence": 0.7,
+            "entry": 2000, "stop_loss": 1990, "take_profit": 2030, "reason": "توافق صعودي"}
+    monkeypatch.setattr(vision, "_client", _Client(plan))
+    out = vision.analyze_mtf(b"htf", b"ltf", "OANDA:XAUUSD", "240", "15")
+    assert out["decision"]["action"] == "long"
+    assert out["decision"]["timeframe"] == "15"          # entry from the lower TF
+    tfs = {m["timeframe"] for m in out["markups"]}
+    assert tfs == {"240", "15"}                            # both TFs represented
+    assert len(out["markups"]) == 4                        # 2 schools x 2 timeframes
+
+
+def test_evaluate_open_trades_maps_status(monkeypatch):
+    reviews = {"reviews": [
+        {"id": "t1", "status": "tp_hit", "note": "ضرب الهدف"},
+        {"id": "t2", "status": "running", "note": "ما زالت جارية"},
+    ]}
+
+    class RevMsgs:
+        def create(self, **kw):
+            return _Resp(json.dumps(reviews))
+    monkeypatch.setattr(vision, "_client", type("C", (), {"messages": RevMsgs()})())
+    trades = [{"id": "t1", "action": "long", "entry": 2000, "sl": 1990, "tp": 2030},
+              {"id": "t2", "action": "short", "entry": 100, "sl": 105, "tp": 90}]
+    out = vision.evaluate_open_trades(b"png", "OANDA:XAUUSD", "15", trades)
+    assert out["t1"]["status"] == "tp_hit"
+    assert out["t2"]["status"] == "running"
+
+
+def test_evaluate_open_trades_empty_shortcircuits():
+    assert vision.evaluate_open_trades(b"png", "X", "15", []) == {}
+
+
 def test_vision_handles_bad_coordinator(monkeypatch):
     monkeypatch.setattr(config, "VISION_SCHOOLS", {"ict"})
 

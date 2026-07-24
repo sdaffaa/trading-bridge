@@ -35,6 +35,12 @@ def _connect():
             CREATE TABLE IF NOT EXISTS metrics (
                 ts REAL, kind TEXT, ok INTEGER, detail TEXT);
         """)
+        # migrations for older DBs (ignore if the column already exists)
+        for coldef in ("entry REAL", "sl REAL", "tp REAL", "grade TEXT"):
+            try:
+                _conn.execute(f"ALTER TABLE decisions ADD COLUMN {coldef}")
+            except sqlite3.OperationalError:
+                pass
         _conn.commit()
     return _conn
 
@@ -71,13 +77,16 @@ def record_decision(event_id, run, symbol, decision, dry_run):
         c.execute(
             "INSERT OR REPLACE INTO decisions"
             "(id, run, symbol, action, confidence, reason, ts, dry_run,"
-            " outcome, outcome_ts, pnl) VALUES(?,?,?,?,?,?,?,?,"
+            " entry, sl, tp, grade,"
+            " outcome, outcome_ts, pnl) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,"
             " COALESCE((SELECT outcome FROM decisions WHERE id=?), NULL),"
             " (SELECT outcome_ts FROM decisions WHERE id=?),"
             " (SELECT pnl FROM decisions WHERE id=?))",
             (event_id, run, symbol, decision.get("action"),
              decision.get("confidence"), decision.get("reason"), time.time(),
-             1 if dry_run else 0, event_id, event_id, event_id))
+             1 if dry_run else 0, decision.get("entry"), decision.get("stop_loss"),
+             decision.get("take_profit"), decision.get("grade"),
+             event_id, event_id, event_id))
         c.commit()
 
 
@@ -131,6 +140,20 @@ def last_success_ts(kind: str = "run"):
         row = c.execute("SELECT MAX(ts) FROM metrics WHERE kind=? AND ok=1",
                         (kind,)).fetchone()
     return row[0] if row and row[0] else None
+
+
+def open_trades(symbol: str = None) -> list:
+    """Signalled long/short trades that have entry/SL/TP and no recorded outcome."""
+    with _lock:
+        c = _connect()
+        q = ("SELECT id, symbol, action, entry, sl, tp, reason, ts FROM decisions "
+             "WHERE action IN('long','short') AND outcome IS NULL AND entry IS NOT NULL")
+        params = ()
+        if symbol:
+            q += " AND symbol=?"
+            params = (symbol,)
+        rows = c.execute(q + " ORDER BY ts DESC LIMIT 20", params).fetchall()
+    return [dict(r) for r in rows]
 
 
 def open_positions_count() -> int:

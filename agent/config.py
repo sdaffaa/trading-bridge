@@ -88,6 +88,11 @@ CHART_URL_TEMPLATE = os.environ.get(
 SHOT_WAIT_MS = int(os.environ.get("AGENT_SHOT_WAIT_MS", "10000"))
 # which schools each get their own vision markup agent
 VISION_SCHOOLS = _csv("AGENT_VISION_SCHOOLS", "ict,smc,volume_profile,footprint")
+# multi-timeframe top-down: analyze the higher TF for bias, then the lower TF for
+# the entry. Order matters (higher first). Empty = single TF (the alert's own).
+VISION_TIMEFRAMES = [x.strip() for x in
+                     os.environ.get("AGENT_VISION_TIMEFRAMES", "240,15").split(",")
+                     if x.strip()]
 
 # --- cost / rate controls ---
 DAILY_TOKEN_BUDGET = int(os.environ.get("AGENT_DAILY_TOKEN_BUDGET", "0"))  # 0 = unlimited
@@ -133,6 +138,7 @@ def summary() -> dict:
         "broker": BROKER if ENABLE_EXECUTION else None,
         "vision_mode": VISION_MODE,
         "vision_schools": sorted(VISION_SCHOOLS) if VISION_MODE else [],
+        "vision_timeframes": VISION_TIMEFRAMES if VISION_MODE else [],
         "account_balance_set": ACCOUNT_BALANCE > 0,
         "risk_percent": RISK_PERCENT,
         "min_rr": MIN_RR,

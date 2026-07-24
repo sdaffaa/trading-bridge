@@ -142,15 +142,30 @@ def _run_vision(alert: dict, run_id: str) -> dict:
     import os
     from . import chartshot, vision, notify
 
+    # top-down multi-timeframe (e.g. 240 for bias, 15 for entry) when configured;
+    # otherwise the alert's own single timeframe.
+    tfs = config.VISION_TIMEFRAMES if len(config.VISION_TIMEFRAMES) >= 2 else None
+    htf, ltf = (tfs[0], tfs[-1]) if tfs else (None, alert["timeframe"])
+    tf_label = f"{htf}→{ltf}" if tfs else ltf
+
     png, markups = None, []
-    png = chartshot.capture(alert["symbol"], alert["timeframe"])
-    if not png:
+    htf_png = chartshot.capture(alert["symbol"], htf) if tfs else None
+    png = chartshot.capture(alert["symbol"], ltf)      # entry chart (also the image sent)
+    if not png or (tfs and not htf_png):
         decision = {"action": "alert_human", "confidence": 0.0, "grade": "none",
                     "reason": "chart screenshot failed (browser/network on the host)"}
         monitoring.record_run(False, "chartshot failed")
+        png = png or None
     else:
         try:
-            out = vision.analyze(png, alert["symbol"], alert["timeframe"])
+            _followup_open_trades(alert, png, vision, ltf)  # track prior signals first
+        except Exception as e:
+            jlog("followup_error", run=run_id, id=alert["id"], error=str(e)[:200])
+        try:
+            if tfs:
+                out = vision.analyze_mtf(htf_png, png, alert["symbol"], htf, ltf)
+            else:
+                out = vision.analyze(png, alert["symbol"], ltf)
             decision, markups = out["decision"], out["markups"]
             monitoring.record_run(True)
         except Exception as e:
@@ -159,6 +174,7 @@ def _run_vision(alert: dict, run_id: str) -> dict:
             decision = {"action": "alert_human", "confidence": 0.0, "grade": "none",
                         "reason": f"vision analysis failed: {e}"}
             png = None
+    decision["timeframe"] = tf_label
 
     tools.ctx.decision = decision
     idempotency.mark(f"run:{alert['id']}")
@@ -173,19 +189,78 @@ def _run_vision(alert: dict, run_id: str) -> dict:
     return result
 
 
+def _followup_open_trades(alert: dict, png, vision, timeframe=None) -> None:
+    """Review still-open signals for this symbol against the fresh chart, report
+    TP/SL hits in Arabic, and record their outcomes (the feedback loop)."""
+    trades = store.open_trades(alert["symbol"])
+    if not trades:
+        return
+    reviews = vision.evaluate_open_trades(png, alert["symbol"],
+                                          timeframe or alert["timeframe"], trades)
+    for t in trades:
+        r = reviews.get(str(t["id"])) or reviews.get(t["id"])
+        if not r:
+            continue
+        status = r.get("status")
+        note = r.get("note", "")
+        side = _AR_ACTION.get(t["action"], t["action"])
+        if status == "tp_hit":
+            store.record_outcome(t["id"], "win")
+            _send_followup(t["id"],
+                           f"✅ ضرب الهدف\n📊 {t['symbol']} — {side}\n"
+                           f"الدخول: {t.get('entry')} ← الهدف: {t.get('tp')}\n{note}")
+        elif status == "sl_hit":
+            store.record_outcome(t["id"], "loss")
+            _send_followup(t["id"],
+                           f"❌ ضرب الوقف\n📊 {t['symbol']} — {side}\n"
+                           f"الدخول: {t.get('entry')} ← الوقف: {t.get('sl')}\n{note}")
+        # 'running' / 'unclear' stay open — no message, re-checked next run
+
+
+def _send_followup(trade_id, message: str) -> None:
+    """Send a follow-up status message once (gated like any outbound notice)."""
+    import os
+    from . import notify
+    if os.path.exists(config.KILL_SWITCH_FILE):
+        jlog("act_blocked", tool="telegram", id=trade_id, reason="kill_switch")
+        return
+    key = f"followup:{trade_id}"
+    if idempotency.seen(key):
+        return
+    if config.DRY_RUN:
+        jlog("act_dryrun", tool="telegram", id=trade_id, would_send=message[:200])
+        idempotency.mark(key)
+        return
+    if notify.telegram_post(message):
+        idempotency.mark(key)
+    jlog("act", tool="telegram_followup", id=trade_id)
+
+
+_AR_ACTION = {"long": "شراء 🟢", "short": "بيع 🔴",
+              "no_trade": "لا توجد صفقة", "alert_human": "تدخل بشري ⚠️"}
+
+
 def _format_plan(alert: dict, d: dict, markups=None) -> str:
-    head = f"{alert['symbol']} {alert['timeframe']}"
-    if d.get("action") in ("no_trade", "alert_human", None):
-        return f"{head} — {str(d.get('action','')).upper()} [{d.get('grade','-')}]\n{d.get('reason','')}"
-    lines = [f"{head} — {d['action'].upper()} [{d.get('grade','-')}-setup] "
-             f"conf {round(d.get('confidence',0),2)}",
-             f"Entry {d.get('entry')} | SL {d.get('stop_loss')} | TP {d.get('take_profit')}"]
+    head = f"📊 {alert['symbol']} — فريم {d.get('timeframe') or alert['timeframe']}"
+    action = d.get("action")
+    if action in ("no_trade", "alert_human", None):
+        label = _AR_ACTION.get(action, "لا توجد صفقة")
+        return (f"{head}\nالقرار: {label}  |  التصنيف: {d.get('grade','-')}\n"
+                f"السبب: {d.get('reason','')}")
+    lines = [
+        head,
+        f"القرار: {_AR_ACTION.get(action, action)}  |  التصنيف: {d.get('grade','-')}  "
+        f"|  الثقة: {round(float(d.get('confidence',0) or 0)*100)}%",
+        f"الدخول: {d.get('entry')}",
+        f"وقف الخسارة: {d.get('stop_loss')}",
+        f"جني الأرباح: {d.get('take_profit')}",
+    ]
     if d.get("risk_reward"):
-        lines.append(f"R:R {d['risk_reward']}")
+        lines.append(f"العائد/المخاطرة: {d['risk_reward']}")
     if d.get("risk_amount"):
-        lines.append(f"Risk {d.get('risk_percent')}% ≈ {d['risk_amount']} "
-                     f"(~{d.get('suggested_units')} units)")
-    lines.append(d.get("reason", ""))
+        lines.append(f"المخاطرة: {d.get('risk_percent')}% ≈ {d['risk_amount']} "
+                     f"(~{d.get('suggested_units')} وحدة)")
+    lines.append(f"التحليل: {d.get('reason','')}")
     return "\n".join(str(x) for x in lines)
 
 
