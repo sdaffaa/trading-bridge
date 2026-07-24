@@ -323,20 +323,40 @@ def _finalize(markups, png, symbol, timeframe, htf_context=""):
             "key_levels": key_levels}
 
 
-def analyze_mtf(htf_png, ltf_png, symbol, htf, ltf) -> dict:
-    """Top-down: derive the bias on the higher timeframe, then find the entry on the
-    lower timeframe constrained to that bias. Returns {decision, markups} where the
-    decision's entry/stop/targets come from the lower-TF chart."""
-    htf_markups = _run_schools(htf_png, symbol, htf)
-    htf_context = "\n".join(f"[{m['school'].upper()} @ {htf}] {m['markup']}"
-                            for m in htf_markups)
-    ltf_markups = _run_schools(ltf_png, symbol, ltf, htf_context)
-    out = _finalize(ltf_markups, ltf_png, symbol, ltf, htf_context)
-    # tag each markup with its timeframe so the caption/log can tell them apart
-    for m in htf_markups:
-        m["timeframe"] = htf
-    for m in ltf_markups:
-        m["timeframe"] = ltf
-    out["markups"] = htf_markups + ltf_markups
-    out["decision"]["timeframe"] = ltf
+def analyze_chain(shots, symbol) -> dict:
+    """Top-down over an ordered list of (timeframe, png), highest -> lowest.
+
+    Each higher timeframe's read becomes bias context for the next one down, so a
+    4H -> 15m -> 3m chain narrows from directional bias to the precise entry. The
+    coordinator produces the trade (entry/stop/targets + drawing coordinates) on
+    the LOWEST (entry) chart, constrained by everything above it.
+    """
+    if not shots:
+        raise ValueError("no chart shots")
+    if len(shots) == 1:
+        tf, png = shots[0]
+        return _finalize(_run_schools(png, symbol, tf), png, symbol, tf)
+
+    context_parts, all_markups = [], []
+    for tf, png in shots[:-1]:                     # every timeframe above the entry
+        ms = _run_schools(png, symbol, tf, "\n\n".join(context_parts))
+        for m in ms:
+            m["timeframe"] = tf
+        all_markups += ms
+        context_parts.append(f"=== {tf} timeframe ===\n" + "\n".join(
+            f"[{m['school'].upper()}] {m['markup']}" for m in ms))
+
+    htf_context = "\n\n".join(context_parts)
+    entry_tf, entry_png = shots[-1]                # the entry chart
+    entry_ms = _run_schools(entry_png, symbol, entry_tf, htf_context)
+    for m in entry_ms:
+        m["timeframe"] = entry_tf
+    out = _finalize(entry_ms, entry_png, symbol, entry_tf, htf_context)
+    out["markups"] = all_markups + entry_ms
+    out["decision"]["timeframe"] = entry_tf
     return out
+
+
+def analyze_mtf(htf_png, ltf_png, symbol, htf, ltf) -> dict:
+    """Two-timeframe convenience wrapper over analyze_chain (bias TF then entry TF)."""
+    return analyze_chain([(htf, htf_png), (ltf, ltf_png)], symbol)

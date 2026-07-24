@@ -100,6 +100,21 @@ def test_vision_analyze_mtf_uses_lower_tf_and_tags(monkeypatch):
     assert len(out["markups"]) == 4                        # 2 schools x 2 timeframes
 
 
+def test_vision_analyze_chain_three_timeframes(monkeypatch):
+    monkeypatch.setattr(config, "VISION_SCHOOLS", {"ict", "smc"})
+    plan = {"action": "long", "grade": "A", "confidence": 0.8,
+            "entry": 4055, "stop_loss": 4038, "take_profit": 4090, "reason": "توافق",
+            "entry_y": 0.5, "stop_y": 0.6, "target_y": 0.3}
+    monkeypatch.setattr(vision, "_client", _Client(plan))
+    shots = [("240", b"h"), ("15", b"m"), ("3", b"l")]
+    out = vision.analyze_chain(shots, "OANDA:XAUUSD")
+    assert out["decision"]["timeframe"] == "3"            # entry = lowest TF
+    tfs = {m["timeframe"] for m in out["markups"]}
+    assert tfs == {"240", "15", "3"}                       # all three represented
+    assert len(out["markups"]) == 6                        # 2 schools x 3 timeframes
+    assert out["levels"] == {"entry_y": 0.5, "stop_y": 0.6, "target_y": 0.3}
+
+
 def test_evaluate_open_trades_maps_status(monkeypatch):
     reviews = {"reviews": [
         {"id": "t1", "status": "tp_hit", "note": "ضرب الهدف"},

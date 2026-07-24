@@ -142,30 +142,41 @@ def _run_vision(alert: dict, run_id: str) -> dict:
     import os
     from . import chartshot, vision, notify, annotate
 
-    # top-down multi-timeframe (e.g. 240 for bias, 15 for entry) when configured;
-    # otherwise the alert's own single timeframe.
-    tfs = config.VISION_TIMEFRAMES if len(config.VISION_TIMEFRAMES) >= 2 else None
-    htf, ltf = (tfs[0], tfs[-1]) if tfs else (None, alert["timeframe"])
-    tf_label = f"{htf}→{ltf}" if tfs else ltf
+    # top-down multi-timeframe chain (e.g. 240 -> 15 -> 3: bias, structure, entry)
+    # when configured; otherwise the alert's own single timeframe. Entry = lowest.
+    tfs = list(config.VISION_TIMEFRAMES)
+    chain = tfs if len(tfs) >= 2 else None
+    entry_tf = tfs[-1] if tfs else alert["timeframe"]
+    tf_label = "→".join(tfs) if chain else entry_tf
 
     png, markups, levels, key_levels = None, [], {}, []
-    htf_png = chartshot.capture(alert["symbol"], htf) if tfs else None
-    png = chartshot.capture(alert["symbol"], ltf)      # entry chart (also the image sent)
-    if not png or (tfs and not htf_png):
+    shots, capture_ok = [], True
+    if chain:
+        for tf in chain:                               # highest -> lowest
+            p = chartshot.capture(alert["symbol"], tf)
+            if not p:
+                capture_ok = False
+                break
+            shots.append((tf, p))
+        png = shots[-1][1] if (shots and capture_ok) else None   # entry chart = image sent
+    else:
+        png = chartshot.capture(alert["symbol"], entry_tf)
+        capture_ok = bool(png)
+
+    if not capture_ok or not png:
         decision = {"action": "alert_human", "confidence": 0.0, "grade": "none",
                     "reason": "chart screenshot failed (browser/network on the host)"}
         monitoring.record_run(False, "chartshot failed")
-        png = png or None
     else:
         try:
-            _followup_open_trades(alert, png, vision, ltf)  # track prior signals first
+            _followup_open_trades(alert, png, vision, entry_tf)  # track prior signals first
         except Exception as e:
             jlog("followup_error", run=run_id, id=alert["id"], error=str(e)[:200])
         try:
-            if tfs:
-                out = vision.analyze_mtf(htf_png, png, alert["symbol"], htf, ltf)
+            if chain:
+                out = vision.analyze_chain(shots, alert["symbol"])
             else:
-                out = vision.analyze(png, alert["symbol"], ltf)
+                out = vision.analyze(png, alert["symbol"], entry_tf)
             decision, markups = out["decision"], out["markups"]
             levels = out.get("levels") or {}
             key_levels = out.get("key_levels") or []
