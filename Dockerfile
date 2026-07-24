@@ -20,8 +20,9 @@ VOLUME ["/data"]
 EXPOSE 5000
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD python -c "import urllib.request,os;urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\",\"5000\")}/health').read()" || exit 1
+    CMD python -c "import urllib.request;urllib.request.urlopen('http://127.0.0.1:5000/health').read()" || exit 1
 
-# 1 worker, 8 threads: the loop is I/O-bound (model + Telegram), and background
-# dispatch keeps requests non-blocking.
-CMD ["sh", "-c", "gunicorn -w 1 --threads 8 -b 0.0.0.0:${PORT} --timeout 120 tv_claude_bridge:app"]
+# Gunicorn always binds 5000 INSIDE the container; the host port is chosen by
+# docker-compose (PORT in .env, e.g. 80 for TradingView). 1 worker, 8 threads:
+# I/O-bound loop, background dispatch keeps requests non-blocking.
+CMD ["sh", "-c", "gunicorn -w 1 --threads 8 -b 0.0.0.0:5000 --timeout 120 tv_claude_bridge:app"]
