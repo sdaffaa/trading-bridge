@@ -16,11 +16,11 @@
 indicator("Trading Bridge — Confluence Feed", overlay = true)
 
 // ---- inputs -------------------------------------------------------------
-emaFastLen = input.int(20,  "EMA fast")
-emaSlowLen = input.int(50,  "EMA slow")
-rsiLen     = input.int(14,  "RSI length")
-atrLen     = input.int(14,  "ATR length")
-swingLen   = input.int(30,  "Swing lookback")
+emaFastLen = input.int(20, "EMA fast")
+emaSlowLen = input.int(50, "EMA slow")
+rsiLen     = input.int(14, "RSI length")
+atrLen     = input.int(14, "ATR length")
+swingLen   = input.int(30, "Swing lookback")
 sigMode    = input.string("EMA cross", "Signal", options = ["EMA cross", "Every bar close"])
 
 // ---- indicators (computed on TradingView chart data) --------------------
@@ -29,20 +29,17 @@ emaSlow = ta.ema(close, emaSlowLen)
 rsi     = ta.rsi(close, rsiLen)
 atr     = ta.atr(atrLen)
 rHigh   = ta.highest(high, swingLen)
-rLow    = ta.lowest(low,  swingLen)
+rLow    = ta.lowest(low, swingLen)
 volSma  = ta.sma(volume, 20)
 
-trend = close > emaFast and emaFast > emaSlow ? "uptrend" :
-         close < emaFast and emaFast < emaSlow ? "downtrend" : "ranging"
-
-volState = na(volSma) or volume == 0 ? "no_volume_data" :
-            volume > volSma * 1.5 ? "expanding" :
-            volume < volSma * 0.6 ? "contracting" : "average"
+// each expression on ONE line (Pine does not continue these across lines)
+trend    = close > emaFast and emaFast > emaSlow ? "uptrend" : close < emaFast and emaFast < emaSlow ? "downtrend" : "ranging"
+volState = na(volSma) or volume == 0 ? "no_volume_data" : volume > volSma * 1.5 ? "expanding" : volume < volSma * 0.6 ? "contracting" : "average"
 
 // simple 3-bar Fair Value Gap (ICT)
 bullFVG = low > high[2]
 bearFVG = high < low[2]
-fvg = bullFVG ? "bullish" : bearFVG ? "bearish" : "none"
+fvg     = bullFVG ? "bullish" : bearFVG ? "bearish" : "none"
 
 // ---- signal / action ----------------------------------------------------
 longSig  = ta.crossover(close, emaFast)
@@ -50,14 +47,11 @@ shortSig = ta.crossunder(close, emaFast)
 fire     = sigMode == "Every bar close" ? barstate.isconfirmed : (longSig or shortSig)
 action   = longSig ? "buy" : shortSig ? "sell" : "info"
 
-// ---- build JSON payload -------------------------------------------------
+// ---- build JSON payload (single-line concatenations) --------------------
 f(x) => str.tostring(x)
-msg = '{"symbol":"' + syminfo.ticker + '","action":"' + action +
-   '","price":' + f(close) + ',"timeframe":"' + timeframe.period +
-   '","ta":{"ema_fast":' + f(emaFast) + ',"ema_slow":' + f(emaSlow) +
-   ',"rsi":' + f(rsi) + ',"atr":' + f(atr) + ',"trend":"' + trend +
-   '","recent_high":' + f(rHigh) + ',"recent_low":' + f(rLow) +
-   ',"fvg":"' + fvg + '","vol_state":"' + volState + '"}}'
+taStr = '"ta":{"ema_fast":' + f(emaFast) + ',"ema_slow":' + f(emaSlow) + ',"rsi":' + f(rsi) + ',"atr":' + f(atr) + ',"trend":"' + trend + '","recent_high":' + f(rHigh) + ',"recent_low":' + f(rLow) + ',"fvg":"' + fvg + '","vol_state":"' + volState + '"}'
+head  = '{"symbol":"' + syminfo.ticker + '","action":"' + action + '","price":' + f(close) + ',"timeframe":"' + timeframe.period + '",'
+msg   = head + taStr + '}'
 
 if fire
     alert(msg, alert.freq_once_per_bar_close)
