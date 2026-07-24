@@ -19,12 +19,17 @@ ask_secret() { local p="$1" v=""; read -r -s -p "$p" v < /dev/tty; echo >/dev/tt
 
 [ "$(id -u)" -eq 0 ] || { echo "Run as root (sudo bash deploy.sh)"; exit 1; }
 
-# --- 1. Docker + git ---
+# --- 1. Docker (with compose plugin) + git ---
+apt-get update -y || true
+apt-get install -y curl git ca-certificates || true
 if ! command -v docker >/dev/null 2>&1; then
-  say "Installing Docker + git"
-  apt-get update -y
-  apt-get install -y docker.io docker-compose-plugin git
+  say "Installing Docker via the official script (includes compose plugin)"
+  curl -fsSL https://get.docker.com | sh
   systemctl enable --now docker
+fi
+# Ensure the compose plugin is present (Ubuntu's package is docker-compose-v2)
+if ! docker compose version >/dev/null 2>&1; then
+  apt-get install -y docker-compose-v2 || apt-get install -y docker-compose-plugin || true
 fi
 docker --version
 docker compose version
