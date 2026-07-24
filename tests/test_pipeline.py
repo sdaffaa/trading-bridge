@@ -77,9 +77,9 @@ def test_read_chart_disabled_returns_hint():
 
 
 def test_toolset_default_tools(monkeypatch):
-    # read_price, read_chart, submit_decision, send_telegram (no place_order)
+    # analyze_chart, read_price, read_chart, submit_decision, send_telegram
     monkeypatch.setattr(config, "ENABLE_EXECUTION", False)
-    assert len(tools.build_toolset()) == 4
+    assert len(tools.build_toolset()) == 5
 
 
 # --- runtime loop + dedupe (Claude stubbed) -------------------------------

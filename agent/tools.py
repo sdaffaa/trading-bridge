@@ -84,6 +84,23 @@ def read_price(symbol: str) -> str:
     return json.dumps(data)
 
 
+@beta_tool
+def analyze_chart(symbol: str, timeframe: str) -> str:
+    """Run technical analysis on the chart: fetch recent candles and compute the
+    technical picture — trend, SMA20/50, EMA20, RSI(14), ATR(14), and the recent
+    swing high/low with distance to them. Call this FIRST and base your decision
+    on the confluence of these factors.
+    Args:
+        symbol: e.g. "OANDA:XAUUSD".
+        timeframe: e.g. "240" (4H), "60" (1H), "15", "1D".
+    """
+    from . import technical
+    data = technical.analyze(symbol, timeframe)
+    jlog("tool_call", tool="analyze_chart", run=ctx.run_id, id=ctx.event_id,
+         ok="error" not in data, trend=data.get("trend"), rsi=data.get("rsi14"))
+    return json.dumps(data)
+
+
 # --------------------------------------------------------------------------
 # DECISION (terminal read tool)
 # --------------------------------------------------------------------------
@@ -156,7 +173,7 @@ def build_toolset() -> list:
     read_price and read_chart are always exposed (they self-describe when
     unavailable); place_order is added only when execution is enabled.
     """
-    tools = [read_price, read_chart, submit_decision, send_telegram]
+    tools = [analyze_chart, read_price, read_chart, submit_decision, send_telegram]
     if config.ENABLE_EXECUTION:
         tools.append(place_order)
     return tools

@@ -68,6 +68,9 @@ DATA_TIMEOUT_S = float(os.environ.get("AGENT_DATA_TIMEOUT_S", "10"))
 # --- market-hours awareness (skip scheduled runs when the market is closed) ---
 RESPECT_MARKET_HOURS = _flag("AGENT_RESPECT_MARKET_HOURS", "1")
 
+# --- methodology the agent analyzes with (ict | smc | volume_profile | footprint | confluence) ---
+METHODOLOGY = _csv("AGENT_METHODOLOGY", "confluence")
+
 # --- cost / rate controls ---
 DAILY_TOKEN_BUDGET = int(os.environ.get("AGENT_DAILY_TOKEN_BUDGET", "0"))  # 0 = unlimited
 MIN_RUN_INTERVAL_S = float(os.environ.get("AGENT_MIN_RUN_INTERVAL_S", "0"))  # throttle
@@ -102,6 +105,7 @@ def summary() -> dict:
         "schedule_symbols": sorted(schedule_symbols()) if SCHEDULE_SECONDS > 0 else [],
         "schedule_timeframe": SCHEDULE_TIMEFRAME,
         "data_provider": DATA_PROVIDER,
+        "methodology": sorted(METHODOLOGY),
         "respect_market_hours": RESPECT_MARKET_HOURS,
         "daily_token_budget": DAILY_TOKEN_BUDGET,
         "min_run_interval_s": MIN_RUN_INTERVAL_S,

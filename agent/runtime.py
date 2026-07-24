@@ -10,7 +10,7 @@ import threading
 
 from anthropic import Anthropic
 
-from . import config, tools, budget, monitoring, store
+from . import config, tools, budget, monitoring, store, methodology
 from .validation import validate_alert, Reject  # re-exported for callers
 from . import idempotency
 from .logging_setup import jlog
@@ -23,23 +23,30 @@ _client_lock = threading.Lock()
 
 def _system() -> str:
     lines = [
-        "You are an automated trading-signal analyst agent inside a bridge that "
-        "receives TradingView alerts. For each alert:",
-        "1) Call read_price for a current quote (and read_chart if enabled) before "
-        "judging; if data is unavailable, judge conservatively or escalate.",
-        "2) Call submit_decision exactly once with action in "
-        "{long, short, no_trade, alert_human}, a confidence 0-1, and a one-line reason.",
+        "You are an automated TECHNICAL ANALYST agent inside a bridge that receives "
+        "TradingView alerts. Base every decision on technical analysis of the chart, "
+        "not on the bare alert. For each alert:",
+        "1) Call analyze_chart(symbol, timeframe) to get the technical picture: "
+        "indicators (trend, SMA20/50, EMA20, RSI, ATR), market_structure and swings, "
+        "fair_value_gaps, volume_profile (POC/VAH/VAL), and volume_state. "
+        "(Optionally read_price for the latest quote.)",
+        "2) Analyze using this methodology:\n" + methodology.instructions(),
+        "3) Call submit_decision exactly once with action in "
+        "{long, short, no_trade, alert_human}, confidence 0-1 reflecting confluence "
+        "strength, and a one-line reason that CITES the specific technical factors "
+        "(e.g. 'uptrend, RSI 58, price above SMA20, 1.2 ATR to recent high').",
     ]
     if config.ENABLE_EXECUTION:
         lines.append(
-            "3) If action is long/short and confidence is high, call place_order with "
-            "that side (it is capped and gated). Then call send_telegram once with a "
-            "short summary.")
+            "4) If action is long/short and confidence is high, call place_order with "
+            "that side (capped and gated). Then call send_telegram once with a short "
+            "summary of the technical rationale.")
     else:
         lines.append(
-            "3) Then call send_telegram exactly once with a short human-readable "
-            "summary of your decision and why. You are NOT authorized to place orders.")
-    lines.append("Use action alert_human when a human should look; be concise and decisive.")
+            "4) Then call send_telegram exactly once with a short summary of your "
+            "decision and the technical reasoning. You are NOT authorized to place orders.")
+    lines.append("If analyze_chart returns an error (no data feed), use action "
+                 "alert_human and say data is unavailable. Be concise and decisive.")
     return "\n".join(lines)
 
 
