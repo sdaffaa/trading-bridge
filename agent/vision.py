@@ -101,7 +101,7 @@ def _markup(school: str, png: bytes, symbol: str, timeframe: str,
         prompt += ("\n\nHigher-timeframe bias to respect (align entries with it):\n"
                    + htf_context)
     resp = _c().messages.create(
-        model=config.MODEL, max_tokens=700, thinking={"type": "adaptive"},
+        model=config.VISION_MARKUP_MODEL, max_tokens=700, thinking={"type": "adaptive"},
         messages=[{"role": "user", "content": [_img(png), {"type": "text", "text": prompt}]}])
     text = next((b.text for b in resp.content if b.type == "text"), "")
     jlog("vision_markup", school=school, symbol=symbol, ok=bool(text))
@@ -212,7 +212,7 @@ def evaluate_open_trades(png: bytes, symbol: str, timeframe: str, trades: list) 
         f"{listing}")
     try:
         resp = _c().messages.create(
-            model=config.MODEL, max_tokens=1500, thinking={"type": "adaptive"},
+            model=config.VISION_MARKUP_MODEL, max_tokens=1500, thinking={"type": "adaptive"},
             output_config={"effort": "high",
                            "format": {"type": "json_schema", "schema": _REVIEW_SCHEMA}},
             messages=[{"role": "user",
@@ -262,7 +262,7 @@ def locate_levels(png: bytes, symbol: str, timeframe: str, decision: dict) -> di
         # ample max_tokens: adaptive thinking must not starve the JSON output
         # (a tight cap makes the model spend the budget thinking and emit nothing).
         resp = _c().messages.create(
-            model=config.MODEL, max_tokens=2000, thinking={"type": "adaptive"},
+            model=config.VISION_MARKUP_MODEL, max_tokens=2000, thinking={"type": "adaptive"},
             output_config={"effort": "high",
                            "format": {"type": "json_schema", "schema": _LOCATE_SCHEMA}},
             messages=[{"role": "user",

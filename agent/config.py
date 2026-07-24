@@ -18,6 +18,10 @@ def _csv(name: str, default: str) -> set:
 # --- model / reasoning ---
 MODEL = os.environ.get("AGENT_MODEL", "claude-opus-4-8")
 MAX_TOKENS = int(os.environ.get("AGENT_MAX_TOKENS", "8000"))
+# The per-school chart reads (the bulk of the calls) run on a cheaper model; only
+# the coordinator that makes the final decision uses AGENT_MODEL. This is the main
+# cost lever — set to claude-opus-4-8 to disable, or claude-haiku-4-5 for cheapest.
+VISION_MARKUP_MODEL = os.environ.get("AGENT_VISION_MARKUP_MODEL", "claude-sonnet-5")
 
 # --- safety switches ---
 DRY_RUN = _flag("AGENT_DRY_RUN", "1")                 # default: safe
@@ -120,6 +124,7 @@ def summary() -> dict:
     """Non-secret view of the active config — safe to log at startup."""
     return {
         "model": MODEL,
+        "vision_markup_model": VISION_MARKUP_MODEL,
         "dry_run": DRY_RUN,
         "kill_switch_file": KILL_SWITCH_FILE,
         "allowed_symbols": sorted(ALLOWED_SYMBOLS),
