@@ -98,6 +98,80 @@ class BaseeraCapital:
     def list_symbols(self) -> List[str]:
         return self.provider.list_symbols()
 
+    def screen(self, symbols: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+        """
+        ماسح السوق: يحلّل مجموعة أسهم ويرتّبها حسب أفضلية النمو المتوقع.
+
+        درجة النمو المركّبة = الدرجة الكلية الموزونة، معزّزة بعاملي النمو
+        الأساسي (نمو الأرباح والإيرادات) والزخم الفني، لأن السؤال عن
+        "الأكثر نمواً" لا مجرد "الأفضل قيمة".
+        """
+        symbols = symbols or self.list_symbols()
+        ranked: List[Dict[str, Any]] = []
+        for sym in symbols:
+            try:
+                result = self.analyze(sym)
+            except KeyError:
+                continue
+            rec: FinalRecommendation = result["_recommendation_obj"]
+            stock: Stock = result["_stock_obj"]
+            f = stock.financials
+            by = {r.agent: r for r in rec.agent_reports}
+            tech_score = by["technical"].score if "technical" in by else 0.0
+            # درجة النمو المتوقع قصير المدى (هذا الشهر):
+            # القناعة المجمّعة للشركة هي المحرّك الأساسي (وهي تتضمّن أصلاً
+            # التحليل الفني والمالي)، مع الزخم الفني كعامل ترجيح، ودفعة
+            # صغيرة من النمو الأساسي. هذا يبقي الترتيب متسقاً مع التوصية.
+            growth_score = (
+                rec.composite_score                               # قناعة الشركة
+                + 0.15 * tech_score                               # ترجيح الزخم الفني
+                + 0.05 * (f.profit_growth + f.revenue_growth) / 2 # دفعة النمو الأساسي
+            )
+            ranked.append({
+                "symbol": stock.symbol,
+                "name_ar": stock.name_ar,
+                "sector": stock.quote.sector,
+                "last_price": stock.quote.last_price,
+                "growth_score": round(growth_score, 1),
+                "profit_growth": f.profit_growth,
+                "revenue_growth": f.revenue_growth,
+                "technical_score": tech_score,
+                "composite_score": rec.composite_score,
+                "action": rec.action,
+                "conviction": rec.conviction,
+                "target_price": rec.target_price,
+                "stop_loss": rec.stop_loss,
+                "upside_pct": round(
+                    (rec.target_price / stock.quote.last_price - 1) * 100, 1
+                ),
+                "_recommendation_obj": rec,
+            })
+        ranked.sort(key=lambda x: x["growth_score"], reverse=True)
+        return ranked
+
+
+def format_screen(ranked: List[Dict[str, Any]], top: int = 10) -> str:
+    """جدول عربي لترتيب الأسهم حسب النمو المتوقع."""
+    lines: List[str] = []
+    bar = "═" * 78
+    lines.append(bar)
+    lines.append(f"  {COMPANY_NAME} — ماسح النمو المتوقع (أعلى {min(top, len(ranked))} أسهم)")
+    lines.append(bar)
+    lines.append(
+        f"  {'#':<3}{'السهم':<12}{'القطاع':<16}"
+        f"{'درجة النمو':>11}{'نمو الأرباح':>12}{'الصعود%':>9}{'التوصية':>10}"
+    )
+    lines.append("─" * 78)
+    for i, r in enumerate(ranked[:top], 1):
+        icon = "🟢" if r["action"] == "شراء" else "🔴" if r["action"] == "بيع" else "🟡"
+        lines.append(
+            f"  {i:<3}{r['symbol']:<12}{r['sector']:<16}"
+            f"{r['growth_score']:>11}{r['profit_growth']:>11}%"
+            f"{r['upside_pct']:>8}%  {icon}{r['action']}"
+        )
+    lines.append(bar)
+    return "\n".join(lines)
+
 
 # ---------------------------------------------------------------------------
 # طباعة تقرير عربي أنيق في الطرفية

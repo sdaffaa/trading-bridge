@@ -19,6 +19,7 @@ import sys
 from baseera.orchestrator import (
     BaseeraCapital,
     format_report,
+    format_screen,
     telegram_summary,
     COMPANY_NAME,
     COMPANY_TAGLINE,
@@ -57,6 +58,24 @@ def cmd_agents(args) -> int:
     return 0
 
 
+def cmd_top(args) -> int:
+    firm = BaseeraCapital(live=args.live)
+    ranked = firm.screen()
+    if args.json:
+        payload = [{k: v for k, v in r.items() if not k.startswith("_")}
+                   for r in ranked[:args.count]]
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+    print(format_screen(ranked, top=args.count))
+    # تفاصيل السهم الأول (الأعلى نمواً متوقعاً)
+    if ranked:
+        best = ranked[0]
+        print(f"\n  ⭐ الأعلى نمواً متوقعاً هذا الشهر: {best['name_ar']} ({best['symbol']})")
+        print(f"     درجة النمو {best['growth_score']} | نمو أرباح {best['profit_growth']}% | "
+              f"صعود متوقع {best['upside_pct']}% حتى {best['target_price']} د.ك")
+    return 0
+
+
 def cmd_analyze(args) -> int:
     firm = BaseeraCapital(live=args.live)
     try:
@@ -86,6 +105,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("list", help="عرض الأسهم المتاحة").set_defaults(func=cmd_list)
     sub.add_parser("agents", help="عرض الوكلاء ومهامهم").set_defaults(func=cmd_agents)
+
+    t = sub.add_parser("top", help="ترتيب الأسهم حسب النمو المتوقع")
+    t.add_argument("-n", "--count", type=int, default=10, help="عدد الأسهم المعروضة")
+    t.add_argument("--json", action="store_true", help="مخرجات بصيغة JSON")
+    t.set_defaults(func=cmd_top)
 
     a = sub.add_parser("analyze", help="تحليل سهم وإصدار توصية")
     a.add_argument("symbol", help="رمز السهم، مثل: KFH أو NBK أو ZAIN")
