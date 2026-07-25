@@ -104,6 +104,23 @@ _COMPANIES: Dict[str, Dict] = {
         "net_margin": 9.0, "de": 2.1, "div_yield": 2.0, "rev_growth": 4.5,
         "profit_growth": 1.0, "book_value": 0.18, "market_cap": 480.0, "beta": 1.25,
     },
+    "AKTETAB": {
+        "name_ar": "شركة اكتتاب القابضة",
+        "sector": "الاستثمار",
+        "base_price": 0.0975, "eps": 0.0032, "pe": 30.5, "pb": 1.1, "roe": 3.6,
+        "net_margin": 12.0, "de": 0.8, "div_yield": 0.0, "rev_growth": 22.0,
+        "profit_growth": 15.0, "book_value": 0.089, "market_cap": 42.0, "beta": 1.5,
+    },
+}
+
+# مرادفات الرموز (بحث بالاسم العربي أو أسماء بديلة)
+_ALIASES = {
+    "اكتتاب": "AKTETAB",
+    "اكتتاب القابضة": "AKTETAB",
+    "AKTTAB": "AKTETAB",
+    "بيتك": "KFH",
+    "الوطني": "NBK",
+    "زين": "ZAIN",
 }
 
 # أخبار نموذجية على مستوى القطاع (تُستبدل بمصدر أخبار حيّ لاحقاً)
@@ -243,8 +260,18 @@ class SampleProvider:
     def list_symbols(self) -> List[str]:
         return list(_COMPANIES.keys())
 
+    def _resolve(self, symbol: str) -> str:
+        """يحوّل الاسم/الرمز المُدخل إلى رمز رسمي (يدعم المرادفات العربية)."""
+        raw = symbol.strip()
+        if raw in _ALIASES:                 # مطابقة عربية مباشرة
+            return _ALIASES[raw]
+        key = raw.upper()
+        if key in _ALIASES:
+            return _ALIASES[key]
+        return key
+
     def _require(self, symbol: str) -> Dict:
-        key = symbol.upper()
+        key = self._resolve(symbol)
         if key not in _COMPANIES:
             raise KeyError(
                 f"الرمز '{symbol}' غير موجود في قاعدة البيانات النموذجية. "
@@ -254,6 +281,7 @@ class SampleProvider:
 
     def get_quote(self, symbol: str) -> Quote:
         c = self._require(symbol)
+        symbol = self._resolve(symbol)
         series = _price_series(symbol, c["base_price"])
         last = series[-1]
         prev = series[-2]
@@ -278,6 +306,7 @@ class SampleProvider:
 
     def get_technicals(self, symbol: str) -> TechnicalSnapshot:
         c = self._require(symbol)
+        symbol = self._resolve(symbol)
         series = _price_series(symbol, c["base_price"])
         sma20 = _sma(series, 20)
         sma50 = _sma(series, 50)
