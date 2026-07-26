@@ -67,6 +67,23 @@ sellCol = input.color(color.new(#ef5350, 0), "Sell / bearish", group=gVis)
 neutCol = input.color(color.new(#787b86, 30), "Neutral", group=gVis)
 pocCol  = input.color(color.new(#ffca28, 0), "POC / highlight", group=gVis)
 
+// ── Volume Profile & Key Levels
+gVP    = "⑦ Volume Profile & Key Levels"
+showVP  = input.bool(true, "Developing volume profile", group=gVP)
+profRows= input.int(24, "Profile rows (bins)", minval=8, maxval=60, group=gVP)
+vpWidth = input.int(80, "Profile max width (bars)", minval=10, group=gVP)
+vaPct   = input.float(70, "Value area %", minval=50, maxval=90, step=5, group=gVP) / 100.0
+showCur = input.bool(true, "Current-day POC / VAH / VAL", group=gVP)
+showPrev= input.bool(true, "Previous-day POC / VAH / VAL / H / L", group=gVP)
+showNpoc= input.bool(true, "Naked POCs (untouched magnets)", group=gVP)
+vpCol   = input.color(color.new(#5b9cf6, 55), "Profile histogram", group=gVP)
+vaColr  = input.color(color.new(#5b9cf6, 25), "Value-area rows", group=gVP)
+
+// ── DOM Liquidity Ladder (approximation)
+gDom   = "⑧ DOM Liquidity Ladder (approx)"
+showDom = input.bool(true, "Show DOM ladder", group=gDom, tooltip="No real order book on TradingView — this shows accumulated bid/ask volume-at-price near the current price as a liquidity proxy.")
+domLvls = input.int(10, "Ladder levels (each side)", minval=3, maxval=25, group=gDom)
+
 // ─────────────────────────────  HELPERS  ───────────────────────────────────
 f_fmt(float v) =>
     a = math.abs(v)
@@ -104,6 +121,40 @@ f_classify(float o, float h, float l, float c, float v) =>
         buy  := v * frac
         sell := v * (1.0 - frac)
     [buy, sell]
+
+// Compute POC / Value Area from a bin-volume array. Returns prices + POC bin index.
+f_profile(array<float> tot, int minB, float bs, float vpct) =>
+    int nb = array.size(tot)
+    int pocJ = 0
+    float pocV = -1.0
+    float total = 0.0
+    for j = 0 to nb - 1
+        v = array.get(tot, j)
+        total += v
+        if v > pocV
+            pocV := v
+            pocJ := j
+    float acc = pocV
+    int up = pocJ
+    int dn = pocJ
+    float target = total * vpct
+    while acc < target and (up < nb - 1 or dn > 0)
+        vUp = up < nb - 1 ? array.get(tot, up + 1) : -1.0
+        vDn = dn > 0      ? array.get(tot, dn - 1) : -1.0
+        if vUp >= vDn
+            up += 1
+            acc += math.max(vUp, 0.0)
+        else
+            dn -= 1
+            acc += math.max(vDn, 0.0)
+    [(minB + pocJ) * bs, (minB + up) * bs, (minB + dn) * bs, minB + pocJ]
+
+// Draw a horizontal level (ray + right-edge label) and register it for later cleanup.
+f_lvlDraw(int x1, int x2, float pr, string tag, color cc, string style, array<line> lns, array<label> lbs) =>
+    l = line.new(x1, pr, x2, pr, color=cc, width=1, style=style, extend=extend.right, force_overlay=true)
+    lb = label.new(x2, pr, tag + " " + str.tostring(pr, format.mintick), style=label.style_label_left, color=color.new(cc, 20), textcolor=color.white, size=size.tiny, force_overlay=true)
+    array.push(lns, l)
+    array.push(lbs, lb)
 
 int   n       = na(aC) ? 0 : array.size(aC)
 float buySum  = 0.0
@@ -229,10 +280,10 @@ if doFp
         sellStackStart := sellImb ? (na(sellStackStart) ? lvl : sellStackStart) : na
         if showStack and buyImb and (lvl - buyStackStart + 1) == stackN
             box.new(bar_index, (lvl+1)*rowSize, bar_index + zoneExt, buyStackStart*rowSize,
-                 border_color=color.new(buyCol,40), bgcolor=color.new(buyCol,88), extend=extend.none)
+                 border_color=color.new(buyCol,40), bgcolor=color.new(buyCol,88), extend=extend.none, force_overlay=true)
         if showStack and sellImb and (lvl - sellStackStart + 1) == stackN
             box.new(bar_index, (lvl+1)*rowSize, bar_index + zoneExt, sellStackStart*rowSize,
-                 border_color=color.new(sellCol,40), bgcolor=color.new(sellCol,88), extend=extend.none)
+                 border_color=color.new(sellCol,40), bgcolor=color.new(sellCol,88), extend=extend.none, force_overlay=true)
 
         if showFp
             bool isPoc = lvl == pocLvl
@@ -242,7 +293,7 @@ if doFp
                  pre + f_fmt(bid) + "  ×  " + f_fmt(ask),
                  style=label.style_none,
                  textcolor = isPoc ? pocCol : txtCol,
-                 size=fpTextSize)
+                 size=fpTextSize, force_overlay=true)
             array.push(fpLabels, lb)
 
     // Per-bar totals + unfinished-auction marks
@@ -251,17 +302,195 @@ if doFp
         lb2 = label.new(bar_index, loLvl * rowSize - rowSize,
              "Δ " + f_fmt(barDelta) + "\n∑ " + f_fmt(barVol),
              style=label.style_label_up, color=color.new(totCol, 20),
-             textcolor=color.white, size=size.tiny)
+             textcolor=color.white, size=size.tiny, force_overlay=true)
         array.push(fpLabels, lb2)
         if unfHi
-            array.push(fpLabels, label.new(bar_index, hiLvl*rowSize + rowSize, "⤒", style=label.style_none, textcolor=sellCol, size=size.small))
+            array.push(fpLabels, label.new(bar_index, hiLvl*rowSize + rowSize, "⤒", style=label.style_none, textcolor=sellCol, size=size.small, force_overlay=true))
         if unfLo
-            array.push(fpLabels, label.new(bar_index, loLvl*rowSize - rowSize*2, "⤓", style=label.style_none, textcolor=buyCol, size=size.small))
+            array.push(fpLabels, label.new(bar_index, loLvl*rowSize - rowSize*2, "⤓", style=label.style_none, textcolor=buyCol, size=size.small, force_overlay=true))
 
 // Keep footprint label array from growing unbounded (Pine also recycles at max)
 if array.size(fpLabels) > 480
     lbOld = array.shift(fpLabels)
     label.delete(lbOld)
+
+// ════════════  VOLUME PROFILE · KEY LEVELS (today / yesterday) · DOM  ═══════════
+// Daily bin size from the previous day's range → bounded, instrument-agnostic rows
+float dayRangeEst = request.security(syminfo.tickerid, "1D", high[1] - low[1], lookahead=barmerge.lookahead_on)
+float pdHigh      = request.security(syminfo.tickerid, "1D", high[1], lookahead=barmerge.lookahead_on)
+float pdLow       = request.security(syminfo.tickerid, "1D", low[1],  lookahead=barmerge.lookahead_on)
+float binSize = (na(dayRangeEst) or dayRangeEst <= 0) ?
+     math.max(syminfo.mintick, math.round((atrRow * 3 / profRows) / syminfo.mintick) * syminfo.mintick) :
+     math.max(syminfo.mintick, math.round((dayRangeEst / profRows) / syminfo.mintick) * syminfo.mintick)
+
+// Session (day) volume-at-price accumulators
+var map<int, float> dTot = map.new<int, float>()
+var map<int, float> dAsk = map.new<int, float>()
+var map<int, float> dBid = map.new<int, float>()
+var int dMinB = na
+var int dMaxB = na
+var int curDayStart  = na
+var int prevDayStart = na
+
+// Fixed previous-day + developing current-day levels
+var float pdPoc = na
+var float pdVah = na
+var float pdVal = na
+var float pdHi  = na
+var float pdLo  = na
+var float cdPoc = na
+var float cdVah = na
+var float cdVal = na
+
+// Drawing object registers
+var array<box>   vpBoxes    = array.new<box>()
+var array<line>  curLines   = array.new<line>()
+var array<label> curLabs    = array.new<label>()
+var array<line>  prevLines  = array.new<line>()
+var array<label> prevLabs   = array.new<label>()
+var array<line>  npocLines  = array.new<line>()
+var array<float> npocPrices = array.new<float>()
+
+bool newDay = timeframe.change("1D")
+
+// ── Day rollover: snapshot completed day → previous-day levels, register nPOC, reset
+if barstate.isconfirmed and newDay and dTot.size() > 0 and not na(dMinB)
+    array<float> tot0 = array.new<float>()
+    for b = dMinB to dMaxB
+        array.push(tot0, dTot.contains(b) ? dTot.get(b) : 0.0)
+    [p0, vh0, vl0, _pb0] = f_profile(tot0, dMinB, binSize, vaPct)
+    pdPoc := p0
+    pdVah := vh0
+    pdVal := vl0
+    pdHi  := pdHigh
+    pdLo  := pdLow
+    // Register the just-completed POC as a naked POC (magnet until traded through)
+    if showNpoc
+        ln = line.new(bar_index, p0, bar_index + 1, p0, color=color.new(pocCol, 20), style=line.style_dotted, width=1, extend=extend.right, force_overlay=true)
+        array.push(npocLines, ln)
+        array.push(npocPrices, p0)
+        if array.size(npocPrices) > 8
+            line.delete(array.shift(npocLines))
+            array.shift(npocPrices)
+    // Reset for the new day
+    dTot.clear()
+    dAsk.clear()
+    dBid.clear()
+    dMinB := na
+    dMaxB := na
+    prevDayStart := curDayStart
+    curDayStart  := bar_index
+
+if na(curDayStart)
+    curDayStart := bar_index
+
+// ── Accumulate confirmed-bar intrabar volume into the day profile
+if barstate.isconfirmed and n > 0
+    for i = 0 to n - 1
+        c = array.get(aC, i)
+        v = array.get(aV, i)
+        [b, s] = f_classify(array.get(aO,i), array.get(aH,i), array.get(aL,i), c, v)
+        bin = int(math.round(c / binSize))
+        dTot.put(bin, (dTot.contains(bin) ? dTot.get(bin) : 0.0) + v)
+        dAsk.put(bin, (dAsk.contains(bin) ? dAsk.get(bin) : 0.0) + b)
+        dBid.put(bin, (dBid.contains(bin) ? dBid.get(bin) : 0.0) + s)
+        dMinB := na(dMinB) or bin < dMinB ? bin : dMinB
+        dMaxB := na(dMaxB) or bin > dMaxB ? bin : dMaxB
+
+// ── Remove naked POCs once price trades through them
+if barstate.isconfirmed and showNpoc and array.size(npocPrices) > 0
+    int k = array.size(npocPrices) - 1
+    while k >= 0
+        p = array.get(npocPrices, k)
+        if low <= p and p <= high
+            line.delete(array.get(npocLines, k))
+            array.remove(npocLines, k)
+            array.remove(npocPrices, k)
+        k -= 1
+
+// ── Render developing profile + current-day levels on the last bar
+if barstate.islast and not na(dMinB) and dTot.size() > 0
+    array<float> tot = array.new<float>()
+    for b = dMinB to dMaxB
+        array.push(tot, dTot.contains(b) ? dTot.get(b) : 0.0)
+    [pcur, vhcur, vlcur, _pb] = f_profile(tot, dMinB, binSize, vaPct)
+    cdPoc := pcur
+    cdVah := vhcur
+    cdVal := vlcur
+    float maxV = array.max(tot)
+    int   rightX = bar_index + vpWidth + 4
+
+    // Histogram
+    for bx in vpBoxes
+        box.delete(bx)
+    vpBoxes.clear()
+    if showVP and maxV > 0
+        for b = dMinB to dMaxB
+            v = dTot.contains(b) ? dTot.get(b) : 0.0
+            if v > 0
+                w = math.max(1, int(math.round(v / maxV * vpWidth)))
+                price = b * binSize
+                inVA = price >= vlcur and price <= vhcur
+                isPoc = math.abs(price - pcur) < binSize / 2
+                col = isPoc ? color.new(pocCol, 25) : inVA ? vaColr : vpCol
+                bx = box.new(rightX - w, price + binSize, rightX, price, border_color=color.new(col, 90), bgcolor=col, force_overlay=true)
+                array.push(vpBoxes, bx)
+
+    // Current-day POC/VAH/VAL lines + labels
+    for ln in curLines
+        line.delete(ln)
+    curLines.clear()
+    for lb in curLabs
+        label.delete(lb)
+    curLabs.clear()
+    if showCur
+        x1 = na(curDayStart) ? bar_index - 20 : curDayStart
+        f_lvlDraw(x1, bar_index + 2, pcur,  "POC", pocCol,                line.style_solid,  curLines, curLabs)
+        f_lvlDraw(x1, bar_index + 2, vhcur, "VAH", color.new(#5b9cf6, 0), line.style_dashed, curLines, curLabs)
+        f_lvlDraw(x1, bar_index + 2, vlcur, "VAL", color.new(#5b9cf6, 0), line.style_dashed, curLines, curLabs)
+
+// ── (Re)draw previous-day levels each new day, projected across the current day
+if barstate.isconfirmed and newDay and showPrev and not na(pdPoc)
+    for ln in prevLines
+        line.delete(ln)
+    prevLines.clear()
+    for lb in prevLabs
+        label.delete(lb)
+    prevLabs.clear()
+    f_lvlDraw(bar_index, bar_index + 1, pdPoc, "PD POC", color.new(#ff9800, 0),  line.style_solid,  prevLines, prevLabs)
+    f_lvlDraw(bar_index, bar_index + 1, pdVah, "PD VAH", color.new(#ff9800, 40), line.style_dotted, prevLines, prevLabs)
+    f_lvlDraw(bar_index, bar_index + 1, pdVal, "PD VAL", color.new(#ff9800, 40), line.style_dotted, prevLines, prevLabs)
+    f_lvlDraw(bar_index, bar_index + 1, pdHi,  "PDH",    color.new(color.gray, 0), line.style_dashed, prevLines, prevLabs)
+    f_lvlDraw(bar_index, bar_index + 1, pdLo,  "PDL",    color.new(color.gray, 0), line.style_dashed, prevLines, prevLabs)
+
+// ─────────────────  DOM LIQUIDITY LADDER (approximation)  ───────────────────
+var table dt = table.new(position.middle_left, 3, 60, border_width=1, frame_color=color.new(color.gray, 60), frame_width=1)
+if showDom and barstate.islast and not na(dMinB)
+    int centerBin = int(math.round(close / binSize))
+    int rows = domLvls * 2 + 1
+    // scale bars to the max ask/bid visible in the ladder
+    float maxLad = 0.0
+    for idx = 0 to rows - 1
+        b = centerBin + domLvls - idx
+        av = dAsk.contains(b) ? dAsk.get(b) : 0.0
+        bv = dBid.contains(b) ? dBid.get(b) : 0.0
+        maxLad := math.max(maxLad, math.max(av, bv))
+    table.cell(dt, 0, 0, "BID", text_color=sellCol, text_size=size.tiny, bgcolor=color.new(color.gray, 75))
+    table.cell(dt, 1, 0, "PRICE (DOM≈)", text_color=color.white, text_size=size.tiny, bgcolor=color.new(color.gray, 75))
+    table.cell(dt, 2, 0, "ASK", text_color=buyCol, text_size=size.tiny, bgcolor=color.new(color.gray, 75))
+    for idx = 0 to rows - 1
+        b = centerBin + domLvls - idx
+        price = b * binSize
+        av = dAsk.contains(b) ? dAsk.get(b) : 0.0
+        bv = dBid.contains(b) ? dBid.get(b) : 0.0
+        alen = maxLad > 0 ? int(math.round(av / maxLad * 8)) : 0
+        blen = maxLad > 0 ? int(math.round(bv / maxLad * 8)) : 0
+        bool isHere = b == centerBin
+        bool isPocR = not na(cdPoc) and math.abs(price - cdPoc) < binSize / 2
+        rowBg = isHere ? color.new(pocCol, 70) : isPocR ? color.new(#5b9cf6, 80) : na
+        table.cell(dt, 0, idx + 1, blen > 0 ? str.repeat("█", blen) : "·", text_color=sellCol, text_size=size.tiny, text_halign=text.align_right, bgcolor=rowBg)
+        table.cell(dt, 1, idx + 1, str.tostring(price, format.mintick), text_color=isHere ? pocCol : color.new(color.gray, 0), text_size=size.tiny, bgcolor=rowBg)
+        table.cell(dt, 2, idx + 1, alen > 0 ? str.repeat("█", alen) : "·", text_color=buyCol, text_size=size.tiny, text_halign=text.align_left, bgcolor=rowBg)
 
 // ─────────────────────────────  PLOTS (pane)  ──────────────────────────────
 cvdArea = plot(cvd, "CVD", color = cvd >= 0 ? buyCol : sellCol, linewidth=2)
