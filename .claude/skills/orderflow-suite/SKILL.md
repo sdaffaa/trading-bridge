@@ -44,7 +44,7 @@ volume profile, today/yesterday key levels, and a DOM-style liquidity ladder.
 | LTF engine + `f_classify` | per-bar buy/sell split, `barDelta`, `barVol`, `volRatio` |
 | CVD block | session/day/week-anchored `cvd` + signal MA + delta candle coloring |
 | Pattern detectors | `absBull/absBear`, `exhUp/exhDn`, `trapTop/trapBot`, `bull/bearDiv` (scores → booleans) |
-| Footprint block (`doFp`) | per-price Bid×Ask **box grid** (bid left / ask right of the candle, drawn with `xloc.bar_time` to split the bar width), heatmap cell shading, diagonal imbalances, stacked-zone boxes, bar POC, unfinished auction |
+| Footprint block (`doFp`) | per-price Bid×Ask colored cells via `label.style_label_right`/`_left` at `xloc.bar_index` (bid left / ask right of the candle) + `force_overlay=true`, heatmap shading, diagonal imbalances, stacked-zone boxes, bar POC, unfinished auction. NOTE: `xloc.bar_time` boxes with `force_overlay` do NOT render on the price chart from this pane indicator — that combination made the footprint vanish; keep footprint cells on `xloc.bar_index` labels. |
 | Iceberg block | one-sided aggression absorbed at a rejected extreme → `iceSell`/`iceBuy`, persistent level lines removed when broken, 🧊 markers |
 | VP / key-levels block | day maps `dTot/dAsk/dBid`, `f_profile` → POC/VAH/VAL, current + previous-day lines, naked POCs |
 | DOM ladder | `dAsk/dBid` near price → block-bar table (`position.middle_left`) |

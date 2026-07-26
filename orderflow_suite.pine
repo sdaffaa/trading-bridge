@@ -274,8 +274,6 @@ if showDiv and not na(pl)
 bool doFp = (showFp or showStack) and (last_bar_index - bar_index < fpBars) and n > 0
 
 var array<label> fpLabels = array.new<label>()
-var array<box>   fpBoxes  = array.new<box>()
-int barMs = timeframe.in_seconds(timeframe.period) * 1000   // bar width in ms for cell grid
 
 if doFp
     mAsk = map.new<int, float>()   // aggressive buys at each level
@@ -309,17 +307,6 @@ if doFp
     bool unfHi = (mAsk.contains(hiLvl) ? mAsk.get(hiLvl) : 0.0) > 0 and (mBid.contains(hiLvl) ? mBid.get(hiLvl) : 0.0) > 0
     bool unfLo = (mAsk.contains(loLvl) ? mAsk.get(loLvl) : 0.0) > 0 and (mBid.contains(loLvl) ? mBid.get(loLvl) : 0.0) > 0
 
-    // Footprint grid geometry: split the bar's width → BID (sell) left half, ASK (buy) right half
-    int fL   = time + int(barMs * 0.06)
-    int fMid = time + barMs / 2
-    int fR   = time + barMs - int(barMs * 0.06)
-    int fBx  = (fL + fMid) / 2
-    int fAx  = (fMid + fR) / 2
-    if showFp
-        // outer rectangle framing the whole footprint column
-        array.push(fpBoxes, box.new(fL, (hiLvl + 0.5) * rowSize, fR, (loLvl - 0.5) * rowSize,
-             xloc=xloc.bar_time, border_color=color.new(color.gray, 35), border_width=1, bgcolor=na, force_overlay=true))
-
     // Render each level + detect diagonal imbalances / stacks
     int   buyStackStart = na
     int   sellStackStart = na
@@ -344,25 +331,21 @@ if doFp
         if showFp
             bool isPoc  = lvl == pocLvl
             float price = lvl * rowSize
-            float rTop  = price + rowSize / 2
-            float rBot  = price - rowSize / 2
-            // BID cell — sell orders, LEFT half of the bar
+            // BID cell — sell orders, box sits LEFT of the candle
             if bid > 0 or not fpHide0
                 bTr = fpHeat ? 88 - int(math.min(58, bid / maxCell * 58)) : 50
-                bBg = sellImb ? color.new(sellCol, 6) : isPoc ? color.new(pocCol, 58) : color.new(sellCol, bTr)
-                array.push(fpBoxes, box.new(fL, rTop, fMid, rBot, xloc=xloc.bar_time,
-                     border_color=color.new(color.gray, 72), border_width=1, bgcolor=bBg, force_overlay=true))
-                array.push(fpLabels, label.new(fBx, price, bid > 0 ? f_fmt(bid) : "·", xloc=xloc.bar_time,
-                     style=label.style_none, textcolor=sellImb ? color.white : color.new(color.white, 8),
+                bBg = sellImb ? color.new(sellCol, 6) : isPoc ? color.new(pocCol, 55) : color.new(sellCol, bTr)
+                array.push(fpLabels, label.new(bar_index, price, bid > 0 ? f_fmt(bid) : "·",
+                     style=label.style_label_right, color=bBg,
+                     textcolor=sellImb ? color.white : color.new(color.white, 8),
                      size=fpTextSize, force_overlay=true))
-            // ASK cell — buy orders, RIGHT half of the bar
+            // ASK cell — buy orders, box sits RIGHT of the candle
             if ask > 0 or not fpHide0
                 aTr = fpHeat ? 88 - int(math.min(58, ask / maxCell * 58)) : 50
-                aBg = buyImb ? color.new(buyCol, 6) : isPoc ? color.new(pocCol, 58) : color.new(buyCol, aTr)
-                array.push(fpBoxes, box.new(fMid, rTop, fR, rBot, xloc=xloc.bar_time,
-                     border_color=color.new(color.gray, 72), border_width=1, bgcolor=aBg, force_overlay=true))
-                array.push(fpLabels, label.new(fAx, price, ask > 0 ? f_fmt(ask) : "·", xloc=xloc.bar_time,
-                     style=label.style_none, textcolor=buyImb ? color.white : color.new(color.white, 8),
+                aBg = buyImb ? color.new(buyCol, 6) : isPoc ? color.new(pocCol, 55) : color.new(buyCol, aTr)
+                array.push(fpLabels, label.new(bar_index, price, ask > 0 ? f_fmt(ask) : "·",
+                     style=label.style_label_left, color=aBg,
+                     textcolor=buyImb ? color.white : color.new(color.white, 8),
                      size=fpTextSize, force_overlay=true))
 
     // Per-bar totals + unfinished-auction marks
@@ -379,11 +362,9 @@ if doFp
         if unfLo
             array.push(fpLabels, label.new(bar_index, loLvl*rowSize - rowSize*2, "⤓", style=label.style_none, textcolor=buyCol, size=size.small, force_overlay=true))
 
-// Keep footprint drawing arrays bounded (Pine also recycles at max object counts)
+// Keep footprint label array bounded (Pine also recycles at max object counts)
 if array.size(fpLabels) > 480
     label.delete(array.shift(fpLabels))
-while array.size(fpBoxes) > 400
-    box.delete(array.shift(fpBoxes))
 
 // ════════════  VOLUME PROFILE · KEY LEVELS (today / yesterday) · DOM  ═══════════
 // Daily bin size from the previous day's range → bounded, instrument-agnostic rows
