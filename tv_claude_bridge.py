@@ -124,6 +124,14 @@ def _run_once(payload_str: str) -> int:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) >= 2 and sys.argv[1] == "--learn":
+        # distill and persist each school's winning-pattern playbook (run once)
+        from agent import playbook
+        jlog("learn_start")
+        result = playbook.build_all()
+        print(json.dumps(result, ensure_ascii=False))
+        sys.exit(0)
+
     if len(sys.argv) >= 2 and sys.argv[1] == "--once":
         if len(sys.argv) < 3:
             sys.stderr.write('usage: --once \'{"symbol":..,"action":..,"price":..}\'\n')

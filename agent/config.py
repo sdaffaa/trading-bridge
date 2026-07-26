@@ -156,4 +156,14 @@ def summary() -> dict:
         "risk_percent": RISK_PERCENT,
         "min_rr": MIN_RR,
         "min_grade": MIN_GRADE,
+        "playbook": _playbook_status(),
     }
+
+
+def _playbook_status() -> dict:
+    """Per-school learned-pattern counts (empty until `--learn` has been run)."""
+    try:
+        from . import playbook
+        return playbook.status()
+    except Exception:
+        return {}

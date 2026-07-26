@@ -12,7 +12,7 @@ import threading
 
 from anthropic import Anthropic
 
-from . import config, risk
+from . import config, risk, playbook
 from .logging_setup import jlog
 
 _client = None
@@ -137,6 +137,11 @@ def _markup(school: str, png: bytes, symbol: str, timeframe: str,
               "from the right-hand axis. Report only elements ACTUALLY visible (do not "
               "invent). Be tight (<=160 words): the bias, the specific numeric levels, "
               "and the single highest-probability setup this school sees.")
+    pb = playbook.summary(school)
+    if pb:
+        prompt += ("\n\nPROVEN winning models for this school (learned from studying "
+                   "winning trades — recognise and prioritise any that are present):\n"
+                   + pb)
     if htf_context:
         prompt += ("\n\nHigher-timeframe bias to respect (align entries with it):\n"
                    + htf_context)
