@@ -4,19 +4,23 @@ Real 3D: extruded candlesticks (6-face boxes, lit + shaded), a perspective floor
 grid, contact shadows, depth fog, and a pinhole camera you dolly/truck/pedestal.
 Pure Python/Pillow + numpy — deterministic, no GPU.
 """
-import math, numpy as np
+import math, json, os, numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 from engine import (W,H, NEARWHITE,SILVER,GOLD,TEAL,RED,BLACK, font,FA,FL,FL_BLACK,
-                    CANDLES,META,LV,IDX, clamp,lerp)
+                    clamp,lerp)
 
+# compact 3D dataset
+_HERE=os.path.dirname(os.path.abspath(__file__))
+_D=json.load(open(os.path.join(_HERE,"candles3d.json")))
+CANDLES=_D["candles"]; META=_D["meta"]; LV=META["levels"]; IDX=META["idx"]
 N=META["n"]; PTOP=META["price_top"]; PBOT=META["price_bot"]
 PMID=(PTOP+PBOT)/2
-DX=0.52                      # world spacing between candles (X)
-PYS=13.0/(PTOP-PBOT)         # price -> world Y scale (range -> ~13 units tall)
-BW=DX*0.62                   # body width (X)
-BD=DX*0.62                   # body depth (Z)
-WW=DX*0.16                   # wick width/depth
-FLOOR_Y=-(PMID-PBOT)*PYS-1.4 # floor a bit under the lowest price
+DX=0.50                      # world spacing between candles (X)
+PYS=9.0/(PTOP-PBOT)          # price -> world Y scale
+BW=DX*0.66                   # body width (X)
+BD=DX*0.66                   # body depth (Z)
+WW=DX*0.15                   # wick width/depth
+FLOOR_Y=-(PMID-PBOT)*PYS-1.1 # floor a bit under the lowest price
 LIGHT=np.array([-0.45,0.92,0.55]); LIGHT/=np.linalg.norm(LIGHT)
 BG_TOP=(9,12,17); BG_BOT=(6,8,11); FOG=(9,12,17)
 
@@ -154,15 +158,16 @@ def draw_chart3d(reveal, cam, highlights=None, brightness=1.0, print_glow=0):
     return img
 
 # a default cinematic camera focused on a candle index
-def cam_for(focus_i=None, eye=None, target=None, fov=34.0):
+def cam_for(focus_i=None, eye=None, target=None, fov=40.0):
     if target is None:
-        fx=X(focus_i if focus_i is not None else N*0.6); target=(fx,1.2,0)
+        fx=X(focus_i) if focus_i is not None else 0.0
+        target=(fx*0.45-0.4, 0.4, 0)
     if eye is None:
-        eye=(target[0]*0.4+2.4, 3.2, 15.5)
+        eye=(1.4, 3.5, 38.0)
     return Cam(eye,target,fov)
 
 if __name__=="__main__":
-    cam=cam_for(focus_i=IDX["H_R"])
+    cam=cam_for()
     im=draw_chart3d(META["reveal_full"],cam,
         highlights={"highs":["L","R"],"high_col":GOLD,
           "lines":[(LV["LOW_L"],(150,160,170),"dash"),(LV["LOW_R"],(150,160,170),"dash")]})
