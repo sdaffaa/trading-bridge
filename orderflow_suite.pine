@@ -44,6 +44,8 @@ showFp = input.bool(true, "Show footprint numbers", group=gFp)
 fpBars = input.int(8, "Render last N bars", minval=1, maxval=40, group=gFp, tooltip="Footprint numbers are heavy; only the most recent N bars are drawn.")
 rowsTgt= input.int(11, "Target rows per bar", minval=4, maxval=40, group=gFp, tooltip="Auto row height = ATR / this. Keeps rows bounded on any instrument.")
 fpSize = input.string("Tiny", "Text size", options=["Tiny","Small","Normal"], group=gFp)
+fpHeat = input.bool(true, "Heatmap cell shading", group=gFp, tooltip="Shade each Bid/Ask cell by its volume relative to the busiest cell in the bar. Off = flat cells.")
+fpHide0= input.bool(true, "Hide empty (0) cells", group=gFp)
 
 // ── Imbalance
 gImb   = "③ Diagonal Imbalance"
@@ -262,14 +264,18 @@ if doFp
         loLvl := na(loLvl) or lvl < loLvl ? lvl : loLvl
         hiLvl := na(hiLvl) or lvl > hiLvl ? lvl : hiLvl
 
-    // Bar POC (max total volume level)
-    int   pocLvl = loLvl
-    float pocVol = -1.0
+    // Bar POC (max total volume level) + busiest single cell (heatmap scale)
+    int   pocLvl  = loLvl
+    float pocVol  = -1.0
+    float maxCell = 1.0
     for lvl = loLvl to hiLvl
-        tot = (mAsk.contains(lvl) ? mAsk.get(lvl) : 0.0) + (mBid.contains(lvl) ? mBid.get(lvl) : 0.0)
+        av  = mAsk.contains(lvl) ? mAsk.get(lvl) : 0.0
+        bv  = mBid.contains(lvl) ? mBid.get(lvl) : 0.0
+        tot = av + bv
         if tot > pocVol
             pocVol := tot
             pocLvl := lvl
+        maxCell := math.max(maxCell, math.max(av, bv))
 
     // Unfinished auction: extreme where BOTH sides traded (no zero print)
     bool unfHi = (mAsk.contains(hiLvl) ? mAsk.get(hiLvl) : 0.0) > 0 and (mBid.contains(hiLvl) ? mBid.get(hiLvl) : 0.0) > 0
@@ -298,21 +304,31 @@ if doFp
 
         if showFp
             bool isPoc = lvl == pocLvl
-            txtCol = buyImb ? buyCol : sellImb ? sellCol : neutCol
-            pre = isPoc ? "◉ " : (buyImb ? "▲ " : sellImb ? "▼ " : "")
-            lb = label.new(bar_index, lvl * rowSize,
-                 pre + f_fmt(bid) + "  ×  " + f_fmt(ask),
-                 style=label.style_none,
-                 textcolor = isPoc ? pocCol : txtCol,
-                 size=fpTextSize, force_overlay=true)
-            array.push(fpLabels, lb)
+            float price = lvl * rowSize
+            // BID cell (left column) — sell aggression
+            if bid > 0 or not fpHide0
+                bTr = fpHeat ? 90 - int(math.min(60, bid / maxCell * 60)) : 55
+                bBg = sellImb ? color.new(sellCol, 8) : isPoc ? color.new(pocCol, 62) : color.new(sellCol, bTr)
+                array.push(fpLabels, label.new(bar_index, price, bid > 0 ? f_fmt(bid) : "·",
+                     style=label.style_label_right, color=bBg,
+                     textcolor = sellImb ? color.white : color.new(color.white, 10),
+                     size=fpTextSize, force_overlay=true))
+            // ASK cell (right column) — buy aggression
+            if ask > 0 or not fpHide0
+                aTr = fpHeat ? 90 - int(math.min(60, ask / maxCell * 60)) : 55
+                aBg = buyImb ? color.new(buyCol, 8) : isPoc ? color.new(pocCol, 62) : color.new(buyCol, aTr)
+                array.push(fpLabels, label.new(bar_index, price, ask > 0 ? f_fmt(ask) : "·",
+                     style=label.style_label_left, color=aBg,
+                     textcolor = buyImb ? color.white : color.new(color.white, 10),
+                     size=fpTextSize, force_overlay=true))
 
     // Per-bar totals + unfinished-auction marks
     if showFp
         totCol = barDelta >= 0 ? buyCol : sellCol
+        arrow  = barDelta >= 0 ? "▲" : "▼"
         lb2 = label.new(bar_index, loLvl * rowSize - rowSize,
-             "Δ " + f_fmt(barDelta) + "\n∑ " + f_fmt(barVol),
-             style=label.style_label_up, color=color.new(totCol, 20),
+             arrow + " Δ " + f_fmt(barDelta) + "\n∑ " + f_fmt(barVol) + "   ◉ " + str.tostring(pocLvl * rowSize, format.mintick),
+             style=label.style_label_up, color=color.new(totCol, 15),
              textcolor=color.white, size=size.tiny, force_overlay=true)
         array.push(fpLabels, lb2)
         if unfHi
