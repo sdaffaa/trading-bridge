@@ -197,11 +197,11 @@ SUBS=[
  (4.0,4.8,"شلون؟"),
  (4.8,6.0,"تعال اقولك"),
  (6.0,8.6,"الناس تشوف الهاي الأعلى بالجارت وتقول هذا القوي… عشان اهو الأعلى"),
- (8.6,11.0,"لكن بالواقع؟ قوة الهاي مو من شكله… من اللي تحته"),
- (11.0,13.6,"إذا النزول من الهاي سحب السيولة تحت آخر لو… الهاي قوي، وإذا ما سحبها ضعيف"),
- (13.6,14.3,"الهاي اللي ما سحب السيولة تحته… اهو اللي بياخذ ستوبك"),
- (14.3,17.5,"شوف: هذا الهاي سحب اللو اللي تحته وصمد… وهذا لا، وطاح"),
- (17.5,19.2,"لا تحط ستوبك فوق هاي ما سحب شي… اهو مو حماية، اهو سيولة مستهدفة"),
+ (8.6,11.0,"لكن بالواقع؟ قوة الهاي مو من شكله… من الكسر اللي تحته"),
+ (11.0,13.6,"إذا النزول من الهاي كسر آخر لو بإغلاق شمعة… الهاي قوي، وإذا ما كسره ضعيف"),
+ (13.6,14.3,"الهاي اللي ما كسر اللو تحته… اهو اللي بياخذ ستوبك"),
+ (14.3,17.5,"شوف الأخير: الهاي الضعيف سحب الستوبات فوقه… وبعدها طاح السعر لهدفه"),
+ (17.5,19.2,"لا تحط ستوبك فوق هاي ما كسر لو تحته… اهو مو حماية، اهو سيولة مستهدفة"),
  (19.2,22.0,"بس شلون تعرف الهاي القوي والجارت داخل رينج؟ اكتب «قوي» بالتعليقات ويوصلك الملف كامل"),
 ]
 def _sub_clean(s):
@@ -380,9 +380,9 @@ def _core(t):
         im=apply_grade(im)
         z=lerp(1.05,1.0,ease_io(p))
         im=camera(im,z,(px(IDX["H_L"])+px(IDX["TARGET"]))/2, (CYTOP+CYBOT)/2)
-        im=caption_seq(im,[("t","طاح",FA,74,RED),("cross",22,RED),
-                           ("check",22,TEAL),("t","صمد",FA,74,TEAL)],
-                          1250,lt,0.1,0.6,mode="rise",scrim_w=560,gap=30)
+        im=caption_seq(im,[("t","ما كسر",FA,66,RED),("cross",22,RED),
+                           ("check",22,TEAL),("t","كسر",FA,66,TEAL)],
+                          1250,lt,0.1,0.6,mode="rise",scrim_w=640,gap=26)
         return im
     # ---- B10 CARE ----
     if k==10:
@@ -444,31 +444,32 @@ def rule_runs(d,cy):
         d.text((x,cy),tx,font=fn,fill=col,anchor="lm",direction=dirn); x+=wv+gap
 
 def _mini_panel(strong):
-    """Schematic mini formation. strong=True: last drop candle's wick pierces the
-    'last low' line (liquidity swept). False: drop stops clearly above it (not swept)."""
+    """Schematic mini formation. strong=True: the drop's candle BODIES close below
+    the 'last low' line = Break of Structure (BOS). False: drop stays above the line
+    (no break) -> weak. Body-close discipline, not a wick."""
     PW,PH=W//2-8, int(H*0.46)
     im=Image.new("RGB",(PW,PH),(11,14,19))
     d=ImageDraw.Draw(im)
     top,bot=54,PH-54
-    pmax,pmin=(4092.0,4046.0)
+    pmax,pmin=(4092.0,4044.0)
     def yy(p): return top+(pmax-p)/(pmax-pmin)*(bot-top)
-    lastlow=4058.0
-    # 4 green rise candles -> high -> 3 red drop candles (last = the test)
+    lastlow=4060.0
     if strong:
-        seq=[(4060,4066,True),(4066,4072,True),(4072,4080,True),(4080,4086,True),
-             (4086,4078,False),(4078,4070,False),(4070,4066,False)]  # last wick pierces below
-        wick_lo=4049.0; col_low=TEAL; badge="قوي"; label="سحب اللو"
+        # rise -> high -> displacement DOWN, bodies close BELOW the line (BOS)
+        seq=[(4062,4067,True),(4067,4073,True),(4073,4080,True),(4080,4085,True),
+             (4085,4074,False),(4074,4062,False),(4062,4051,False)]   # last body closes < 4060
+        col_low=TEAL; badge="قوي"; label="كسر الهيكل"
     else:
-        seq=[(4062,4068,True),(4068,4076,True),(4076,4084,True),(4084,4090,True),
-             (4090,4082,False),(4082,4074,False),(4074,4067,False)]  # last low stays above line
-        wick_lo=4066.0; col_low=RED; badge="ضعيف"; label="ما وصله"
-    n=len(seq); cw=(PW-72)/n
-    lastx=None
+        # rise -> high -> shallow pullback, bodies stay ABOVE the line (no break)
+        seq=[(4064,4070,True),(4070,4078,True),(4078,4085,True),(4085,4088,True),
+             (4088,4081,False),(4081,4074,False),(4074,4071,False)]   # low 4071 > 4060
+        col_low=RED; badge="ضعيف"; label="ما كسر"
+    n=len(seq); cw=(PW-72)/n; lastx=None; lastc=None
     for i,(o,c,up) in enumerate(seq):
         x=42+i*cw+cw/2
         col=(54,170,150) if up else (224,84,80)
-        hh=max(o,c)+3; ll=min(o,c)-3
-        if i==n-1: ll=wick_lo; lastx=x       # the decisive test candle
+        hh=max(o,c)+3; ll=min(o,c)-2.5
+        if i==n-1: lastx=x; lastc=c
         d.line([(x,yy(hh)),(x,yy(ll))],fill=col,width=3)
         t=min(yy(o),yy(c)); b=max(yy(o),yy(c)); b=max(b,t+3)
         d.rectangle([x-cw*0.32,t,x+cw*0.32,b],fill=col)
@@ -477,14 +478,14 @@ def _mini_panel(strong):
     while xx<PW-24:
         d.line([(xx,yl),(min(xx+16,PW-24),yl)],fill=(170,180,190),width=2); xx+=28
     d.text((PW-30,yl-24),"آخر لو",font=font(FA,28),fill=(180,190,200),anchor="rm",direction="rtl")
-    # highlight the decisive wick vs the gap
     if strong:
-        d.line([(lastx,yl),(lastx,yy(wick_lo))],fill=col_low,width=5)   # pierce
-        liq_arrow(d,lastx,yy(wick_lo)+8,col_low,up=True)
+        # mark the body-close below the line (BOS)
+        d.line([(42,yy(lastc)),(PW-24,yy(lastc))],fill=(col_low[0],col_low[1],col_low[2]),width=2)
+        d.text((48,yy(lastc)+4),"إغلاق تحت",font=font(FA,24),fill=col_low,anchor="lm",direction="rtl")
+        liq_arrow(d,lastx,yy(lastc)+6,col_low,up=True)
     else:
-        # show the gap between drop low and the line
-        d.line([(lastx,yy(wick_lo)),(lastx,yl)],fill=(120,130,140),width=2)
-        liq_arrow(d,lastx+2,yy(wick_lo)-8,col_low,up=False)
+        d.text((48,yy(4071)-4),"وقف فوق",font=font(FA,24),fill=col_low,anchor="lm",direction="rtl")
+        liq_arrow(d,lastx+2,yy(4071)-8,col_low,up=False)
     return im,badge,col_low,label,PW,PH
 
 def rule_frame(lt,dl):
@@ -510,9 +511,14 @@ def rule_frame(lt,dl):
     # badges below panels
     if lt>0.2: marker_badge(d,4+PW//2,py0+PH+48,bL,cL)
     if lt>0.5: marker_badge(d,W//2+4+PW//2,py0+PH+48,bR,cR)
-    # rule caption (auto-fit, no clipping)
-    seq=[("t","ضعيف",FA,66,RED),("t","=",FL,58,SILVER),("t","سحب",FA,66,NEARWHITE),
-         ("t","ما",FA,66,NEARWHITE),("t","·",FL,58,GOLD),("t","قوي",FA,66,TEAL),
-         ("t","=",FL,58,SILVER),("t","اللو",FA,66,NEARWHITE),("t","سحب",FA,66,NEARWHITE)]
-    im=caption_seq(im,seq,py0+PH+130,lt,0.1,0.6,mode="wipe",scrim_w=1010,maxw=1010,gap=14)
+    # rule caption (auto-fit, no clipping):  كسر اللو = قوي · ما كسر = ضعيف
+    seq=[("t","ضعيف",FA,64,RED),("t","=",FL,56,SILVER),("t","كسر",FA,64,NEARWHITE),
+         ("t","ما",FA,64,NEARWHITE),("t","·",FL,56,GOLD),("t","قوي",FA,64,TEAL),
+         ("t","=",FL,56,SILVER),("t","اللو",FA,64,NEARWHITE),("t","كسر",FA,64,NEARWHITE)]
+    im=caption_seq(im,seq,py0+PH+126,lt,0.1,0.6,mode="wipe",scrim_w=1010,maxw=1010,gap=14)
+    # body-close discipline line
+    d2=ImageDraw.Draw(im)
+    if lt>0.7:
+        d2.text((W//2,py0+PH+190),"الكسر بالإغلاق، مو بالفتيل",font=font(FA,40),
+                fill=SILVER,anchor="mm",direction="rtl")
     return im
