@@ -1,0 +1,267 @@
+//@version=6
+// ============================================================================
+//  ICEBERG ORDERS — Hidden Liquidity Detector  (Pine Script v6)
+//
+//  Detects hidden, refilling limit orders ("icebergs"): a single price level
+//  that keeps absorbing heavy one-sided aggression across the bar's intrabars
+//  WITHOUT price accepting through it. The order refills as it is hit — the
+//  signature of size hiding behind the tape.
+//
+//  HONEST APPROXIMATION NOTICE:
+//  TradingView has no real order book / tape. This reconstructs aggression
+//  from a lower-timeframe (LTF) volume feed via request.security_lower_tf()
+//  and counts intrabar "refills" at each price. Real iceberg confirmation
+//  needs a true bid/ask feed (Sierra Chart / Numbers Bars, GC futures for
+//  gold). Treat these as high-probability zones, not certainties.
+// ============================================================================
+indicator("Iceberg Orders — Hidden Liquidity Detector",
+     shorttitle       = "Icebergs",
+     overlay          = true,
+     max_lines_count  = 500,
+     max_labels_count = 500,
+     max_boxes_count  = 500)
+
+// ─────────────────────────────  INPUTS  ────────────────────────────────────
+gPre   = "⓪ Instrument Preset"
+preset = input.string("Gold (XAUUSD)", "Preset",
+     options=["Gold (XAUUSD)", "Forex (5-digit)", "Index / Crypto", "Custom (auto)"], group=gPre,
+     tooltip="Sets the price-level (row) size the detector bins aggression into. Gold = $0.5 rows.")
+float presetRow = preset == "Gold (XAUUSD)" ? 0.5 : preset == "Forex (5-digit)" ? 0.0002 : 0.0
+rowsTgt = input.int(11, "Auto rows per bar (Custom/Index)", minval=4, maxval=40, group=gPre)
+
+gEng   = "① LTF Engine"
+autoLtf = input.bool(true, "Auto lower timeframe", group=gEng)
+manLtf  = input.timeframe("1", "Manual lower timeframe", group=gEng)
+clsMode = input.string("Close position", "Volume classification",
+     options=["Close position", "Close vs Open"], group=gEng)
+
+gDet   = "② Iceberg Detection"
+minTouch = input.int(3, "Min refills (intrabars at level)", minval=2, group=gDet, tooltip="How many lower-timeframe bars must trade at the level — the 'refill' count.")
+concMult = input.float(2.5, "Min concentration (× avg level)", minval=1.5, step=0.1, group=gDet, tooltip="Level's one-sided volume vs the bar's average level volume.")
+minShare = input.float(0.25, "Min share of bar volume", minval=0.1, maxval=0.8, step=0.05, group=gDet)
+volF     = input.float(1.2, "Min bar volume (× 20-avg)", minval=0.5, step=0.1, group=gDet)
+minLev   = input.int(4, "Min levels in bar", minval=2, group=gDet, tooltip="Skip bars too thin for a meaningful concentration read.")
+rejTol   = input.float(0.5, "Acceptance tolerance (rows)", minval=0.0, step=0.25, group=gDet, tooltip="How far beyond the level price may close and still count as absorbed.")
+
+gVis   = "③ Visuals"
+useZone = input.bool(true, "Draw zones (off = lines)", group=gVis)
+showLbl = input.bool(true, "Show labels", group=gVis)
+showMrk = input.bool(true, "Bar markers", group=gVis)
+showTbl = input.bool(true, "Info table", group=gVis)
+holdBrk = input.bool(true, "Keep level until broken", group=gVis)
+maxKeep = input.int(20, "Max active icebergs", minval=2, maxval=60, group=gVis)
+resCol  = input.color(color.new(#ef5350, 0), "Resistance (sell iceberg)", group=gVis)
+supCol  = input.color(color.new(#26a69a, 0), "Support (buy iceberg)", group=gVis)
+
+// ─────────────────────────────  HELPERS  ───────────────────────────────────
+f_fmt(float v) =>
+    a = math.abs(v)
+    a >= 1e9 ? str.tostring(v/1e9, "#.##") + "B" :
+     a >= 1e6 ? str.tostring(v/1e6, "#.##") + "M" :
+     a >= 1e3 ? str.tostring(v/1e3, "#.#")  + "K" : str.tostring(v, "#")
+
+f_classify(float o, float h, float l, float c, float v) =>
+    float buy  = 0.0
+    float sell = 0.0
+    if clsMode == "Close vs Open"
+        buy  := c >= o ? v : 0.0
+        sell := c <  o ? v : 0.0
+    else
+        rng  = math.max(h - l, syminfo.mintick)
+        frac = (c - l) / rng
+        buy  := v * frac
+        sell := v * (1.0 - frac)
+    [buy, sell]
+
+// Auto LTF resolution from chart timeframe
+chartSec = timeframe.in_seconds(timeframe.period)
+autoRes  = chartSec >= 86400 ? "60" :
+             chartSec >= 14400 ? "15" :
+             chartSec >= 3600  ? "5"  :
+             chartSec >= 900   ? "1"  :
+             chartSec >= 180   ? "5S" : "1S"
+ltfRes = autoLtf ? autoRes : manLtf
+
+float atr14  = ta.atr(14)
+float rowSize = presetRow > 0 ? math.max(syminfo.mintick, presetRow) :
+     math.max(syminfo.mintick, math.round((atr14 / rowsTgt) / syminfo.mintick) * syminfo.mintick)
+
+// ───────────────────  LOWER-TIMEFRAME VOLUME FEED  ─────────────────────────
+[aO, aH, aL, aC, aV] = request.security_lower_tf(syminfo.tickerid, ltfRes,
+     [open, high, low, close, volume])
+int n = na(aC) ? 0 : array.size(aC)
+
+// ─────────────────────  PER-BAR AGGRESSION-AT-PRICE  ───────────────────────
+var float avgVol = na
+float barVolTmp = 0.0
+if n > 0
+    for i = 0 to n - 1
+        barVolTmp += array.get(aV, i)
+else
+    barVolTmp := volume
+avgVol := ta.sma(barVolTmp, 20)
+float volRatio = avgVol > 0 ? barVolTmp / avgVol : 0.0
+
+// Detect the strongest ask-side and bid-side iceberg level on the closed bar
+int   bestAskL = na
+int   bestBidL = na
+float bestAskV = 0.0
+float bestBidV = 0.0
+int   askCnt   = 0
+int   bidCnt   = 0
+float avgLevel = 0.0
+
+if barstate.isconfirmed and n > 0
+    mAsk = map.new<int, float>()
+    mBid = map.new<int, float>()
+    mCnt = map.new<int, int>()
+    for i = 0 to n - 1
+        c = array.get(aC, i)
+        [b, s] = f_classify(array.get(aO,i), array.get(aH,i), array.get(aL,i), c, array.get(aV,i))
+        lvl = int(math.round(c / rowSize))
+        mAsk.put(lvl, (mAsk.contains(lvl) ? mAsk.get(lvl) : 0.0) + b)
+        mBid.put(lvl, (mBid.contains(lvl) ? mBid.get(lvl) : 0.0) + s)
+        mCnt.put(lvl, (mCnt.contains(lvl) ? mCnt.get(lvl) : 0) + 1)
+    keys = mCnt.keys()
+    int nLev = array.size(keys)
+    avgLevel := nLev > 0 ? barVolTmp / nLev : 0.0
+    for idx = 0 to nLev - 1
+        L = array.get(keys, idx)
+        a = mAsk.contains(L) ? mAsk.get(L) : 0.0
+        b = mBid.contains(L) ? mBid.get(L) : 0.0
+        if a > bestAskV
+            bestAskV := a
+            bestAskL := L
+            askCnt   := mCnt.get(L)
+        if b > bestBidV
+            bestBidV := b
+            bestBidL := L
+            bidCnt   := mCnt.get(L)
+
+float tol      = rejTol * rowSize
+float priceAsk = na(bestAskL) ? na : bestAskL * rowSize
+float priceBid = na(bestBidL) ? na : bestBidL * rowSize
+
+bool gateVol   = volRatio >= volF
+bool enoughLev = not na(avgLevel) and avgLevel > 0
+
+// Resistance iceberg: hidden SELLER absorbs BUY aggression → price rejected below level
+bool iceRes = barstate.isconfirmed and enoughLev and gateVol and not na(priceAsk) and
+     bestAskV >= concMult * avgLevel and bestAskV >= minShare * barVolTmp and askCnt >= minTouch and
+     high >= priceAsk - tol and close <= priceAsk + tol
+// Support iceberg: hidden BUYER absorbs SELL aggression → price held above level
+bool iceSup = barstate.isconfirmed and enoughLev and gateVol and not na(priceBid) and
+     bestBidV >= concMult * avgLevel and bestBidV >= minShare * barVolTmp and bidCnt >= minTouch and
+     low <= priceBid + tol and close >= priceBid - tol
+
+float resStr = avgLevel > 0 ? bestAskV / avgLevel : 0.0
+float supStr = avgLevel > 0 ? bestBidV / avgLevel : 0.0
+
+// ─────────────────────────  DRAW & PERSIST ZONES  ──────────────────────────
+var array<box>   iceBoxes = array.new<box>()
+var array<line>  iceLines = array.new<line>()
+var array<label> iceLabs  = array.new<label>()
+var array<float> icePx    = array.new<float>()
+var array<bool>  iceIsRes = array.new<bool>()
+
+f_register(float px, bool isRes, float vol, int refills, float strn) =>
+    col = isRes ? resCol : supCol
+    ext = holdBrk ? extend.right : extend.none
+    if useZone
+        bx = box.new(bar_index, px + rowSize/2, bar_index + 1, px - rowSize/2, xloc=xloc.bar_index,
+             border_color=col, border_width=1, bgcolor=color.new(col, 82), extend=ext)
+        array.push(iceBoxes, bx)
+        array.push(iceLines, na)
+    else
+        ln = line.new(bar_index, px, bar_index + 1, px, color=col, width=2, style=line.style_solid, extend=ext)
+        array.push(iceLines, ln)
+        array.push(iceBoxes, na)
+    if showLbl
+        txt = "🧊 " + (isRes ? "SELL" : "BUY") + "  " + f_fmt(vol) + "  ×" + str.tostring(strn, "#.0") + "  ⟳" + str.tostring(refills)
+        lb = label.new(bar_index, px, txt, xloc=xloc.bar_index,
+             style = isRes ? label.style_label_down : label.style_label_up,
+             color = color.new(col, 10), textcolor = color.white, size = size.tiny)
+        array.push(iceLabs, lb)
+    else
+        array.push(iceLabs, na)
+    array.push(icePx, px)
+    array.push(iceIsRes, isRes)
+
+if iceRes
+    f_register(priceAsk, true, bestAskV, askCnt, resStr)
+if iceSup
+    f_register(priceBid, false, bestBidV, bidCnt, supStr)
+
+// Remove icebergs once price accepts through them (broken)
+if barstate.isconfirmed and holdBrk and array.size(icePx) > 0
+    kk = array.size(icePx) - 1
+    while kk >= 0
+        p  = array.get(icePx, kk)
+        rs = array.get(iceIsRes, kk)
+        broken = rs ? close > p + tol : close < p - tol
+        if broken
+            b0 = array.get(iceBoxes, kk)
+            l0 = array.get(iceLines, kk)
+            g0 = array.get(iceLabs, kk)
+            if not na(b0)
+                box.delete(b0)
+            if not na(l0)
+                line.delete(l0)
+            if not na(g0)
+                label.delete(g0)
+            array.remove(iceBoxes, kk)
+            array.remove(iceLines, kk)
+            array.remove(iceLabs, kk)
+            array.remove(icePx, kk)
+            array.remove(iceIsRes, kk)
+        kk -= 1
+
+// Cap active icebergs
+while array.size(icePx) > maxKeep
+    b0 = array.shift(iceBoxes)
+    l0 = array.shift(iceLines)
+    g0 = array.shift(iceLabs)
+    if not na(b0)
+        box.delete(b0)
+    if not na(l0)
+        line.delete(l0)
+    if not na(g0)
+        label.delete(g0)
+    array.shift(icePx)
+    array.shift(iceIsRes)
+
+// ─────────────────────────────  MARKERS  ───────────────────────────────────
+plotshape(showMrk and iceRes, "Iceberg resistance", shape.triangledown, location.abovebar, color.new(resCol, 0), size=size.tiny, text="🧊")
+plotshape(showMrk and iceSup, "Iceberg support",    shape.triangleup,   location.belowbar, color.new(supCol, 0), size=size.tiny, text="🧊")
+
+// ─────────────────────────────  INFO TABLE  ────────────────────────────────
+var table t = table.new(position.top_right, 2, 5, border_width=1, frame_color=color.new(color.gray,50), frame_width=1)
+if showTbl and barstate.islast
+    int resN = 0
+    int supN = 0
+    float nearPx = na
+    float nearD  = na
+    if array.size(icePx) > 0
+        for j = 0 to array.size(icePx) - 1
+            rs = array.get(iceIsRes, j)
+            resN += rs ? 1 : 0
+            supN += rs ? 0 : 1
+            d = math.abs(array.get(icePx, j) - close)
+            if na(nearD) or d < nearD
+                nearD  := d
+                nearPx := array.get(icePx, j)
+    table.cell(t, 0, 0, "🧊 ICEBERGS", text_color=color.white, text_size=size.small, bgcolor=color.new(color.gray,70))
+    table.cell(t, 1, 0, ltfRes + " LTF", text_color=color.new(color.gray,0), text_size=size.small, bgcolor=color.new(color.gray,70))
+    table.cell(t, 0, 1, "Resistance", text_color=color.new(color.gray,0), text_size=size.small)
+    table.cell(t, 1, 1, str.tostring(resN), text_color=resCol, text_size=size.small)
+    table.cell(t, 0, 2, "Support", text_color=color.new(color.gray,0), text_size=size.small)
+    table.cell(t, 1, 2, str.tostring(supN), text_color=supCol, text_size=size.small)
+    table.cell(t, 0, 3, "Nearest", text_color=color.new(color.gray,0), text_size=size.small)
+    table.cell(t, 1, 3, na(nearPx) ? "—" : str.tostring(nearPx, format.mintick), text_color=color.white, text_size=size.small)
+    table.cell(t, 0, 4, "Row size", text_color=color.new(color.gray,0), text_size=size.small)
+    table.cell(t, 1, 4, str.tostring(rowSize, format.mintick), text_color=color.new(color.gray,0), text_size=size.small)
+
+// ─────────────────────────────  ALERTS  ────────────────────────────────────
+alertcondition(iceRes, "Iceberg Resistance", "Iceberg SELL detected — hidden offer absorbing buys (resistance)")
+alertcondition(iceSup, "Iceberg Support",    "Iceberg BUY detected — hidden bid absorbing sells (support)")
+alertcondition(iceRes or iceSup, "Any Iceberg", "Iceberg order detected")
