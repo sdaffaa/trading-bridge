@@ -219,6 +219,26 @@ def test_vision_analyze_extracts_key_levels(monkeypatch):
     assert out["key_levels"][0]["price2"] == 1998.0
 
 
+def test_grade_gate_downgrades_weak_setup(monkeypatch):
+    monkeypatch.setattr(config, "VISION_SCHOOLS", {"ict"})
+    monkeypatch.setattr(config, "MIN_GRADE", "A")          # require all-school confluence
+    plan = {"action": "long", "grade": "B", "confidence": 0.6,
+            "entry": 2000, "stop_loss": 1990, "take_profit": 2030, "reason": "قوي جزئياً"}
+    monkeypatch.setattr(vision, "_client", _Client(plan))
+    out = vision.analyze(b"png", "OANDA:XAUUSD", "15")
+    assert out["decision"]["action"] == "no_trade"          # B < A -> gated
+
+
+def test_grade_gate_allows_meeting_grade(monkeypatch):
+    monkeypatch.setattr(config, "VISION_SCHOOLS", {"ict"})
+    monkeypatch.setattr(config, "MIN_GRADE", "B")
+    plan = {"action": "long", "grade": "B", "confidence": 0.6,
+            "entry": 2000, "stop_loss": 1990, "take_profit": 2030, "reason": "توافق"}
+    monkeypatch.setattr(vision, "_client", _Client(plan))
+    out = vision.analyze(b"png", "OANDA:XAUUSD", "15")
+    assert out["decision"]["action"] == "long"              # B >= B -> allowed
+
+
 def test_vision_handles_bad_coordinator(monkeypatch):
     monkeypatch.setattr(config, "VISION_SCHOOLS", {"ict"})
 

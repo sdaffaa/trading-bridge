@@ -121,8 +121,8 @@ def _coordinate(markups, png, symbol, timeframe, htf_context: str = "") -> dict:
         f"You are the head analyst combining four schools on {symbol} {timeframe}. "
         "Below are each school's markup of the attached chart. Apply the schools in "
         "confluence and grade the setup: A = 3-4 schools agree, B = 2, C = 1, none = "
-        "conflict/flat. Only propose long/short on a B setup or better with reward:risk "
-        f">= {config.MIN_RR}. Set stop_loss beyond the structural invalidation and "
+        f"conflict/flat. Only propose long/short on a {config.MIN_GRADE} setup or better "
+        f"with reward:risk >= {config.MIN_RR}. Set stop_loss beyond the structural invalidation and "
         "take_profit at the opposing liquidity / value-area edge. If no valid trade, "
         "use action no_trade (or alert_human if a human should look). Read levels from "
         "the chart axis. Write the 'reason' field in ARABIC — a concise sentence citing "
@@ -308,6 +308,15 @@ def _finalize(markups, png, symbol, timeframe, htf_context=""):
         "grade": plan.get("grade", "none"),
         "reason": plan.get("reason", ""),
     }
+    # enforce the minimum confluence grade: only fire on strong multi-school
+    # agreement; weaker setups are downgraded to no_trade (kept for the record).
+    _rank = {"A": 3, "B": 2, "C": 1, "none": 0}
+    if decision["action"] in ("long", "short") and \
+            _rank.get(decision["grade"], 0) < _rank.get(config.MIN_GRADE, 2):
+        jlog("grade_gate", symbol=symbol, grade=decision["grade"],
+             min_grade=config.MIN_GRADE, was=decision["action"])
+        decision["action"] = "no_trade"
+
     decision.update(risk.compute(decision["action"], plan.get("entry", 0),
                                  plan.get("stop_loss", 0), plan.get("take_profit", 0)))
     # coordinator-provided drawing coordinates (primary source for the markup)
