@@ -96,6 +96,16 @@ gDom   = "⑧ DOM Liquidity Ladder (approx)"
 showDom = input.bool(true, "Show DOM ladder", group=gDom, tooltip="No real order book on TradingView — this shows accumulated bid/ask volume-at-price near the current price as a liquidity proxy.")
 domLvls = input.int(10, "Ladder levels (each side)", minval=3, maxval=25, group=gDom)
 
+// ── Iceberg Orders (hidden refilling limit orders — approximation)
+gIce   = "⑨ Iceberg Orders"
+showIce = input.bool(true, "Detect icebergs", group=gIce, tooltip="Approximates hidden refilling limit orders: heavy one-sided aggression absorbed at a bar extreme while price is rejected from it. Real icebergs need a live tape (Sierra Chart).")
+iceShare= input.float(0.45, "Min aggression share at extreme", minval=0.2, maxval=0.9, step=0.05, group=gIce, tooltip="Fraction of the bar's volume that must hit near the extreme.")
+iceWick = input.float(0.5, "Min rejection wick (× bar range)", minval=0.1, maxval=0.9, step=0.05, group=gIce, tooltip="How far price must reject from the extreme (long wick = absorbed).")
+iceBandR= input.int(2, "Extreme band (rows)", minval=1, maxval=6, group=gIce, tooltip="How many footprint rows near the high/low count as 'the extreme'.")
+iceVolF = input.float(1.3, "Min bar volume (× avg)", minval=0.5, step=0.1, group=gIce)
+iceHold = input.bool(true, "Keep iceberg level until broken", group=gIce)
+iceCol  = input.color(color.new(#00bcd4, 0), "Iceberg color", group=gIce)
+
 // ─────────────────────────────  HELPERS  ───────────────────────────────────
 f_fmt(float v) =>
     a = math.abs(v)
@@ -120,6 +130,10 @@ ltfRes = autoLtf ? autoRes : manLtf
 
 // ─────────────────  PER-BAR DELTA (cheap pass, full history)  ───────────────
 float atrRow = ta.atr(14)
+
+// Footprint / iceberg row size: preset price step if set, else auto (ATR-bounded)
+float rowSize = presetRow > 0 ? math.max(syminfo.mintick, presetRow) :
+     math.max(syminfo.mintick, math.round((atrRow / rowsTgt) / syminfo.mintick) * syminfo.mintick)
 
 f_classify(float o, float h, float l, float c, float v) =>
     float buy  = 0.0
@@ -171,12 +185,23 @@ f_lvlDraw(int x1, int x2, float pr, string tag, color cc, string style, array<li
 int   n       = na(aC) ? 0 : array.size(aC)
 float buySum  = 0.0
 float sellSum = 0.0
+float iceAskHi = 0.0   // buy aggression executed near the bar high (absorbed by a hidden offer)
+float iceBidLo = 0.0   // sell aggression executed near the bar low  (absorbed by a hidden bid)
+float iceBand  = iceBandR * rowSize
 
 if n > 0
     for i = 0 to n - 1
-        [b, s] = f_classify(array.get(aO,i), array.get(aH,i), array.get(aL,i), array.get(aC,i), array.get(aV,i))
+        lo2 = array.get(aO,i)
+        lh2 = array.get(aH,i)
+        ll2 = array.get(aL,i)
+        lc2 = array.get(aC,i)
+        [b, s] = f_classify(lo2, lh2, ll2, lc2, array.get(aV,i))
         buySum  += b
         sellSum += s
+        if lc2 >= high - iceBand
+            iceAskHi += b
+        if lc2 <= low + iceBand
+            iceBidLo += s
 else
     // Fallback: no LTF data → classify the chart bar itself
     [b, s] = f_classify(open, high, low, close, volume)
@@ -188,6 +213,11 @@ float barVol   = buySum + sellSum
 float avgVol   = ta.sma(barVol, 20)
 float volRatio = avgVol > 0 ? barVol / avgVol : 0.0
 float deltaPct = barVol > 0 ? math.abs(barDelta) / barVol : 0.0
+
+// ── Iceberg detection (hidden refilling limit absorbed at a rejected extreme)
+float barRng = math.max(high - low, syminfo.mintick)
+bool iceSell = showIce and barVol > 0 and volRatio >= iceVolF and iceAskHi >= iceShare * barVol and (high - close) >= iceWick * barRng   // hidden offer  → resistance
+bool iceBuy  = showIce and barVol > 0 and volRatio >= iceVolF and iceBidLo >= iceShare * barVol and (close - low)  >= iceWick * barRng   // hidden bid    → support
 
 // ─────────────────────────────  CVD  ───────────────────────────────────────
 bool newAnchor = cvdAnchor == "Session" ? (session.isfirstbar_regular) :
@@ -244,10 +274,8 @@ if showDiv and not na(pl)
 bool doFp = (showFp or showStack) and (last_bar_index - bar_index < fpBars) and n > 0
 
 var array<label> fpLabels = array.new<label>()
-
-// Footprint row size: preset price step if set, else auto (ATR-bounded)
-float rowSize = presetRow > 0 ? math.max(syminfo.mintick, presetRow) :
-     math.max(syminfo.mintick, math.round((atrRow / rowsTgt) / syminfo.mintick) * syminfo.mintick)
+var array<box>   fpBoxes  = array.new<box>()
+int barMs = timeframe.in_seconds(timeframe.period) * 1000   // bar width in ms for cell grid
 
 if doFp
     mAsk = map.new<int, float>()   // aggressive buys at each level
@@ -281,6 +309,17 @@ if doFp
     bool unfHi = (mAsk.contains(hiLvl) ? mAsk.get(hiLvl) : 0.0) > 0 and (mBid.contains(hiLvl) ? mBid.get(hiLvl) : 0.0) > 0
     bool unfLo = (mAsk.contains(loLvl) ? mAsk.get(loLvl) : 0.0) > 0 and (mBid.contains(loLvl) ? mBid.get(loLvl) : 0.0) > 0
 
+    // Footprint grid geometry: split the bar's width → BID (sell) left half, ASK (buy) right half
+    int fL   = time + int(barMs * 0.06)
+    int fMid = time + barMs / 2
+    int fR   = time + barMs - int(barMs * 0.06)
+    int fBx  = (fL + fMid) / 2
+    int fAx  = (fMid + fR) / 2
+    if showFp
+        // outer rectangle framing the whole footprint column
+        array.push(fpBoxes, box.new(fL, (hiLvl + 0.5) * rowSize, fR, (loLvl - 0.5) * rowSize,
+             xloc=xloc.bar_time, border_color=color.new(color.gray, 35), border_width=1, bgcolor=na, force_overlay=true))
+
     // Render each level + detect diagonal imbalances / stacks
     int   buyStackStart = na
     int   sellStackStart = na
@@ -303,23 +342,27 @@ if doFp
                  border_color=color.new(sellCol,40), bgcolor=color.new(sellCol,88), extend=extend.none, force_overlay=true)
 
         if showFp
-            bool isPoc = lvl == pocLvl
+            bool isPoc  = lvl == pocLvl
             float price = lvl * rowSize
-            // BID cell (left column) — sell aggression
+            float rTop  = price + rowSize / 2
+            float rBot  = price - rowSize / 2
+            // BID cell — sell orders, LEFT half of the bar
             if bid > 0 or not fpHide0
-                bTr = fpHeat ? 90 - int(math.min(60, bid / maxCell * 60)) : 55
-                bBg = sellImb ? color.new(sellCol, 8) : isPoc ? color.new(pocCol, 62) : color.new(sellCol, bTr)
-                array.push(fpLabels, label.new(bar_index, price, bid > 0 ? f_fmt(bid) : "·",
-                     style=label.style_label_right, color=bBg,
-                     textcolor = sellImb ? color.white : color.new(color.white, 10),
+                bTr = fpHeat ? 88 - int(math.min(58, bid / maxCell * 58)) : 50
+                bBg = sellImb ? color.new(sellCol, 6) : isPoc ? color.new(pocCol, 58) : color.new(sellCol, bTr)
+                array.push(fpBoxes, box.new(fL, rTop, fMid, rBot, xloc=xloc.bar_time,
+                     border_color=color.new(color.gray, 72), border_width=1, bgcolor=bBg, force_overlay=true))
+                array.push(fpLabels, label.new(fBx, price, bid > 0 ? f_fmt(bid) : "·", xloc=xloc.bar_time,
+                     style=label.style_none, textcolor=sellImb ? color.white : color.new(color.white, 8),
                      size=fpTextSize, force_overlay=true))
-            // ASK cell (right column) — buy aggression
+            // ASK cell — buy orders, RIGHT half of the bar
             if ask > 0 or not fpHide0
-                aTr = fpHeat ? 90 - int(math.min(60, ask / maxCell * 60)) : 55
-                aBg = buyImb ? color.new(buyCol, 8) : isPoc ? color.new(pocCol, 62) : color.new(buyCol, aTr)
-                array.push(fpLabels, label.new(bar_index, price, ask > 0 ? f_fmt(ask) : "·",
-                     style=label.style_label_left, color=aBg,
-                     textcolor = buyImb ? color.white : color.new(color.white, 10),
+                aTr = fpHeat ? 88 - int(math.min(58, ask / maxCell * 58)) : 50
+                aBg = buyImb ? color.new(buyCol, 6) : isPoc ? color.new(pocCol, 58) : color.new(buyCol, aTr)
+                array.push(fpBoxes, box.new(fMid, rTop, fR, rBot, xloc=xloc.bar_time,
+                     border_color=color.new(color.gray, 72), border_width=1, bgcolor=aBg, force_overlay=true))
+                array.push(fpLabels, label.new(fAx, price, ask > 0 ? f_fmt(ask) : "·", xloc=xloc.bar_time,
+                     style=label.style_none, textcolor=buyImb ? color.white : color.new(color.white, 8),
                      size=fpTextSize, force_overlay=true))
 
     // Per-bar totals + unfinished-auction marks
@@ -336,10 +379,11 @@ if doFp
         if unfLo
             array.push(fpLabels, label.new(bar_index, loLvl*rowSize - rowSize*2, "⤓", style=label.style_none, textcolor=buyCol, size=size.small, force_overlay=true))
 
-// Keep footprint label array from growing unbounded (Pine also recycles at max)
+// Keep footprint drawing arrays bounded (Pine also recycles at max object counts)
 if array.size(fpLabels) > 480
-    lbOld = array.shift(fpLabels)
-    label.delete(lbOld)
+    label.delete(array.shift(fpLabels))
+while array.size(fpBoxes) > 400
+    box.delete(array.shift(fpBoxes))
 
 // ════════════  VOLUME PROFILE · KEY LEVELS (today / yesterday) · DOM  ═══════════
 // Daily bin size from the previous day's range → bounded, instrument-agnostic rows
@@ -520,6 +564,50 @@ if showDom and barstate.islast and not na(dMinB)
         table.cell(dt, 1, idx + 1, str.tostring(price, format.mintick), text_color=isHere ? pocCol : color.new(color.gray, 0), text_size=size.tiny, bgcolor=rowBg)
         table.cell(dt, 2, idx + 1, alen > 0 ? str.repeat("█", alen) : "·", text_color=buyCol, text_size=size.tiny, text_halign=text.align_left, bgcolor=rowBg)
 
+// ─────────────────────────────  ICEBERGS  ──────────────────────────────────
+var array<line>  iceLines   = array.new<line>()
+var array<label> iceLabs    = array.new<label>()
+var array<float> icePx      = array.new<float>()
+var array<bool>  iceSellArr = array.new<bool>()
+
+// Register a new iceberg at the rejected extreme (confirmed bars only)
+if barstate.isconfirmed and iceSell
+    ln = line.new(bar_index, high, bar_index + 1, high, color=iceCol, style=line.style_solid, width=2, extend=(iceHold ? extend.right : extend.none), force_overlay=true)
+    lb = label.new(bar_index, high, "🧊 " + f_fmt(iceAskHi), style=label.style_label_down, color=color.new(iceCol, 15), textcolor=color.white, size=size.tiny, force_overlay=true)
+    array.push(iceLines, ln)
+    array.push(iceLabs, lb)
+    array.push(icePx, high)
+    array.push(iceSellArr, true)
+if barstate.isconfirmed and iceBuy
+    ln = line.new(bar_index, low, bar_index + 1, low, color=iceCol, style=line.style_solid, width=2, extend=(iceHold ? extend.right : extend.none), force_overlay=true)
+    lb = label.new(bar_index, low, "🧊 " + f_fmt(iceBidLo), style=label.style_label_up, color=color.new(iceCol, 15), textcolor=color.white, size=size.tiny, force_overlay=true)
+    array.push(iceLines, ln)
+    array.push(iceLabs, lb)
+    array.push(icePx, low)
+    array.push(iceSellArr, false)
+
+// Remove iceberg levels once price trades through them
+if barstate.isconfirmed and iceHold and array.size(icePx) > 0
+    kk = array.size(icePx) - 1
+    while kk >= 0
+        p = array.get(icePx, kk)
+        broken = array.get(iceSellArr, kk) ? close > p : close < p
+        if broken
+            line.delete(array.get(iceLines, kk))
+            label.delete(array.get(iceLabs, kk))
+            array.remove(iceLines, kk)
+            array.remove(iceLabs, kk)
+            array.remove(icePx, kk)
+            array.remove(iceSellArr, kk)
+        kk -= 1
+
+// Cap the number of iceberg levels kept
+while array.size(iceLines) > 20
+    line.delete(array.shift(iceLines))
+    label.delete(array.shift(iceLabs))
+    array.shift(icePx)
+    array.shift(iceSellArr)
+
 // ─────────────────────────────  PLOTS (pane)  ──────────────────────────────
 cvdArea = plot(cvd, "CVD", color = cvd >= 0 ? buyCol : sellCol, linewidth=2)
 plot(cvdSig, "CVD signal", color=color.new(pocCol, 20), linewidth=1)
@@ -536,6 +624,8 @@ plotshape(trapTop, "Trapped longs",  shape.labeldown,  location.abovebar, color.
 // Divergence markers plotted at the pivot (divLb bars back)
 plotshape(bullDiv, "Bull CVD div", shape.diamond, location.belowbar, color.new(buyCol,0),  size=size.tiny, offset=-divLb, text="DIV", textcolor=buyCol,  force_overlay=true)
 plotshape(bearDiv, "Bear CVD div", shape.diamond, location.abovebar, color.new(sellCol,0), size=size.tiny, offset=-divLb, text="DIV", textcolor=sellCol, force_overlay=true)
+plotshape(iceSell, "Iceberg offer", shape.square, location.abovebar, color.new(iceCol,0), size=size.tiny, text="🧊", textcolor=iceCol, force_overlay=true)
+plotshape(iceBuy,  "Iceberg bid",   shape.square, location.belowbar, color.new(iceCol,0), size=size.tiny, text="🧊", textcolor=iceCol, force_overlay=true)
 
 // ─────────────────────────────  INFO TABLE  ────────────────────────────────
 var table t = table.new(position.top_right, 2, 8, border_width=1, frame_color=color.new(color.gray,50), frame_width=1)
@@ -544,7 +634,8 @@ f_row(table tb, int r, string k, string v, color vc) =>
     table.cell(tb, 1, r, v, text_color=vc, text_size=size.small, text_halign=text.align_right)
 
 if showTbl and barstate.islast
-    diag = absBull ? "Absorption ↑" : absBear ? "Absorption ↓" :
+    diag = iceSell ? "Iceberg offer ↓" : iceBuy ? "Iceberg bid ↑" :
+           absBull ? "Absorption ↑" : absBear ? "Absorption ↓" :
            exhUp or exhDn ? "Exhaustion" : trapTop ? "Trapped longs" : trapBot ? "Trapped shorts" :
            bearDiv ? "Bearish CVD div" : bullDiv ? "Bullish CVD div" :
            barDelta >= 0 ? "Buyers in control" : "Sellers in control"
@@ -568,3 +659,5 @@ alertcondition(trapTop, "Trapped Longs", "OF: trapped longs at high")
 alertcondition(trapBot, "Trapped Shorts", "OF: trapped shorts at low")
 alertcondition(bearDiv, "Bearish CVD Divergence", "OF: price HH, CVD LH — bearish divergence")
 alertcondition(bullDiv, "Bullish CVD Divergence", "OF: price LL, CVD HL — bullish divergence")
+alertcondition(iceSell, "Iceberg Offer", "OF: iceberg offer — hidden seller absorbing at the highs")
+alertcondition(iceBuy,  "Iceberg Bid",   "OF: iceberg bid — hidden buyer absorbing at the lows")
