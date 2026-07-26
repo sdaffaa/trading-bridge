@@ -88,8 +88,8 @@ ACCOUNT_BALANCE = float(os.environ.get("AGENT_ACCOUNT_BALANCE", "0"))  # 0 = unk
 RISK_PERCENT = float(os.environ.get("AGENT_RISK_PERCENT", "1.0"))      # % risked per trade
 MIN_RR = float(os.environ.get("AGENT_MIN_RR", "2.0"))                  # min reward:risk
 # minimum confluence grade to fire a trade: A (3-4 schools agree), B (2), C (1).
-# Weaker setups are downgraded to no_trade. Default B; set A for strict confluence.
-MIN_GRADE = os.environ.get("AGENT_MIN_GRADE", "B").strip().upper()
+# Weaker setups are downgraded to no_trade. Default A = strict multi-school confluence.
+MIN_GRADE = os.environ.get("AGENT_MIN_GRADE", "A").strip().upper()
 
 # --- vision mode: agents open the chart, screenshot it, and mark it up visually ---
 VISION_MODE = _flag("AGENT_VISION_MODE", "0")

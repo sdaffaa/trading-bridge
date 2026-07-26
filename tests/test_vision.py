@@ -89,7 +89,7 @@ def test_vision_analyze_levels_empty_when_partial(monkeypatch):
 
 def test_vision_analyze_mtf_uses_lower_tf_and_tags(monkeypatch):
     monkeypatch.setattr(config, "VISION_SCHOOLS", {"ict", "smc"})
-    plan = {"action": "long", "grade": "B", "confidence": 0.7,
+    plan = {"action": "long", "grade": "A", "confidence": 0.7,
             "entry": 2000, "stop_loss": 1990, "take_profit": 2030, "reason": "توافق صعودي"}
     monkeypatch.setattr(vision, "_client", _Client(plan))
     out = vision.analyze_mtf(b"htf", b"ltf", "OANDA:XAUUSD", "240", "15")
