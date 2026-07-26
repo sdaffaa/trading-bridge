@@ -1,0 +1,313 @@
+//@version=6
+// ============================================================================
+//  ORDER FLOW SUITE  —  Footprint · Delta · CVD · Imbalance · Absorption
+//  All-in-one order-flow engine for TradingView (Pine Script v6)
+//
+//  HONEST APPROXIMATION NOTICE:
+//  TradingView provides no real bid/ask tape. This indicator reconstructs
+//  order flow from a lower-timeframe (LTF) volume feed via
+//  request.security_lower_tf(). Each intrabar is classified as aggressive
+//  buying (ask) or selling (bid) by its close position in range. On true
+//  bid/ask feeds (Sierra Chart / Numbers Bars) figures will differ — treat
+//  this as a high-quality proxy, not the raw tape.
+// ============================================================================
+indicator("Order Flow Suite — Footprint / Delta / CVD / Imbalance",
+     shorttitle      = "OF Suite",
+     overlay         = false,
+     max_boxes_count = 500,
+     max_labels_count= 500,
+     max_lines_count = 500,
+     precision       = 2)
+
+// ─────────────────────────────  INPUTS  ────────────────────────────────────
+// ── LTF Engine
+gEng   = "① LTF Order-Flow Engine"
+autoLtf= input.bool(true,  "Auto lower timeframe", group=gEng, tooltip="Pick the intrabar resolution automatically from the chart timeframe.")
+manLtf = input.timeframe("1", "Manual lower timeframe", group=gEng)
+clsMode= input.string("Close position", "Volume classification",
+     options=["Close position", "Close vs Open"], group=gEng,
+     tooltip="Close position: split each intrabar's volume by where it closed in its range (smoother, standard).\nClose vs Open: full bar to buyers if up, sellers if down.")
+
+// ── Footprint
+gFp    = "② Footprint (Bid × Ask numbers)"
+showFp = input.bool(true, "Show footprint numbers", group=gFp)
+fpBars = input.int(8, "Render last N bars", minval=1, maxval=40, group=gFp, tooltip="Footprint numbers are heavy; only the most recent N bars are drawn.")
+rowsTgt= input.int(11, "Target rows per bar", minval=4, maxval=40, group=gFp, tooltip="Auto row height = ATR / this. Keeps rows bounded on any instrument.")
+fpSize = input.string("Tiny", "Text size", options=["Tiny","Small","Normal"], group=gFp)
+
+// ── Imbalance
+gImb   = "③ Diagonal Imbalance"
+imbRatio = input.float(3.0, "Imbalance ratio (x:1)", minval=1.5, step=0.5, group=gImb, tooltip="Ask@P vs Bid@P-1 (diagonal). 3.0 = 300%.")
+stackN   = input.int(3, "Stacked count → zone", minval=2, maxval=8, group=gImb)
+showStack= input.bool(true, "Draw stacked-imbalance zones", group=gImb)
+zoneExt  = input.int(30, "Zone extend (bars)", minval=1, group=gImb)
+
+// ── CVD / Delta
+gCvd   = "④ Delta & CVD"
+cvdAnchor = input.string("Session", "CVD anchor", options=["Session","Day","Week","None"], group=gCvd)
+cvdSmooth = input.int(9, "CVD signal MA", minval=1, group=gCvd)
+colorBars = input.bool(true, "Color candles by delta", group=gCvd)
+
+// ── Patterns
+gPat   = "⑤ Order-Flow Patterns"
+showAbs = input.bool(true, "Absorption", group=gPat)
+showExh = input.bool(true, "Exhaustion", group=gPat)
+showTrap= input.bool(true, "Trapped traders", group=gPat)
+showDiv = input.bool(true, "CVD / price divergence", group=gPat)
+volFact = input.float(1.6, "High-volume factor (× avg)", minval=1.0, step=0.1, group=gPat)
+exhFact = input.float(0.6, "Exhaustion volume factor (× avg)", minval=0.1, step=0.1, group=gPat)
+dPct    = input.float(0.35, "Min |delta|/volume for pattern", minval=0.05, maxval=1.0, step=0.05, group=gPat)
+divLb   = input.int(5, "Divergence pivot lookback", minval=2, group=gPat)
+
+// ── Visuals
+gVis   = "⑥ Visuals & Table"
+showTbl = input.bool(true, "Show info table", group=gVis)
+buyCol  = input.color(color.new(#26a69a, 0), "Buy / bullish", group=gVis)
+sellCol = input.color(color.new(#ef5350, 0), "Sell / bearish", group=gVis)
+neutCol = input.color(color.new(#787b86, 30), "Neutral", group=gVis)
+pocCol  = input.color(color.new(#ffca28, 0), "POC / highlight", group=gVis)
+
+// ─────────────────────────────  HELPERS  ───────────────────────────────────
+f_fmt(float v) =>
+    a = math.abs(v)
+    a >= 1e9 ? str.tostring(v/1e9, "#.##") + "B" :
+     a >= 1e6 ? str.tostring(v/1e6, "#.##") + "M" :
+     a >= 1e3 ? str.tostring(v/1e3, "#.#")  + "K" : str.tostring(v, "#")
+
+fpTextSize = fpSize == "Tiny" ? size.tiny : fpSize == "Small" ? size.small : size.normal
+
+// Auto LTF resolution from chart timeframe
+chartSec = timeframe.in_seconds(timeframe.period)
+autoRes  = chartSec >= 86400 ? "60" :
+             chartSec >= 14400 ? "15" :
+             chartSec >= 3600  ? "5"  :
+             chartSec >= 900   ? "1"  :
+             chartSec >= 180   ? "5S" : "1S"
+ltfRes = autoLtf ? autoRes : manLtf
+
+// ───────────────────  LOWER-TIMEFRAME VOLUME FEED  ─────────────────────────
+[aO, aH, aL, aC, aV] = request.security_lower_tf(syminfo.tickerid, ltfRes,
+     [open, high, low, close, volume])
+
+// ─────────────────  PER-BAR DELTA (cheap pass, full history)  ───────────────
+float atrRow = ta.atr(14)
+
+f_classify(float o, float h, float l, float c, float v) =>
+    float buy  = 0.0
+    float sell = 0.0
+    if clsMode == "Close vs Open"
+        buy  := c >= o ? v : 0.0
+        sell := c <  o ? v : 0.0
+    else
+        rng  = math.max(h - l, syminfo.mintick)
+        frac = (c - l) / rng               // 0 = closed at low, 1 = closed at high
+        buy  := v * frac
+        sell := v * (1.0 - frac)
+    [buy, sell]
+
+int   n       = na(aC) ? 0 : array.size(aC)
+float buySum  = 0.0
+float sellSum = 0.0
+
+if n > 0
+    for i = 0 to n - 1
+        [b, s] = f_classify(array.get(aO,i), array.get(aH,i), array.get(aL,i), array.get(aC,i), array.get(aV,i))
+        buySum  += b
+        sellSum += s
+else
+    // Fallback: no LTF data → classify the chart bar itself
+    [b, s] = f_classify(open, high, low, close, volume)
+    buySum  := b
+    sellSum := s
+
+float barDelta = buySum - sellSum
+float barVol   = buySum + sellSum
+float avgVol   = ta.sma(barVol, 20)
+float volRatio = avgVol > 0 ? barVol / avgVol : 0.0
+float deltaPct = barVol > 0 ? math.abs(barDelta) / barVol : 0.0
+
+// ─────────────────────────────  CVD  ───────────────────────────────────────
+bool newAnchor = cvdAnchor == "Session" ? (session.isfirstbar_regular) :
+                 cvdAnchor == "Day"     ? timeframe.change("1D") :
+                 cvdAnchor == "Week"    ? timeframe.change("1W") : false
+var float cvd = 0.0
+cvd := (newAnchor ? 0.0 : cvd) + barDelta
+float cvdSig = ta.sma(cvd, cvdSmooth)
+
+// ───────────────────────  DELTA-COLORED CANDLES  ───────────────────────────
+float strength = math.min(deltaPct * math.max(volRatio, 0.5), 1.0)
+color deltaColor = barDelta >= 0 ? color.new(buyCol, 80 - int(strength * 70)) : color.new(sellCol, 80 - int(strength * 70))
+barcolor(colorBars ? deltaColor : na)
+
+// ─────────────────────  ORDER-FLOW PATTERN DETECTORS  ──────────────────────
+bool highVol = volRatio >= volFact
+bool strongD = deltaPct >= dPct
+
+// Absorption: heavy aggression, opposite delta, price refuses to follow
+bool absBull = showAbs and highVol and strongD and barDelta < 0 and close >= open   // sellers absorbed
+bool absBear = showAbs and highVol and strongD and barDelta > 0 and close <= open   // buyers absorbed
+
+// Exhaustion: new extreme reached on shrinking volume (aggressor ran dry)
+bool exhUp = showExh and high >= ta.highest(high, 10) and volRatio <= exhFact and close < high
+bool exhDn = showExh and low  <= ta.lowest(low, 10)  and volRatio <= exhFact and close > low
+
+// Trapped traders: aggressive burst at a fresh extreme, then reversal close
+bool trapTop = showTrap and high > high[1] and barDelta > 0 and strongD and close < open   // trapped longs
+bool trapBot = showTrap and low  < low[1]  and barDelta < 0 and strongD and close > open   // trapped shorts
+
+// CVD / price divergence via pivots
+float ph = ta.pivothigh(high, divLb, divLb)
+float pl = ta.pivotlow(low,  divLb, divLb)
+var float lastPH  = na
+var float lastPHc = na
+var float lastPL  = na
+var float lastPLc = na
+bool bearDiv = false
+bool bullDiv = false
+if showDiv and not na(ph)
+    cAt = cvd[divLb]
+    if not na(lastPH) and ph > lastPH and cAt < lastPHc
+        bearDiv := true
+    lastPH  := ph
+    lastPHc := cAt
+if showDiv and not na(pl)
+    cAt = cvd[divLb]
+    if not na(lastPL) and pl < lastPL and cAt > lastPLc
+        bullDiv := true
+    lastPL  := pl
+    lastPLc := cAt
+
+// ─────────────────  PER-PRICE FOOTPRINT  (recent bars only)  ────────────────
+bool doFp = (showFp or showStack) and (last_bar_index - bar_index < fpBars) and n > 0
+
+var array<label> fpLabels = array.new<label>()
+
+// Auto row size keeps the number of rows bounded on any instrument
+float rowSize = math.max(syminfo.mintick, math.round((atrRow / rowsTgt) / syminfo.mintick) * syminfo.mintick)
+
+if doFp
+    mAsk = map.new<int, float>()   // aggressive buys at each level
+    mBid = map.new<int, float>()   // aggressive sells at each level
+    int loLvl = na
+    int hiLvl = na
+
+    for i = 0 to n - 1
+        c = array.get(aC, i)
+        [b, s] = f_classify(array.get(aO,i), array.get(aH,i), array.get(aL,i), c, array.get(aV,i))
+        lvl = int(math.round(c / rowSize))
+        mAsk.put(lvl, (mAsk.contains(lvl) ? mAsk.get(lvl) : 0.0) + b)
+        mBid.put(lvl, (mBid.contains(lvl) ? mBid.get(lvl) : 0.0) + s)
+        loLvl := na(loLvl) or lvl < loLvl ? lvl : loLvl
+        hiLvl := na(hiLvl) or lvl > hiLvl ? lvl : hiLvl
+
+    // Bar POC (max total volume level)
+    int   pocLvl = loLvl
+    float pocVol = -1.0
+    for lvl = loLvl to hiLvl
+        tot = (mAsk.contains(lvl) ? mAsk.get(lvl) : 0.0) + (mBid.contains(lvl) ? mBid.get(lvl) : 0.0)
+        if tot > pocVol
+            pocVol := tot
+            pocLvl := lvl
+
+    // Unfinished auction: extreme where BOTH sides traded (no zero print)
+    bool unfHi = (mAsk.contains(hiLvl) ? mAsk.get(hiLvl) : 0.0) > 0 and (mBid.contains(hiLvl) ? mBid.get(hiLvl) : 0.0) > 0
+    bool unfLo = (mAsk.contains(loLvl) ? mAsk.get(loLvl) : 0.0) > 0 and (mBid.contains(loLvl) ? mBid.get(loLvl) : 0.0) > 0
+
+    // Render each level + detect diagonal imbalances / stacks
+    int   buyStackStart = na
+    int   sellStackStart = na
+    for lvl = loLvl to hiLvl
+        ask = mAsk.contains(lvl) ? mAsk.get(lvl) : 0.0
+        bid = mBid.contains(lvl) ? mBid.get(lvl) : 0.0
+        bidBelow = mBid.contains(lvl-1) ? mBid.get(lvl-1) : 0.0
+        askAbove = mAsk.contains(lvl+1) ? mAsk.get(lvl+1) : 0.0
+        bool buyImb  = bidBelow > 0 and ask  >= imbRatio * bidBelow
+        bool sellImb = askAbove > 0 and bid  >= imbRatio * askAbove
+
+        // Stacked-imbalance zone tracking (≥ stackN consecutive same-side imbalances)
+        buyStackStart  := buyImb  ? (na(buyStackStart)  ? lvl : buyStackStart)  : na
+        sellStackStart := sellImb ? (na(sellStackStart) ? lvl : sellStackStart) : na
+        if showStack and buyImb and (lvl - buyStackStart + 1) == stackN
+            box.new(bar_index, (lvl+1)*rowSize, bar_index + zoneExt, buyStackStart*rowSize,
+                 border_color=color.new(buyCol,40), bgcolor=color.new(buyCol,88), extend=extend.none)
+        if showStack and sellImb and (lvl - sellStackStart + 1) == stackN
+            box.new(bar_index, (lvl+1)*rowSize, bar_index + zoneExt, sellStackStart*rowSize,
+                 border_color=color.new(sellCol,40), bgcolor=color.new(sellCol,88), extend=extend.none)
+
+        if showFp
+            bool isPoc = lvl == pocLvl
+            txtCol = buyImb ? buyCol : sellImb ? sellCol : neutCol
+            pre = isPoc ? "◉ " : (buyImb ? "▲ " : sellImb ? "▼ " : "")
+            lb = label.new(bar_index, lvl * rowSize,
+                 pre + f_fmt(bid) + "  ×  " + f_fmt(ask),
+                 style=label.style_none,
+                 textcolor = isPoc ? pocCol : txtCol,
+                 size=fpTextSize)
+            array.push(fpLabels, lb)
+
+    // Per-bar totals + unfinished-auction marks
+    if showFp
+        totCol = barDelta >= 0 ? buyCol : sellCol
+        lb2 = label.new(bar_index, loLvl * rowSize - rowSize,
+             "Δ " + f_fmt(barDelta) + "\n∑ " + f_fmt(barVol),
+             style=label.style_label_up, color=color.new(totCol, 20),
+             textcolor=color.white, size=size.tiny)
+        array.push(fpLabels, lb2)
+        if unfHi
+            array.push(fpLabels, label.new(bar_index, hiLvl*rowSize + rowSize, "⤒", style=label.style_none, textcolor=sellCol, size=size.small))
+        if unfLo
+            array.push(fpLabels, label.new(bar_index, loLvl*rowSize - rowSize*2, "⤓", style=label.style_none, textcolor=buyCol, size=size.small))
+
+// Keep footprint label array from growing unbounded (Pine also recycles at max)
+if array.size(fpLabels) > 480
+    lbOld = array.shift(fpLabels)
+    label.delete(lbOld)
+
+// ─────────────────────────────  PLOTS (pane)  ──────────────────────────────
+cvdArea = plot(cvd, "CVD", color = cvd >= 0 ? buyCol : sellCol, linewidth=2)
+plot(cvdSig, "CVD signal", color=color.new(pocCol, 20), linewidth=1)
+plot(0, "Zero", color=color.new(color.gray, 50))
+fill(cvdArea, plot(0, display=display.none), color = cvd >= 0 ? color.new(buyCol, 85) : color.new(sellCol, 85))
+
+// ─────────────────────────  PATTERN MARKERS (price)  ────────────────────────
+plotshape(absBull, "Absorption ↑", shape.triangleup,   location.belowbar, color.new(buyCol,0),  size=size.small, text="ABS", textcolor=buyCol,  force_overlay=true)
+plotshape(absBear, "Absorption ↓", shape.triangledown, location.abovebar, color.new(sellCol,0), size=size.small, text="ABS", textcolor=sellCol, force_overlay=true)
+plotshape(exhDn,   "Exhaustion ↓", shape.circle,       location.belowbar, color.new(pocCol,0),  size=size.tiny,  text="EXH", textcolor=pocCol,  force_overlay=true)
+plotshape(exhUp,   "Exhaustion ↑", shape.circle,       location.abovebar, color.new(pocCol,0),  size=size.tiny,  text="EXH", textcolor=pocCol,  force_overlay=true)
+plotshape(trapBot, "Trapped shorts", shape.labelup,    location.belowbar, color.new(buyCol,0),  size=size.tiny,  text="TRAP", textcolor=color.white, force_overlay=true)
+plotshape(trapTop, "Trapped longs",  shape.labeldown,  location.abovebar, color.new(sellCol,0), size=size.tiny,  text="TRAP", textcolor=color.white, force_overlay=true)
+// Divergence markers plotted at the pivot (divLb bars back)
+plotshape(bullDiv, "Bull CVD div", shape.diamond, location.belowbar, color.new(buyCol,0),  size=size.tiny, offset=-divLb, text="DIV", textcolor=buyCol,  force_overlay=true)
+plotshape(bearDiv, "Bear CVD div", shape.diamond, location.abovebar, color.new(sellCol,0), size=size.tiny, offset=-divLb, text="DIV", textcolor=sellCol, force_overlay=true)
+
+// ─────────────────────────────  INFO TABLE  ────────────────────────────────
+var table t = table.new(position.top_right, 2, 8, border_width=1, frame_color=color.new(color.gray,50), frame_width=1)
+f_row(table tb, int r, string k, string v, color vc) =>
+    table.cell(tb, 0, r, k, text_color=color.new(color.gray,0), text_size=size.small, text_halign=text.align_left)
+    table.cell(tb, 1, r, v, text_color=vc, text_size=size.small, text_halign=text.align_right)
+
+if showTbl and barstate.islast
+    diag = absBull ? "Absorption ↑" : absBear ? "Absorption ↓" :
+           exhUp or exhDn ? "Exhaustion" : trapTop ? "Trapped longs" : trapBot ? "Trapped shorts" :
+           bearDiv ? "Bearish CVD div" : bullDiv ? "Bullish CVD div" :
+           barDelta >= 0 ? "Buyers in control" : "Sellers in control"
+    buyPct = barVol > 0 ? buySum / barVol * 100 : 0.0
+    table.cell(t, 0, 0, "ORDER FLOW", text_color=color.white, text_size=size.normal, bgcolor=color.new(color.gray,70))
+    table.cell(t, 1, 0, ltfRes + " engine", text_color=color.new(color.gray,0), text_size=size.small, bgcolor=color.new(color.gray,70))
+    f_row(t, 1, "Delta",   f_fmt(barDelta), barDelta >= 0 ? buyCol : sellCol)
+    f_row(t, 2, "CVD",     f_fmt(cvd),      cvd >= 0 ? buyCol : sellCol)
+    f_row(t, 3, "Volume",  f_fmt(barVol),   color.new(color.gray,0))
+    f_row(t, 4, "Buy / Sell", str.tostring(buyPct, "#") + "% / " + str.tostring(100-buyPct, "#") + "%", buyPct >= 50 ? buyCol : sellCol)
+    f_row(t, 5, "Vol vs avg", str.tostring(volRatio, "#.0") + "×", volRatio >= volFact ? pocCol : color.new(color.gray,0))
+    f_row(t, 6, "Row size", str.tostring(rowSize, format.mintick), color.new(color.gray,0))
+    table.cell(t, 0, 7, "Read", text_color=color.new(color.gray,0), text_size=size.small, text_halign=text.align_left)
+    table.cell(t, 1, 7, diag, text_color = diag == "Buyers in control" ? buyCol : diag == "Sellers in control" ? sellCol : pocCol, text_size=size.small, text_halign=text.align_right)
+
+// ─────────────────────────────  ALERTS  ────────────────────────────────────
+alertcondition(absBull, "Bullish Absorption", "OF: sellers absorbed — bullish reversal fuel")
+alertcondition(absBear, "Bearish Absorption", "OF: buyers absorbed — bearish reversal fuel")
+alertcondition(exhUp or exhDn, "Exhaustion", "OF: exhaustion at extreme — trend running dry")
+alertcondition(trapTop, "Trapped Longs", "OF: trapped longs at high")
+alertcondition(trapBot, "Trapped Shorts", "OF: trapped shorts at low")
+alertcondition(bearDiv, "Bearish CVD Divergence", "OF: price HH, CVD LH — bearish divergence")
+alertcondition(bullDiv, "Bullish CVD Divergence", "OF: price LL, CVD HL — bullish divergence")
