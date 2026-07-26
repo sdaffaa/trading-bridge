@@ -1,0 +1,134 @@
+{
+  "project": "أي هاي بياخذ ستوبك",
+  "language": "ar-KW",
+  "dialect_note": "Kuwaiti spoken dialect — do not normalise to MSA. Add tashkeel only where a word is mispronounced.",
+  "engine": "azure",
+  "voice": "ar-KW-FahedNeural",
+  "extra": {
+    "style": "narration-professional"
+  },
+  "rate": 1.0,
+  "master": {
+    "loudnorm": "I=-14:TP=-1.5:LRA=11",
+    "format": "wav 48kHz mono"
+  },
+  "music_bed_db": -18,
+  "clips": [
+    {
+      "id": "vo_1_hook",
+      "beat": "1",
+      "beat_name": "HOOK",
+      "t_in": 0.0,
+      "t_out": 2.6,
+      "budget_s": 2.6,
+      "text": "تبي تعرف أي هاي بياخذ ستوبك قبل لا تدخل؟",
+      "out": "vo/1_hook.wav"
+    },
+    {
+      "id": "vo_2_paradox",
+      "beat": "2",
+      "beat_name": "PARADOX",
+      "t_in": 2.6,
+      "t_out": 4.0,
+      "budget_s": 1.4,
+      "text": "الاثنين شكلهم نفس الشي… بس واحد حماية والثاني هدف",
+      "out": "vo/2_paradox.wav"
+    },
+    {
+      "id": "vo_3_pivot",
+      "beat": "3",
+      "beat_name": "PIVOT",
+      "t_in": 4.0,
+      "t_out": 4.8,
+      "budget_s": 0.8,
+      "text": "شلون؟",
+      "out": "vo/3_pivot.wav"
+    },
+    {
+      "id": "vo_4_invite",
+      "beat": "4",
+      "beat_name": "INVITE",
+      "t_in": 4.8,
+      "t_out": 6.0,
+      "budget_s": 1.2,
+      "text": "تعال اقولك",
+      "out": "vo/4_invite.wav"
+    },
+    {
+      "id": "vo_5_6_belief_why",
+      "beat": "5+6",
+      "beat_name": "BELIEF+WHY",
+      "t_in": 6.0,
+      "t_out": 8.6,
+      "budget_s": 2.6,
+      "text": "الناس تشوف الهاي الأعلى بالجارت وتقول هذا القوي… عشان اهو الأعلى",
+      "out": "vo/5_6_belief_why.wav"
+    },
+    {
+      "id": "vo_7_turn",
+      "beat": "7",
+      "beat_name": "TURN",
+      "t_in": 8.6,
+      "t_out": 11.0,
+      "budget_s": 2.4,
+      "text": "لكن بالواقع؟ قوة الهاي مو من شكله… من اللي تحته",
+      "out": "vo/7_turn.wav"
+    },
+    {
+      "id": "vo_7b_proof",
+      "beat": "7b",
+      "beat_name": "PROOF",
+      "t_in": 11.0,
+      "t_out": 13.6,
+      "budget_s": 2.6,
+      "text": "إذا النزول من الهاي سحب السيولة تحت آخر لو… الهاي قوي. وإذا ما سحبها… ضعيف",
+      "out": "vo/7b_proof.wav"
+    },
+    {
+      "id": "vo_8_verdict",
+      "beat": "8",
+      "beat_name": "VERDICT",
+      "t_in": 13.6,
+      "t_out": 14.3,
+      "budget_s": 0.7,
+      "text": "الهاي اللي ما سحب السيولة تحته… اهو اللي بياخذ ستوبك",
+      "out": "vo/8_verdict.wav"
+    },
+    {
+      "id": "vo_9_proof",
+      "beat": "9",
+      "beat_name": "PROOF",
+      "t_in": 14.3,
+      "t_out": 17.5,
+      "budget_s": 3.2,
+      "text": "شوف: هذا الهاي سحب اللو اللي تحته وصمد… وهذا لا، وطاح",
+      "out": "vo/9_proof.wav"
+    },
+    {
+      "id": "vo_10_care",
+      "beat": "10",
+      "beat_name": "CARE",
+      "t_in": 17.5,
+      "t_out": 19.2,
+      "budget_s": 1.7,
+      "text": "لا تحط ستوبك فوق هاي ما سحب شي… اهو مو حماية، اهو سيولة مستهدفة",
+      "out": "vo/10_care.wav"
+    },
+    {
+      "id": "vo_11_loop",
+      "beat": "11",
+      "beat_name": "LOOP",
+      "t_in": 19.2,
+      "t_out": 22.0,
+      "budget_s": 2.8,
+      "text": "بس شلون تعرف الهاي القوي والجارت داخل رينج؟ اكتب «قوي» بالتعليقات ويوصلك الملف كامل",
+      "out": "vo/11_loop.wav"
+    }
+  ],
+  "total_clips": 11,
+  "notes": [
+    "Each clip must fit its budget_s; if the render is longer, shorten the line — never speed the voice past 1.15x.",
+    "Beats with no VO are visual-only by design; do not invent lines for them.",
+    "Sidechain-duck the music bed 4dB under speech."
+  ]
+}
