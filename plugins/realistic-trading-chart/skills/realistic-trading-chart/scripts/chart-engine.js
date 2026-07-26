@@ -98,9 +98,49 @@ function niceStep(range, target){
   return cands.find(s=>s>=raw) || cands[cands.length-1];
 }
 
+/* Detect a liquidity-sweep on REAL candles: an equal-lows "pool" that a later
+   bar wicks below and then closes back above. Returns {pool, sweepIndex} or a
+   best-effort fallback (global low). Pure heuristic, no look-ahead magic. */
+function detectSweep(c){
+  const n=c.length;
+  const isPivotLow=i=>i>1&&i<n-1&&c[i].low<=c[i-1].low&&c[i].low<=c[i-2].low&&c[i].low<=c[i+1].low&&c[i].low<=c[i-1].low;
+  const lows=[]; for(let i=2;i<n-2;i++){ if(c[i].low<=c[i-1].low&&c[i].low<=c[i-2].low&&c[i].low<=c[i+1].low&&c[i].low<=c[i+2].low) lows.push(i); }
+  const rng=Math.max(...c.map(k=>k.high))-Math.min(...c.map(k=>k.low));
+  const eps=rng*0.06;
+  // find two pivot lows at ~equal level (the pool), then a later bar that pierces below and closes above
+  for(let a=0;a<lows.length;a++) for(let b=a+1;b<lows.length;b++){
+    const i=lows[a], j=lows[b];
+    if(Math.abs(c[i].low-c[j].low)>eps) continue;
+    const pool=Math.max(c[i].low,c[j].low);
+    for(let k=j; k<n; k++){
+      if(c[k].low < pool-eps*0.6 && c[k].close > pool){ return {pool, sweepIndex:k}; }
+    }
+  }
+  // fallback: global-min bar as the sweep, pool = a touch above it
+  let mi=0; for(let i=1;i<n;i++) if(c[i].low<c[mi].low) mi=i;
+  return { pool: c[mi].low + rng*0.03, sweepIndex: mi };
+}
+
+/* Normalize externally-provided real OHLC into the engine's candle shape and
+   locate the sweep. Accepts [{open,high,low,close,volume?}] or [{o,h,l,c,v?}]. */
+function prepReal(raw){
+  const c = raw.map(k=>({
+    open:+(k.open ?? k.o), high:+(k.high ?? k.h), low:+(k.low ?? k.l),
+    close:+(k.close ?? k.c), vol:+(k.volume ?? k.v ?? k.vol ?? 1),
+  })).filter(k=>Number.isFinite(k.open)&&Number.isFinite(k.close)&&Number.isFinite(k.high)&&Number.isFinite(k.low));
+  if(!c.length) throw new Error('prepReal: no valid candles');
+  const vmax=Math.max(...c.map(k=>k.vol))||1;
+  for(const k of c) if(!Number.isFinite(k.vol)||k.vol<=0) k.vol=vmax*0.4;
+  const {pool, sweepIndex}=detectSweep(c);
+  return { candles:c, pool, sweepIndex };
+}
+
 function chartSVG(opts={}){
   const o = {...DEFAULTS, ...opts};
-  const {candles, pool, sweepIndex} = buildSeries(o);
+  const useReal = Array.isArray(o.candles) && o.candles.length;
+  const { candles, pool, sweepIndex } = useReal
+    ? prepReal(o.candles)
+    : buildSeries(o);
   const n = candles.length;
 
   const plotT=o.padT, plotB=o.height-o.padB, plotH=plotB-plotT;
@@ -113,13 +153,15 @@ function chartSVG(opts={}){
   const pd=(hi-lo)*0.07; lo-=pd; hi+=pd;
   const Y=p=>plotT+(hi-p)/(hi-lo)*priceH;
   const slot=plotW/n, bw=slot*0.62, X=i=>plotL+slot*(i+0.5);
+  const dec = hi>=100?2 : hi>=10?3 : hi>=1?4 : 5;   // price decimals by magnitude
+  const fmt = p => p.toFixed(dec);
 
   const P=[];
   // grid + right price axis
   const step=niceStep(hi-lo,6); let g0=Math.ceil(lo/step)*step;
   for(let p=g0;p<hi;p+=step){ const y=Y(p);
     P.push(`<line x1="${plotL}" y1="${y.toFixed(1)}" x2="${plotR}" y2="${y.toFixed(1)}" stroke="${o.grid}" stroke-width="1" opacity="0.5"/>`);
-    P.push(`<text x="${plotR+12}" y="${(y+6).toFixed(1)}" fill="${o.text}" font-size="18" font-family="Tajawal,sans-serif" font-weight="500">${p.toFixed(2)}</text>`);
+    P.push(`<text x="${plotR+12}" y="${(y+6).toFixed(1)}" fill="${o.text}" font-size="18" font-family="Tajawal,sans-serif" font-weight="500">${fmt(p)}</text>`);
   }
   for(let i=8;i<n;i+=12){ const x=X(i);
     P.push(`<line x1="${x.toFixed(1)}" y1="${plotT}" x2="${x.toFixed(1)}" y2="${plotB}" stroke="${o.grid}" stroke-width="1" opacity="0.3"/>`);
@@ -132,7 +174,7 @@ function chartSVG(opts={}){
   const yPool=Y(pool);
   P.push(`<line x1="${plotL}" y1="${yPool.toFixed(1)}" x2="${plotR}" y2="${yPool.toFixed(1)}" stroke="#CBD7DB" stroke-width="1.5" stroke-dasharray="7 6" opacity="0.85"/>`);
   P.push(`<rect x="${plotR}" y="${(yPool-15).toFixed(1)}" width="126" height="30" rx="5" fill="#3A2A2C"/>`);
-  P.push(`<text x="${(plotR+63).toFixed(1)}" y="${(yPool+6).toFixed(1)}" fill="#F2C6C6" font-size="18" font-family="Tajawal,sans-serif" font-weight="700" text-anchor="middle">${pool.toFixed(2)}</text>`);
+  P.push(`<text x="${(plotR+63).toFixed(1)}" y="${(yPool+6).toFixed(1)}" fill="#F2C6C6" font-size="18" font-family="Tajawal,sans-serif" font-weight="700" text-anchor="middle">${fmt(pool)}</text>`);
   // candles
   for(let i=0;i<n;i++){ const k=candles[i], up=k.close>=k.open, col=up?o.bull:o.bear, x=X(i);
     const yO=Y(k.open), yC=Y(k.close), yH=Y(k.high), yL=Y(k.low), top=Math.min(yO,yC), h=Math.max(Math.abs(yC-yO),1.4);
@@ -143,7 +185,7 @@ function chartSVG(opts={}){
   const last=candles[n-1], yl=Y(last.close);
   P.push(`<line x1="${plotL}" y1="${yl.toFixed(1)}" x2="${plotR}" y2="${yl.toFixed(1)}" stroke="${o.bull}" stroke-width="1" stroke-dasharray="3 4" opacity="0.7"/>`);
   P.push(`<rect x="${plotR}" y="${(yl-16).toFixed(1)}" width="126" height="32" rx="5" fill="${o.bull}"/>`);
-  P.push(`<text x="${(plotR+63).toFixed(1)}" y="${(yl+6).toFixed(1)}" fill="#06231B" font-size="19" font-family="Tajawal,sans-serif" font-weight="800" text-anchor="middle">${last.close.toFixed(2)}</text>`);
+  P.push(`<text x="${(plotR+63).toFixed(1)}" y="${(yl+6).toFixed(1)}" fill="#06231B" font-size="19" font-family="Tajawal,sans-serif" font-weight="800" text-anchor="middle">${fmt(last.close)}</text>`);
 
   // clean annotations (TradingView-style), optional
   if(o.annotate){
@@ -160,11 +202,28 @@ function chartSVG(opts={}){
     P.push(`<text x="${(plotL+83).toFixed(1)}" y="${(yPool-18).toFixed(1)}" fill="#B9CBD1" font-size="18" font-family="Tajawal,sans-serif" font-weight="700" text-anchor="middle">سيولة (استوبات)</text>`);
   }
 
+  // custom markers: [{ i, at:'high'|'low'|'close', price?, label, color, dir:'up'|'down' }]
+  if(Array.isArray(o.markers)){
+    for(const m of o.markers){
+      const i=Math.max(0,Math.min(n-1, m.i|0));
+      const price = m.price!=null ? m.price : (m.at==='high'?candles[i].high : m.at==='close'?candles[i].close : candles[i].low);
+      const mx=X(i), my=Y(price), col=m.color||o.green||'#2ECC9A';
+      const down = (m.dir||'down')==='down';
+      const gap=26, ly = down ? my+gap : my-gap;                 // leader end
+      const label=String(m.label||''), w=Math.max(96, label.length*17+40), h=40;
+      const by = down ? ly : ly-h;                                // pill top
+      P.push(`<circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="8" fill="${col}"/><circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="8" fill="none" stroke="#0E1E24" stroke-width="2"/>`);
+      P.push(`<line x1="${mx.toFixed(1)}" y1="${(down?my+8:my-8).toFixed(1)}" x2="${mx.toFixed(1)}" y2="${ly.toFixed(1)}" stroke="${col}" stroke-width="1.6" opacity="0.8"/>`);
+      P.push(`<rect x="${(mx-w/2).toFixed(1)}" y="${by.toFixed(1)}" width="${w}" height="${h}" rx="10" fill="#12262E" stroke="${col}" stroke-width="1.6"/>`);
+      P.push(`<text x="${mx.toFixed(1)}" y="${(by+h/2+7).toFixed(1)}" fill="#fff" font-size="20" font-family="Tajawal,sans-serif" font-weight="800" text-anchor="middle">${label}</text>`);
+    }
+  }
+
   const svg=`<svg viewBox="0 0 ${o.width} ${o.height}" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${o.bg!=='transparent'?`<rect width="${o.width}" height="${o.height}" fill="${o.bg}"/>`:''}${P.join('')}</svg>`;
   return { svg, meta:{ pool, last:last.close, sweepIndex } };
 }
 
-module.exports = { chartSVG, buildSeries };
+module.exports = { chartSVG, buildSeries, prepReal, detectSweep };
 
 if(require.main===module){
   const fs=require('fs');
