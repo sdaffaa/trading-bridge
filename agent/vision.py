@@ -20,26 +20,64 @@ _lock = threading.Lock()
 
 SCHOOLS = {
     "ict": (
-        "You are an ICT (Inner Circle Trader) analyst. Mark up this chart the ICT "
-        "way: identify buy-side and sell-side liquidity (equal highs/lows, old "
-        "highs/lows), fair value gaps (imbalances), order blocks, displacement, and "
-        "any liquidity sweep followed by a shift. State the ICT bias and the key "
-        "price levels (as numbers read from the axis)."),
+        "You are a MASTER ICT (Inner Circle Trader) analyst. Read this chart with the "
+        "full ICT toolkit and report only what is actually present:\n"
+        "- Liquidity: buy-side/sell-side (BSL/SSL), equal highs/lows, old highs/lows, "
+        "relative equal levels, session/Asian-range liquidity, and the DRAW ON "
+        "LIQUIDITY (where price is likely being pulled).\n"
+        "- PD arrays: fair value gaps (BISI/SIBI), order blocks (bullish/bearish), "
+        "breaker blocks, mitigation blocks, rejection blocks, propulsion blocks, and "
+        "liquidity voids.\n"
+        "- Structure & intent: displacement, market structure shift (MSS) vs BOS, and "
+        "any liquidity sweep/stop-run that PRECEDED a shift (the setup trigger).\n"
+        "- Dealing range: mark equilibrium (50%) and whether price is at a PREMIUM "
+        "(favor shorts) or DISCOUNT (favor longs); locate the OTE zone (62-79% retrace).\n"
+        "- Model context: Power of Three (accumulation-manipulation-distribution), Judas "
+        "swing, turtle soup, and killzone timing if inferable.\n"
+        "Give the ICT bias, the specific numeric levels, and the single highest-probability "
+        "PD array + its draw-on-liquidity target."),
     "smc": (
-        "You are a Smart Money Concepts analyst. Mark up market structure: label "
-        "the trend via BOS/CHoCH, mark swing highs/lows, and identify the valid "
-        "point of interest (order block / supply-demand) for a pullback entry, plus "
-        "inducement/liquidity. State the SMC bias and key levels as numbers."),
+        "You are a MASTER Smart Money Concepts analyst. Map the chart precisely:\n"
+        "- Structure: label HH/HL/LH/LL, distinguish INTERNAL vs EXTERNAL structure, and "
+        "mark every BOS and CHoCH (change of character = the real reversal signal).\n"
+        "- Liquidity: inducement (IDM) that traps early entries, engineered/equal highs-"
+        "lows, and liquidity sweeps into a POI.\n"
+        "- POI: the valid, refined order block (last opposing candle before the impulse "
+        "that broke structure) or supply/demand zone; note if it is fresh or mitigated, "
+        "and any breaker/flip zone.\n"
+        "- Imbalance: FVG within the leg and whether it has been mitigated.\n"
+        "- Location: premium/discount relative to the dealing-range equilibrium (50%).\n"
+        "Give the SMC bias, the exact POI zone (numeric range), the inducement level it "
+        "needs to sweep first, and the CHoCH level that confirms entry."),
     "volume_profile": (
-        "You are a Volume Profile / Auction analyst. From the visible range estimate "
-        "the Point of Control, Value Area High/Low, and any high/low volume nodes. "
-        "Judge whether price is accepting or rejecting value. State the bias and the "
-        "POC/VAH/VAL levels as numbers."),
+        "You are a MASTER Volume Profile / Auction Market Theory analyst. From the visible "
+        "range and any volume bars, read the auction:\n"
+        "- Key levels: Point of Control (POC), Value Area High/Low (VAH/VAL, ~70% of "
+        "volume), and any naked/virgin POC left untested.\n"
+        "- Nodes: High Volume Nodes (HVN = magnets/acceptance) and Low Volume Nodes "
+        "(LVN = rejection/fast-move zones).\n"
+        "- Profile shape: D (balanced), P (short-covering/bullish), b (long-liquidation/"
+        "bearish), B (double distribution/trend day), or thin/trend.\n"
+        "- Auction state: is price ACCEPTING (building value) or REJECTING (excess, single "
+        "prints, poor high/low) value? Initiative vs responsive activity; balance vs "
+        "imbalance; the 80% rule if price re-enters value.\n"
+        "Give the auction bias and the numeric POC/VAH/VAL plus the nearest HVN magnet and "
+        "LVN that price would travel through."),
     "footprint": (
-        "You are an order-flow analyst. From candle bodies, wicks, and relative bar "
-        "sizes infer momentum, absorption, and exhaustion (you have no tick data, so "
-        "reason from price action). State whether flow supports up or down and note "
-        "any exhaustion/absorption levels."),
+        "You are a MASTER order-flow / footprint analyst working from a chart image (no "
+        "tick/delta feed), so INFER order flow from price action and any visible volume "
+        "bars:\n"
+        "- Absorption: large effort with little price result (big volume/long bars that "
+        "fail to move price) = a passive player absorbing — often a reversal zone.\n"
+        "- Exhaustion: climax volume into a swing with a wide-range bar then stall.\n"
+        "- Delta proxy: strong closes near highs (buy pressure) vs near lows (sell "
+        "pressure); track the sequence for a delta/price DIVERGENCE.\n"
+        "- Trapped traders: failed breakout / stop-run beyond a level that snaps back "
+        "(liquidity grab) — fade the trapped side.\n"
+        "- Unfinished auction: swing extreme with no rejection wick (no excess) that price "
+        "should revisit; effort-vs-result at key levels.\n"
+        "State whether flow favors up or down and the exact absorption/exhaustion/trap "
+        "levels that confirm or reject a trade."),
 }
 
 _PLAN_SCHEMA = {
@@ -95,13 +133,15 @@ def _img(png: bytes) -> dict:
 
 def _markup(school: str, png: bytes, symbol: str, timeframe: str,
             htf_context: str = "") -> dict:
-    prompt = (f"{SCHOOLS[school]}\n\nChart: {symbol} {timeframe}. Read prices from the "
-              "right-hand axis. Be concise (<=120 words): bias + the specific levels.")
+    prompt = (f"{SCHOOLS[school]}\n\nChart: {symbol} {timeframe}. Read prices precisely "
+              "from the right-hand axis. Report only elements ACTUALLY visible (do not "
+              "invent). Be tight (<=160 words): the bias, the specific numeric levels, "
+              "and the single highest-probability setup this school sees.")
     if htf_context:
         prompt += ("\n\nHigher-timeframe bias to respect (align entries with it):\n"
                    + htf_context)
     resp = _c().messages.create(
-        model=config.VISION_MARKUP_MODEL, max_tokens=700, thinking={"type": "adaptive"},
+        model=config.VISION_MARKUP_MODEL, max_tokens=1100, thinking={"type": "adaptive"},
         messages=[{"role": "user", "content": [_img(png), {"type": "text", "text": prompt}]}])
     text = next((b.text for b in resp.content if b.type == "text"), "")
     jlog("vision_markup", school=school, symbol=symbol, ok=bool(text))
