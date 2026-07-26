@@ -1,0 +1,183 @@
+//@version=6
+// ============================================================================
+//  FOOTPRINT PRO — Native Order-Flow Footprint (real bid/ask)  · Pine v6
+//
+//  Uses TradingView's NATIVE request.footprint() (added Jan 2026) → REAL
+//  buy(ask)/sell(bid) volume per price row, not an LTF approximation.
+//  Renders a true footprint grid: sell (bid) column LEFT of the candle,
+//  buy (ask) column RIGHT, each number inside its own heat-shaded cell,
+//  framed per bar, with diagonal-imbalance highlighting, bar POC, and a
+//  70% value area — all computed from the real rows.
+//
+//  REQUIREMENTS / NOTES:
+//   • request.footprint() needs a TradingView Premium/Ultimate plan and an
+//     instrument+timeframe that provides footprint data (intraday, recent
+//     bars). fp is `na` when unavailable → nothing is drawn for that bar.
+//   • overlay=true + xloc.bar_time is what lets the grid split each candle
+//     into two columns reliably (a pane indicator + force_overlay does not).
+// ============================================================================
+indicator("Footprint Pro — Native Order Flow",
+     shorttitle       = "Footprint Pro",
+     overlay          = true,
+     max_boxes_count  = 500,
+     max_labels_count = 500,
+     max_lines_count  = 500)
+
+// ─────────────────────────────  INPUTS  ────────────────────────────────────
+gReq  = "Footprint request"
+tpr   = input.int(50, "Ticks per row", minval=1, group=gReq, tooltip="Row height in ticks. Gold (mintick 0.01): 50 ticks = $0.50 rows. ES: 4 = 1pt.")
+vaPct = input.float(70, "Value area %", minval=1, maxval=100, group=gReq)
+imbR  = input.float(3.0, "Diagonal imbalance ratio (x:1)", minval=1.5, step=0.5, group=gReq, tooltip="Ask@row vs Bid@row-1 (diagonal). 3.0 = 300%.")
+
+gShow = "Display"
+fpBars = input.int(10, "Render last N bars", minval=1, maxval=30, group=gShow, tooltip="Footprint is object-heavy; only the most recent N bars are drawn.")
+fpSize = input.string("Tiny", "Text size", options=["Tiny","Small","Normal"], group=gShow)
+heat   = input.bool(true, "Heatmap cell shading", group=gShow)
+hide0  = input.bool(true, "Hide empty (0) cells", group=gShow)
+showFrame = input.bool(true, "Outer frame per bar", group=gShow)
+showVA = input.bool(true, "POC / VAH / VAL marks", group=gShow)
+showFoot = input.bool(true, "Delta / volume footer", group=gShow)
+
+gCol  = "Colors"
+buyCol  = input.color(color.new(#26a69a, 0), "Buy (Ask)", group=gCol)
+sellCol = input.color(color.new(#ef5350, 0), "Sell (Bid)", group=gCol)
+pocCol  = input.color(color.new(#ffca28, 0), "POC", group=gCol)
+vaCol   = input.color(color.new(#5b9cf6, 0), "Value area", group=gCol)
+frmCol  = input.color(color.new(#787b86, 35), "Frame / grid", group=gCol)
+
+// ─────────────────────────────  HELPERS  ───────────────────────────────────
+f_fmt(float v) =>
+    a = math.abs(v)
+    a >= 1e9 ? str.tostring(v/1e9, "#.##") + "B" :
+     a >= 1e6 ? str.tostring(v/1e6, "#.##") + "M" :
+     a >= 1e3 ? str.tostring(v/1e3, "#.#")  + "K" : str.tostring(v, "#")
+
+txtSz = fpSize == "Tiny" ? size.tiny : fpSize == "Small" ? size.small : size.normal
+float rowH  = tpr * syminfo.mintick
+int   barMs = timeframe.in_seconds(timeframe.period) * 1000
+
+// ─────────────────────  NATIVE FOOTPRINT REQUEST  ──────────────────────────
+footprint fp = request.footprint(tpr, int(vaPct), int(imbR * 100))
+
+// Persistent drawing registers (recycled so we stay under object limits)
+var array<box>   fpBox = array.new<box>()
+var array<label> fpLab = array.new<label>()
+var array<line>  fpLin = array.new<line>()
+
+bool draw = not na(fp) and (last_bar_index - bar_index < fpBars)
+
+if draw
+    array<volume_row> rows = fp.rows()
+    int nR = array.size(rows)
+    if nR > 0
+        // ── Pass 1: index rows by price-key, find POC + busiest cell + totals
+        mBuy  = map.new<int, float>()
+        mSell = map.new<int, float>()
+        float maxCell = 1.0
+        float barBuy  = 0.0
+        float barSell = 0.0
+        int   pocKey  = na
+        float pocVol  = -1.0
+        int   minKey  = na
+        int   maxKey  = na
+        for i = 0 to nR - 1
+            volume_row r = array.get(rows, i)
+            dn = r.down_price()
+            bu = r.buy_volume()
+            se = r.sell_volume()
+            key = int(math.round(dn / rowH))
+            mBuy.put(key, bu)
+            mSell.put(key, se)
+            barBuy  += bu
+            barSell += se
+            maxCell := math.max(maxCell, math.max(bu, se))
+            tt = bu + se
+            if tt > pocVol
+                pocVol := tt
+                pocKey := key
+            minKey := na(minKey) or key < minKey ? key : minKey
+            maxKey := na(maxKey) or key > maxKey ? key : maxKey
+
+        // ── Value area: expand from POC until ≥ vaPct% of bar volume
+        float barVol = barBuy + barSell
+        float target = barVol * vaPct / 100.0
+        float acc = pocVol
+        int   upK = pocKey
+        int   dnK = pocKey
+        while acc < target and (upK < maxKey or dnK > minKey)
+            float vU = upK < maxKey ? (mBuy.contains(upK+1) ? mBuy.get(upK+1) : 0.0) + (mSell.contains(upK+1) ? mSell.get(upK+1) : 0.0) : -1.0
+            float vD = dnK > minKey ? (mBuy.contains(dnK-1) ? mBuy.get(dnK-1) : 0.0) + (mSell.contains(dnK-1) ? mSell.get(dnK-1) : 0.0) : -1.0
+            if vU >= vD
+                upK += 1
+                acc += math.max(vU, 0.0)
+            else
+                dnK -= 1
+                acc += math.max(vD, 0.0)
+        float vahP = (upK + 1) * rowH
+        float valP = dnK * rowH
+
+        // ── Geometry: split the bar width — sell (bid) LEFT, buy (ask) RIGHT
+        int fL   = time + int(barMs * 0.06)
+        int fMid = time + barMs / 2
+        int fR   = time + barMs - int(barMs * 0.06)
+        int fBx  = (fL + fMid) / 2
+        int fAx  = (fMid + fR) / 2
+        float topP = (maxKey + 1) * rowH
+        float botP = minKey * rowH
+
+        if showFrame
+            array.push(fpBox, box.new(fL, topP, fR, botP, xloc=xloc.bar_time, border_color=frmCol, border_width=1, bgcolor=na))
+
+        // ── Pass 2: draw each row's two cells + numbers
+        for i = 0 to nR - 1
+            volume_row r = array.get(rows, i)
+            up = r.up_price()
+            dn = r.down_price()
+            bu = r.buy_volume()
+            se = r.sell_volume()
+            key = int(math.round(dn / rowH))
+            mid = (up + dn) / 2
+            // Diagonal imbalance (real rows): buy vs bid-below, sell vs ask-above
+            sellBelow = mSell.contains(key-1) ? mSell.get(key-1) : 0.0
+            buyAbove  = mBuy.contains(key+1)  ? mBuy.get(key+1)  : 0.0
+            bool buyImb  = sellBelow > 0 and bu >= imbR * sellBelow
+            bool sellImb = buyAbove  > 0 and se >= imbR * buyAbove
+            bool isPoc   = key == pocKey
+            bool inVA    = dn >= valP - rowH/2 and up <= vahP + rowH/2
+
+            // SELL (bid) cell — LEFT
+            if se > 0 or not hide0
+                bt = heat ? 90 - int(math.min(60, se / maxCell * 60)) : 55
+                bg = sellImb ? color.new(sellCol, 5) : isPoc ? color.new(pocCol, 55) : inVA ? color.new(sellCol, math.max(bt-18, 8)) : color.new(sellCol, bt)
+                array.push(fpBox, box.new(fL, up, fMid, dn, xloc=xloc.bar_time, border_color=frmCol, border_width=1, bgcolor=bg))
+                array.push(fpLab, label.new(fBx, mid, se > 0 ? f_fmt(se) : "·", xloc=xloc.bar_time, style=label.style_none, textcolor=sellImb ? color.white : color.new(color.white, 8), size=txtSz))
+            // BUY (ask) cell — RIGHT
+            if bu > 0 or not hide0
+                at = heat ? 90 - int(math.min(60, bu / maxCell * 60)) : 55
+                ag = buyImb ? color.new(buyCol, 5) : isPoc ? color.new(pocCol, 55) : inVA ? color.new(buyCol, math.max(at-18, 8)) : color.new(buyCol, at)
+                array.push(fpBox, box.new(fMid, up, fR, dn, xloc=xloc.bar_time, border_color=frmCol, border_width=1, bgcolor=ag))
+                array.push(fpLab, label.new(fAx, mid, bu > 0 ? f_fmt(bu) : "·", xloc=xloc.bar_time, style=label.style_none, textcolor=buyImb ? color.white : color.new(color.white, 8), size=txtSz))
+
+        // ── POC / VAH / VAL marks across the bar
+        if showVA
+            array.push(fpLin, line.new(fL, (pocKey + 0.5) * rowH, fR, (pocKey + 0.5) * rowH, xloc=xloc.bar_time, color=pocCol, width=2))
+            array.push(fpLin, line.new(fL, vahP, fR, vahP, xloc=xloc.bar_time, color=color.new(vaCol, 25), style=line.style_dashed))
+            array.push(fpLin, line.new(fL, valP, fR, valP, xloc=xloc.bar_time, color=color.new(vaCol, 25), style=line.style_dashed))
+
+        // ── Footer: delta + total volume under the bar
+        if showFoot
+            float bd = barBuy - barSell
+            col = bd >= 0 ? buyCol : sellCol
+            array.push(fpLab, label.new(int((fL + fR) / 2), botP - rowH, (bd >= 0 ? "▲ " : "▼ ") + "Δ " + f_fmt(bd) + "\n∑ " + f_fmt(barVol), xloc=xloc.bar_time, style=label.style_label_up, color=color.new(col, 15), textcolor=color.white, size=size.tiny))
+
+// ── Recycle old drawings so recent footprints stay within object limits
+while array.size(fpBox) > 480
+    box.delete(array.shift(fpBox))
+while array.size(fpLab) > 480
+    label.delete(array.shift(fpLab))
+while array.size(fpLin) > 480
+    line.delete(array.shift(fpLin))
+
+// ─────────────────────────────  ALERTS  ────────────────────────────────────
+// Fires when the current bar has any real footprint data (customise as needed)
+alertcondition(not na(fp), "Footprint bar", "Footprint data present on the current bar")
