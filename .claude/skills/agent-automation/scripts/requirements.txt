@@ -1,5 +1,2 @@
-flask
 anthropic>=0.116
 requests
-playwright
-Pillow
