@@ -14,47 +14,81 @@ const DEFAULTS = {
   bull: '#2ECC9A', bear: '#E15A5A',
   grid: '#22434E', text: '#8BA3AB',
   bg: 'transparent', wickW: 1.6, seed: 7,
-  base: 2348.0, n: 64,
+  base: 2348.0, n: 70,
   annotate: false,
 };
 
-/* Crafted close-path scenario: push up -> rollover -> equal-lows consolidation
-   at the pool -> liquidity sweep (long wick below, close back above) -> impulse. */
+/* Scenario = a realistic zigzag of swing pivots (highs & lows with pullbacks),
+   walked candle-by-candle by a damped-momentum model that overshoots/undershoots
+   the guide so the path is JAGGED like a real market — not a smooth curve.
+   Equal lows are pinned to the pool; one bar sweeps below it then closes back. */
 function buildSeries(o){
   const rnd = mulberry32(o.seed);
-  const g = (m,s)=> m + (rnd()*2-1)*s;
+  const randn = ()=> (rnd()+rnd()+rnd()-1.5)/1.5;    // ~N(0,1)-ish
   const n = o.n, B = o.base;
-  const P = B - 3.6;                                 // pool = equal-lows level
-  const SWEEP = 41, EQ = new Set([28,32,36,39,40]);
-  const lerp=(a,b,t)=>a+(b-a)*t;
+  const P = B - 4.0;                                  // pool = equal-lows level
 
-  const cl = new Array(n);
-  for(let i=0;i<n;i++){
-    let v;
-    if(i<=13)      v = lerp(B-1.0, B+4.2, i/13) + g(0,0.5);
-    else if(i<=26) v = lerp(B+4.2, P+1.1, (i-13)/13) + g(0,0.45);
-    else if(i<=40) v = P + 1.15 + Math.sin((i-27)*0.9)*0.8 + g(0,0.28);
-    else if(i===SWEEP) v = P + 0.7;
-    else           v = lerp(P+0.9, B+10.5, (i-42)/(n-1-42)) + g(0,0.55);
-    cl[i]=v;
+  // pivots as [index, priceOffsetFromBase] — a real-looking swing skeleton:
+  // pop up -> lower the high -> decline -> equal low -> bounce -> equal low ->
+  // (sweep) -> impulse up with a higher-low pullback -> continuation.
+  const piv = [
+    [0,0.6],[7,3.7],[13,1.5],[19,4.3],[26,0.4],
+    [30,-4.0],[35,-1.5],[41,-4.0],[43,-3.3],
+    [50,0.9],[56,-0.7],[62,3.9],[n-1,6.6],
+  ];
+  const SWEEP = 44;                                   // stop-grab bar (just after 2nd equal low)
+  const EQ = new Set([30,41]);                        // bars that tag the pool exactly
+
+  // piecewise-linear guide through the pivots
+  const guide = new Array(n);
+  for(let s=0;s<piv.length-1;s++){
+    const [i0,v0]=piv[s], [i1,v1]=piv[s+1];
+    for(let i=i0;i<=i1;i++){ const t=(i-i0)/(i1-i0); guide[i]=B+v0+(v1-v0)*t; }
   }
 
-  const c=[];
+  // volatility regime per bar (impulse = bigger candles, range = smaller)
+  const volAt = i => {
+    if(i>=19&&i<=26) return 0.85;                     // decline impulse
+    if(i>=SWEEP&&i<=52) return 0.95;                  // reversal impulse
+    if(i>=27&&i<SWEEP)  return 0.42;                  // consolidation / range
+    if(i>=57&&i<=60)    return 0.4;                   // pullback drift
+    return 0.6;
+  };
+
+  // damped-momentum walk toward the guide (organic overshoot)
+  const cl=new Array(n); let c=guide[0], v=0;
   for(let i=0;i<n;i++){
-    const open = i===0 ? B-1.4 : c[i-1].close;
-    const close = cl[i];
-    let upW = Math.abs(g(0.28,0.22)), dnW = Math.abs(g(0.28,0.22));
+    const pull = 0.30*(guide[i]-c);
+    v = v*0.52 + pull + randn()*volAt(i);
+    c += v;
+    cl[i]=c;
+  }
+  cl[n-1]=guide[n-1];                                 // land the last close on the final high
+
+  const cnd=[];
+  for(let i=0;i<n;i++){
+    const open = i===0 ? B+0.2 : cnd[i-1].close;
+    let close = cl[i];
+    const range = volAt(i);
+    let upW = Math.abs(randn())*range*0.55 + 0.05;
+    let dnW = Math.abs(randn())*range*0.55 + 0.05;
     let low  = Math.min(open,close) - dnW;
     let high = Math.max(open,close) + upW;
-    if(EQ.has(i)) low = P + g(0.02,0.05);
-    if(i===SWEEP){ low = P - 3.15 + g(0,0.2); high = Math.max(open,close)+Math.abs(g(0.25,0.15)); }
+
+    if(EQ.has(i)){ low = P + Math.abs(randn())*0.06; }        // crisp equal lows at the pool
+    if(i===SWEEP){                                             // the sweep: spike below, close back above
+      close = P + 0.5 + rnd()*0.4;
+      low   = P - 2.35 - rnd()*0.5;
+      high  = Math.max(open,close) + Math.abs(randn())*0.3;
+    }
     low = Math.min(low, open, close); high = Math.max(high, open, close);
-    let vol = 0.5 + Math.abs(close-open)*0.7 + rnd()*0.3;
-    if(i>=42 && i<52) vol *= 1.55;
-    if(i===SWEEP) vol *= 2.0;
-    c.push({open,close,low,high,vol});
+
+    let vol = 0.45 + Math.abs(close-open)*0.75 + rnd()*0.25;
+    if(i>=SWEEP && i<=52) vol *= 1.5;
+    if(i===SWEEP) vol *= 1.9;
+    cnd.push({open,close,low,high,vol});
   }
-  return { candles:c, pool:P, sweepIndex:SWEEP };
+  return { candles:cnd, pool:P, sweepIndex:SWEEP };
 }
 
 function niceStep(range, target){
