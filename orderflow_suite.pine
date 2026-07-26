@@ -20,6 +20,16 @@ indicator("Order Flow Suite — Footprint / Delta / CVD / Imbalance",
      precision       = 2)
 
 // ─────────────────────────────  INPUTS  ────────────────────────────────────
+// ── Instrument preset (tunes footprint row size + profile bin size)
+gPre   = "⓪ Instrument Preset"
+preset = input.string("Gold (XAUUSD)", "Preset",
+     options=["Gold (XAUUSD)", "Forex (5-digit)", "Index / Crypto", "Custom (auto)"], group=gPre,
+     tooltip="Gold: $0.5 footprint rows, $1.0 profile bins (COMEX/CFD gold).\nForex: 2-pip rows, 5-pip bins.\nIndex/Crypto & Custom: auto sizing from ATR / prior-day range and the manual inputs below.")
+
+// Preset price steps (0 → use auto sizing). Gold tuned for XAUUSD.
+float presetRow = preset == "Gold (XAUUSD)" ? 0.5    : preset == "Forex (5-digit)" ? 0.0002 : 0.0
+float presetBin = preset == "Gold (XAUUSD)" ? 1.0    : preset == "Forex (5-digit)" ? 0.0005 : 0.0
+
 // ── LTF Engine
 gEng   = "① LTF Order-Flow Engine"
 autoLtf= input.bool(true,  "Auto lower timeframe", group=gEng, tooltip="Pick the intrabar resolution automatically from the chart timeframe.")
@@ -233,8 +243,9 @@ bool doFp = (showFp or showStack) and (last_bar_index - bar_index < fpBars) and 
 
 var array<label> fpLabels = array.new<label>()
 
-// Auto row size keeps the number of rows bounded on any instrument
-float rowSize = math.max(syminfo.mintick, math.round((atrRow / rowsTgt) / syminfo.mintick) * syminfo.mintick)
+// Footprint row size: preset price step if set, else auto (ATR-bounded)
+float rowSize = presetRow > 0 ? math.max(syminfo.mintick, presetRow) :
+     math.max(syminfo.mintick, math.round((atrRow / rowsTgt) / syminfo.mintick) * syminfo.mintick)
 
 if doFp
     mAsk = map.new<int, float>()   // aggressive buys at each level
@@ -319,7 +330,8 @@ if array.size(fpLabels) > 480
 float dayRangeEst = request.security(syminfo.tickerid, "1D", high[1] - low[1], lookahead=barmerge.lookahead_on)
 float pdHigh      = request.security(syminfo.tickerid, "1D", high[1], lookahead=barmerge.lookahead_on)
 float pdLow       = request.security(syminfo.tickerid, "1D", low[1],  lookahead=barmerge.lookahead_on)
-float binSize = (na(dayRangeEst) or dayRangeEst <= 0) ?
+float binSize = presetBin > 0 ? math.max(syminfo.mintick, presetBin) :
+     (na(dayRangeEst) or dayRangeEst <= 0) ?
      math.max(syminfo.mintick, math.round((atrRow * 3 / profRows) / syminfo.mintick) * syminfo.mintick) :
      math.max(syminfo.mintick, math.round((dayRangeEst / profRows) / syminfo.mintick) * syminfo.mintick)
 
