@@ -189,8 +189,68 @@ def liq_arrow(d, x, y, col, up=False):
         d.line([(x,y-L),(x,y)],fill=col,width=6)
         d.polygon([(x-11,y-13),(x+11,y-13),(x,y)],fill=col)
 
+# ============ SUBTITLES (burned captions of the VO — no voiceover) ============
+# start, end, text  (full narration lines, synced to beats)
+SUBS=[
+ (0.0,2.6,"تبي تعرف أي هاي بياخذ ستوبك قبل لا تدخل؟"),
+ (2.6,4.0,"الاثنين شكلهم نفس الشي… بس واحد حماية والثاني هدف"),
+ (4.0,4.8,"شلون؟"),
+ (4.8,6.0,"تعال اقولك"),
+ (6.0,8.6,"الناس تشوف الهاي الأعلى بالجارت وتقول هذا القوي… عشان اهو الأعلى"),
+ (8.6,11.0,"لكن بالواقع؟ قوة الهاي مو من شكله… من اللي تحته"),
+ (11.0,13.6,"إذا النزول من الهاي سحب السيولة تحت آخر لو… الهاي قوي، وإذا ما سحبها ضعيف"),
+ (13.6,14.3,"الهاي اللي ما سحب السيولة تحته… اهو اللي بياخذ ستوبك"),
+ (14.3,17.5,"شوف: هذا الهاي سحب اللو اللي تحته وصمد… وهذا لا، وطاح"),
+ (17.5,19.2,"لا تحط ستوبك فوق هاي ما سحب شي… اهو مو حماية، اهو سيولة مستهدفة"),
+ (19.2,22.0,"بس شلون تعرف الهاي القوي والجارت داخل رينج؟ اكتب «قوي» بالتعليقات ويوصلك الملف كامل"),
+]
+def _sub_clean(s):
+    # keep it pure-Arabic-renderable: ellipsis/colon -> Arabic comma, drop guillemets
+    return (s.replace("…","،").replace(":","،").replace("«","").replace("»","")
+             .replace("،،","،").replace(" ،","،"))
+def _wrap_ar(d, text, fnt, maxw):
+    words=text.split(); lines=[]; cur=""
+    for w in words:
+        trial=(cur+" "+w).strip()
+        if ar_w(d,trial,fnt,direction="rtl")<=maxw or not cur:
+            cur=trial
+        else:
+            lines.append(cur); cur=w
+    if cur: lines.append(cur)
+    return lines
+def draw_subtitle(img, t):
+    if 11.0<=t<13.6: return img   # RULE frame: its centred caption IS the line
+    cur=next(((a,b,s) for (a,b,s) in SUBS if a<=t<b), None)
+    if not cur: return img
+    a,b,raw=cur; txt=_sub_clean(raw)
+    fnt=font(FA,50)
+    d0=ImageDraw.Draw(img)
+    lines=_wrap_ar(d0,txt,fnt,960)
+    lh=64; block_h=lh*len(lines)
+    ybot=1712                      # sits above the Reels bottom UI zone
+    ytop=ybot-block_h
+    cy0=ytop+lh//2
+    # scrim behind the block
+    maxw=max(ar_w(d0,l,fnt,direction="rtl") for l in lines)
+    img=scrim(img,W//2,(ytop+ybot)//2,min(W-40,maxw+90),block_h+40,alpha=140,blur=24)
+    d=ImageDraw.Draw(img)
+    alpha=clamp((t-a)/0.15)
+    lay=Image.new("RGBA",(W,block_h+40),(0,0,0,0)); ld=ImageDraw.Draw(lay)
+    for i,l in enumerate(lines):
+        y=lh//2+20+i*lh
+        ld.text((W//2+2,y+2),l,font=fnt,fill=(0,0,0,170),anchor="mm",direction="rtl")
+        ld.text((W//2,y),l,font=fnt,fill=(NEARWHITE[0],NEARWHITE[1],NEARWHITE[2],255),
+                anchor="mm",direction="rtl")
+    aL=lay.split()[3].point(lambda v:int(v*alpha))
+    img.paste(lay,(0,int(ytop-20)),aL)
+    return img
+
 # ============ BEATS ============
 def frame(t):
+    img=_core(t)
+    return draw_subtitle(img,t)
+
+def _core(t):
     k,lt,dl=which(t)
     # ---- B1 HOOK ----
     if k==1:

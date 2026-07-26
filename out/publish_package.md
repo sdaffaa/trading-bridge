@@ -1,6 +1,7 @@
 # Publish package — «أي هاي بياخذ ستوبك» (Liquidity State)
 
 **File:** `out/liquidity_high_stop.mp4` · 1080×1920 · 30fps · 22.0s
+**Audio:** sound-design bed only — **no voiceover**. الكلام كله محروق كـ **كابشن/سبتايتل** متزامن على الفيديو (يوصل وهو ساكت).
 **Pillar:** lesson (TOF→MOF) · **Skip-risk:** 15/15 · expected band **<30%**
 **Cover frame:** frame 0 (`out/cover.png`) — the hook composition (two highs, price approaching the right one, question on screen)
 
