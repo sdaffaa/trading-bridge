@@ -84,6 +84,29 @@ def test_followup_running_management_recommendation(monkeypatch):
     assert idempotency.seen("manage:evt-1:move_sl_be")       # rec sent (deduped)
 
 
+def test_suppress_new_trade_when_position_open():
+    _seed_open_trade("OANDA:XAUUSD")
+    d = {"action": "long", "confidence": 0.8, "grade": "A", "timeframe": "240→15→3",
+         "entry": 4100, "stop_loss": 4080, "take_profit": 4140}
+    out, suppressed = runtime._suppress_if_duplicate("OANDA:XAUUSD", d)
+    assert suppressed is True
+    assert out["action"] == "no_trade"                # downgraded, not a new trade
+
+
+def test_no_suppression_when_flat():
+    d = {"action": "long", "confidence": 0.8, "grade": "A",
+         "entry": 4100, "stop_loss": 4080, "take_profit": 4140}
+    out, suppressed = runtime._suppress_if_duplicate("OANDA:XAUUSD", d)
+    assert suppressed is False and out["action"] == "long"
+
+
+def test_no_suppression_for_no_trade():
+    _seed_open_trade("OANDA:XAUUSD")
+    d = {"action": "no_trade", "grade": "none", "reason": "flat"}
+    out, suppressed = runtime._suppress_if_duplicate("OANDA:XAUUSD", d)
+    assert suppressed is False                         # nothing to suppress
+
+
 def test_followup_running_hold_is_silent(monkeypatch):
     monkeypatch.setattr(config, "DRY_RUN", True)
     _seed_open_trade()

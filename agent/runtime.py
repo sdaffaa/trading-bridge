@@ -189,6 +189,15 @@ def _run_vision(alert: dict, run_id: str) -> dict:
             png = None
     decision["timeframe"] = tf_label
 
+    # one live signal per symbol: if a prior trade on this pair is still open
+    # (the follow-up above already closed any that hit TP/SL), don't fire a new
+    # one at a different price — the management messages handle the open position.
+    decision, suppressed = _suppress_if_duplicate(alert["symbol"], decision)
+    if suppressed:
+        jlog("trade_suppressed", run=run_id, id=alert["id"], symbol=alert["symbol"],
+             reason="position_already_open")
+        levels, key_levels = {}, []
+
     tools.ctx.decision = decision
     idempotency.mark(f"run:{alert['id']}")
     store.record_decision(alert["id"], run_id, alert["symbol"], decision, config.DRY_RUN)
@@ -212,6 +221,21 @@ def _run_vision(alert: dict, run_id: str) -> dict:
               "decision": decision, "dry_run": config.DRY_RUN}
     jlog("run_end", **result)
     return result
+
+
+def _suppress_if_duplicate(symbol: str, decision: dict):
+    """Enforce one live signal per symbol. If a prior long/short on this pair is
+    still open, downgrade a fresh long/short to no_trade so trades don't stack on
+    the same pair at different prices. Returns (decision, suppressed?)."""
+    if decision.get("action") not in ("long", "short"):
+        return decision, False
+    if not store.open_trades(symbol):
+        return decision, False
+    return ({"action": "no_trade",
+             "confidence": decision.get("confidence", 0),
+             "grade": decision.get("grade", "none"),
+             "reason": "توجد صفقة مفتوحة على هذا الزوج — تتم إدارة المركز الحالي",
+             "timeframe": decision.get("timeframe")}, True)
 
 
 def _followup_open_trades(alert: dict, png, vision, timeframe=None) -> None:
