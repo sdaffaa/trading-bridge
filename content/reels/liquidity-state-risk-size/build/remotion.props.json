@@ -1,0 +1,518 @@
+{
+  "composition": {
+    "id": "LiquidityStateReel",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "durationInFrames": 630
+  },
+  "meta": {
+    "title": "ريل — الاختبار الممول: حجم المخاطرة اهو اللي يعدّيك",
+    "type": "lesson",
+    "series": "funded-challenge/risk-size",
+    "instrument": "XAUUSD",
+    "timeframe": "15m",
+    "runtime": 21.0,
+    "avg_watch": 14.0,
+    "fps": 30,
+    "aspect": "1080x1920",
+    "cta_mode": "keyword",
+    "keyword": "ممول",
+    "promise_paid": "yes",
+    "target_skip": 30,
+    "payoff_at": 6.2,
+    "peak_beat": "9",
+    "expected_skip_band": "<30%"
+  },
+  "palette": {
+    "teal": "#2E9E8F",
+    "silver": "#C9D1D6",
+    "gold": "#D6A94A",
+    "text": "#F2F5F7",
+    "bg": "#131722",
+    "black_floor": "#0A0C10",
+    "up": "#26A69A",
+    "down": "#EF5350"
+  },
+  "typography": {
+    "family": "Tajawal",
+    "inline_base64": true,
+    "note": "Inline the font as base64 — a network fetch previously caused a render timeout.",
+    "safe_zones_px": {
+      "top": 120,
+      "bottom": 260,
+      "sides": 80
+    }
+  },
+  "arabic": {
+    "reshape_required": true,
+    "note": "Run all Arabic through arabic-video-text before rasterizing (PIL/node-canvas/ffmpeg drawtext) or letters disconnect and reverse."
+  },
+  "scenes": [
+    {
+      "id": "beat_1",
+      "beat": "1",
+      "name": "HOOK",
+      "from_frame": 0,
+      "duration_frames": 78,
+      "t_in": 0.0,
+      "t_out": 2.6,
+      "shot": "XAUUSD 15m TradingView حقيقي، آخر 3 شموع تطبع لايف. فوق يمين HUD للاختبار — شريط Drawdown يمتلئ أحمر باتجاه خط 10%. الـ #1 read اهو الشريط اللي يمتلئ مو الشموع.",
+      "camera": {
+        "raw": "push-in 4% / 2.4s / ease-out مركزها شريط الـ HUD",
+        "kind": "push-in",
+        "amount_pct": 4.0,
+        "duration_s": 2.4,
+        "easing": "ease-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ],
+        "duration_frames": 72,
+        "scale_from": 1.0,
+        "scale_to": 1.04
+      },
+      "grade": "teal-silver، blacks #0A0C10، vignette 16%، شموع TradingView بلونها الأصلي",
+      "cut_out": "hard cut على «وطحت»",
+      "text": {
+        "content": "چم اختبار دفعت فلوسه… وطحت؟",
+        "in_frame": 9,
+        "motion": "mask-wipe R→L",
+        "size_px": 92,
+        "color": "#F2F5F7",
+        "font": "Tajawal Bold",
+        "pos": "lower-third",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_2",
+      "beat": "2",
+      "name": "PARADOX",
+      "from_frame": 78,
+      "duration_frames": 48,
+      "t_in": 2.6,
+      "t_out": 4.2,
+      "shot": "الفريم ينقسم عمودياً، يسار منحنى إكويتي صاعد أخضر، يمين نفس المنحنى ينكسر تحت خط 10% الأحمر. نفس الشموع بالجهتين والفرق بس بحجم اللوت.",
+      "camera": {
+        "raw": "locked",
+        "kind": "locked",
+        "amount_pct": 0.0,
+        "duration_s": null,
+        "easing": "ease-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ]
+      },
+      "grade": "يمين مشبع -20% saturation عشان الانكسار يقرأ أول",
+      "cut_out": "hard cut على «تطيح»",
+      "text": {
+        "content": "رابح بحسابك · طايح بالاختبار",
+        "in_frame": 84,
+        "motion": "rise",
+        "size_px": 74,
+        "color": "#C9D1D6",
+        "font": "Tajawal Bold",
+        "pos": "lower-third",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_3",
+      "beat": "3",
+      "name": "PIVOT",
+      "from_frame": 126,
+      "duration_frames": 24,
+      "t_in": 4.2,
+      "t_out": 5.0,
+      "shot": "الجارت يخفت لـ 45% brightness، يبقى مضيء بس خط الـ 10% الأحمر.",
+      "camera": {
+        "raw": "locked",
+        "kind": "locked",
+        "amount_pct": 0.0,
+        "duration_s": null,
+        "easing": "ease-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ]
+      },
+      "grade": "brightness -55% على البانل، الخط الأحمر يبقى 100%",
+      "cut_out": "hard cut",
+      "text": {
+        "content": "شلون؟",
+        "in_frame": 128,
+        "motion": "stamp",
+        "size_px": 120,
+        "color": "#D6A94A",
+        "font": "Tajawal Bold",
+        "pos": "centred",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_4",
+      "beat": "4",
+      "name": "INVITE",
+      "from_frame": 150,
+      "duration_frames": 36,
+      "t_in": 5.0,
+      "t_out": 6.2,
+      "shot": "الجارت يرجع كامل الإضاءة ويطلع مسارين إكويتي فوق بعض، الأول موسوم «2%» والثاني موسوم «0.5%». الوسوم تظهر الحين.",
+      "camera": {
+        "raw": "pull-back 6% / 1.2s / ease-in-out عشان يبين المسارين",
+        "kind": "pull-back",
+        "amount_pct": 6.0,
+        "duration_s": 1.2,
+        "easing": "ease-in-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.65,
+          0,
+          0.35,
+          1
+        ],
+        "duration_frames": 36,
+        "scale_from": 1.06,
+        "scale_to": 1.0
+      },
+      "grade": "مسار 2% أحمر #E15A5A · مسار 0.5% تيل #2E9E8F",
+      "cut_out": "hard cut على «اقولك»",
+      "text": null,
+      "flags": {
+        "payoff": true,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_5_6",
+      "beat": "5+6",
+      "name": "BELIEF+WHY",
+      "from_frame": 186,
+      "duration_frames": 72,
+      "t_in": 6.2,
+      "t_out": 8.6,
+      "shot": "فوق الجارت تتكدس 4 مؤشرات وحدة ورا الثانية كل 0.4s، EMA ثم RSI ثم زون ثم أسهم، لين يصير الجارت مزدحم. ما فيه أي تغيّر بمنحنى الإكويتي تحت، يبقى ثابت.",
+      "camera": {
+        "raw": "push-in 4% / 2.4s / ease-out",
+        "kind": "push-in",
+        "amount_pct": 4.0,
+        "duration_s": 2.4,
+        "easing": "ease-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ],
+        "duration_frames": 72,
+        "scale_from": 1.0,
+        "scale_to": 1.04
+      },
+      "grade": "المؤشرات بـ 60% opacity، مزدحمة بس مو مقروءة بالمقصود",
+      "cut_out": "hard cut على «الباك تست»",
+      "text": {
+        "content": "استراتيجية أقوى؟",
+        "in_frame": 195,
+        "motion": "mask-wipe R→L",
+        "size_px": 80,
+        "color": "#C9D1D6",
+        "font": "Tajawal Bold",
+        "pos": "lower-third",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_7",
+      "beat": "7",
+      "name": "TURN",
+      "from_frame": 258,
+      "duration_frames": 60,
+      "t_in": 8.6,
+      "t_out": 10.6,
+      "shot": "المؤشرات كلها تختفي بـ 0.25s. يبقى بانلين نظيفين، «الهدف 5% بدون وقت» يخفت لـ 30% و «حد الخسارة 10% نهائي» يضيء 100%.",
+      "camera": {
+        "raw": "locked",
+        "kind": "locked",
+        "amount_pct": 0.0,
+        "duration_s": null,
+        "easing": "ease-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ]
+      },
+      "grade": "الذهبي #D6A94A على كلمة «نهائي» فقط",
+      "cut_out": "hard cut على «خسارة»",
+      "text": {
+        "content": "مو اختبار ربح — اختبار خسارة",
+        "in_frame": 267,
+        "motion": "mask-wipe R→L",
+        "size_px": 86,
+        "color": "#E15A5A",
+        "font": "Tajawal Bold",
+        "pos": "lower-third",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_8",
+      "beat": "8",
+      "name": "TURN",
+      "from_frame": 318,
+      "duration_frames": 78,
+      "t_in": 10.6,
+      "t_out": 13.2,
+      "shot": "عدّاد بلوكات، صف أحمر يبني 5 بلوكات كل بلوك 2% ويصطدم بخط الـ 10% والخط يومض. تحته صف تيل يبني 20 بلوك أصغر كل بلوك 0.5% ويوصل نفس الخط.",
+      "camera": {
+        "raw": "track down 90px / 2.6s / linear ينزل من الصف الأحمر للصف التيل",
+        "kind": "track",
+        "amount_pct": 0.0,
+        "duration_s": 2.6,
+        "easing": "linear",
+        "px": 90.0,
+        "hz": null,
+        "bezier": null,
+        "duration_frames": 78
+      },
+      "grade": "الأحمر مشبع +10% لحظة الاصطدام فقط",
+      "cut_out": "speed-ramp 100%→35% خلال 0.3s",
+      "text": {
+        "content": "5 خسائر ← ولا 20؟",
+        "in_frame": 327,
+        "motion": "scale-in",
+        "size_px": 104,
+        "color": "#D6A94A",
+        "font": "Tajawal Bold",
+        "pos": "centred",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_9",
+      "beat": "9",
+      "name": "VERDICT",
+      "from_frame": 396,
+      "duration_frames": 21,
+      "t_in": 13.2,
+      "t_out": 13.9,
+      "shot": "الصف الأحمر ينكسر عبر خط الـ 10% بحركة بطيئة، والـ HUD يتحول لـ FAILED.",
+      "camera": {
+        "raw": "shake 1.5px @ 3Hz لمدة 0.4s على الإطار المحيط فقط مو على بانل الجارت",
+        "kind": "shake",
+        "amount_pct": 0.0,
+        "duration_s": 0.4,
+        "easing": "ease-out",
+        "px": 1.5,
+        "hz": 3.0,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ],
+        "duration_frames": 12
+      },
+      "grade": "vignette يقفز لـ 24% للحظة الكسر",
+      "cut_out": "hard cut يرجع للسرعة الطبيعية",
+      "text": {
+        "content": "تدفع فلوسه… وتطيح",
+        "in_frame": 398,
+        "motion": "stamp",
+        "size_px": 96,
+        "color": "#F2F5F7",
+        "font": "Tajawal Bold",
+        "pos": "centred",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": true,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_10",
+      "beat": "10",
+      "name": "PROOF",
+      "from_frame": 417,
+      "duration_frames": 81,
+      "t_in": 13.9,
+      "t_out": 16.6,
+      "shot": "pull back على المقارنة الكاملة، الصفّين وخط الـ 10% والمعادلتين تحت بعض. فريم قابل للسكرين شوت اهو اللي يجيب الحفظ.",
+      "camera": {
+        "raw": "pull-back 8% / 2.7s / ease-in-out",
+        "kind": "pull-back",
+        "amount_pct": 8.0,
+        "duration_s": 2.7,
+        "easing": "ease-in-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.65,
+          0,
+          0.35,
+          1
+        ],
+        "duration_frames": 81,
+        "scale_from": 1.08,
+        "scale_to": 1.0
+      },
+      "grade": "vignette 20% استقرار، الذهبي بس على «20»",
+      "cut_out": "hard cut",
+      "text": {
+        "content": "2% × 5 = 10% · 0.5% × 20 = 10%",
+        "in_frame": 426,
+        "motion": "rise",
+        "size_px": 78,
+        "color": "#C9D1D6",
+        "font": "Tajawal Bold",
+        "pos": "lower-third",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_11",
+      "beat": "11",
+      "name": "CARE",
+      "from_frame": 498,
+      "duration_frames": 42,
+      "t_in": 16.6,
+      "t_out": 18.0,
+      "shot": "مسار الـ 0.5% التيل بس، يمشي هادي فوق خط الـ 10% وما يلمسه أبداً.",
+      "camera": {
+        "raw": "locked",
+        "kind": "locked",
+        "amount_pct": 0.0,
+        "duration_s": null,
+        "easing": "ease-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ]
+      },
+      "grade": "كل شي عدا المسار التيل ينزل لـ 40% brightness",
+      "cut_out": "hard cut",
+      "text": {
+        "content": "مخاطرتك اهي اللي تعدّيك — مو نموذجك",
+        "in_frame": 507,
+        "motion": "mask-wipe R→L",
+        "size_px": 84,
+        "color": "#2E9E8F",
+        "font": "Tajawal Bold",
+        "pos": "lower-third",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_12",
+      "beat": "12",
+      "name": "LOOP",
+      "from_frame": 540,
+      "duration_frames": 90,
+      "t_in": 18.0,
+      "t_out": 21.0,
+      "shot": "رجوع لتركيبة الفريم صفر، نفس منطقة الجارت ونفس الـ HUD والشموع تطبع من جديد. الشعار صغير أسفل الوسط.",
+      "camera": {
+        "raw": "push-in 3% / 2.4s / ease-out يعكس البيت 1",
+        "kind": "push-in",
+        "amount_pct": 3.0,
+        "duration_s": 2.4,
+        "easing": "ease-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ],
+        "duration_frames": 72,
+        "scale_from": 1.0,
+        "scale_to": 1.03
+      },
+      "grade": "مطابق للبيت 1 حرفياً",
+      "cut_out": "hard out — آخر فريم اهو فريم صفر، إعادة تشغيل بلا خياطة ظاهرة",
+      "text": {
+        "content": "اكتب «ممول» بالتعليقات",
+        "in_frame": 549,
+        "motion": "rise",
+        "size_px": 80,
+        "color": "#D6A94A",
+        "font": "Tajawal Bold",
+        "pos": "lower-third",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": true
+      }
+    }
+  ]
+}
