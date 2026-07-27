@@ -47,15 +47,20 @@ const Constellation: React.FC = () => {
     </svg>
   );
 };
-const Bg: React.FC = () => (
-  <>
-    <AbsoluteFill style={{ background: `radial-gradient(128% 92% at 50% 30%, ${C.bgTop} 0%, ${C.bg} 48%, ${C.bgFloor} 100%)` }} />
-    <Constellation />
-    <AbsoluteFill style={{ background: "radial-gradient(46% 30% at 50% 22%, rgba(120,200,190,0.10) 0%, rgba(0,0,0,0) 70%)" }} />
-    <AbsoluteFill style={{ boxShadow: "inset 0 0 460px 120px rgba(0,0,0,0.55)", pointerEvents: "none" }} />
-    <AbsoluteFill style={{ backgroundImage: NOISE, backgroundSize: "160px 160px", opacity: 0.05, mixBlendMode: "overlay", pointerEvents: "none" }} />
-  </>
-);
+const Bg: React.FC = () => {
+  const f = useCurrentFrame();
+  const dx = Math.sin(f * 0.010) * 16, dy = Math.cos(f * 0.008) * 12; // slow parallax drift (2.5D depth)
+  const pool = 0.10 + Math.sin(f * 0.03) * 0.03;                       // light pool breathing
+  return (
+    <>
+      <AbsoluteFill style={{ background: `radial-gradient(128% 92% at 50% 30%, ${C.bgTop} 0%, ${C.bg} 48%, ${C.bgFloor} 100%)` }} />
+      <AbsoluteFill style={{ transform: `translate(${dx}px, ${dy}px) scale(1.06)` }}><Constellation /></AbsoluteFill>
+      <AbsoluteFill style={{ background: `radial-gradient(46% 30% at 50% 22%, rgba(120,200,190,${pool}) 0%, rgba(0,0,0,0) 70%)` }} />
+      <AbsoluteFill style={{ boxShadow: "inset 0 0 460px 120px rgba(0,0,0,0.55)", pointerEvents: "none" }} />
+      <AbsoluteFill style={{ backgroundImage: NOISE, backgroundSize: "160px 160px", opacity: 0.05, mixBlendMode: "overlay", pointerEvents: "none" }} />
+    </>
+  );
+};
 const Gem: React.FC = () => (
   <div style={{ position: "absolute", top: 1812, left: 0, width: WIDTH, display: "flex", justifyContent: "center", alignItems: "center", gap: 14, zIndex: 8, opacity: 0.9 }}>
     <svg width={46} height={46} viewBox="0 0 100 100"><g fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth={3} strokeLinejoin="round">
@@ -100,6 +105,8 @@ const Bubble: React.FC<{ tone: string; delay: number; x: number }> = ({ tone, de
 const Tank: React.FC<{ cx: number; level: number; tone?: "teal" | "red"; name?: string; nameColor?: string; scale?: number; dim?: number; big?: boolean; hideReadout?: boolean }> = ({
   cx, level, tone = "teal", name, nameColor = C.grey, scale = 1, dim = 1, big, hideReadout,
 }) => {
+  const wf = useCurrentFrame();
+  const wob = Math.sin(wf * 0.45) * 3; // liquid surface wobble
   const TW = big ? 340 : 300, TH = big ? 660 : 640;
   const col = tone === "red" ? C.red : C.teal;
   const DANGER = 0.15; // bottom 15% = the −10% failure zone
@@ -119,7 +126,7 @@ const Tank: React.FC<{ cx: number; level: number; tone?: "teal" | "red"; name?: 
         <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: `${Math.max(0, level) * 100}%`,
           background: `linear-gradient(180deg, ${shade(col, 22)} 0%, ${col} 34%, ${shade(col, -16)} 100%)`,
           boxShadow: `0 0 46px ${col}`, transition: "none" }}>
-          <div style={{ position: "absolute", top: -7, left: 0, right: 0, height: 14, background: shade(col, 40), borderRadius: "50%", opacity: 0.9, boxShadow: `0 0 20px ${col}` }} />
+          <div style={{ position: "absolute", top: -7, left: 0, right: 0, height: 14, background: shade(col, 40), borderRadius: "50%", opacity: 0.9, boxShadow: `0 0 20px ${col}`, transform: `translateY(${wob}px) scaleY(${1 + Math.abs(wob) * 0.02})` }} />
           <Bubble tone={col} delay={0} x={70} /><Bubble tone={col} delay={13} x={150} /><Bubble tone={col} delay={26} x={210} />
         </div>
         {/* glass highlight streak */}
@@ -172,6 +179,14 @@ const stepDown = (f: number, f0: number, f1: number, steps: number, from: number
   return from + (to - from) * (s / steps);
 };
 
+// motivated camera move (applied to the hero object layer only — chrome stays stable)
+const DAMP = Easing.bezier(0.4, 0, 0.2, 1); // critically-damped, premium personality
+const Stage: React.FC<{ from: number; to: number; dur: number; children: React.ReactNode }> = ({ from, to, dur, children }) => {
+  const f = useCurrentFrame();
+  const s = interpolate(f, [0, F(dur)], [from, to], { ...clamp, easing: DAMP });
+  return <AbsoluteFill style={{ transform: `scale(${s})`, transformOrigin: "50% 44%" }}>{children}</AbsoluteFill>;
+};
+
 // ================================================================== reel
 export const ReelTank: React.FC = () => (
   <AbsoluteFill style={{ backgroundColor: C.bg }}>
@@ -198,7 +213,7 @@ const B1: React.FC = () => {
   const hud = interpolate(f, [0, F(2.6)], [0.55, 0.74], clamp);
   return (
     <AbsoluteFill>
-      <Tank cx={0} level={level} tone="red" big />
+      <Stage from={1} to={1.045} dur={2.6}><Tank cx={0} level={level} tone="red" big /></Stage>
       <Kicker /><StatusHud fill={hud} /><Scrim />
       <Hero text="چم محفظة ممولة دفعت فلوسها… وطحت؟" size={76} top={1140} />
       <Subtitle text="خزان حسابك ينزل — والمخاطرة اهي اللي تحدد بأي سرعة" />
@@ -210,8 +225,10 @@ const B1: React.FC = () => {
 // PARADOX — personal account full, funded account draining
 const B2: React.FC = () => (
   <AbsoluteFill>
-    <Tank cx={-252} level={0.9} tone="teal" name="حسابك الشخصي" nameColor={C.teal} scale={0.8} />
-    <Tank cx={252} level={0.26} tone="red" name="المحفظة الممولة" nameColor={C.red} scale={0.8} />
+    <Stage from={1.02} to={1} dur={1.6}>
+      <Tank cx={-252} level={0.9} tone="teal" name="حسابك الشخصي" nameColor={C.teal} scale={0.8} />
+      <Tank cx={252} level={0.26} tone="red" name="المحفظة الممولة" nameColor={C.red} scale={0.8} />
+    </Stage>
     <Kicker /><Scrim />
     <Hero text="رابح بحسابك · طايح بالمحفظة" size={64} top={1150} />
     <Subtitle text="نفس الاستراتيجية — يتغيّر بس حجم المخاطرة" />
@@ -222,7 +239,7 @@ const B2: React.FC = () => (
 // PIVOT
 const B3: React.FC = () => (
   <AbsoluteFill>
-    <Tank cx={0} level={0.28} tone="red" big dim={0.4} />
+    <Stage from={1} to={1.07} dur={0.8}><Tank cx={0} level={0.28} tone="red" big dim={0.4} /></Stage>
     <Scrim />
     <Hero text="ليش؟" size={150} top={830} />
     <Gem />
@@ -235,8 +252,10 @@ const B4: React.FC = () => {
   const app = interpolate(f, [0, F(0.6)], [0, 1], clamp);
   return (
     <AbsoluteFill>
-      <Tank cx={-252} level={1} tone="red" name="مخاطرة 2%" nameColor={C.red} scale={0.8} dim={app} />
-      <Tank cx={252} level={1} tone="teal" name="مخاطرة 0.5%" nameColor={C.teal} scale={0.8} dim={app} />
+      <Stage from={1.05} to={1} dur={1.2}>
+        <Tank cx={-252} level={1} tone="red" name="مخاطرة 2%" nameColor={C.red} scale={0.8} dim={app} />
+        <Tank cx={252} level={1} tone="teal" name="مخاطرة 0.5%" nameColor={C.teal} scale={0.8} dim={app} />
+      </Stage>
       <Kicker /><Scrim />
       <Hero text="تعال أوريك الفرق" size={86} top={1180} />
       <Gem />
@@ -251,7 +270,7 @@ const B56: React.FC = () => {
   const labels = ["EMA", "RSI", "زون طلب", "أسهم دخول"];
   return (
     <AbsoluteFill>
-      <Tank cx={0} level={0.5} tone="teal" big dim={0.32} hideReadout />
+      <Stage from={1} to={1.03} dur={2.4}><Tank cx={0} level={0.5} tone="teal" big dim={0.32} hideReadout /></Stage>
       {labels.slice(0, n).map((l, i) => (
         <Card key={i} top={430 + i * 74} cx={-140 + i * 88} ry={-14 + i * 8} w={400} h={92} accent="rgba(159,180,188,0.4)" dim={0.9}>
           <span style={{ fontSize: 40, color: i % 2 ? C.teal : C.grey }}>{l}</span>
@@ -289,12 +308,14 @@ const B7: React.FC = () => {
 // NUMBER — 2% empties in 5 gulps, 0.5% barely sips
 const B8: React.FC = () => {
   const f = useCurrentFrame();
-  const l2 = stepDown(f, F(0.2), F(1.9), 5, 1, 0.0);
+  const l2 = stepDown(f, F(0.2), F(1.9), 5, 1, 0.16);   // drains to the danger line — one gulp from death (pre-hit hold)
   const l05 = stepDown(f, F(0.2), F(2.4), 5, 1, 0.75);
   return (
     <AbsoluteFill>
-      <Tank cx={-252} level={l2} tone="red" name="مخاطرة 2%" nameColor={C.red} scale={0.8} />
-      <Tank cx={252} level={l05} tone="teal" name="مخاطرة 0.5%" nameColor={C.teal} scale={0.8} />
+      <Stage from={1} to={1.05} dur={2.6}>
+        <Tank cx={-252} level={l2} tone="red" name="مخاطرة 2%" nameColor={C.red} scale={0.8} />
+        <Tank cx={252} level={l05} tone="teal" name="مخاطرة 0.5%" nameColor={C.teal} scale={0.8} />
+      </Stage>
       <Kicker /><Scrim />
       <Hero text="5 خسائر تفرّغ الخزان — ولا 20؟" size={80} top={1160} />
       <Subtitle text="بمخاطرة 2% خمس خسائر توقفك · بـ 0.5% تحتاج 20 خسارة" />
@@ -303,17 +324,20 @@ const B8: React.FC = () => {
   );
 };
 
-// VERDICT — the 2% tank hits empty · FAILED
+// VERDICT — speed-ramp the final gulp: slow drain to empty, then FAILED snaps
 const B9: React.FC = () => {
   const f = useCurrentFrame();
   const sx = f < F(0.5) ? Math.sin(f * 3.2) * 7 : 0;
+  const level = interpolate(f, [F(0.05), F(0.45)], [0.16, 0.0], { ...clamp, easing: Easing.bezier(0.5, 0, 0.75, 0) }); // accelerating drain (ease-in)
+  const failed = f > F(0.42);
+  const wash = interpolate(f, [F(0.34), F(0.5)], [0.08, 0.3], clamp);
   return (
     <AbsoluteFill>
-      <div style={{ transform: `translateX(${sx}px)` }}>
-        <Tank cx={0} level={0.03} tone="red" big />
-      </div>
-      <AbsoluteFill style={{ background: "radial-gradient(60% 48% at 50% 40%, rgba(225,90,90,0.24), rgba(225,90,90,0) 70%)", zIndex: 2 }} />
-      <StatusHud fill={1} failed /><Scrim />
+      <Stage from={1.03} to={1.11} dur={0.7}>
+        <div style={{ transform: `translateX(${sx}px)` }}><Tank cx={0} level={level} tone="red" big /></div>
+      </Stage>
+      <AbsoluteFill style={{ background: `radial-gradient(60% 48% at 50% 40%, rgba(225,90,90,${wash}), rgba(225,90,90,0) 70%)`, zIndex: 2 }} />
+      <StatusHud fill={1} failed={failed} /><Scrim />
       <Hero text="تدفع فلوسها… وتطيح" size={98} top={1180} />
       <Gem />
     </AbsoluteFill>
@@ -358,7 +382,7 @@ const B12: React.FC = () => {
   const level = stepDown(f, F(0.6), F(3.0), 2, 0.42, 0.26);
   return (
     <AbsoluteFill>
-      <Tank cx={0} level={level} tone="red" big />
+      <Stage from={1} to={1.04} dur={2.6}><Tank cx={0} level={level} tone="red" big /></Stage>
       <Kicker /><StatusHud fill={0.55} /><Scrim />
       <Hero text="اكتب «ممول» بالتعليقات" color={C.teal} size={82} top={1150} />
       <Subtitle text="وچم صفقة باليوم؟ وچم خسارة توقفك؟ — يوصلك الملف كامل" />
