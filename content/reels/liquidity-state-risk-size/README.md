@@ -66,3 +66,26 @@ python3 "$SK/spec_to_render.py"  script.spec.json -d build
 
 بعد هذه الثلاثة: `remotion.props.json` → `reels-design-pipeline` للرندر، والمكس عبر
 `sfx_cues.json`، والكابشن عبر `arabic-video-text` ثم الحرق.
+
+## الرندر (Remotion) — `remotion/`
+
+مشروع Remotion كامل يبني الريل بصرياً: شموع بستايل البراند + HUD Drawdown + بلوكات
+المخاطرة (5×2% مقابل 20×0.5%) + مسارات الإكويتي + نص عربي متحرك + حركة كاميرا + كابشن محروق.
+الخط Tajawal محمّل محلياً (`public/fonts/`) لتفادي وقفات الرندر من التحميل الشبكي.
+
+```bash
+cd remotion && npm install
+SHELL_BIN=/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell
+npx remotion render src/index.ts LiquidityStateReel out/reel.mp4 \
+  --browser-executable="$SHELL_BIN" --gl=swiftshader --concurrency=2
+```
+
+المخرج: `remotion/out/reel.mp4` — **1080×1920 · 30fps · 21.0s**.
+
+**حالة النسخة الحالية:** بصرية كاملة **بدون تعليق صوتي** (ما فيه مفتاح TTS بالبيئة). الكابشن
+العربي محروق داخل الفيديو عشان الرسالة توصل صامتة. عند توفّر مفتاح ElevenLabs:
+`vo/make_vo.py` من `vo_manifest.json` → مكس −14 LUFS مع `sfx_cues.json`.
+
+**ملاحظة على الشموع:** ريل تعليمي (lesson) — الشموع مرسومة بستايل البراند داخل Remotion
+(مسموح بها للدروس حسب قواعد `reels-design-pipeline`)، مو سكرين شوت TradingView. النص
+«لغرض تعليمي» ظاهر أعلى الفريم. للنسخة النهائية كصفقة موثقة، تُستبدل بجارت XAUUSD 15m حقيقي.
