@@ -242,8 +242,8 @@ const B1: React.FC = () => {
       <Kicker />
       <Stage from={1} to={1.04} dur={2.6}><Dashboard dd={dd} target={0.28} /></Stage>
       <Scrim />
-      <Hero text="چم محفظة ممولة دفعت فلوسها… وطحت؟" size={76} top={1150} />
-      <Subtitle text="نفس الاستراتيجية — يتغيّر بس حجم المخاطرة" />
+      <Hero text="ليش محفظتك الممولة راحت؟" size={80} top={1150} />
+      <Subtitle text="تدري ليش محفظتك الممولة راحت فلوسها؟" />
       <Gem />
     </AbsoluteFill>
   );
@@ -257,8 +257,8 @@ const B2: React.FC = () => (
       <AccountCard cx={252} risk="ممول" dd={0.74} tone="red" />
     </Stage>
     <Scrim />
-    <Hero text="رابح بحسابك · طايح بالمحفظة" size={64} top={1160} />
-    <Subtitle text="بحسابك الشخصي رابح… وبالمحفظة الممولة توصل حد السحب" />
+    <Hero text="رابح بحسابك · طايح بالممولة" size={64} top={1160} />
+    <Subtitle text="استراتيجيتك رابحة بحسابك… وبالممولة تطيح" />
     <Gem />
   </AbsoluteFill>
 );
@@ -283,7 +283,7 @@ const B4: React.FC = () => {
         <AccountCard cx={252} risk="0.5%" dd={0} tone="teal" dim={app} />
       </Stage>
       <Scrim />
-      <Hero text="تعال أوريك الفرق" size={86} top={1180} />
+      <Hero text="تعال أوريك" size={92} top={1180} />
       <Gem />
     </AbsoluteFill>
   );
@@ -303,7 +303,7 @@ const B56: React.FC = () => {
       ))}
       <Scrim />
       <Hero text="استراتيجية أقوى؟" size={78} top={1190} />
-      <Subtitle text="تكدّس مؤشرات… وحد السحب ما يتغيّر — المخاطرة اهي نفسها" />
+      <Subtitle text="الكل يقول لازم استراتيجية أقوى… ونموذج يضبط بالباك تست" />
       <Gem />
     </AbsoluteFill>
   );
@@ -322,7 +322,7 @@ const B7: React.FC = () => {
       </Card>
       <Scrim />
       <Hero text="مو اختبار ربح — اختبار خسارة" color={C.red} size={82} top={1210} />
-      <Subtitle text="الحساب الممول يختبر قدرتك إنك ما توصل −10% — مو إنك تربح" />
+      <Subtitle text="لكن بالواقع؟ الممولة مو اختبار ربح… اهي اختبار خسارة" />
       <Gem />
     </AbsoluteFill>
   );
@@ -340,8 +340,8 @@ const B8: React.FC = () => {
         <AccountCard cx={252} risk="0.5%" dd={dd05} tone="teal" />
       </Stage>
       <Scrim />
-      <Hero text="5 خسائر توصّلك −10% — ولا 20؟" size={74} top={1170} />
-      <Subtitle text="بمخاطرة 2% خمس خسائر تكسر الحساب · بـ 0.5% تحتاج 20 خسارة" />
+      <Hero text="5 خسائر توصّلك −10% — ولا 20؟" size={72} top={1170} />
+      <Subtitle text="بمخاطرة 2% خمس خسائر توصّلك حد السحب · بـ 0.5% تحتاج 20" />
       <Gem />
     </AbsoluteFill>
   );
@@ -358,7 +358,7 @@ const B9: React.FC = () => {
       </Stage>
       <AbsoluteFill style={{ background: `radial-gradient(60% 46% at 50% 38%, rgba(225,90,90,${wash}), rgba(225,90,90,0) 70%)`, zIndex: 2 }} />
       <Scrim />
-      <Hero text="تدفع فلوسها… وتطيح" size={98} top={1180} />
+      <Hero text="محفظتك الممولة… راحت" size={92} top={1180} />
       <Gem />
     </AbsoluteFill>
   );
@@ -404,7 +404,7 @@ const B12: React.FC = () => {
       <Stage from={1} to={1.04} dur={2.6}><Dashboard dd={dd} target={0.3} /></Stage>
       <Scrim />
       <Hero text="اكتب «ممول» بالتعليقات" color={C.teal} size={82} top={1150} />
-      <Subtitle text="وچم صفقة باليوم؟ وچم خسارة توقفك؟ — يوصلك ملف خطة التحدي" />
+      <Subtitle text="بس چم صفقة باليوم؟ وچم خسارة توقفك؟ — يوصلك الملف كامل" />
       <Gem />
     </AbsoluteFill>
   );

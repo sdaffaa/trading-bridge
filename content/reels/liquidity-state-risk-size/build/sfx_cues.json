@@ -11,7 +11,7 @@
       "kind": "sub-drop"
     },
     {
-      "raw": "tick -18dB مع كل شمعة تطبع",
+      "raw": "tick -18dB مع كل نبضة بالشريط",
       "at": 0.0,
       "gain_db": -18.0,
       "kind": "tick"
@@ -37,7 +37,7 @@
       "kind": "riser"
     },
     {
-      "raw": "tick -20dB مع رسم كل مسار",
+      "raw": "tick -20dB مع رسم كل لوحة",
       "at": 5.0,
       "gain_db": -20.0,
       "kind": "tick"
@@ -73,13 +73,13 @@
       "kind": "impact"
     },
     {
-      "raw": "tick -16dB مع كل بلوك",
+      "raw": "tick -16dB مع كل قفزة",
       "at": 10.6,
       "gain_db": -16.0,
       "kind": "tick"
     },
     {
-      "raw": "impact 60Hz -4dB لمن الصف الأحمر يضرب الخط",
+      "raw": "impact 60Hz -4dB لمن الشريط يضرب −10%",
       "at": 10.6,
       "gain_db": -4.0,
       "freq_hz": 60.0,

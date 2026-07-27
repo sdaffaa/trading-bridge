@@ -1,5 +1,5 @@
 {
-  "project": "ريل — الاختبار الممول: حجم المخاطرة اهو اللي يعدّيك",
+  "project": "ريل — المحفظة الممولة: حجم المخاطرة اهو اللي يعدّيك",
   "language": "ar-KW",
   "dialect_note": "Kuwaiti spoken dialect — do not normalise to MSA. Add tashkeel only where a word is mispronounced.",
   "engine": "elevenlabs",
@@ -21,7 +21,7 @@
       "t_in": 0.0,
       "t_out": 2.6,
       "budget_s": 2.6,
-      "text": "چم اختبار ممول دفعت فلوسه … وطحت؟",
+      "text": "تدري ليش محفظتك الممولة راحت فلوسها؟",
       "out": "vo/1_hook.wav"
     },
     {
@@ -31,7 +31,7 @@
       "t_in": 2.6,
       "t_out": 4.2,
       "budget_s": 1.6,
-      "text": "بحسابك الشخصي رابح… وبالاختبار تطيح",
+      "text": "استراتيجيتك رابحة بحسابك… وبالممولة تطيح",
       "out": "vo/2_paradox.wav"
     },
     {
@@ -41,7 +41,7 @@
       "t_in": 4.2,
       "t_out": 5.0,
       "budget_s": 0.8,
-      "text": "شلون؟",
+      "text": "ليش؟",
       "out": "vo/3_pivot.wav"
     },
     {
@@ -51,7 +51,7 @@
       "t_in": 5.0,
       "t_out": 6.2,
       "budget_s": 1.2,
-      "text": "تعال اقولك",
+      "text": "تعال أوريك",
       "out": "vo/4_invite.wav"
     },
     {
@@ -61,7 +61,7 @@
       "t_in": 6.2,
       "t_out": 8.6,
       "budget_s": 2.4,
-      "text": "الكل يقول لازم استراتيجية أقوى… ويدور نموذج دخول يضبط بالباك تست",
+      "text": "الكل يقول لازم استراتيجية أقوى… ونموذج دخول يضبط بالباك تست",
       "out": "vo/5_6_belief_why.wav"
     },
     {
@@ -71,7 +71,7 @@
       "t_in": 8.6,
       "t_out": 10.6,
       "budget_s": 2.0,
-      "text": "لكن بالواقع؟ الاختبار مو اختبار ربح… اهو اختبار خسارة",
+      "text": "لكن بالواقع؟ الممولة مو اختبار ربح… اهي اختبار خسارة",
       "out": "vo/7_turn.wav"
     },
     {
@@ -81,7 +81,7 @@
       "t_in": 10.6,
       "t_out": 13.2,
       "budget_s": 2.6,
-      "text": "بمخاطرة 2%… خمس خسائر متتالية تبخّر حسابك. بمخاطرة 0.5% تحتاج 20 خسارة",
+      "text": "بمخاطرة 2%… خمس خسائر توصّلك حد السحب. بـ 0.5% تحتاج 20 خسارة",
       "out": "vo/8_turn.wav"
     },
     {
@@ -91,7 +91,7 @@
       "t_in": 13.2,
       "t_out": 13.9,
       "budget_s": 0.7,
-      "text": "عشان جذي دفعت فلوسه بالاختبار … وطحت",
+      "text": "عشان جذي محفظتك الممولة راحت فلوسها",
       "out": "vo/9_verdict.wav"
     },
     {
@@ -105,17 +105,27 @@
       "out": "vo/10_proof.wav"
     },
     {
+      "id": "vo_11_care",
+      "beat": "11",
+      "beat_name": "CARE",
+      "t_in": 16.6,
+      "t_out": 18.0,
+      "budget_s": 1.4,
+      "text": "مخاطرتك اهي اللي تعدّيك… مو نموذجك",
+      "out": "vo/11_care.wav"
+    },
+    {
       "id": "vo_12_loop",
       "beat": "12",
       "beat_name": "LOOP",
       "t_in": 18.0,
       "t_out": 21.0,
       "budget_s": 3.0,
-      "text": "بس چم صفقة باليوم… وچم خسارة توقفك؟ اكتب «ممول» بالتعليقات ويوصلك الملف كامل",
+      "text": "بس چم صفقة باليوم؟ وچم خسارة توقفك؟ اكتب «ممول» بالتعليقات ويوصلك الملف كامل",
       "out": "vo/12_loop.wav"
     }
   ],
-  "total_clips": 10,
+  "total_clips": 11,
   "notes": [
     "Each clip must fit its budget_s; if the render is longer, shorten the line — never speed the voice past 1.15x.",
     "Beats with no VO are visual-only by design; do not invent lines for them.",
