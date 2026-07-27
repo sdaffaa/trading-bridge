@@ -1,0 +1,196 @@
+import React, { useEffect, useState } from "react";
+import {
+  AbsoluteFill, Sequence, interpolate, useCurrentFrame, Easing,
+  staticFile, delayRender, continueRender,
+} from "remotion";
+
+export const FPS = 30;
+export const WIDTH = 1080;
+export const HEIGHT = 1920;
+export const RUNTIME_S = 21.0;
+
+const C = {
+  bgTop: "#123039", bg: "#0E1E24", bgFloor: "#0A0C10",
+  card: "#1B3A45", white: "#FFFFFF", grey: "#9FB4BC",
+  teal: "#2ECC9A", red: "#E15A5A",
+};
+const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
+const F = (s: number) => Math.round(s * FPS);
+const TAB: React.CSSProperties = { fontVariantNumeric: "tabular-nums", fontFeatureSettings: '"tnum" 1' };
+const shade = (hex: string, pct: number) => {
+  const n = parseInt(hex.slice(1), 16); const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255; const f = pct / 100;
+  const a = (c: number) => Math.max(0, Math.min(255, Math.round(c + (pct > 0 ? 255 - c : c) * f)));
+  return `rgb(${a(r)},${a(g)},${a(b)})`;
+};
+const NOISE = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
+
+const FontLoader: React.FC = () => {
+  const [handle] = useState(() => delayRender("fonts"));
+  useEffect(() => { (async () => {
+    try { await Promise.all([
+      (document as any).fonts.load("500 100px Tajawal", "اختبار0123"),
+      (document as any).fonts.load("700 100px Tajawal", "اختبار0123"),
+      (document as any).fonts.load("800 100px Tajawal", "اختبار0123"),
+    ]); await (document as any).fonts.ready; } catch (e) {}
+    continueRender(handle);
+  })(); }, [handle]);
+  return <link rel="stylesheet" href={staticFile("fonts.css")} />;
+};
+
+const Constellation: React.FC = () => {
+  const pts = [[120,300],[340,210],[520,360],[760,250],[960,420],[180,560],[430,640],[900,700],[240,980],[820,1080],[560,1180],[120,1320],[980,1360],[420,1520],[720,1640]];
+  const links = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,2],[4,7],[7,9],[8,10],[10,6],[11,8],[9,12],[10,13],[13,14],[9,14]];
+  return (
+    <svg width={WIDTH} height={HEIGHT} style={{ position: "absolute", inset: 0, opacity: 0.06 }}>
+      {links.map(([a, b], i) => <line key={i} x1={pts[a][0]} y1={pts[a][1]} x2={pts[b][0]} y2={pts[b][1]} stroke={C.teal} strokeWidth={1} />)}
+      {pts.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r={2.2} fill={C.teal} />)}
+    </svg>
+  );
+};
+const Bg: React.FC = () => (
+  <>
+    <AbsoluteFill style={{ background: `radial-gradient(128% 92% at 50% 30%, ${C.bgTop} 0%, ${C.bg} 48%, ${C.bgFloor} 100%)` }} />
+    <Constellation />
+    <AbsoluteFill style={{ background: "radial-gradient(46% 30% at 50% 22%, rgba(120,200,190,0.10) 0%, rgba(0,0,0,0) 70%)" }} />
+    <AbsoluteFill style={{ boxShadow: "inset 0 0 460px 120px rgba(0,0,0,0.55)", pointerEvents: "none" }} />
+    <AbsoluteFill style={{ backgroundImage: NOISE, backgroundSize: "160px 160px", opacity: 0.05, mixBlendMode: "overlay", pointerEvents: "none" }} />
+  </>
+);
+const Gem: React.FC = () => (
+  <div style={{ position: "absolute", top: 1812, left: 0, width: WIDTH, display: "flex", justifyContent: "center", alignItems: "center", gap: 14, zIndex: 8, opacity: 0.9 }}>
+    <svg width={46} height={46} viewBox="0 0 100 100"><g fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth={3} strokeLinejoin="round">
+      <polygon points="50,6 82,32 68,92 32,92 18,32" fill="rgba(201,209,214,0.12)" /><path d="M18,32 L50,44 L82,32 M50,44 L32,92 M50,44 L68,92 M50,6 L50,44" /></g></svg>
+    <span style={{ fontFamily: "Tajawal", fontWeight: 700, fontSize: 30, color: "rgba(255,255,255,0.82)", direction: "ltr", letterSpacing: 1 }}>liquidity.state</span>
+  </div>
+);
+const Kicker: React.FC = () => (
+  <div style={{ position: "absolute", top: 230, left: 0, width: WIDTH, textAlign: "center", zIndex: 7 }}>
+    <span style={{ fontFamily: "Tajawal", fontWeight: 700, fontSize: 22, color: "rgba(159,180,188,0.7)", letterSpacing: 3, direction: "rtl" }}>لغرض تعليمي</span>
+  </div>
+);
+const Scrim: React.FC = () => (
+  <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 720, zIndex: 3, background: "linear-gradient(180deg, rgba(10,12,16,0) 0%, rgba(10,12,16,0.72) 58%, rgba(10,12,16,0.9) 100%)", pointerEvents: "none" }} />
+);
+const Hero: React.FC<{ text: string; color?: string; size: number; top?: number }> = ({ text, color = C.white, size, top = 1180 }) => {
+  const f = useCurrentFrame();
+  const op = interpolate(f, [2, 12], [0, 1], clamp);
+  const ty = interpolate(f, [2, 14], [22, 0], clamp);
+  return (
+    <div style={{ position: "absolute", left: 80, right: 80, top, textAlign: "center", direction: "rtl", zIndex: 6 }}>
+      <div style={{ display: "inline-block", fontFamily: "Tajawal", fontWeight: 800, fontSize: size, lineHeight: 1.16, color, textShadow: "0 8px 40px rgba(0,0,0,0.9)", opacity: op, transform: `translateY(${ty}px)` }}>{text}</div>
+    </div>
+  );
+};
+const Subtitle: React.FC<{ text: string }> = ({ text }) => {
+  const f = useCurrentFrame();
+  return (
+    <div style={{ position: "absolute", left: 110, right: 110, top: 1560, textAlign: "center", direction: "rtl", zIndex: 6, opacity: interpolate(f, [0, 6], [0, 1], clamp) }}>
+      <span style={{ fontFamily: "Tajawal", fontWeight: 500, fontSize: 34, color: C.grey, lineHeight: 1.45 }}>{text}</span>
+    </div>
+  );
+};
+
+// ------------------------------------------------------------------ the tangible object: account tank
+const Bubble: React.FC<{ tone: string; delay: number; x: number }> = ({ tone, delay, x }) => {
+  const f = useCurrentFrame();
+  const t = ((f + delay) % 40) / 40;
+  return <div style={{ position: "absolute", left: x, bottom: `${6 + t * 70}%`, width: 8 + (x % 5), height: 8 + (x % 5), borderRadius: "50%", background: shade(tone, 45), opacity: (1 - t) * 0.5 }} />;
+};
+
+const Tank: React.FC<{ cx: number; level: number; tone?: "teal" | "red"; name?: string; nameColor?: string; scale?: number; dim?: number; big?: boolean }> = ({
+  cx, level, tone = "teal", name, nameColor = C.grey, scale = 1, dim = 1, big,
+}) => {
+  const TW = big ? 340 : 300, TH = big ? 660 : 640;
+  const col = tone === "red" ? C.red : C.teal;
+  const DANGER = 0.15; // bottom 15% = the −10% failure zone
+  return (
+    <div style={{ position: "absolute", left: `calc(50% + ${cx}px)`, top: 420, transform: `translateX(-50%) scale(${scale})`, transformOrigin: "50% 50%", width: TW, height: TH, opacity: dim, zIndex: 4 }}>
+      {name && (
+        <div style={{ position: "absolute", top: -64, left: -40, width: TW + 80, textAlign: "center", fontFamily: "Tajawal", fontWeight: 800, fontSize: 44, color: nameColor, direction: "rtl", ...TAB }}>{name}</div>
+      )}
+      {/* glass body */}
+      <div style={{ position: "absolute", inset: 0, borderRadius: 64, overflow: "hidden",
+        background: "linear-gradient(105deg, rgba(255,255,255,0.07), rgba(27,58,69,0.16))",
+        border: "2px solid rgba(159,180,188,0.32)",
+        boxShadow: "inset 0 2px 34px rgba(0,0,0,0.5), 0 30px 80px rgba(0,0,0,0.5)" }}>
+        {/* danger zone */}
+        <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: `${DANGER * 100}%`, background: "linear-gradient(0deg, rgba(225,90,90,0.28), rgba(225,90,90,0))" }} />
+        {/* liquid */}
+        <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: `${Math.max(0, level) * 100}%`,
+          background: `linear-gradient(180deg, ${shade(col, 22)} 0%, ${col} 34%, ${shade(col, -16)} 100%)`,
+          boxShadow: `0 0 46px ${col}`, transition: "none" }}>
+          <div style={{ position: "absolute", top: -7, left: 0, right: 0, height: 14, background: shade(col, 40), borderRadius: "50%", opacity: 0.9, boxShadow: `0 0 20px ${col}` }} />
+          <Bubble tone={col} delay={0} x={70} /><Bubble tone={col} delay={13} x={150} /><Bubble tone={col} delay={26} x={210} />
+        </div>
+        {/* glass highlight streak */}
+        <div style={{ position: "absolute", top: 30, left: 46, width: 34, height: TH - 150, borderRadius: 18, background: "linear-gradient(180deg, rgba(255,255,255,0.20), rgba(255,255,255,0))" }} />
+        {/* tick marks */}
+        {[0.25, 0.5, 0.75].map((m) => <div key={m} style={{ position: "absolute", right: 18, bottom: `${m * 100}%`, width: 22, height: 2, background: "rgba(159,180,188,0.35)" }} />)}
+      </div>
+      {/* −10% danger line + label */}
+      <div style={{ position: "absolute", left: -10, right: -10, bottom: `${DANGER * 100}%`, height: 2, background: C.red, boxShadow: `0 0 12px ${C.red}` }} />
+      <div style={{ position: "absolute", left: -110, bottom: `${DANGER * 100}%`, transform: "translateY(50%)", fontFamily: "Tajawal", fontWeight: 800, fontSize: 26, color: C.red, ...TAB }}>−10%</div>
+      {/* level readout */}
+      <div style={{ position: "absolute", left: 0, right: 0, top: "40%", textAlign: "center", fontFamily: "Tajawal", fontWeight: 800, fontSize: big ? 82 : 64, color: C.white, textShadow: "0 4px 20px rgba(0,0,0,0.7)", ...TAB }}>
+        {Math.round(Math.max(0, level) * 100)}%
+      </div>
+    </div>
+  );
+};
+
+const StatusHud: React.FC<{ fill: number; failed?: boolean }> = ({ fill, failed }) => (
+  <div style={{ position: "absolute", top: 288, left: 90, right: 90, height: 74, zIndex: 7, borderRadius: 16,
+    background: "linear-gradient(160deg, rgba(27,58,69,0.55), rgba(14,30,36,0.35))", border: "1px solid rgba(159,180,188,0.22)",
+    display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 26px", direction: "rtl" }}>
+    <span style={{ fontFamily: "Tajawal", fontWeight: 800, fontSize: 28, color: failed ? C.red : C.white }}>{failed ? "المحفظة سقطت" : "محفظة ممولة"}</span>
+    <div style={{ display: "flex", alignItems: "center", gap: 14, direction: "ltr" }}>
+      <div style={{ width: 250, height: 20, borderRadius: 10, background: "rgba(255,255,255,0.06)", overflow: "hidden", border: "1px solid rgba(159,180,188,0.2)" }}>
+        <div style={{ height: "100%", width: `${Math.min(100, fill * 100)}%`, background: failed ? C.red : `linear-gradient(90deg, ${C.teal}, ${C.red})` }} />
+      </div>
+      <span style={{ fontFamily: "Tajawal", fontWeight: 800, fontSize: 26, color: C.red, ...TAB }}>−10%</span>
+    </div>
+  </div>
+);
+
+// ================================================================== reel (preview: 2 beats for concept approval)
+export const ReelTank: React.FC = () => (
+  <AbsoluteFill style={{ backgroundColor: C.bg }}>
+    <FontLoader />
+    <Bg />
+    <Sequence from={F(0)} durationInFrames={F(2.6)}><B1 /></Sequence>
+    <Sequence from={F(2.6)} durationInFrames={F(2.6)}><B8 /></Sequence>
+  </AbsoluteFill>
+);
+
+// HOOK — the funded account draining fast into the red
+const B1: React.FC = () => {
+  const f = useCurrentFrame();
+  const level = interpolate(f, [0, F(2.6)], [0.42, 0.2], clamp);
+  const hud = interpolate(f, [0, F(2.6)], [0.55, 0.78], clamp);
+  return (
+    <AbsoluteFill>
+      <Tank cx={0} level={level} tone="red" name="حسابك الممول" nameColor={C.white} big />
+      <Kicker /><StatusHud fill={hud} /><Scrim />
+      <Hero text="چم محفظة ممولة دفعت فلوسها… وطحت؟" size={76} top={1140} />
+      <Subtitle text="خزان حسابك ينزل… والمخاطرة اهي اللي تحدد بأي سرعة" />
+      <Gem />
+    </AbsoluteFill>
+  );
+};
+
+// NUMBER — two tanks: 2% drains fast to empty vs 0.5% barely drops
+const B8: React.FC = () => {
+  const f = useCurrentFrame();
+  const l2 = interpolate(f, [F(0.2), F(1.6)], [1, 0.02], clamp);   // 2% risk → empties
+  const l05 = interpolate(f, [F(0.2), F(1.6)], [1, 0.7], clamp);   // 0.5% risk → survives
+  return (
+    <AbsoluteFill>
+      <Tank cx={-250} level={l2} tone="red" name="مخاطرة 2%" nameColor={C.red} scale={0.86} />
+      <Tank cx={250} level={l05} tone="teal" name="مخاطرة 0.5%" nameColor={C.teal} scale={0.86} />
+      <Kicker /><Scrim />
+      <Hero text="5 خسائر تفرّغ الخزان — ولا 20؟" size={80} top={1160} />
+      <Subtitle text="بمخاطرة 2% خمس خسائر توقفك · بـ 0.5% تحتاج 20 خسارة" />
+      <Gem />
+    </AbsoluteFill>
+  );
+};
