@@ -187,6 +187,25 @@ const Stage: React.FC<{ from: number; to: number; dur: number; children: React.R
   return <AbsoluteFill style={{ transform: `scale(${s})`, transformOrigin: "50% 44%" }}>{children}</AbsoluteFill>;
 };
 
+// finishing / grade pass (montage layer) — split-tone, light leak, impact flash, vignette pulse
+const Finish: React.FC = () => {
+  const f = useCurrentFrame();
+  const leak = interpolate(f, [F(12.6), F(13.3), F(14.2)], [0, 0.14, 0], clamp);       // teal light-leak sweep into the peak
+  const flash = interpolate(f, [F(13.16), F(13.26), F(13.6)], [0, 0.42, 0], clamp);    // impact flash on the verdict cut
+  const vig = interpolate(f, [F(12.9), F(13.35)], [0, 1], clamp);                       // vignette pulse at the peak
+  const loopFlash = interpolate(f, [F(17.9), F(18.02), F(18.3)], [0, 0.3, 0], clamp);   // seam flash on the loop cut
+  return (
+    <>
+      {/* split-tone cinematic grade: teal shadows / warm highlights */}
+      <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(18,58,68,0.12) 0%, rgba(0,0,0,0) 45%, rgba(86,64,42,0.07) 100%)", mixBlendMode: "soft-light", pointerEvents: "none", zIndex: 20 }} />
+      {/* dynamic vignette (pulses at the peak) */}
+      <AbsoluteFill style={{ boxShadow: `inset 0 0 ${320 + vig * 200}px ${90 + vig * 90}px rgba(0,0,0,${0.34 + vig * 0.16})`, pointerEvents: "none", zIndex: 20 }} />
+      {leak > 0.001 && <AbsoluteFill style={{ background: `radial-gradient(42% 30% at 80% 12%, rgba(46,204,154,${leak}), rgba(0,0,0,0) 60%)`, mixBlendMode: "screen", pointerEvents: "none", zIndex: 21 }} />}
+      {(flash + loopFlash) > 0.001 && <AbsoluteFill style={{ background: `rgba(255,238,235,${flash + loopFlash})`, mixBlendMode: "screen", pointerEvents: "none", zIndex: 22 }} />}
+    </>
+  );
+};
+
 // ================================================================== reel
 export const ReelTank: React.FC = () => (
   <AbsoluteFill style={{ backgroundColor: C.bg }}>
@@ -203,6 +222,7 @@ export const ReelTank: React.FC = () => (
     <Sequence from={F(13.9)} durationInFrames={F(2.7)}><B10 /></Sequence>
     <Sequence from={F(16.6)} durationInFrames={F(1.4)}><B11 /></Sequence>
     <Sequence from={F(18.0)} durationInFrames={F(3.0)}><B12 /></Sequence>
+    <Finish />
   </AbsoluteFill>
 );
 
