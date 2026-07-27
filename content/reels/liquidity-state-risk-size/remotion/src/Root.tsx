@@ -3,10 +3,19 @@ import { Composition } from "remotion";
 import { Reel, FPS, WIDTH, HEIGHT, RUNTIME_S } from "./Reel";
 import { Reel3D } from "./Reel3D";
 import { ReelTank } from "./ReelTank";
+import { ReelDash } from "./ReelDash";
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
+      <Composition
+        id="LiquidityStateReelDash"
+        component={ReelDash}
+        durationInFrames={Math.round(RUNTIME_S * FPS)}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+      />
       <Composition
         id="LiquidityStateReelTank"
         component={ReelTank}
