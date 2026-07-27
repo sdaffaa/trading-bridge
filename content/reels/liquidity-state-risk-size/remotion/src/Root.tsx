@@ -10,7 +10,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="LiquidityStateReelTank"
         component={ReelTank}
-        durationInFrames={Math.round(5.2 * FPS)}
+        durationInFrames={Math.round(RUNTIME_S * FPS)}
         fps={FPS}
         width={WIDTH}
         height={HEIGHT}

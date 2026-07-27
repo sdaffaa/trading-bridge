@@ -97,8 +97,8 @@ const Bubble: React.FC<{ tone: string; delay: number; x: number }> = ({ tone, de
   return <div style={{ position: "absolute", left: x, bottom: `${6 + t * 70}%`, width: 8 + (x % 5), height: 8 + (x % 5), borderRadius: "50%", background: shade(tone, 45), opacity: (1 - t) * 0.5 }} />;
 };
 
-const Tank: React.FC<{ cx: number; level: number; tone?: "teal" | "red"; name?: string; nameColor?: string; scale?: number; dim?: number; big?: boolean }> = ({
-  cx, level, tone = "teal", name, nameColor = C.grey, scale = 1, dim = 1, big,
+const Tank: React.FC<{ cx: number; level: number; tone?: "teal" | "red"; name?: string; nameColor?: string; scale?: number; dim?: number; big?: boolean; hideReadout?: boolean }> = ({
+  cx, level, tone = "teal", name, nameColor = C.grey, scale = 1, dim = 1, big, hideReadout,
 }) => {
   const TW = big ? 340 : 300, TH = big ? 660 : 640;
   const col = tone === "red" ? C.red : C.teal;
@@ -131,9 +131,11 @@ const Tank: React.FC<{ cx: number; level: number; tone?: "teal" | "red"; name?: 
       <div style={{ position: "absolute", left: -10, right: -10, bottom: `${DANGER * 100}%`, height: 2, background: C.red, boxShadow: `0 0 12px ${C.red}` }} />
       <div style={{ position: "absolute", left: -110, bottom: `${DANGER * 100}%`, transform: "translateY(50%)", fontFamily: "Tajawal", fontWeight: 800, fontSize: 26, color: C.red, ...TAB }}>−10%</div>
       {/* level readout */}
-      <div style={{ position: "absolute", left: 0, right: 0, top: "40%", textAlign: "center", fontFamily: "Tajawal", fontWeight: 800, fontSize: big ? 82 : 64, color: C.white, textShadow: "0 4px 20px rgba(0,0,0,0.7)", ...TAB }}>
-        {Math.round(Math.max(0, level) * 100)}%
-      </div>
+      {!hideReadout && (
+        <div style={{ position: "absolute", left: 0, right: 0, top: "40%", textAlign: "center", fontFamily: "Tajawal", fontWeight: 800, fontSize: big ? 82 : 64, color: C.white, textShadow: "0 4px 20px rgba(0,0,0,0.7)", ...TAB }}>
+          {Math.round(Math.max(0, level) * 100)}%
+        </div>
+      )}
     </div>
   );
 };
@@ -152,44 +154,214 @@ const StatusHud: React.FC<{ fill: number; failed?: boolean }> = ({ fill, failed 
   </div>
 );
 
-// ================================================================== reel (preview: 2 beats for concept approval)
+// glass info card
+const Card: React.FC<{ top: number; cx?: number; ry?: number; w: number; h: number; accent: string; lit?: boolean; dim?: number; children: React.ReactNode }> = ({ top, cx = 0, ry = 0, w, h, accent, lit, dim = 1, children }) => (
+  <div style={{ position: "absolute", left: "50%", top, width: w, height: h, opacity: dim, zIndex: 5,
+    transform: `translateX(calc(-50% + ${cx}px)) perspective(1500px) rotateY(${ry}deg)`, borderRadius: 22,
+    background: lit ? "linear-gradient(160deg, rgba(225,90,90,0.18), rgba(27,58,69,0.5))" : "linear-gradient(160deg, rgba(27,58,69,0.62), rgba(14,30,36,0.5))",
+    border: `1.5px solid ${lit ? accent : "rgba(159,180,188,0.28)"}`,
+    boxShadow: lit ? "0 18px 60px rgba(225,90,90,0.35), inset 0 1px 0 rgba(255,255,255,0.08)" : "0 26px 70px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)",
+    backdropFilter: "blur(2px)", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center",
+    fontFamily: "Tajawal", fontWeight: 800, direction: "rtl", padding: 24 }}>{children}</div>
+);
+
+// discrete "gulp" drain — each loss drops the level one step
+const stepDown = (f: number, f0: number, f1: number, steps: number, from: number, to: number) => {
+  const p = interpolate(f, [f0, f1], [0, 1], clamp);
+  const s = Math.min(steps, Math.floor(p * steps + 1e-6));
+  return from + (to - from) * (s / steps);
+};
+
+// ================================================================== reel
 export const ReelTank: React.FC = () => (
   <AbsoluteFill style={{ backgroundColor: C.bg }}>
     <FontLoader />
     <Bg />
     <Sequence from={F(0)} durationInFrames={F(2.6)}><B1 /></Sequence>
-    <Sequence from={F(2.6)} durationInFrames={F(2.6)}><B8 /></Sequence>
+    <Sequence from={F(2.6)} durationInFrames={F(1.6)}><B2 /></Sequence>
+    <Sequence from={F(4.2)} durationInFrames={F(0.8)}><B3 /></Sequence>
+    <Sequence from={F(5.0)} durationInFrames={F(1.2)}><B4 /></Sequence>
+    <Sequence from={F(6.2)} durationInFrames={F(2.4)}><B56 /></Sequence>
+    <Sequence from={F(8.6)} durationInFrames={F(2.0)}><B7 /></Sequence>
+    <Sequence from={F(10.6)} durationInFrames={F(2.6)}><B8 /></Sequence>
+    <Sequence from={F(13.2)} durationInFrames={F(0.7)}><B9 /></Sequence>
+    <Sequence from={F(13.9)} durationInFrames={F(2.7)}><B10 /></Sequence>
+    <Sequence from={F(16.6)} durationInFrames={F(1.4)}><B11 /></Sequence>
+    <Sequence from={F(18.0)} durationInFrames={F(3.0)}><B12 /></Sequence>
   </AbsoluteFill>
 );
 
-// HOOK — the funded account draining fast into the red
+// HOOK — the funded account draining into the red
 const B1: React.FC = () => {
   const f = useCurrentFrame();
-  const level = interpolate(f, [0, F(2.6)], [0.42, 0.2], clamp);
-  const hud = interpolate(f, [0, F(2.6)], [0.55, 0.78], clamp);
+  const level = stepDown(f, 0, F(2.6), 2, 0.42, 0.24);
+  const hud = interpolate(f, [0, F(2.6)], [0.55, 0.74], clamp);
   return (
     <AbsoluteFill>
-      <Tank cx={0} level={level} tone="red" name="حسابك الممول" nameColor={C.white} big />
+      <Tank cx={0} level={level} tone="red" big />
       <Kicker /><StatusHud fill={hud} /><Scrim />
       <Hero text="چم محفظة ممولة دفعت فلوسها… وطحت؟" size={76} top={1140} />
-      <Subtitle text="خزان حسابك ينزل… والمخاطرة اهي اللي تحدد بأي سرعة" />
+      <Subtitle text="خزان حسابك ينزل — والمخاطرة اهي اللي تحدد بأي سرعة" />
       <Gem />
     </AbsoluteFill>
   );
 };
 
-// NUMBER — two tanks: 2% drains fast to empty vs 0.5% barely drops
-const B8: React.FC = () => {
+// PARADOX — personal account full, funded account draining
+const B2: React.FC = () => (
+  <AbsoluteFill>
+    <Tank cx={-252} level={0.9} tone="teal" name="حسابك الشخصي" nameColor={C.teal} scale={0.8} />
+    <Tank cx={252} level={0.26} tone="red" name="المحفظة الممولة" nameColor={C.red} scale={0.8} />
+    <Kicker /><Scrim />
+    <Hero text="رابح بحسابك · طايح بالمحفظة" size={64} top={1150} />
+    <Subtitle text="نفس الاستراتيجية — يتغيّر بس حجم المخاطرة" />
+    <Gem />
+  </AbsoluteFill>
+);
+
+// PIVOT
+const B3: React.FC = () => (
+  <AbsoluteFill>
+    <Tank cx={0} level={0.28} tone="red" big dim={0.4} />
+    <Scrim />
+    <Hero text="ليش؟" size={150} top={830} />
+    <Gem />
+  </AbsoluteFill>
+);
+
+// INVITE — the two tanks reveal, both full, ready to be tested
+const B4: React.FC = () => {
   const f = useCurrentFrame();
-  const l2 = interpolate(f, [F(0.2), F(1.6)], [1, 0.02], clamp);   // 2% risk → empties
-  const l05 = interpolate(f, [F(0.2), F(1.6)], [1, 0.7], clamp);   // 0.5% risk → survives
+  const app = interpolate(f, [0, F(0.6)], [0, 1], clamp);
   return (
     <AbsoluteFill>
-      <Tank cx={-250} level={l2} tone="red" name="مخاطرة 2%" nameColor={C.red} scale={0.86} />
-      <Tank cx={250} level={l05} tone="teal" name="مخاطرة 0.5%" nameColor={C.teal} scale={0.86} />
+      <Tank cx={-252} level={1} tone="red" name="مخاطرة 2%" nameColor={C.red} scale={0.8} dim={app} />
+      <Tank cx={252} level={1} tone="teal" name="مخاطرة 0.5%" nameColor={C.teal} scale={0.8} dim={app} />
+      <Kicker /><Scrim />
+      <Hero text="تعال أوريك الفرق" size={86} top={1180} />
+      <Gem />
+    </AbsoluteFill>
+  );
+};
+
+// BELIEF+WHY — indicators pile up, the tank (risk) never moves
+const B56: React.FC = () => {
+  const f = useCurrentFrame();
+  const n = Math.min(4, Math.floor(interpolate(f, [0, F(2.0)], [0, 4], clamp)) + 1);
+  const labels = ["EMA", "RSI", "زون طلب", "أسهم دخول"];
+  return (
+    <AbsoluteFill>
+      <Tank cx={0} level={0.5} tone="teal" big dim={0.32} hideReadout />
+      {labels.slice(0, n).map((l, i) => (
+        <Card key={i} top={430 + i * 74} cx={-140 + i * 88} ry={-14 + i * 8} w={400} h={92} accent="rgba(159,180,188,0.4)" dim={0.9}>
+          <span style={{ fontSize: 40, color: i % 2 ? C.teal : C.grey }}>{l}</span>
+        </Card>
+      ))}
+      <Scrim />
+      <Hero text="استراتيجية أقوى؟" size={78} top={1190} />
+      <Subtitle text="تكدّس مؤشرات… والخزان ما يتحرك — المخاطرة اهي نفسها" />
+      <Gem />
+    </AbsoluteFill>
+  );
+};
+
+// TURN — profit is optional, the loss limit is final
+const B7: React.FC = () => {
+  const f = useCurrentFrame();
+  const p = interpolate(f, [0, F(1.2)], [0, 1], clamp);
+  return (
+    <AbsoluteFill>
+      <Tank cx={0} level={0.5} tone="red" big dim={0.22} hideReadout />
+      <Card top={460} ry={11} w={780} h={148} accent="rgba(46,204,154,0.5)" dim={interpolate(p, [0, 1], [1, 0.4], clamp)}>
+        <span style={{ fontSize: 46, color: C.grey }}>الهدف 5% — بدون سقف زمني</span>
+      </Card>
+      <Card top={676} ry={-9} w={840} h={176} accent={C.red} lit>
+        <span style={{ fontSize: 52, color: C.white }}>حد الخسارة 10% — <span style={{ color: C.red }}>نهائي</span></span>
+      </Card>
+      <Scrim />
+      <Hero text="مو اختبار ربح — اختبار خسارة" color={C.red} size={82} top={1210} />
+      <Subtitle text="المحفظة تختبر قدرتك إنك ما تخسر — مو إنك تربح" />
+      <Gem />
+    </AbsoluteFill>
+  );
+};
+
+// NUMBER — 2% empties in 5 gulps, 0.5% barely sips
+const B8: React.FC = () => {
+  const f = useCurrentFrame();
+  const l2 = stepDown(f, F(0.2), F(1.9), 5, 1, 0.0);
+  const l05 = stepDown(f, F(0.2), F(2.4), 5, 1, 0.75);
+  return (
+    <AbsoluteFill>
+      <Tank cx={-252} level={l2} tone="red" name="مخاطرة 2%" nameColor={C.red} scale={0.8} />
+      <Tank cx={252} level={l05} tone="teal" name="مخاطرة 0.5%" nameColor={C.teal} scale={0.8} />
       <Kicker /><Scrim />
       <Hero text="5 خسائر تفرّغ الخزان — ولا 20؟" size={80} top={1160} />
       <Subtitle text="بمخاطرة 2% خمس خسائر توقفك · بـ 0.5% تحتاج 20 خسارة" />
+      <Gem />
+    </AbsoluteFill>
+  );
+};
+
+// VERDICT — the 2% tank hits empty · FAILED
+const B9: React.FC = () => {
+  const f = useCurrentFrame();
+  const sx = f < F(0.5) ? Math.sin(f * 3.2) * 7 : 0;
+  return (
+    <AbsoluteFill>
+      <div style={{ transform: `translateX(${sx}px)` }}>
+        <Tank cx={0} level={0.03} tone="red" big />
+      </div>
+      <AbsoluteFill style={{ background: "radial-gradient(60% 48% at 50% 40%, rgba(225,90,90,0.24), rgba(225,90,90,0) 70%)", zIndex: 2 }} />
+      <StatusHud fill={1} failed /><Scrim />
+      <Hero text="تدفع فلوسها… وتطيح" size={98} top={1180} />
+      <Gem />
+    </AbsoluteFill>
+  );
+};
+
+// PROOF — the equations
+const B10: React.FC = () => {
+  const f = useCurrentFrame();
+  const r1 = interpolate(f, [0, F(0.9)], [0, 1], clamp);
+  const r2 = interpolate(f, [F(1.0), F(1.9)], [0, 1], clamp);
+  const eq = (a: string, b: string, ac: string) => (
+    <span style={{ fontSize: 76, direction: "ltr", display: "inline-block", ...TAB }}>
+      <span style={{ color: ac }}>{a}</span> <span style={{ color: C.grey, opacity: 0.75 }}>{b}</span> <span style={{ color: C.white }}>= 10%</span>
+    </span>
+  );
+  return (
+    <AbsoluteFill>
+      <div style={{ position: "absolute", top: 430, left: 0, width: WIDTH, textAlign: "center", zIndex: 5, fontFamily: "Tajawal", fontWeight: 800, fontSize: 40, color: C.grey, direction: "rtl" }}>نفس الوصول للحد — بمسارين</div>
+      <Card top={560} ry={9} w={800} h={158} accent={C.red} dim={r1}>{eq("2%", "× 5", C.red)}</Card>
+      <Card top={772} ry={-9} w={800} h={158} accent={C.teal} dim={r2}>{eq("0.5%", "× 20", C.teal)}</Card>
+      <Scrim />
+      <Subtitle text="شوف الأرقام — نفس الـ 10%، بس عدد الخسائر يفرق" />
+      <Gem />
+    </AbsoluteFill>
+  );
+};
+
+// CARE — the 0.5% tank stands safe
+const B11: React.FC = () => (
+  <AbsoluteFill>
+    <Tank cx={0} level={0.75} tone="teal" big />
+    <Scrim />
+    <Hero text="مخاطرتك اهي اللي تعدّيك — مو نموذجك" color={C.teal} size={78} top={1170} />
+    <Gem />
+  </AbsoluteFill>
+);
+
+// LOOP — mirror the hook + CTA
+const B12: React.FC = () => {
+  const f = useCurrentFrame();
+  const level = stepDown(f, F(0.6), F(3.0), 2, 0.42, 0.26);
+  return (
+    <AbsoluteFill>
+      <Tank cx={0} level={level} tone="red" big />
+      <Kicker /><StatusHud fill={0.55} /><Scrim />
+      <Hero text="اكتب «ممول» بالتعليقات" color={C.teal} size={82} top={1150} />
+      <Subtitle text="وچم صفقة باليوم؟ وچم خسارة توقفك؟ — يوصلك الملف كامل" />
       <Gem />
     </AbsoluteFill>
   );
