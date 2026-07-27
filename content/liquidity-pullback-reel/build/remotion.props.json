@@ -1,0 +1,481 @@
+{
+  "composition": {
+    "id": "LiquidityStateReel",
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "durationInFrames": 600
+  },
+  "meta": {
+    "title": "القاع القوي — وين تحط ستوبك",
+    "type": "lesson",
+    "series": "none",
+    "instrument": "XAUUSD",
+    "timeframe": "15m",
+    "runtime": 20.0,
+    "avg_watch": 14.0,
+    "fps": 30,
+    "aspect": "1080x1920",
+    "cta_mode": "keyword",
+    "keyword": "قاع",
+    "promise_paid": "yes",
+    "target_skip": 30,
+    "payoff_at": 6.0,
+    "peak_beat": "8",
+    "expected_skip_band": "<30%"
+  },
+  "palette": {
+    "teal": "#2E9E8F",
+    "silver": "#C9D1D6",
+    "gold": "#D6A94A",
+    "text": "#F2F5F7",
+    "bg": "#131722",
+    "black_floor": "#0A0C10",
+    "up": "#26A69A",
+    "down": "#EF5350"
+  },
+  "typography": {
+    "family": "Tajawal",
+    "inline_base64": true,
+    "note": "Inline the font as base64 — a network fetch previously caused a render timeout.",
+    "safe_zones_px": {
+      "top": 120,
+      "bottom": 260,
+      "sides": 80
+    }
+  },
+  "arabic": {
+    "reshape_required": true,
+    "note": "Run all Arabic through arabic-video-text before rasterizing (PIL/node-canvas/ffmpeg drawtext) or letters disconnect and reverse."
+  },
+  "scenes": [
+    {
+      "id": "beat_1",
+      "beat": "1",
+      "name": "HOOK",
+      "from_frame": 0,
+      "duration_frames": 78,
+      "t_in": 0.0,
+      "t_out": 2.6,
+      "shot": "XAUUSD 15m real TradingView. Price already dropping toward a red stop line sitting under a recent low in the upper-third; last 3 candles printing live. #1 read = the stop line at the low.",
+      "camera": {
+        "raw": "push-in 4% / 2.4s / ease-out, centred on the stop line",
+        "kind": "push-in",
+        "amount_pct": 4.0,
+        "duration_s": 2.4,
+        "easing": "ease-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ],
+        "duration_frames": 72,
+        "scale_from": 1.0,
+        "scale_to": 1.04
+      },
+      "grade": "teal-silver, blacks lifted #0A0C10, vignette 16%",
+      "cut_out": "hard cut on «هدفك»",
+      "text": {
+        "content": "ستوبك يطق من القاع",
+        "in_frame": 9,
+        "motion": "mask-wipe R→L",
+        "size_px": 92,
+        "color": "#F2F5F7",
+        "font": "Tajawal Bold",
+        "pos": "lower-third",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_2",
+      "beat": "2",
+      "name": "PARADOX",
+      "from_frame": 78,
+      "duration_frames": 42,
+      "t_in": 2.6,
+      "t_out": 4.0,
+      "shot": "Same frame. A wick spikes down through the low, sweeps the stop line, then price snaps back up.",
+      "camera": {
+        "raw": "locked",
+        "kind": "locked",
+        "amount_pct": 0.0,
+        "duration_s": null,
+        "easing": "ease-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ]
+      },
+      "grade": "unchanged",
+      "cut_out": "hard cut on «يسحبونها»",
+      "text": {
+        "content": "القاع اللي تحسه أمان = فخ",
+        "in_frame": 84,
+        "motion": "rise",
+        "size_px": 72,
+        "color": "#C9D1D6",
+        "font": "Tajawal Bold",
+        "pos": "lower-third",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_3",
+      "beat": "3",
+      "name": "PIVOT",
+      "from_frame": 120,
+      "duration_frames": 24,
+      "t_in": 4.0,
+      "t_out": 4.8,
+      "shot": "Chart dims to 45% brightness; the low and the stop line stay lit.",
+      "camera": {
+        "raw": "locked",
+        "kind": "locked",
+        "amount_pct": 0.0,
+        "duration_s": null,
+        "easing": "ease-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ]
+      },
+      "grade": "accent gold isolated on the text only",
+      "cut_out": "hard cut",
+      "text": {
+        "content": "شلون؟",
+        "in_frame": 123,
+        "motion": "stamp",
+        "size_px": 120,
+        "color": "#D6A94A",
+        "font": "Tajawal Bold",
+        "pos": "centred",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_4",
+      "beat": "4",
+      "name": "INVITE",
+      "from_frame": 144,
+      "duration_frames": 36,
+      "t_in": 4.8,
+      "t_out": 6.0,
+      "shot": "Chart back to full brightness; two lows get circled — one labelled ضعيف, one قوي.",
+      "camera": {
+        "raw": "pull-back 6% / 1.2s / ease-in-out to reveal both lows",
+        "kind": "pull-back",
+        "amount_pct": 6.0,
+        "duration_s": 1.2,
+        "easing": "ease-in-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.65,
+          0,
+          0.35,
+          1
+        ],
+        "duration_frames": 36,
+        "scale_from": 1.06,
+        "scale_to": 1.0
+      },
+      "grade": "unchanged",
+      "cut_out": "hard cut on «سهل»",
+      "text": null,
+      "flags": {
+        "payoff": true,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_5_6",
+      "beat": "5+6",
+      "name": "BELIEF+WHY",
+      "from_frame": 180,
+      "duration_frames": 126,
+      "t_in": 6.0,
+      "t_out": 10.2,
+      "shot": "Zoom to the strong low: price makes the low, then rallies and breaks an old high (marked with a dashed line). An arrow drops the stop under that low.",
+      "camera": {
+        "raw": "push-in 6% / 2.2s / ease-out on the strong low",
+        "kind": "push-in",
+        "amount_pct": 6.0,
+        "duration_s": 2.2,
+        "easing": "ease-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ],
+        "duration_frames": 66,
+        "scale_from": 1.0,
+        "scale_to": 1.06
+      },
+      "grade": "gold accent +8% on the broken-high line only",
+      "cut_out": "hard cut on «تحته»",
+      "text": {
+        "content": "القاع القوي = بعد كسر هاي",
+        "in_frame": 222,
+        "motion": "scale-in",
+        "size_px": 100,
+        "color": "#D6A94A",
+        "font": "Tajawal Bold",
+        "pos": "centred",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_7",
+      "beat": "7",
+      "name": "TURN",
+      "from_frame": 306,
+      "duration_frames": 66,
+      "t_in": 10.2,
+      "t_out": 12.4,
+      "shot": "The weak low's label flips from ضعيف to سيولة; a liquidity arrow points into it and a wick sweeps through.",
+      "camera": {
+        "raw": "locked",
+        "kind": "locked",
+        "amount_pct": 0.0,
+        "duration_s": null,
+        "easing": "ease-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ]
+      },
+      "grade": "red accent permitted on the label only",
+      "cut_out": "speed-ramp 100%→35% over 0.3s",
+      "text": {
+        "content": "القاع الضعيف = سيولة",
+        "in_frame": 330,
+        "motion": "mask-wipe R→L",
+        "size_px": 88,
+        "color": "#EF5350",
+        "font": "Tajawal Bold",
+        "pos": "lower-third",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_8",
+      "beat": "8",
+      "name": "VERDICT",
+      "from_frame": 372,
+      "duration_frames": 18,
+      "t_in": 12.4,
+      "t_out": 13.0,
+      "shot": "The sweep candle spikes through the weak low in slow motion; the wick closes back above it.",
+      "camera": {
+        "raw": "shake 1.5px @ 3Hz for 0.4s on the outer frame only",
+        "kind": "shake",
+        "amount_pct": 0.0,
+        "duration_s": 0.4,
+        "easing": "ease-out",
+        "px": 1.5,
+        "hz": 3.0,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ],
+        "duration_frames": 12
+      },
+      "grade": "vignette 20%",
+      "cut_out": "hard cut to full speed",
+      "text": {
+        "content": "ستوبك يطق من القاع",
+        "in_frame": 374,
+        "motion": "stamp",
+        "size_px": 96,
+        "color": "#F2F5F7",
+        "font": "Tajawal Bold",
+        "pos": "centred",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": true,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_9",
+      "beat": "9",
+      "name": "PROOF",
+      "from_frame": 390,
+      "duration_frames": 96,
+      "t_in": 13.0,
+      "t_out": 16.2,
+      "shot": "Pull back to show both lows side by side: the weak low gets swept, the strong low (after the broken high) holds and price runs up.",
+      "camera": {
+        "raw": "pull-back 8% / 3.0s / ease-in-out",
+        "kind": "pull-back",
+        "amount_pct": 8.0,
+        "duration_s": 3.0,
+        "easing": "ease-in-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.65,
+          0,
+          0.35,
+          1
+        ],
+        "duration_frames": 90,
+        "scale_from": 1.08,
+        "scale_to": 1.0
+      },
+      "grade": "vignette settles to 20%",
+      "cut_out": "hard cut",
+      "text": {
+        "content": "قاع ضعيف ← يُسحب · قاع قوي ← يصمد",
+        "in_frame": 402,
+        "motion": "rise",
+        "size_px": 74,
+        "color": "#C9D1D6",
+        "font": "Tajawal Bold",
+        "pos": "lower-third",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_10",
+      "beat": "10",
+      "name": "CARE",
+      "from_frame": 486,
+      "duration_frames": 42,
+      "t_in": 16.2,
+      "t_out": 17.6,
+      "shot": "The stop line animates from under the weak low up to under the strong low.",
+      "camera": {
+        "raw": "track up 90px / 1.4s / ease-in-out following the line",
+        "kind": "track",
+        "amount_pct": 0.0,
+        "duration_s": 1.4,
+        "easing": "ease-in-out",
+        "px": 90.0,
+        "hz": null,
+        "bezier": [
+          0.65,
+          0,
+          0.35,
+          1
+        ],
+        "duration_frames": 42
+      },
+      "grade": "unchanged",
+      "cut_out": "hard cut",
+      "text": {
+        "content": "الستوب = وين الفكرة تفشل",
+        "in_frame": 495,
+        "motion": "mask-wipe R→L",
+        "size_px": 84,
+        "color": "#2E9E8F",
+        "font": "Tajawal Bold",
+        "pos": "lower-third",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": false
+      }
+    },
+    {
+      "id": "beat_11",
+      "beat": "11",
+      "name": "LOOP",
+      "from_frame": 528,
+      "duration_frames": 72,
+      "t_in": 17.6,
+      "t_out": 20.0,
+      "shot": "Return to the frame-0 composition — same chart region, candles printing again, stop line under the low.",
+      "camera": {
+        "raw": "push-in 3% / 2.4s / ease-out, mirroring beat 1",
+        "kind": "push-in",
+        "amount_pct": 3.0,
+        "duration_s": 2.4,
+        "easing": "ease-out",
+        "px": null,
+        "hz": null,
+        "bezier": [
+          0.16,
+          1,
+          0.3,
+          1
+        ],
+        "duration_frames": 72,
+        "scale_from": 1.0,
+        "scale_to": 1.03
+      },
+      "grade": "identical to beat 1",
+      "cut_out": "hard out — final frame equals frame 0 for a seamless replay",
+      "text": {
+        "content": "اكتب «قاع» بالتعليقات",
+        "in_frame": 546,
+        "motion": "rise",
+        "size_px": 80,
+        "color": "#D6A94A",
+        "font": "Tajawal Bold",
+        "pos": "lower-third",
+        "rtl": true
+      },
+      "flags": {
+        "payoff": false,
+        "peak": false,
+        "loop_seam": true
+      }
+    }
+  ]
+}

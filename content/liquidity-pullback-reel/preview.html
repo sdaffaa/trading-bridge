@@ -1,0 +1,377 @@
+<title>ريل «القاع القوي» — معاينة</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --bg:#07090d; --panel:#0b0e13; --stage:#0e131b; --grid:#141b28;
+    --teal:#2E9E8F; --silver:#C9D1D6; --gold:#D6A94A;
+    --up:#26A69A; --down:#EF5350; --text:#F2F5F7; --muted:#7d8798;
+    --font-ar:"Tajawal","Cairo","Noto Kufi Arabic","SF Arabic","Geeza Pro","Segoe UI",Tahoma,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:
+      radial-gradient(120% 80% at 50% -10%, #10151f 0%, var(--bg) 60%) fixed;
+    color:var(--text); font-family:var(--font-ar);
+    display:flex; flex-direction:column; align-items:center;
+    min-height:100%; padding:20px 14px 34px; gap:16px;
+  }
+  .masthead{width:100%; max-width:460px; display:flex; align-items:center; justify-content:space-between; gap:12px}
+  .brand{display:flex; align-items:center; gap:9px; font-weight:800; letter-spacing:.2px}
+  .brand .dot{width:11px;height:11px;border-radius:3px;background:var(--teal);box-shadow:0 0 14px var(--teal)}
+  .brand small{display:block;font-weight:600;color:var(--muted);font-size:11px;letter-spacing:2px}
+  .pass{font-size:12px;color:var(--teal);border:1px solid #1e3a37;background:#0c1613;padding:5px 10px;border-radius:999px;font-weight:700;white-space:nowrap}
+
+  .stage-wrap{position:relative;width:100%;max-width:min(460px,86vw)}
+  .stage{
+    position:relative; width:100%; aspect-ratio:9/16; border-radius:22px; overflow:hidden;
+    background:var(--stage); box-shadow:0 24px 60px -20px #000, 0 0 0 1px #1a2130 inset;
+  }
+  canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+  /* segmented beat progress */
+  .beats{position:absolute;top:12px;left:14px;right:14px;display:flex;gap:4px;z-index:6}
+  .beats .seg{flex:1;height:3px;border-radius:2px;background:#ffffff22;overflow:hidden}
+  .beats .seg i{display:block;height:100%;width:0;background:var(--silver);border-radius:2px}
+  .beats .seg.done i{width:100%}
+
+  /* on-screen text overlay */
+  .overlay{position:absolute;left:0;right:0;z-index:5;padding:0 30px;text-align:center;pointer-events:none}
+  .overlay.lower-third{bottom:15%}
+  .overlay.centred{top:50%;transform:translateY(-50%)}
+  .otext{
+    display:inline-block;font-weight:800;line-height:1.28;letter-spacing:-.2px;
+    text-shadow:0 3px 22px rgba(0,0,0,.75),0 1px 3px rgba(0,0,0,.9);
+    max-width:100%;
+  }
+  /* motions */
+  @keyframes wipe{from{clip-path:inset(0 0 0 100%)}to{clip-path:inset(0 0 0 0)}}
+  @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+  @keyframes scalein{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+  @keyframes stamp{0%{opacity:0;transform:scale(1.18)}60%{opacity:1;transform:scale(.98)}100%{transform:scale(1)}}
+  .m-wipe{animation:wipe .34s cubic-bezier(.2,.7,.2,1) both}
+  .m-rise{animation:rise .3s ease-out both}
+  .m-scale{animation:scalein .5s cubic-bezier(.2,.7,.2,1) both}
+  .m-stamp{animation:stamp .28s cubic-bezier(.2,.9,.2,1) both}
+
+  .badge{position:absolute;top:26px;right:16px;z-index:6;font-size:11px;font-weight:700;color:var(--muted);
+    background:#0009;border:1px solid #ffffff14;padding:4px 9px;border-radius:8px;letter-spacing:.5px}
+  .safe{position:absolute;inset:6% 5%;border:1px dashed #ffffff10;border-radius:14px;z-index:1;pointer-events:none;display:none}
+
+  /* caption / VO track */
+  .cap{width:100%;max-width:min(460px,86vw);min-height:52px;background:var(--panel);border:1px solid #161d2b;
+    border-radius:14px;padding:12px 15px;display:flex;gap:11px;align-items:center}
+  .cap .tag{font-size:10px;font-weight:800;color:var(--teal);border:1px solid #1e3a37;border-radius:6px;
+    padding:3px 6px;letter-spacing:1px;white-space:nowrap}
+  .cap p{margin:0;font-size:16px;font-weight:600;line-height:1.5;color:var(--silver)}
+
+  /* controls */
+  .controls{width:100%;max-width:min(460px,86vw);display:flex;align-items:center;gap:12px}
+  .btn{appearance:none;border:1px solid #202836;background:#0d1119;color:var(--text);
+    width:46px;height:46px;border-radius:12px;font-size:18px;cursor:pointer;display:grid;place-items:center;
+    transition:border-color .15s,background .15s}
+  .btn:hover{border-color:var(--teal)}
+  .btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  .scrub{flex:1;display:flex;flex-direction:column;gap:5px}
+  input[type=range]{width:100%;accent-color:var(--teal);cursor:pointer}
+  .time{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);
+    font-variant-numeric:tabular-nums;font-weight:600}
+  .time b{color:var(--silver);font-weight:800}
+
+  /* facts strip */
+  .facts{width:100%;max-width:min(460px,86vw);display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .fact{background:var(--panel);border:1px solid #161d2b;border-radius:12px;padding:11px 8px;text-align:center}
+  .fact b{display:block;font-size:15px;font-weight:800;color:var(--text)}
+  .fact.k b{color:var(--gold)}
+  .fact.p b{color:var(--teal)}
+  .fact span{font-size:10px;color:var(--muted);letter-spacing:.5px}
+  .note{max-width:min(460px,86vw);font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
+  .note b{color:var(--silver)}
+</style>
+
+<div class="masthead">
+  <div class="brand"><span class="dot"></span><div>Liquidity&nbsp;State<small>REEL PREVIEW · 20s</small></div></div>
+  <div class="pass">skip-risk 15/15 · &lt;30%</div>
+</div>
+
+<div class="stage-wrap">
+  <div class="stage" id="stage">
+    <canvas id="cv"></canvas>
+    <div class="safe" id="safe"></div>
+    <div class="beats" id="beats"></div>
+    <div class="badge" id="badge">HOOK</div>
+    <div class="overlay lower-third" id="ov"><span class="otext" id="ot"></span></div>
+  </div>
+</div>
+
+<div class="cap"><span class="tag">صوت</span><p id="vo">—</p></div>
+
+<div class="controls">
+  <button class="btn" id="play" aria-label="تشغيل / إيقاف">⏸</button>
+  <button class="btn" id="replay" aria-label="إعادة">↺</button>
+  <div class="scrub">
+    <input type="range" id="range" min="0" max="20" step="0.02" value="0" aria-label="الشريط الزمني" />
+    <div class="time"><span id="beatlbl">1 · HOOK</span><span><b id="cur">0.0</b> / 20.0s</span></div>
+  </div>
+</div>
+
+<div class="facts">
+  <div class="fact k"><b>«قاع»</b><span>الكلمة المفتاحية</span></div>
+  <div class="fact p"><b>20s</b><span>المدة</span></div>
+  <div class="fact"><b>XAUUSD</b><span>15m</span></div>
+  <div class="fact"><b>11→7</b><span>البيتات</span></div>
+</div>
+
+<p class="note"><b>هذي معاينة صامتة</b> بشمعات تعليمية توضّح الفكرة — الرِندر النهائي MP4 يحتاج فويس أوفر كويتي (ElevenLabs) وشارت XAUUSD حقيقي. النص والتوقيتات والحركة مطابقة للسبيك المعتمد.</p>
+
+<script>
+"use strict";
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- deterministic candles telling the lesson ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rnd = mulberry32(20250727);
+// anchor closes (index -> price). Gold-like. H(old high)=2012.5, weak low idx15, breakout idx21, strong low idx26
+const anchors = [[0,2001],[4,2011],[6,2012.5],[9,2005],[13,1991],[15,1987],[18,1998],[21,2015],[23,2009],[26,2004],[29,2012],[34,2021],[39,2030]];
+function anchorPrice(i){
+  for(let k=0;k<anchors.length-1;k++){const[a,pa]=anchors[k],[b,pb]=anchors[k+1];if(i>=a&&i<=b){const f=(i-a)/(b-a);return pa+(pb-pa)*f}}
+  return anchors[anchors.length-1][1];
+}
+const N=40, C=[];
+let prevC=anchorPrice(0);
+for(let i=0;i<N;i++){
+  const base=anchorPrice(i);
+  const o=prevC;
+  const c=base+(rnd()-.5)*1.6;
+  let hi=Math.max(o,c)+ (0.6+rnd()*1.4);
+  let lo=Math.min(o,c)- (0.6+rnd()*1.4);
+  if(i===15){lo=1983.2; hi=Math.max(o,c)+0.7;}          // weak low sweep wick
+  if(i===21){ /* breakout */ }
+  if(i===26){lo=Math.min(lo,2002.2);}                    // strong low wick
+  C.push({o,h:hi,l:lo,c}); prevC=c;
+}
+const H_OLD=2012.5, WL={i:15,price:1983.2}, SL={i:26,price:2002.2};
+const STOP_WEAK=1982.0, STOP_STRONG=2000.4;
+
+/* ---------- timeline (from the approved spec) ---------- */
+const NEARWL={i0:8.5,i1:18.5,p0:1980.5,p1:2001};
+const TIGHTWL={i0:11.5,i1:18,p0:1980.5,p1:1997};
+const MIDWL={i0:8,i1:21,p0:1981,p1:2017};
+const STRONG={i0:16,i1:31,p0:1998,p1:2018};
+const FULL={i0:1,i1:39,p0:1979,p1:2033};
+const WL2SL={i0:8,i1:29,p0:1995,p1:2010};
+const B=[
+ {n:"HOOK", t0:0.0, t1:2.6, cam:NEARWL, push:true, vo:"تدري ليش ستوبك يطق من القاع… بعدين السعر يروح حق هدفك؟", text:"ستوبك يطق من القاع", color:"#F2F5F7", size:34, pos:"lower-third", m:"m-wipe", sc:"hook"},
+ {n:"PARADOX", t0:2.6, t1:4.0, cam:NEARWL, vo:"القاع اللي تحسه أمان… اهو أول سيولة يسحبونها", text:"القاع اللي تحسه أمان = فخ", color:"#C9D1D6", size:27, pos:"lower-third", m:"m-rise", sc:"sweep"},
+ {n:"PIVOT", t0:4.0, t1:4.8, cam:NEARWL, dim:.55, vo:"شلون؟", text:"شلون؟", color:"#D6A94A", size:58, pos:"centred", m:"m-stamp", sc:"dim"},
+ {n:"INVITE", t0:4.8, t1:6.0, cam:FULL, vo:"تعال اقولك، سهل", text:"", color:"#F2F5F7", size:30, pos:"lower-third", m:"m-rise", sc:"twolows"},
+ {n:"BELIEF+WHY", t0:6.0, t1:10.2, cam:STRONG, push:true, vo:"القاع القوي اهو اللي بعده كسر هاي قديم… حط ستوبك تحته", text:"القاع القوي = بعد كسر هاي", color:"#D6A94A", size:33, pos:"centred", m:"m-scale", sc:"strong"},
+ {n:"TURN", t0:10.2, t1:12.4, cam:MIDWL, vo:"لكن باقي القيعان؟ سيولة… يسحبونها ويطق ستوبك", text:"القاع الضعيف = سيولة", color:"#EF5350", size:30, pos:"lower-third", m:"m-wipe", sc:"turn"},
+ {n:"VERDICT", t0:12.4, t1:13.0, cam:TIGHTWL, shake:true, vo:"عشان جذي ستوبك يطق من القاع", text:"ستوبك يطق من القاع", color:"#F2F5F7", size:33, pos:"centred", m:"m-stamp", sc:"verdict"},
+ {n:"PROOF", t0:13.0, t1:16.2, cam:FULL, vo:"شوف: القاع الضعيف يسحبونه… والقاع القوي يصمد", text:"قاع ضعيف ← يُسحب · قاع قوي ← يصمد", color:"#C9D1D6", size:23, pos:"lower-third", m:"m-rise", sc:"proof"},
+ {n:"CARE", t0:16.2, t1:17.6, cam:WL2SL, vo:"الستوب مكانه وين الفكرة تفشل… مو وين المخاطرة أقل", text:"الستوب = وين الفكرة تفشل", color:"#2E9E8F", size:29, pos:"lower-third", m:"m-wipe", sc:"care"},
+ {n:"LOOP", t0:17.6, t1:20.0, cam:NEARWL, push:true, vo:"بس شلون تعرف القاع قوي قبل لا تدخل؟ اكتب «قاع» بالتعليقات ويوصلك الملف كامل", text:"اكتب «قاع» بالتعليقات", color:"#D6A94A", size:30, pos:"lower-third", m:"m-rise", sc:"loop"},
+];
+const DUR=20.0;
+
+/* ---------- canvas setup ---------- */
+const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
+let W=0,Hp=0,DPR=Math.min(2,devicePixelRatio||1);
+function resize(){const r=cv.getBoundingClientRect();W=r.width;Hp=r.height;cv.width=W*DPR;cv.height=Hp*DPR;ctx.setTransform(DPR,0,0,DPR,1,1)}
+new ResizeObserver(resize).observe(cv); resize();
+
+const ease=t=>1-Math.pow(1-t,3);
+const lerp=(a,b,f)=>a+(b-a)*f;
+function lerpCam(a,b,f){return{i0:lerp(a.i0,b.i0,f),i1:lerp(a.i1,b.i1,f),p0:lerp(a.p0,b.p0,f),p1:lerp(a.p1,b.p1,f)}}
+function clampCam(c,zoom){ // zoom<1 pushes in toward centre
+  if(zoom>=1)return c;const ci=(c.i0+c.i1)/2,cp=(c.p0+c.p1)/2,si=(c.i1-c.i0)/2*zoom,sp=(c.p1-c.p0)/2*zoom;
+  return{i0:ci-si,i1:ci+si,p0:cp-sp,p1:cp+sp}}
+
+function beatAt(t){let b=B[0];for(const x of B)if(t>=x.t0)b=x;return b}
+function idxToX(i,cam){return (i-cam.i0)/(cam.i1-cam.i0)*W}
+function pToY(p,cam){return Hp-((p-cam.p0)/(cam.p1-cam.p0))*Hp}
+
+/* ---------- drawing ---------- */
+function drawGrid(cam){
+  ctx.fillStyle="#0b0f16";ctx.fillRect(0,0,W,Hp);
+  ctx.strokeStyle="var(--grid)";ctx.lineWidth=1;ctx.strokeStyle="#131b28";
+  ctx.beginPath();
+  for(let g=0;g<=6;g++){const y=Hp*g/6;ctx.moveTo(0,y);ctx.lineTo(W,y)}
+  ctx.stroke();
+  // price axis ticks (right)
+  ctx.fillStyle="#39435400";
+}
+function drawCandles(cam,reveal){
+  const span=cam.i1-cam.i0;const cw=Math.max(3,(W/span)*0.62);
+  for(let i=0;i<N;i++){
+    if(i>reveal)break;
+    if(i<cam.i0-1||i>cam.i1+1)continue;
+    const k=C[i];const x=idxToX(i,cam);
+    const up=k.c>=k.o;const col=up?"#26A69A":"#EF5350";
+    ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=Math.max(1,cw*0.13);
+    ctx.beginPath();ctx.moveTo(x,pToY(k.h,cam));ctx.lineTo(x,pToY(k.l,cam));ctx.stroke();
+    const yo=pToY(k.o,cam),yc=pToY(k.c,cam);
+    const top=Math.min(yo,yc),h=Math.max(2,Math.abs(yc-yo));
+    ctx.fillRect(x-cw/2,top,cw,h);
+  }
+}
+function hline(cam,price,color,alpha,dash){
+  const y=pToY(price,cam);if(y<0||y>Hp)return;
+  ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.lineWidth=1.6;
+  if(dash)ctx.setLineDash(dash);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();ctx.restore();
+}
+function tag(cam,price,txt,color,alpha){
+  const y=pToY(price,cam);ctx.save();ctx.globalAlpha=alpha;ctx.font="700 13px var(--font-ar)";
+  const w=ctx.measureText(txt).width+16;ctx.fillStyle=color;
+  ctx.fillRect(W-w-6,y-11,w,22);ctx.fillStyle="#06090d";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText(txt,W-6-w/2,y);ctx.restore();
+}
+function circle(cam,i,price,label,color,alpha){
+  const x=idxToX(i,cam),y=pToY(price,cam);const rx=(W/(cam.i1-cam.i0))*0.9+8;
+  ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.lineWidth=2.4;
+  ctx.beginPath();ctx.ellipse(x,y,rx,rx*1.15,0,0,7);ctx.stroke();
+  ctx.font="800 15px var(--font-ar)";ctx.fillStyle=color;ctx.textAlign="center";
+  ctx.fillText(label,x,y+rx*1.15+20);ctx.restore();
+}
+function arrowInto(cam,i,price,color,alpha){
+  const x=idxToX(i,cam),y=pToY(price,cam);
+  ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2.4;
+  ctx.beginPath();ctx.moveTo(x,y-64);ctx.lineTo(x,y-14);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x,y-6);ctx.lineTo(x-7,y-20);ctx.lineTo(x+7,y-20);ctx.closePath();ctx.fill();ctx.restore();
+}
+function upArrow(cam,i,price,color,alpha){
+  const x=idxToX(i,cam),y=pToY(price,cam);
+  ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2.4;
+  ctx.beginPath();ctx.moveTo(x,y-6);ctx.lineTo(x,y-56);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x,y-64);ctx.lineTo(x-7,y-50);ctx.lineTo(x+7,y-50);ctx.closePath();ctx.fill();ctx.restore();
+}
+
+function annotations(b,lp,cam){
+  const A=Math.min(1,lp*2.2); // fade-in within beat
+  switch(b.sc){
+    case"hook":
+      hline(cam,STOP_WEAK,"#EF5350",.9,[7,6]); tag(cam,STOP_WEAK,"ستوب",("#EF5350"),.95);
+      break;
+    case"sweep":{
+      hline(cam,STOP_WEAK,"#EF5350",.9,[7,6]); tag(cam,STOP_WEAK,"ستوب","#EF5350",.9);
+      const pulse=0.28+0.22*Math.sin(lp*Math.PI*3);
+      const y1=pToY(1990,cam),y2=pToY(1982.5,cam),x=idxToX(15,cam);
+      ctx.save();ctx.globalAlpha=pulse;ctx.fillStyle="#EF5350";ctx.fillRect(x-14,Math.min(y1,y2),28,Math.abs(y2-y1));ctx.restore();
+      break;}
+    case"dim": break;
+    case"twolows":
+      circle(cam,15,1985,"ضعيف","#EF5350",A);
+      circle(cam,26,2004.5,"قوي","#2E9E8F",A);
+      break;
+    case"strong":
+      hline(cam,H_OLD,"#D6A94A",A,[9,7]); tag(cam,H_OLD,"هاي قديم","#D6A94A",A);
+      // breakout candle glow
+      {const x=idxToX(21,cam);ctx.save();ctx.globalAlpha=A*.5;ctx.strokeStyle="#D6A94A";ctx.lineWidth=2;
+       ctx.strokeRect(x-10,pToY(C[21].h,cam)-2,20,pToY(C[21].l,cam)-pToY(C[21].h,cam)+4);ctx.restore();}
+      hline(cam,STOP_STRONG,"#EF5350",A*.9,[7,6]); tag(cam,STOP_STRONG,"ستوب","#EF5350",A*.9);
+      circle(cam,26,2004.5,"القاع القوي","#2E9E8F",A);
+      break;
+    case"turn":
+      hline(cam,STOP_WEAK,"#EF5350",A,[7,6]);
+      arrowInto(cam,15,1988,"#EF5350",A);
+      circle(cam,15,1985,"سيولة","#EF5350",A);
+      break;
+    case"verdict":{
+      hline(cam,STOP_WEAK,"#EF5350",1,[7,6]);
+      const pulse=0.4+0.35*Math.sin(lp*Math.PI*4);
+      const x=idxToX(15,cam),y1=pToY(1991,cam),y2=pToY(1982.5,cam);
+      ctx.save();ctx.globalAlpha=pulse;ctx.fillStyle="#EF5350";ctx.fillRect(x-16,Math.min(y1,y2),32,Math.abs(y2-y1));ctx.restore();
+      break;}
+    case"proof":
+      circle(cam,15,1985,"يُسحب","#EF5350",A); arrowInto(cam,15,1988,"#EF5350",A);
+      circle(cam,26,2004.5,"يصمد","#2E9E8F",A); upArrow(cam,34,2018,"#2E9E8F",A);
+      hline(cam,H_OLD,"#D6A94A",A*.6,[9,7]);
+      break;
+    case"care":{
+      const f=ease(Math.min(1,lp*1.3));
+      const price=lerp(STOP_WEAK,STOP_STRONG,f);
+      hline(cam,price,"#2E9E8F",1,[7,6]); tag(cam,price,"الستوب","#2E9E8F",1);
+      circle(cam,15,1985,"","#EF5350",.35); circle(cam,26,2004.5,"","#2E9E8F",.6);
+      break;}
+    case"loop":
+      hline(cam,STOP_WEAK,"#EF5350",.9,[7,6]); tag(cam,STOP_WEAK,"ستوب","#EF5350",.9);
+      break;
+  }
+}
+
+/* reveal: candles print live during hook/paradox, full afterward */
+function revealAt(t){
+  if(t<0.0)return 15;
+  if(t<2.8)return 15+ (16-15)*Math.min(1,(t)/2.2); // print candle 16 (the sweep) live
+  if(t<17.6)return 39;
+  // loop seam: candles printing again near the low
+  return 39;
+}
+
+let curCam=B[0].cam;
+function draw(t){
+  const b=beatAt(t);
+  const bd=Math.max(.001,b.t1-b.t0), lp=Math.min(1,(t-b.t0)/bd);
+  // camera: lerp from where we were to this beat's cam over first 0.6s
+  const camBlend=reduce?1:ease(Math.min(1,(t-b.t0)/0.6));
+  let target=b.cam;
+  if(b.push&&!reduce) target=clampCam(b.cam,1-0.07*lp);
+  const cam=lerpCam(curCam,target,camBlend);
+  if(camBlend>=1) curCam=target; // settle
+  // shake
+  let sx=0,sy=0;
+  if(b.shake&&!reduce){const s=2.2*(1-lp);sx=(Math.sin(t*80)*s);sy=(Math.cos(t*67)*s)}
+  ctx.save();ctx.translate(sx,sy);
+  drawGrid(cam);
+  drawCandles(cam,revealAt(t));
+  annotations(b,lp,cam);
+  if(b.dim){ctx.save();ctx.globalAlpha=b.dim*ease(Math.min(1,lp*3));ctx.fillStyle="#06090d";ctx.fillRect(0,0,W,Hp);ctx.restore();}
+  // subtle vignette
+  const g=ctx.createRadialGradient(W/2,Hp*0.44,Hp*0.2,W/2,Hp*0.5,Hp*0.75);
+  g.addColorStop(0,"#0000");g.addColorStop(1,"#000000aa");ctx.fillStyle=g;ctx.fillRect(0,0,W,Hp);
+  ctx.restore();
+}
+
+/* ---------- HUD ---------- */
+const segs=[];const beatsEl=document.getElementById("beats");
+B.forEach(()=>{const s=document.createElement("div");s.className="seg";s.innerHTML="<i></i>";beatsEl.appendChild(s);segs.push(s)});
+const ot=document.getElementById("ot"),ov=document.getElementById("ov"),badge=document.getElementById("badge"),
+      vo=document.getElementById("vo"),cur=document.getElementById("cur"),range=document.getElementById("range"),
+      beatlbl=document.getElementById("beatlbl"),playBtn=document.getElementById("play");
+let lastBeat=-1;
+function setText(b){
+  ot.textContent=b.text; ot.style.color=b.color; ot.style.fontSize="clamp(18px,"+b.size*0.62+"px + .6vw,"+b.size+"px)";
+  ot.style.fontSize=`min(${b.size}px, ${b.size*0.9}px + 1.2vw)`;
+  ov.className="overlay "+b.pos;
+  ot.className="otext "+(reduce?"":b.m);
+  // restart animation
+  if(!reduce){ot.style.animation="none";void ot.offsetWidth;ot.style.animation="";}
+  ov.style.display=b.text? "block":"none";
+  badge.textContent=b.n; vo.textContent=b.vo;
+  beatlbl.textContent=(B.indexOf(b)+1)+" · "+b.n;
+}
+function hud(t){
+  const b=beatAt(t),bi=B.indexOf(b);
+  if(bi!==lastBeat){setText(b);lastBeat=bi;}
+  segs.forEach((s,i)=>{
+    const seg=B[i];const fill=s.querySelector("i");
+    if(t>=seg.t1){s.classList.add("done");fill.style.width="100%";}
+    else if(t>=seg.t0){s.classList.remove("done");fill.style.width=(Math.min(1,(t-seg.t0)/(seg.t1-seg.t0))*100)+"%";}
+    else{s.classList.remove("done");fill.style.width="0%";}
+  });
+  cur.textContent=t.toFixed(1); range.value=t.toFixed(2);
+}
+
+/* ---------- loop ---------- */
+let t=0,playing=true,last=performance.now();
+function frame(now){
+  const dt=(now-last)/1000;last=now;
+  if(playing){t+=dt;if(t>=DUR){t-=DUR;lastBeat=-1;curCam=B[0].cam;}}
+  draw(t);hud(t);requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+playBtn.onclick=()=>{playing=!playing;playBtn.textContent=playing?"⏸":"▶";};
+document.getElementById("replay").onclick=()=>{t=0;lastBeat=-1;curCam=B[0].cam;playing=true;playBtn.textContent="⏸";last=performance.now();};
+range.oninput=e=>{t=parseFloat(e.target.value);playing=false;playBtn.textContent="▶";lastBeat=-1;last=performance.now();};
+</script>
