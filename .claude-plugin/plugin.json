@@ -1,0 +1,10 @@
+{
+  "name": "liquidity-state-suite",
+  "description": "Full Liquidity State content-production suite: brand identity + Kuwaiti dialect lexicon, realistic TradingView-style charts, 10 reusable 3D backgrounds, and the end-to-end carousel design system (Cairo/Tajawal typography, glass cards, components).",
+  "version": "1.0.0",
+  "author": {
+    "name": "Liquidity State"
+  },
+  "keywords": ["liquidity-state", "trading", "carousel", "3d", "chart", "arabic", "instagram"],
+  "skills": "./.claude/skills/"
+}
