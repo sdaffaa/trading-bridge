@@ -1,0 +1,300 @@
+<meta charset="utf-8">
+<title>Liquidity State — Reel</title>
+<style>
+  /* ---- Fonts (local Tajawal, loaded for deterministic render) ---- */
+  @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-Regular.ttf');font-weight:400}
+  @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-Medium.ttf');font-weight:500}
+  @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-Bold.ttf');font-weight:700}
+  @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-ExtraBold.ttf');font-weight:800}
+  @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-Black.ttf');font-weight:900}
+
+  html,body{margin:0;padding:0;background:#0b171c;overflow:hidden}
+  /* Stage is exactly 1080x1920; render script screenshots #stage */
+  #stage{
+    position:relative;width:1080px;height:1920px;overflow:hidden;
+    font-family:'Tajawal',sans-serif;
+    background:
+      radial-gradient(120% 80% at 50% 18%, #163039 0%, #0E1E24 46%, #0B171C 100%);
+  }
+  /* faint constellation texture */
+  #stage .tex{position:absolute;inset:0;opacity:.20;mix-blend-mode:screen}
+  canvas#chart{position:absolute;inset:0}
+
+  /* top progress */
+  #prog{position:absolute;top:34px;left:60px;right:60px;height:6px;border-radius:6px;
+        background:rgba(159,180,188,.18);overflow:hidden}
+  #prog>i{display:block;height:100%;width:0;border-radius:6px;
+        background:linear-gradient(90deg,#2ECC9A,#7fe8cd)}
+
+  /* brand row top */
+  #brandtop{position:absolute;top:70px;left:0;right:0;display:flex;gap:16px;
+        align-items:center;justify-content:center;color:#cfe0e5;
+        font-weight:800;letter-spacing:3px;font-size:26px}
+  #brandtop .gem{width:34px;height:34px}
+
+  /* big hook text (bottom third, safe zone respected) */
+  #hookwrap{position:absolute;left:60px;right:60px;bottom:300px;
+        display:flex;align-items:flex-end;justify-content:center;height:360px}
+  #hook{color:#fff;font-weight:900;text-align:center;line-height:1.12;
+        font-size:104px;text-shadow:0 4px 24px rgba(0,0,0,.55);
+        direction:rtl;unicode-bidi:plaintext}
+  #hook .sub{display:block;font-size:52px;font-weight:700;color:#9FB4BC;margin-top:18px}
+  #hook em{font-style:normal;color:#2ECC9A}
+  #hook b{font-weight:900;color:#E9C46A}
+
+  /* chart floating labels (DOM so Arabic shapes correctly) */
+  .lab{position:absolute;transform:translate(-50%,-50%);color:#cdd9dd;
+       font-weight:800;font-size:30px;white-space:nowrap;pointer-events:none;
+       direction:rtl;unicode-bidi:plaintext;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+  .lab.en{direction:ltr}
+  .tag{position:absolute;transform:translate(-50%,-50%);
+       padding:8px 20px;border-radius:12px;font-weight:800;font-size:30px;
+       white-space:nowrap;pointer-events:none;letter-spacing:.5px}
+  .tag.ob{background:rgba(46,204,154,.14);color:#7fe8cd;border:1.5px solid rgba(46,204,154,.6)}
+  .tag.fvg{background:rgba(233,196,106,.14);color:#f0d38a;border:1.5px solid rgba(233,196,106,.6)}
+
+  /* logo bottom */
+  #logo{position:absolute;bottom:120px;left:0;right:0;display:flex;flex-direction:column;
+        align-items:center;gap:12px;opacity:.96}
+  #logo .gem{width:64px;height:64px;filter:drop-shadow(0 4px 14px rgba(0,0,0,.5))}
+  #logo .name{color:#eaf2f4;font-weight:900;letter-spacing:6px;font-size:32px}
+  #logo .sub{color:#9FB4BC;font-weight:700;letter-spacing:2px;font-size:24px;direction:rtl}
+</style>
+
+<div id="stage">
+  <svg class="tex" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice">
+    <g stroke="#3a6a78" stroke-width="1" fill="#6fd7bd">
+      <line x1="120" y1="240" x2="360" y2="150"/><line x1="360" y1="150" x2="520" y2="300"/>
+      <line x1="740" y1="1600" x2="960" y2="1520"/><line x1="520" y1="1720" x2="740" y2="1600"/>
+      <circle cx="120" cy="240" r="3"/><circle cx="360" cy="150" r="3"/><circle cx="520" cy="300" r="3"/>
+      <circle cx="960" cy="1520" r="3"/><circle cx="740" cy="1600" r="3"/><circle cx="520" cy="1720" r="3"/>
+    </g>
+  </svg>
+
+  <canvas id="chart" width="1080" height="1920"></canvas>
+
+  <div id="prog"><i></i></div>
+
+  <div id="brandtop">
+    <svg class="gem" viewBox="0 0 100 100"><g fill="none" stroke="#eef5f7" stroke-width="2.4" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="rgba(226,240,244,0.16)"/><path d="M12,28 L50,43 L88,28" opacity="0.95"/><path d="M12,72 L50,43 L88,72" opacity="0.95"/><path d="M50,43 L50,94" opacity="0.95"/><path d="M50,6 L50,43" opacity="0.85"/><path d="M31,17 L50,43 L69,17" opacity="0.7" stroke-width="1.6"/><path d="M12,50 L50,43 L88,50" opacity="0.45" stroke-width="1.4"/></g></svg>
+    <span>LIQUIDITY&nbsp;STATE</span>
+  </div>
+
+  <!-- overlay layer for labels/tags -->
+  <div id="ov"></div>
+
+  <div id="hookwrap"><div id="hook"></div></div>
+
+  <div id="logo">
+    <svg class="gem" viewBox="0 0 100 100"><g fill="none" stroke="#eef5f7" stroke-width="2.4" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="rgba(226,240,244,0.16)"/><path d="M12,28 L50,43 L88,28" opacity="0.95"/><path d="M12,72 L50,43 L88,72" opacity="0.95"/><path d="M50,43 L50,94" opacity="0.95"/><path d="M50,6 L50,43" opacity="0.85"/><path d="M31,17 L50,43 L69,17" opacity="0.7" stroke-width="1.6"/><path d="M12,50 L50,43 L88,50" opacity="0.45" stroke-width="1.4"/></g></svg>
+    <div class="name">LIQUIDITY&nbsp;STATE</div>
+    <div class="sub">@liquidity.state · لغرض تعليمي</div>
+  </div>
+</div>
+
+<script>
+/* =======================================================================
+   CONFIG  — edit this block to make a NEW video in the same brand style.
+   ======================================================================= */
+const CONFIG = {
+  fps: 30,
+  duration: 20,                    // seconds
+  priceMin: 3298, priceMax: 3344,  // chart y-range
+  // OHLC candles telling the lesson: downtrend -> base(Low) -> push(High)
+  //  -> sweep of the Low -> reversal (Order Block + FVG entry) -> breakout
+  candles: [
+    [3335,3336,3330,3331],[3331,3332,3325,3326],[3326,3328,3320,3322],
+    [3322,3324,3316,3318],[3318,3320,3311,3313],[3313,3315,3308,3310],
+    [3310,3313,3306,3311],[3311,3314,3309,3312],[3312,3316,3310,3315],
+    [3315,3319,3313,3318],[3318,3324,3317,3323],[3323,3329,3322,3328],
+    [3328,3333,3326,3331],[3331,3333,3327,3329],[3329,3330,3322,3323],
+    [3323,3324,3314,3315],[3315,3316,3303,3305],[3305,3318,3304,3316],
+    [3316,3326,3315,3325],[3325,3333,3324,3332],[3332,3340,3331,3339]
+  ],
+  swingHigh: 3333, swingLow: 3306,
+  sweepIdx: 16,          // candle that sweeps below the Low
+  obIdx: 16,             // order-block candle
+  fvgBand: [3316,3324],  // fair value gap price band
+  // Timed hook lines (Kuwaiti Arabic; English only for technical terms)
+  beats: [
+    {t:0.0,  html:"دخولك من الأوردر بلوك<br><em>دايم يفشل؟</em>"},
+    {t:3.4,  html:"السبب إنك ناسي<br><span class='sub'>خطوة وحدة بس</span>"},
+    {t:6.6,  html:"حدّد <em>القمة</em> و <em>القاع</em>"},
+    {t:9.6,  html:"انتظر السيولة<br><em>تنسحب</em> تحت القاع"},
+    {t:12.8, html:"بعد السويب…<br>الأوردر بلوك يشتغل"},
+    {t:15.6, html:"ادخل من الـ <b>FVG</b><br><span class='sub'>والستوب تحت السويب</span>"},
+    {t:18.2, html:"احفظ البوست 📌<br><span class='sub'>وتابع للمزيد</span>"}
+  ]
+};
+/* ======================================================================= */
+
+const cv = document.getElementById('chart');
+const ctx = cv.getContext('2d');
+const ov = document.getElementById('ov');
+const hook = document.getElementById('hook');
+const W=1080,H=1920;
+
+// chart geometry
+const CX0=95, CX1=985, CY0=470, CY1=1180;
+const n = CONFIG.candles.length;
+const step=(CX1-CX0)/(n-1), cw=step*0.58;
+const pMin=CONFIG.priceMin, pMax=CONFIG.priceMax;
+const cx=i=>CX0+i*step;
+const py=p=>CY0+(pMax-p)/(pMax-pMin)*(CY1-CY0);
+
+// easing
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const ss=(a,b,x)=>{x=clamp((x-a)/(b-a),0,1);return x*x*(3-2*x);};
+const lerp=(a,b,x)=>a+(b-a)*x;
+const easeOut=x=>1-Math.pow(1-clamp(x,0,1),3);
+
+// camera keyframes {t,cx,cy,zoom}
+const cam=[
+  {t:0,   x:540,y:825,z:1.00},
+  {t:6,   x:540,y:825,z:1.02},
+  {t:9,   x:cx(6),y:py(3306),z:1.28},   // zoom to the Low
+  {t:12.6,x:cx(16),y:py(3306),z:1.34},  // sweep
+  {t:15.4,x:cx(17),y:py(3316),z:1.30},  // OB/FVG
+  {t:18,  x:540,y:825,z:1.02},          // pull back for CTA
+  {t:20,  x:540,y:825,z:1.02}
+];
+function camAt(t){
+  let a=cam[0];for(let i=0;i<cam.length-1;i++){if(t>=cam[i].t&&t<=cam[i+1].t){a=cam[i];const b=cam[i+1];const k=ss(a.t,b.t,t);return{x:lerp(a.x,b.x,k),y:lerp(a.y,b.y,k),z:lerp(a.z,b.z,k)};}}
+  const l=cam[cam.length-1];return{x:l.x,y:l.y,z:l.z};
+}
+
+function roundRect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+
+function drawCandle(i,grow){
+  const [o,h,l,cl]=CONFIG.candles[i];
+  const up=cl>=o;
+  const col=up?'#2ECC9A':'#E15A5A';
+  const x=cx(i);
+  // grow 0..1 animates candle height from open price
+  const yO=py(o), yC=py(cl), yH=py(h), yL=py(l);
+  const bodyTop=Math.min(yO,yC), bodyBot=Math.max(yO,yC);
+  const gTop=lerp(yO,bodyTop,grow), gBot=lerp(yO,bodyBot,grow);
+  const gH=lerp(yO,yH,grow), gL=lerp(yO,yL,grow);
+  ctx.strokeStyle=col;ctx.lineWidth=3;ctx.globalAlpha=1;
+  ctx.beginPath();ctx.moveTo(x,gH);ctx.lineTo(x,gL);ctx.stroke();
+  ctx.fillStyle=col;
+  const bh=Math.max(3,gBot-gTop);
+  roundRect(ctx,x-cw/2,gTop,cw,bh,5);ctx.fill();
+}
+
+function line(x1,y1,x2,y2,col,w,dash){ctx.save();ctx.strokeStyle=col;ctx.lineWidth=w;if(dash)ctx.setLineDash(dash);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();}
+
+// project a canvas-space point to screen (after camera) for DOM overlays
+let CAM={x:540,y:825,z:1};
+function proj(x,y){return{x:(x-CAM.x)*CAM.z+540,y:(y-CAM.y)*CAM.z+825};}
+
+function setLabel(id,txt,x,y,cls,alpha){
+  let e=document.getElementById(id);
+  if(!e){e=document.createElement('div');e.id=id;e.className=cls;ov.appendChild(e);}
+  e.className=cls;e.innerHTML=txt;
+  const p=proj(x,y);
+  e.style.left=p.x+'px';e.style.top=p.y+'px';
+  e.style.fontSize=(30*CAM.z)+'px';
+  e.style.opacity=alpha;e.style.display=alpha<=0.01?'none':'block';
+}
+
+function render(t){
+  t=clamp(t,0,CONFIG.duration);
+  CAM=camAt(t);
+  // progress
+  document.querySelector('#prog>i').style.width=(t/CONFIG.duration*100)+'%';
+  // fade brand intro / cta
+  document.getElementById('brandtop').style.opacity=ss(0.2,0.8,t)*(1-ss(18,19,t))+ss(18.3,19,t);
+
+  ctx.clearRect(0,0,W,H);
+  ctx.save();
+  ctx.translate(540,825);ctx.scale(CAM.z,CAM.z);ctx.translate(-CAM.x,-CAM.y);
+
+  // --- structure lines (High/Low) appear after 6.4s ---
+  const aStruct=ss(6.4,7.6,t);
+  if(aStruct>0){
+    ctx.globalAlpha=aStruct;
+    line(cx(0),py(CONFIG.swingHigh),cx(20),py(CONFIG.swingHigh),'rgba(159,180,188,.85)',2,[10,8]);
+    line(cx(0),py(CONFIG.swingLow), cx(20),py(CONFIG.swingLow), 'rgba(159,180,188,.85)',2,[10,8]);
+    ctx.globalAlpha=1;
+  }
+
+  // --- Order Block box (after 12.6) ---
+  const aOB=easeOut(ss(12.8,13.8,t));
+  if(aOB>0){
+    const bx=cx(CONFIG.obIdx)-step*0.75, bw=(cx(20)-bx);
+    const by=py(3316), bh=py(3303)-by;
+    ctx.globalAlpha=aOB*0.9;
+    ctx.fillStyle='rgba(46,204,154,.12)';roundRect(ctx,bx,by,bw*aOB,bh,8);ctx.fill();
+    ctx.strokeStyle='rgba(46,204,154,.75)';ctx.lineWidth=2;roundRect(ctx,bx,by,bw*aOB,bh,8);ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+  // --- FVG box (after 15.4) ---
+  const aFVG=easeOut(ss(15.6,16.6,t));
+  if(aFVG>0){
+    const bx=cx(CONFIG.obIdx)-step*0.2, bw=(cx(20)-bx);
+    const by=py(CONFIG.fvgBand[1]), bh=py(CONFIG.fvgBand[0])-by;
+    ctx.globalAlpha=aFVG*0.9;
+    ctx.fillStyle='rgba(233,196,106,.13)';roundRect(ctx,bx,by,bw*aFVG,bh,8);ctx.fill();
+    ctx.strokeStyle='rgba(233,196,106,.75)';ctx.lineWidth=2;roundRect(ctx,bx,by,bw*aFVG,bh,8);ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+
+  // --- candles: progressive reveal across 0.3..3.6s, then all shown ---
+  const revealT=lerp(0.3,3.6, 0); // base
+  for(let i=0;i<n;i++){
+    const appear=ss(0.3+i*0.14, 0.3+i*0.14+0.5, t); // each candle grows in
+    if(appear<=0) continue;
+    // pop scale
+    drawCandle(i, easeOut(appear));
+  }
+
+  // --- sweep marker: arrow + flash at the Low (after 9.6) ---
+  const aSweep=ss(9.8,10.8,t);
+  if(aSweep>0){
+    const x=cx(CONFIG.sweepIdx), yl=py(3303);
+    ctx.globalAlpha=aSweep*(0.6+0.4*Math.sin(t*6)); // subtle pulse
+    ctx.strokeStyle='#E15A5A';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(x,yl+8);ctx.lineTo(x,yl+54);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x-12,yl+40);ctx.lineTo(x,yl+58);ctx.lineTo(x+12,yl+40);ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+
+  // --- entry arrow up at OB (after 16) ---
+  const aEntry=easeOut(ss(16.2,17.2,t));
+  if(aEntry>0){
+    const x=cx(17)-6, y0=py(3316)+40, y1=py(3316)+40-70*aEntry;
+    ctx.globalAlpha=aEntry;ctx.strokeStyle='#2ECC9A';ctx.lineWidth=4;
+    ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,y1);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x-13,y1+16);ctx.lineTo(x,y1);ctx.lineTo(x+13,y1+16);ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+
+  ctx.restore();
+
+  // ===== DOM overlays (labels/tags), projected to screen =====
+  setLabel('lHigh','قمة السوينق', cx(12), py(CONFIG.swingHigh)-30,'lab', aStruct);
+  setLabel('lLow','قاع السوينق', cx(6), py(CONFIG.swingLow)+34,'lab', aStruct);
+  setLabel('tOB','Order Block', cx(18), py(3309),'tag ob', aOB);
+  setLabel('tFVG','FVG', cx(18.6), py(3320),'tag fvg', aFVG*ss(15.9,16.6,t));
+  setLabel('lSweep','سحب سيولة', cx(16), py(3303)+96,'lab', aSweep);
+
+  // ===== hook text =====
+  let cur=CONFIG.beats[0], idx=0;
+  for(let i=0;i<CONFIG.beats.length;i++){if(t>=CONFIG.beats[i].t){cur=CONFIG.beats[i];idx=i;}}
+  const next=CONFIG.beats[idx+1];
+  const inAt=cur.t, outAt=next?next.t:CONFIG.duration;
+  const fin=ss(inAt,inAt+0.45,t), fout=next?ss(outAt-0.4,outAt,t):0;
+  if(hook.dataset.idx!=String(idx)){hook.dataset.idx=String(idx);hook.innerHTML=cur.html;}
+  const ap=fin*(1-fout);
+  hook.style.opacity=ap;
+  hook.style.transform=`translateY(${(1-easeOut(fin))*40}px) scale(${lerp(0.96,1,easeOut(fin))})`;
+}
+
+// live preview + capture hook
+let _t0=null, _live=true;
+function loop(ts){if(_live){if(_t0==null)_t0=ts;let t=((ts-_t0)/1000)%CONFIG.duration;render(t);}requestAnimationFrame(loop);}
+window.__setT=function(t){_live=false;render(t);};
+window.__meta=function(){return{fps:CONFIG.fps,duration:CONFIG.duration};};
+document.fonts.ready.then(()=>{render(0);requestAnimationFrame(loop);});
+</script>
