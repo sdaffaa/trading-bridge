@@ -2,3 +2,4 @@ node_modules/
 out/frames/
 out/prev_*.png
 preview.mjs
+prev*.mjs
