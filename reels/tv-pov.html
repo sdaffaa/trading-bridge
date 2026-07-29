@@ -7,22 +7,35 @@
   #stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:#131722;
     font-family:-apple-system,'Trebuchet MS',Roboto,Ubuntu,sans-serif}
   canvas#c{position:absolute;inset:0}
-  /* brand end card (Arabic via DOM) */
-  #end{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:26px;opacity:0;background:linear-gradient(180deg,#0F151B,#06090C)}
-  #end .gem{width:120px;height:120px}
-  #end .t{color:#EDEFF1;font-family:'Tajawal';font-weight:900;font-size:70px;direction:rtl}
-  #end .t em{font-style:normal;color:#C9A24B}
-  #end .s{color:#8A949C;font-family:'Tajawal';font-weight:700;font-size:34px;direction:rtl;letter-spacing:1px}
-  #end .h{color:#C7CDD2;font-family:'Tajawal';font-weight:700;letter-spacing:6px;font-size:30px;margin-top:10px}
+  /* hook overlay (first ~2s) */
+  #hook{position:absolute;left:60px;right:60px;top:150px;text-align:center;opacity:0;pointer-events:none;
+    direction:rtl;text-shadow:0 4px 26px rgba(0,0,0,.7)}
+  #hook .b{font-family:'Tajawal';font-weight:900;font-size:96px;color:#E9C46A;line-height:1.1}
+  #hook .s{font-family:'Tajawal';font-weight:700;font-size:44px;color:#EDEFF1;margin-top:14px}
+  /* native-style callout pills */
+  .pill{position:absolute;transform:translate(-50%,-50%);padding:5px 13px;border-radius:4px;
+    font-family:'Tajawal';font-weight:700;font-size:24px;white-space:nowrap;opacity:0;pointer-events:none;
+    background:rgba(8,12,16,.78);direction:rtl}
+  #cE{color:#D1D4DC;border:1px solid rgba(178,181,190,.6)}
+  #cS{color:#EF8f8b;border:1px solid rgba(239,83,80,.6)}
+  #cT{color:#7fd8c6;border:1px solid rgba(38,166,154,.6)}
+  #r2r{position:absolute;transform:translate(-50%,-50%);padding:6px 16px;border-radius:5px;opacity:0;
+    font-family:'Tajawal';font-weight:800;font-size:26px;background:#26A69A;color:#082019;direction:rtl}
+  /* brand watermark */
+  #wm{position:absolute;left:66px;bottom:120px;display:flex;align-items:center;gap:12px;opacity:0}
+  #wm .g{width:34px;height:34px}
+  #wm .t{font-family:'Tajawal';font-weight:700;letter-spacing:2px;font-size:26px;color:rgba(215,222,228,.85)}
 </style>
 <div id="stage">
   <canvas id="c" width="1080" height="1920"></canvas>
-  <div id="end">
-    <svg class="gem" viewBox="0 0 100 100"><g fill="none" stroke="#d7c79a" stroke-width="2.2" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="rgba(215,199,154,0.10)"/><path d="M12,28 L50,43 L88,28"/><path d="M12,72 L50,43 L88,72"/><path d="M50,43 L50,94"/><path d="M50,6 L50,43"/><path d="M31,17 L50,43 L69,17" stroke-width="1.5"/></g></svg>
-    <div class="t">صفقة موثّقة · <em>+2R</em></div>
-    <div class="s">XAUUSD · لونق من الاختراق · لغرض تعليمي</div>
-    <div class="h">LIQUIDITY&nbsp;STATE</div>
+  <div id="hook"><div class="b">وين تدخل الذهب؟</div><div class="s">شوف الصفقة تنرسم لايف</div></div>
+  <div class="pill" id="cE">دخول</div>
+  <div class="pill" id="cS">وقف</div>
+  <div class="pill" id="cT">هدف</div>
+  <div id="r2r">‎+2R محقّق</div>
+  <div id="wm">
+    <svg class="g" viewBox="0 0 100 100"><g fill="none" stroke="#d7c79a" stroke-width="3" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28"/><path d="M12,28 L50,43 L88,28"/><path d="M12,72 L50,43 L88,72"/><path d="M50,43 L50,94"/></g></svg>
+    <div class="t">@liquidity.state</div>
   </div>
 </div>
 <script>
@@ -32,9 +45,6 @@ const TRADE={"symbol":"XAUUSD","tf":"60",
 "supP1":[4,3992.9],"supP2":[10,3999.1]};
 const FPS=30, W=1080, H=1920;
 const cv=document.getElementById('c'), x2=cv.getContext('2d');
-const endEl=document.getElementById('end');
-
-// shell metrics
 const TOPH=48, LEFTW=54, SCALEW=86, BOTH=46;
 const CX0=LEFTW, CX1=W-SCALEW, CY0=TOPH, CY1=H-BOTH;
 const PADT=120, PADB=90;
@@ -43,22 +53,26 @@ const slotW=(CX1-CX0-24)/slots, bodyW=Math.min(22,slotW*0.66);
 const xi=i=>CX0+16+i*slotW+slotW/2;
 const lo=TRADE.lo, hi=TRADE.hi;
 const py=p=>(CY0+PADT)+(hi-p)/(hi-lo)*((CY1-PADB)-(CY0+PADT));
-
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const ss=(a,b,x)=>{x=clamp((x-a)/(b-a),0,1);return x*x*(3-2*x);};
 const lerp=(a,b,x)=>a+(b-a)*x;
 const eIO=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
 
-// ---------- CURSOR timeline ----------
 const Y_ENTRY=py(TRADE.entry), Y_TP=py(TRADE.tp);
 const ICON_TREND=[27,TOPH+34+46], ICON_POS=[27,TOPH+34+46*5];
+const T={ toolTrend:1.9, a1:2.7, a2:3.6, toolPos:4.4, entryDown:5.2, release:6.3, replay:7.1 };
+const REVEAL={23:7.9,24:8.7,25:9.5,26:10.3};
+const establish=23;
+const TOTAL=13.0;
+const FADEA=[13.4,14.6]; // unused — we hold the win at the end
+
 const WP=[
- [0.0,720,1000],[1.3,ICON_TREND[0],ICON_TREND[1]],[2.0,ICON_TREND[0],ICON_TREND[1]],
- [2.8,xi(TRADE.supP1[0]),py(TRADE.supP1[1])],[3.3,xi(TRADE.supP1[0]),py(TRADE.supP1[1])],
- [4.3,xi(TRADE.supP2[0]),py(TRADE.supP2[1])],[4.8,xi(TRADE.supP2[0]),py(TRADE.supP2[1])],
- [5.6,ICON_POS[0],ICON_POS[1]],[6.2,ICON_POS[0],ICON_POS[1]],
- [7.0,xi(TRADE.entryIdx),Y_ENTRY],[7.5,xi(TRADE.entryIdx),Y_ENTRY],
- [8.7,xi(TRADE.entryIdx),Y_TP],[9.4,W-60,30],[10.0,W-60,30],[10.8,720,560]
+ [0.0,690,900],[1.3,ICON_TREND[0],ICON_TREND[1]],[1.9,ICON_TREND[0],ICON_TREND[1]],
+ [2.4,xi(TRADE.supP1[0]),py(TRADE.supP1[1])],[2.7,xi(TRADE.supP1[0]),py(TRADE.supP1[1])],
+ [3.3,xi(TRADE.supP2[0]),py(TRADE.supP2[1])],[3.6,xi(TRADE.supP2[0]),py(TRADE.supP2[1])],
+ [4.1,ICON_POS[0],ICON_POS[1]],[4.4,ICON_POS[0],ICON_POS[1]],
+ [4.9,xi(TRADE.entryIdx),Y_ENTRY],[5.2,xi(TRADE.entryIdx),Y_ENTRY],
+ [6.3,xi(TRADE.entryIdx),Y_TP],[6.8,W-60,30],[7.1,W-60,30],[7.7,700,560]
 ];
 function cursorAt(t){
  if(t<=WP[0][0])return[WP[0][1],WP[0][2]];
@@ -68,91 +82,70 @@ function cursorAt(t){
    return[lerp(WP[i][1],WP[i+1][1],k),lerp(WP[i][2],WP[i+1][2],k)+wob];}}
  const l=WP[WP.length-1];return[l[1],l[2]];
 }
-// state timings
-const T={ toolTrend:1.9, a1:3.2, a2:4.7, toolPos:6.1, entryDown:7.4, release:8.7, replay:9.9 };
-// replay reveal times for candles beyond entry
-const REVEAL={23:10.7,24:11.9,25:13.1,26:14.3};
-const establish=23; // idx 0..22 always shown after establish-in
-
 function roundRect(x,y,w,h,r){x2.beginPath();x2.moveTo(x+r,y);x2.arcTo(x+w,y,x+w,y+h,r);x2.arcTo(x+w,y+h,x,y+h,r);x2.arcTo(x,y+h,x,y,r);x2.arcTo(x,y,x+w,y,r);x2.closePath();}
-
-function drawCandle(i,alpha,grow){
+function drawCandle(i,grow){
  const [o,h,l,c]=TRADE.candles[i]; const up=c>=o; const col=up?'#26A69A':'#EF5350';
  const x=xi(i); let yO=py(o),yC=py(c),yH=py(h),yL=py(l);
  if(grow<1){yH=lerp(yO,yH,grow);yL=lerp(yO,yL,grow);yC=lerp(yO,yC,grow);}
  const bt=Math.min(yO,yC),bb=Math.max(yO,yC);
- x2.globalAlpha=alpha; x2.strokeStyle=col; x2.fillStyle=col; x2.lineWidth=2;
+ x2.strokeStyle=col; x2.fillStyle=col; x2.lineWidth=2;
  x2.beginPath();x2.moveTo(x,yH);x2.lineTo(x,yL);x2.stroke();
  x2.fillRect(x-bodyW/2,bt,bodyW,Math.max(2,bb-bt));
- x2.globalAlpha=1;
 }
-
-function drawChartArea(t){
- // clip to chart region
+function drawChartArea(t,ann){
  x2.save();x2.beginPath();x2.rect(CX0,CY0,CX1-CX0,CY1-CY0);x2.clip();
- // grid + watermark
  x2.fillStyle='rgba(178,181,190,0.05)';x2.textAlign='center';x2.font='900 150px sans-serif';
- x2.fillText('XAUUSD',(CX0+CX1)/2, (CY0+CY1)/2-10);
+ x2.fillText('XAUUSD',(CX0+CX1)/2,(CY0+CY1)/2-10);
  x2.font='500 60px sans-serif';x2.fillText('60 · 1H',(CX0+CX1)/2,(CY0+CY1)/2+70);
- // price gridlines
- x2.strokeStyle='#2A2E39';x2.lineWidth=1;x2.fillStyle='#B2B5BE';x2.font='22px sans-serif';x2.textAlign='left';
- for(let p=Math.ceil(lo/20)*20;p<=hi;p+=20){const y=py(p);
-   x2.globalAlpha=1;x2.beginPath();x2.moveTo(CX0,y);x2.lineTo(CX1,y);x2.stroke();}
- // ---- position tool (after entry down) ----
+ x2.strokeStyle='#2A2E39';x2.lineWidth=1;
+ for(let p=Math.ceil(lo/20)*20;p<=hi;p+=20){const y=py(p);x2.beginPath();x2.moveTo(CX0,y);x2.lineTo(CX1,y);x2.stroke();}
+ // position tool
  if(t>=T.entryDown){
+   x2.globalAlpha=ann;
    const dragP=clamp(ss(T.entryDown,T.release,t),0,1);
    const tpNow=lerp(TRADE.entry,TRADE.tp,dragP), slNow=lerp(TRADE.entry,TRADE.sl,dragP);
-   const yE=py(TRADE.entry),yT=py(tpNow),yS=py(slNow);
-   const xL=xi(TRADE.entryIdx)-slotW*0.6;
-   // profit zone
+   const yE=py(TRADE.entry),yT=py(tpNow),yS=py(slNow); const xL=xi(TRADE.entryIdx)-slotW*0.6;
    x2.fillStyle='rgba(38,166,154,0.20)';x2.fillRect(xL,yT,CX1-xL,yE-yT);
    x2.fillStyle='rgba(239,83,80,0.20)';x2.fillRect(xL,yE,CX1-xL,yS-yE);
    x2.strokeStyle='#26A69A';x2.lineWidth=1.5;x2.beginPath();x2.moveTo(xL,yT);x2.lineTo(CX1,yT);x2.stroke();
    x2.strokeStyle='#EF5350';x2.beginPath();x2.moveTo(xL,yS);x2.lineTo(CX1,yS);x2.stroke();
    x2.strokeStyle='#B2B5BE';x2.setLineDash([5,4]);x2.beginPath();x2.moveTo(xL,yE);x2.lineTo(CX1,yE);x2.stroke();x2.setLineDash([]);
-   // TP pulse when hit
-   let pulse=0; if(t>=REVEAL[23]+0.4){pulse=Math.max(0,Math.sin((t-(REVEAL[23]+0.4))*4))* (t<REVEAL[23]+2.2?1:0);}
+   let pulse=0; if(t>=REVEAL[23]+0.3){pulse=Math.max(0,Math.sin((t-(REVEAL[23]+0.3))*4))*(t<REVEAL[23]+2.0?1:0);}
    if(pulse>0){x2.fillStyle='rgba(38,166,154,'+(0.15*pulse)+')';x2.fillRect(xL,yT,CX1-xL,yE-yT);}
+   x2.globalAlpha=1;
  }
- // support trendline (ray)
+ // support trendline
  if(t>=T.a1){
-   const [i1,p1]=TRADE.supP1,[i2,p2]=TRADE.supP2;
-   const x1=xi(i1),y1=py(p1); let x2e,y2e;
-   if(t<T.a2){const cur=cursorAt(t);x2e=cur[0];y2e=cur[1];}
-   else{ // full ray extended right
-     const xa=xi(i2),ya=py(p2); const slope=(ya-y1)/(xa-x1);
-     x2e=CX1; y2e=y1+slope*(CX1-x1);
-   }
-   x2.strokeStyle='#2962FF';x2.lineWidth=2.5;x2.beginPath();x2.moveTo(x1,y1);x2.lineTo(x2e,y2e);x2.stroke();
-   // anchor dots
+   x2.globalAlpha=ann;
+   const [i1,p1]=TRADE.supP1,[i2,p2]=TRADE.supP2; const x1=xi(i1),y1=py(p1); let xe,ye;
+   if(t<T.a2){const cur=cursorAt(t);xe=cur[0];ye=cur[1];}
+   else{const xa=xi(i2),ya=py(p2);const slope=(ya-y1)/(xa-x1);xe=CX1;ye=y1+slope*(CX1-x1);}
+   x2.strokeStyle='#2962FF';x2.lineWidth=2.5;x2.beginPath();x2.moveTo(x1,y1);x2.lineTo(xe,ye);x2.stroke();
    x2.fillStyle='#2962FF';x2.beginPath();x2.arc(x1,y1,4,0,7);x2.fill();
    if(t>=T.a2){const xa=xi(i2),ya=py(p2);x2.beginPath();x2.arc(xa,ya,4,0,7);x2.fill();}
+   x2.globalAlpha=1;
  }
- // ---- candles ----
- const estIn=ss(0.2,1.4,t); // establish fade/reveal of setup candles
- for(let i=0;i<establish;i++){
-   const ap=ss(i*0.03,i*0.03+0.4,t)*estIn>0? Math.min(1,ss(0.2,1.2,t)) :0;
-   if(ss(0.2,1.2,t)>0) drawCandle(i,1,1);
+ // candles (idx22 forms at start)
+ if(ss(0.0,0.5,t)>0){
+   for(let i=0;i<establish;i++){
+     const g=(i===establish-1)?clamp(ss(0.0,0.7,t),0,1):1; drawCandle(i,g);
+   }
  }
- // last price line for current last revealed candle
  let lastIdx=establish-1;
- for(let i=establish;i<N;i++){ if(t>=REVEAL[i]){ const g=clamp(ss(REVEAL[i],REVEAL[i]+0.5,t),0,1); drawCandle(i,1,g); lastIdx=i; } }
+ for(let i=establish;i<N;i++){ if(t>=REVEAL[i]){ const g=clamp(ss(REVEAL[i],REVEAL[i]+0.5,t),0,1); drawCandle(i,g); lastIdx=i; } }
  const lastC=TRADE.candles[lastIdx][3]; const yl=py(lastC);
  x2.strokeStyle=(TRADE.candles[lastIdx][3]>=TRADE.candles[lastIdx][0])?'#26A69A':'#EF5350';
  x2.setLineDash([6,4]);x2.lineWidth=1;x2.beginPath();x2.moveTo(CX0,yl);x2.lineTo(CX1,yl);x2.stroke();x2.setLineDash([]);
  x2.restore();
 
- // price scale labels (outside clip)
  x2.fillStyle='#B2B5BE';x2.font='22px sans-serif';x2.textAlign='left';
  for(let p=Math.ceil(lo/20)*20;p<=hi;p+=20){const y=py(p);x2.fillText(p.toFixed(1),CX1+10,y+7);}
- // last price pill on scale
  const col=(TRADE.candles[lastIdx][3]>=TRADE.candles[lastIdx][0])?'#26A69A':'#EF5350';
  x2.fillStyle=col;roundRect(CX1+2,yl-15,SCALEW-4,30,3);x2.fill();
  x2.fillStyle='#fff';x2.font='700 21px sans-serif';x2.textAlign='center';x2.fillText(lastC.toFixed(1),CX1+SCALEW/2,yl+7);
 
- // RR info card (after release)
  if(t>=T.release){
-   const a=ss(T.release,T.release+0.4,t);
+   const a=ss(T.release,T.release+0.4,t)*ann;
    const cx=xi(TRADE.entryIdx)+120, cy=py((TRADE.entry+TRADE.tp)/2);
    x2.globalAlpha=a;x2.fillStyle='#1E222D';x2.strokeStyle='#2A2E39';roundRect(cx,cy-46,196,92,6);x2.fill();x2.stroke();
    x2.textAlign='left';x2.fillStyle='#26A69A';x2.font='700 24px sans-serif';x2.fillText('Long · RR '+TRADE.rr.toFixed(1),cx+16,cy-14);
@@ -161,15 +154,12 @@ function drawChartArea(t){
    x2.fillText('Stop     '+TRADE.sl.toFixed(1),cx+16,cy+38);
    x2.globalAlpha=1;
  }
- // TP HIT tag
- if(t>=REVEAL[23]+0.3 && t<REVEAL[23]+3){
-   const a=ss(REVEAL[23]+0.3,REVEAL[23]+0.7,t)*(1-ss(REVEAL[23]+2.4,REVEAL[23]+3,t));
+ if(t>=REVEAL[23]+0.2){
+   const a=ss(REVEAL[23]+0.2,REVEAL[23]+0.55,t)*ann;
    x2.globalAlpha=a;x2.fillStyle='#26A69A';roundRect(xi(23)-60,py(TRADE.tp)-52,150,38,5);x2.fill();
    x2.fillStyle='#0b1f1b';x2.font='800 24px sans-serif';x2.textAlign='center';x2.fillText('TP HIT',xi(23)+15,py(TRADE.tp)-26);x2.globalAlpha=1;
  }
 }
-
-// ---------- shell ----------
 function icon(cx,cy,type,active){
  x2.strokeStyle=active?'#2962FF':'#B2B5BE';x2.fillStyle=active?'#2962FF':'#B2B5BE';x2.lineWidth=2;
  x2.save();x2.translate(cx,cy);
@@ -186,17 +176,14 @@ function icon(cx,cy,type,active){
  x2.restore();
 }
 function drawShell(t,tool){
- // top toolbar
  x2.fillStyle='#131722';x2.fillRect(0,0,W,TOPH);
  x2.strokeStyle='#2A2E39';x2.lineWidth=1;x2.beginPath();x2.moveTo(0,TOPH+.5);x2.lineTo(W,TOPH+.5);x2.stroke();
  x2.fillStyle='#D1D4DC';x2.textAlign='left';x2.font='700 26px sans-serif';x2.fillText('XAUUSD',18,32);
  x2.fillStyle='#5d6673';x2.fillText('·',150,32);
  x2.fillStyle='#D1D4DC';x2.font='600 24px sans-serif';x2.fillText('60',172,32);
  x2.fillStyle='#B2B5BE';x2.font='500 22px sans-serif';x2.fillText('Indicators',240,32);
- // replay btn (right)
  const rpActive=t>=T.replay;
  x2.fillStyle=rpActive?'#2962FF':'#B2B5BE';x2.textAlign='right';x2.font='600 22px sans-serif';x2.fillText('⤺ Replay',W-30,32);
- // left toolbar
  x2.fillStyle='#131722';x2.fillRect(0,TOPH,LEFTW,H-TOPH-BOTH);
  x2.strokeStyle='#2A2E39';x2.beginPath();x2.moveTo(LEFTW+.5,TOPH);x2.lineTo(LEFTW+.5,H-BOTH);x2.stroke();
  const icons=['cross','trend','fib','brush','text','pos','ruler','magnet','eye','trash'];
@@ -204,12 +191,9 @@ function drawShell(t,tool){
    const active=(ic=='trend'&&tool=='trend')||(ic=='pos'&&tool=='pos')||(ic=='cross'&&tool=='cross');
    if(active){x2.fillStyle='rgba(41,98,255,0.12)';x2.fillRect(2,cy-20,LEFTW-4,40);}
    icon(27,cy,ic,active);});
- // bottom bar
  x2.fillStyle='#131722';x2.fillRect(0,H-BOTH,W,BOTH);
  x2.strokeStyle='#2A2E39';x2.beginPath();x2.moveTo(0,H-BOTH+.5);x2.lineTo(W,H-BOTH+.5);x2.stroke();
- x2.fillStyle='#B2B5BE';x2.textAlign='left';x2.font='500 20px sans-serif';
- x2.fillText('1D  5D  1M  3M  6M  1Y  All',18,H-BOTH+29);
- // replay control bar (after replay click)
+ x2.fillStyle='#B2B5BE';x2.textAlign='left';x2.font='500 20px sans-serif';x2.fillText('1D  5D  1M  3M  6M  1Y  All',18,H-BOTH+29);
  if(t>=T.replay){const a=ss(T.replay,T.replay+0.3,t);x2.globalAlpha=a;
    x2.fillStyle='#1E222D';x2.strokeStyle='#2A2E39';roundRect(W/2-120,H-BOTH-52,240,40,6);x2.fill();x2.stroke();
    x2.fillStyle='#D1D4DC';x2.textAlign='center';x2.font='600 20px sans-serif';x2.fillText('▐▐   ▶   1x   ⏭',W/2,H-BOTH-25);x2.globalAlpha=1;}
@@ -217,40 +201,44 @@ function drawShell(t,tool){
 function drawCursor(t){
  const [cx,cy]=cursorAt(t);
  const overChart=cx>CX0&&cx<CX1&&cy>CY0&&cy<CY1;
- if(overChart){ // crosshair
+ if(overChart){
    x2.strokeStyle='#9598A1';x2.lineWidth=1;x2.setLineDash([4,4]);
    x2.beginPath();x2.moveTo(CX0,cy);x2.lineTo(CX1,cy);x2.moveTo(cx,CY0);x2.lineTo(cx,CY1);x2.stroke();x2.setLineDash([]);
-   // price label on scale
    const p=hi-(cy-(CY0+PADT))/((CY1-PADB)-(CY0+PADT))*(hi-lo);
    x2.fillStyle='#363A45';roundRect(CX1+2,cy-15,SCALEW-4,30,3);x2.fill();
    x2.fillStyle='#D1D4DC';x2.font='700 21px sans-serif';x2.textAlign='center';x2.fillText(p.toFixed(1),CX1+SCALEW/2,cy+7);
  }
- // arrow pointer
  x2.save();x2.translate(cx,cy);
  x2.fillStyle='#fff';x2.strokeStyle='#131722';x2.lineWidth=1.5;
  x2.beginPath();x2.moveTo(0,0);x2.lineTo(0,22);x2.lineTo(6,16);x2.lineTo(11,26);x2.lineTo(15,24);x2.lineTo(10,14);x2.lineTo(18,14);x2.closePath();
  x2.fill();x2.stroke();x2.restore();
- // click ring
  for(const ct of [T.toolTrend,T.a1,T.a2,T.toolPos,T.entryDown,T.replay]){
    if(t>=ct&&t<ct+0.35){const a=1-(t-ct)/0.35;x2.strokeStyle='rgba(255,255,255,'+a*0.8+')';x2.lineWidth=2;
      x2.beginPath();x2.arc(cx,cy,6+(1-a)*16,0,7);x2.stroke();}
  }
 }
-
-const TOTAL=21.5;
 function toolAt(t){ if(t>=T.toolPos)return 'pos'; if(t>=T.toolTrend)return 'trend'; return 'cross'; }
+const el=id=>document.getElementById(id);
+function place(id,x,y,op){const e=el(id);e.style.left=x+'px';e.style.top=y+'px';e.style.opacity=op;}
 function render(t){
  t=clamp(t,0,TOTAL);
+ const ann=1;
  x2.clearRect(0,0,W,H); x2.fillStyle='#131722'; x2.fillRect(0,0,W,H);
- const platform=1-ss(17.6,18.4,t);
- x2.globalAlpha=platform;
- drawChartArea(t);
+ drawChartArea(t,ann);
  drawShell(t,toolAt(t));
- if(t<11) drawCursor(t); else if(t<17) drawCursor(t);
- x2.globalAlpha=1;
- // end card
- endEl.style.opacity=ss(17.8,18.6,t);
- const g=endEl.querySelector('.t'); // subtle rise
+ if(t<7.7) x2.globalAlpha=ann, drawCursor(t), x2.globalAlpha=1;
+ // hook overlay
+ el('hook').style.opacity=ss(0.15,0.5,t)*(1-ss(1.9,2.3,t));
+ // watermark persistent
+ el('wm').style.opacity=ss(0.4,1.0,t)*0.85*ann;
+ // native callouts on the lines (after position placed)
+ const cop=ss(T.release+0.1,T.release+0.5,t)*ann;
+ place('cE',176,py(TRADE.entry),cop);
+ place('cS',176,py(TRADE.sl),cop);
+ place('cT',176,py(TRADE.tp),cop);
+ // +2R achieved (after TP)
+ const r2=ss(REVEAL[23]+0.6,REVEAL[23]+1.0,t)*ann;
+ place('r2r',xi(TRADE.entryIdx)+218,py((TRADE.entry+TRADE.tp)/2)+70,r2);
 }
 let _t0=null,_live=true;
 function loop(ts){if(_live){if(_t0==null)_t0=ts;render(((ts-_t0)/1000)%TOTAL);}requestAnimationFrame(loop);}
