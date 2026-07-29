@@ -48,6 +48,20 @@ FF=$(python3 -c "import imageio_ffmpeg as f;print(f.get_ffmpeg_exe())")   # or s
 Open `template.html` in any browser — it auto-plays on a loop (live preview).
 The render path calls `window.__setT(seconds)` for deterministic frames.
 
+## Real chart data
+
+`market-clarity.html` uses **real COMEX Gold (GC=F ≈ XAUUSD, 1H) candles** pulled
+from a live market feed, not illustrative data. The annotations are computed from
+that real series: the volume profile POC/VAH/VAL, the HH/HL swings + BOS break,
+and the balance range + real Fair Value Gap.
+
+Because this environment's network policy blocks outbound market-data hosts, the
+data was fetched via the Higgsfield sandbox (which has open internet), then the
+selected windows + detected structures were dropped into the `SCENES` config. To
+refresh with a newer window, re-run the fetch/analysis and replace the candle
+arrays. Any real OHLC source works (TradingView CSV export, a screenshot I read,
+or a broker export) — the template only needs `[open,high,low,close]` arrays.
+
 ## Notes
 
 - **Logo:** the gem is a clean SVG placeholder matching the brand spec
