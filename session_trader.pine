@@ -287,7 +287,7 @@ if tState == 0 and (longSig or shortSig)
         tTag := supTag
         if showPlan
             f_drawPlan(1, lEntry, lSL, lTP, supTag, lRR)
-        alert("LONG " + supTag + " @ " + str.tostring(lEntry, format.mintick) + " SL " + str.tostring(lSL, format.mintick) + " TP " + str.tostring(lTP, format.mintick) + " (R:R " + str.tostring(lRR, "#.#") + ")", alert.freq_once_per_bar)
+        alert('{"symbol":"' + syminfo.ticker + '","tf":"' + timeframe.period + '","side":"LONG","level":"' + supTag + '","entry":' + str.tostring(lEntry) + ',"sl":' + str.tostring(lSL) + ',"tp":' + str.tostring(lTP) + ',"rr":' + str.tostring(lRR, "#.##") + ',"src":"' + (haveFp ? "footprint" : "ltf") + '"}', alert.freq_once_per_bar)
         dayCount += 1
         lastSigBar := bar_index
     else if shortSig
@@ -298,7 +298,7 @@ if tState == 0 and (longSig or shortSig)
         tTag := resTag
         if showPlan
             f_drawPlan(-1, sEntry, sSL, sTP, resTag, sRR)
-        alert("SHORT " + resTag + " @ " + str.tostring(sEntry, format.mintick) + " SL " + str.tostring(sSL, format.mintick) + " TP " + str.tostring(sTP, format.mintick) + " (R:R " + str.tostring(sRR, "#.#") + ")", alert.freq_once_per_bar)
+        alert('{"symbol":"' + syminfo.ticker + '","tf":"' + timeframe.period + '","side":"SHORT","level":"' + resTag + '","entry":' + str.tostring(sEntry) + ',"sl":' + str.tostring(sSL) + ',"tp":' + str.tostring(sTP) + ',"rr":' + str.tostring(sRR, "#.##") + ',"src":"' + (haveFp ? "footprint" : "ltf") + '"}', alert.freq_once_per_bar)
         dayCount += 1
         lastSigBar := bar_index
 
