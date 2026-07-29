@@ -126,11 +126,15 @@ function render(t){
  g.fillStyle=gl; g.fillRect(0,0,W,H);
  grid(); starfield(t);
  // camera: continuous slow push-in + reveal punch + drift
- const zoom=1+0.05*ss(0,TOTAL,t)+0.055*Math.max(0,Math.sin(clamp((t-T.revealStart)/0.4,0,1)*Math.PI));
- const drift=lerp(-12,12,ss(0,TOTAL,t));
- g.save();g.translate(W/2,(CY0+CY1)/2);g.scale(zoom,zoom);g.translate(-W/2,-(CY0+CY1)/2+drift);
+ // camera choreography (their chart-animation feel): build zoom → push to decision → reveal punch
+ const zTension=0.15*ss(4.3,5.5,t)*(1-ss(5.6,6.2,t));
+ const zPunch=0.06*Math.max(0,Math.sin(clamp((t-T.revealStart)/0.4,0,1)*Math.PI));
+ const zoom=1+0.05*ss(0,TOTAL,t)+0.06*(1-ss(0.1,2.2,t))+zTension+zPunch;
+ const camx=lerp(W/2, xi(T.decision), (zTension/0.15)*0.55);
+ const camy=(CY0+CY1)/2+lerp(-12,12,ss(0,TOTAL,t));
+ g.save();g.translate(W/2,(CY0+CY1)/2);g.scale(zoom,zoom);g.translate(-camx,-camy);
  // candles: setup 0..22 revealed 0.2-1.2; breakout on reveal
- if(t>0.1){for(let i=0;i<=T.decision;i++){const ap=ss(0.1,1.1,t); if(ap>0) candle(i,1,1);} }
+ for(let i=0;i<=T.decision;i++){const ap=ss(0.12+i*0.05, 0.12+i*0.05+0.5, t); if(ap>0.002) candle(i, eOut(ap), 1);}
  for(let i=T.decision+1;i<N;i++){ if(t>=REV[i]) candle(i,clamp(ss(REV[i],REV[i]+0.35,t),0,1),1); }
  // target line during education
  if(t>=8.0){const a=ss(8.0,8.5,t)*(1-ss(19,19.6,t));g.globalAlpha=a;g.strokeStyle='rgba(233,196,106,.8)';g.setLineDash([10,7]);g.lineWidth=2;g.beginPath();g.moveTo(CX0,py(TRADE.tp));g.lineTo(CX1,py(TRADE.tp));g.stroke();g.setLineDash([]);g.globalAlpha=1;}
