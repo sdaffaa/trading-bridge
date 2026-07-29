@@ -10,11 +10,12 @@
   canvas#c{position:absolute;inset:0}
   #big{position:absolute;left:50px;right:50px;top:190px;text-align:center;opacity:0;pointer-events:none;
     direction:rtl;font-weight:900;font-size:104px;color:#EDEFF1;line-height:1.08;
-    text-shadow:0 6px 30px rgba(0,0,0,.7)}
+    text-shadow:0 0 34px rgba(233,196,106,.5),0 0 8px rgba(255,255,255,.4),0 6px 30px rgba(0,0,0,.75)}
   #big em{font-style:normal;color:#E9C46A}
   #cap{position:absolute;left:40px;right:40px;bottom:250px;text-align:center;opacity:0;pointer-events:none;
-    direction:rtl;font-weight:900;font-size:76px;color:#fff;
-    -webkit-text-stroke:3px #05080B;paint-order:stroke fill}
+    direction:rtl;font-weight:900;font-size:80px;color:#fff;
+    -webkit-text-stroke:3px #05080B;paint-order:stroke fill;
+    text-shadow:0 0 28px rgba(120,230,200,.55),0 0 10px rgba(255,255,255,.35)}
   #cap b{color:#E9C46A;-webkit-text-stroke:3px #05080B}
   #wm{position:absolute;left:60px;bottom:120px;display:flex;align-items:center;gap:12px;opacity:.0}
   #wm .g{width:36px;height:36px}
@@ -48,7 +49,7 @@ function rr(x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.
 
 // deterministic starfield
 let _s=99; const rnd=()=>{_s=(_s*1664525+1013904223)&0x7fffffff;return _s/0x7fffffff;};
-const STARS=[]; for(let i=0;i<40;i++)STARS.push([rnd()*W,rnd()*H,0.4+rnd()*1.6,rnd()*6.28]);
+const STARS=[]; for(let i=0;i<64;i++)STARS.push([rnd()*W,rnd()*H,0.5+rnd()*2.0,rnd()*6.28,(rnd()-.5)*7]);
 
 const T={decision:22, revealStart:5.6};
 const REV={23:5.6,24:6.05,25:6.5,26:6.95};
@@ -60,16 +61,23 @@ const CAPS=[
 ];
 const TOTAL=21.5;
 
-function starfield(t){for(const s of STARS){const a=0.10+0.12*Math.sin(t*1.2+s[3]);g.fillStyle='rgba(150,200,190,'+a+')';g.beginPath();g.arc((s[0])%W,(s[1])%H,s[2],0,6.28);g.fill();}}
-function grid(){g.strokeStyle='rgba(120,150,160,0.05)';g.lineWidth=1;for(let x=0;x<W;x+=120){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=0;y<H;y+=120){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}}
+function starfield(t){g.save();g.shadowColor='rgba(150,220,200,0.7)';g.shadowBlur=6;for(const s of STARS){const a=0.12+0.16*Math.sin(t*1.2+s[3]);const x=((s[0]+s[4]*t)%W+W)%W;g.fillStyle='rgba(160,222,205,'+a+')';g.beginPath();g.arc(x,(s[1])%H,s[2],0,6.28);g.fill();}g.restore();}
+function grid(){g.strokeStyle='rgba(90,180,165,0.06)';g.lineWidth=1;for(let x=0;x<W;x+=110){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=0;y<H;y+=110){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}}
 function candle(i,grow,scale){
  const [o,h,l,cl]=TRADE.candles[i]; const up=cl>=o; const col=up?'#2ECC9A':'#E15A5A';
  const x=xi(i); let yO=py(o),yC=py(cl),yH=py(h),yL=py(l);
  if(grow<1){yH=lerp(yO,yH,grow);yL=lerp(yO,yL,grow);yC=lerp(yO,yC,grow);}
  const bt=Math.min(yO,yC),bb=Math.max(yO,yC); const w=bodyW*(scale||1);
- g.strokeStyle=col;g.fillStyle=col;g.lineWidth=2.5;
+ g.save();
+ g.shadowColor=up?'rgba(46,224,166,0.6)':'rgba(239,107,102,0.6)'; g.shadowBlur=18;
+ g.strokeStyle=col;g.lineWidth=3;
  g.beginPath();g.moveTo(x,yH);g.lineTo(x,yL);g.stroke();
- rr(x-w/2,bt,w,Math.max(3,bb-bt),3);g.fill();
+ const grd=g.createLinearGradient(0,bt,0,bb);
+ grd.addColorStop(0, up?'#5cf0c2':'#f58e89'); grd.addColorStop(1, up?'#1c9c76':'#bd4843');
+ g.fillStyle=grd; rr(x-w/2,bt,w,Math.max(3,bb-bt),4); g.fill();
+ // gloss highlight
+ g.shadowBlur=0; g.fillStyle='rgba(255,255,255,0.16)'; rr(x-w/2+2,bt+2,w*0.42,Math.max(2,(bb-bt)-4),3); g.fill();
+ g.restore();
 }
 function button(cx,cy,w,h,label,col1,col2,glow,alpha){
  g.save();g.globalAlpha=alpha;
@@ -107,13 +115,20 @@ const el=id=>document.getElementById(id);
 function render(t){
  t=clamp(t,0,TOTAL);
  g.clearRect(0,0,W,H);
+ // motion blur on transitions (canvas filter → sharpens as it settles)
+ const blurA=(t<0.6?(1-t/0.6)*8:0)+((t>=5.5&&t<6.15)?Math.sin((t-5.5)/0.65*Math.PI)*8:0);
+ c.style.filter=blurA>0.06?('blur('+blurA.toFixed(1)+'px)'):'none';
  // bg
  const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0F1A20');bg.addColorStop(.5,'#0A1015');bg.addColorStop(1,'#05080B');
  g.fillStyle=bg;g.fillRect(0,0,W,H);
+ // radial glow behind the action
+ const gl=g.createRadialGradient(W/2,780,50,W/2,780,760); gl.addColorStop(0,'rgba(46,204,154,0.11)'); gl.addColorStop(1,'rgba(46,204,154,0)');
+ g.fillStyle=gl; g.fillRect(0,0,W,H);
  grid(); starfield(t);
- // zoom-punch on reveal
- const punch=1+0.05*Math.max(0,Math.sin(clamp((t-T.revealStart)/0.4,0,1)*Math.PI));
- g.save();g.translate(W/2,(CY0+CY1)/2);g.scale(punch,punch);g.translate(-W/2,-(CY0+CY1)/2);
+ // camera: continuous slow push-in + reveal punch + drift
+ const zoom=1+0.05*ss(0,TOTAL,t)+0.055*Math.max(0,Math.sin(clamp((t-T.revealStart)/0.4,0,1)*Math.PI));
+ const drift=lerp(-12,12,ss(0,TOTAL,t));
+ g.save();g.translate(W/2,(CY0+CY1)/2);g.scale(zoom,zoom);g.translate(-W/2,-(CY0+CY1)/2+drift);
  // candles: setup 0..22 revealed 0.2-1.2; breakout on reveal
  if(t>0.1){for(let i=0;i<=T.decision;i++){const ap=ss(0.1,1.1,t); if(ap>0) candle(i,1,1);} }
  for(let i=T.decision+1;i<N;i++){ if(t>=REV[i]) candle(i,clamp(ss(REV[i],REV[i]+0.35,t),0,1),1); }
