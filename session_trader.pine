@@ -1,0 +1,377 @@
+//@version=6
+// ============================================================================
+//  ORDER-FLOW SESSION TRADER — daily trade signals from Volume Profile + OF
+//  Pine Script v6 · overlay
+//
+//  METHOD (Auction Market Theory + order flow):
+//   1. CONTEXT (where): price tests a value-area edge (VAH/VAL) of the
+//      developing session profile, or a prior-session level (pPOC / pVAH /
+//      pVAL / PDH / PDL) — these are the only locations trades are taken.
+//   2. TRIGGER (who wins): the test bar rejects the level AND order flow
+//      confirms — positive/negative delta, or absorption of the aggressor.
+//   3. PLAN: entry at rejection close, stop beyond the level, target the
+//      session POC then the opposite value-area edge, gated by min R:R and a
+//      per-day signal cap. One position at a time; outcome tracked.
+//
+//  HONEST APPROXIMATION NOTICE:
+//   Delta/volume are reconstructed from a lower-timeframe feed via
+//   request.security_lower_tf() (TradingView has no real tape). Signals are
+//   decision support on approximated order flow — validate before trading.
+// ============================================================================
+indicator("Order-Flow Session Trader",
+     shorttitle       = "OF Trader",
+     overlay          = true,
+     max_boxes_count  = 500,
+     max_labels_count = 500,
+     max_lines_count  = 500)
+
+// ─────────────────────────────  INPUTS  ────────────────────────────────────
+gPre   = "⓪ Instrument"
+preset = input.string("Gold (XAUUSD)", "Preset", options=["Gold (XAUUSD)","Forex (5-digit)","Index / Crypto","Custom (auto)"], group=gPre)
+float presetBin = preset == "Gold (XAUUSD)" ? 1.0 : preset == "Forex (5-digit)" ? 0.0005 : 0.0
+
+gEng   = "① LTF Engine & Profile"
+autoLtf= input.bool(true, "Auto lower timeframe", group=gEng)
+manLtf = input.timeframe("1", "Manual lower timeframe", group=gEng)
+profRows= input.int(24, "Profile rows (bins)", minval=8, maxval=60, group=gEng)
+vaPct  = input.float(70, "Value area %", minval=50, maxval=90, step=5, group=gEng) / 100.0
+ofNative= input.bool(true, "Read native footprint (bar-style) when available", group=gEng, tooltip="Uses request.footprint() REAL bid/ask (Numbers Bars) for order-flow confirmation. Needs Premium/Ultimate + footprint data; falls back to the LTF approximation when na. Turn off if your plan errors.")
+fpTicks = input.int(50, "Footprint ticks per row", minval=1, group=gEng, tooltip="Gold (mintick 0.01): 50 = $0.50 rows.")
+
+gSig   = "② Signal Logic"
+useVA   = input.bool(true, "Fade value-area edges (VAH/VAL)", group=gSig)
+usePrev = input.bool(true, "Trade prior-session levels", group=gSig)
+tolFrac = input.float(0.25, "Level tolerance (× ATR)", minval=0.05, step=0.05, group=gSig, tooltip="How close the bar must tap the level.")
+absVolF = input.float(1.5, "Absorption volume (× avg)", minval=1.0, step=0.1, group=gSig)
+minRR   = input.float(1.5, "Min reward:risk", minval=0.5, step=0.25, group=gSig)
+maxDay  = input.int(2, "Max signals per day", minval=1, maxval=10, group=gSig)
+cooldn  = input.int(5, "Cooldown (bars)", minval=0, group=gSig)
+
+gRisk  = "③ Risk / Targets"
+slFrac  = input.float(0.5, "Stop buffer (× ATR)", minval=0.1, step=0.1, group=gRisk)
+tpMode  = input.string("POC → opposite VA", "Target", options=["POC → opposite VA","Fixed R multiple"], group=gRisk)
+rMult   = input.float(2.0, "Fixed R multiple", minval=0.5, step=0.5, group=gRisk)
+sessF   = input.session("0000-0000", "Entry session filter", group=gRisk, tooltip="Only open trades during this window (exchange time). 0000-0000 = 24h.")
+
+gVis   = "④ Visuals"
+showPlan= input.bool(true, "Draw trade plan (entry/SL/TP)", group=gVis)
+showLvls= input.bool(true, "Draw session + prior levels", group=gVis)
+showTbl = input.bool(true, "Dashboard table", group=gVis)
+planLen = input.int(40, "Plan extend (bars)", minval=5, group=gVis)
+buyCol  = input.color(color.new(#26a69a,0), "Long / support", group=gVis)
+sellCol = input.color(color.new(#ef5350,0), "Short / resistance", group=gVis)
+pocCol  = input.color(color.new(#ffca28,0), "POC", group=gVis)
+
+// ─────────────────────────────  HELPERS  ───────────────────────────────────
+f_fmt(float v) =>
+    a = math.abs(v)
+    a >= 1e6 ? str.tostring(v/1e6, "#.##") + "M" : a >= 1e3 ? str.tostring(v/1e3, "#.#") + "K" : str.tostring(v, "#")
+
+f_classify(float o, float h, float l, float c, float v) =>
+    rng  = math.max(h - l, syminfo.mintick)
+    frac = (c - l) / rng
+    [v * frac, v * (1.0 - frac)]
+
+f_profile(array<float> tot, int minB, float bs, float vpct) =>
+    int nb = array.size(tot)
+    int pocJ = 0
+    float pocV = -1.0
+    float total = 0.0
+    for j = 0 to nb - 1
+        vv = array.get(tot, j)
+        total += vv
+        if vv > pocV
+            pocV := vv
+            pocJ := j
+    float acc = pocV
+    int up = pocJ
+    int dn = pocJ
+    float target = total * vpct
+    while acc < target and (up < nb - 1 or dn > 0)
+        vU = up < nb - 1 ? array.get(tot, up + 1) : -1.0
+        vD = dn > 0      ? array.get(tot, dn - 1) : -1.0
+        if vU >= vD
+            up += 1
+            acc += math.max(vU, 0.0)
+        else
+            dn -= 1
+            acc += math.max(vD, 0.0)
+    [(minB + pocJ) * bs, (minB + up + 1) * bs, (minB + dn) * bs]
+
+// Draw a horizontal level extending right, registered for cleanup.
+f_lvlLine(float p, int x1, int x2, color c, string st, array<line> arr) =>
+    if not na(p)
+        array.push(arr, line.new(x1, p, x2, p, color=c, style=st, extend=extend.right))
+
+chartSec = timeframe.in_seconds(timeframe.period)
+autoRes  = chartSec >= 3600 ? "5" : chartSec >= 900 ? "1" : chartSec >= 180 ? "5S" : "1S"
+ltfRes   = autoLtf ? autoRes : manLtf
+float atr = ta.atr(14)
+float binSize = presetBin > 0 ? math.max(syminfo.mintick, presetBin) :
+     math.max(syminfo.mintick, math.round((atr * 3 / profRows) / syminfo.mintick) * syminfo.mintick)
+
+// ─────────────────────  LTF DELTA + SESSION PROFILE  ───────────────────────
+[aO, aH, aL, aC, aV] = request.security_lower_tf(syminfo.tickerid, ltfRes, [open, high, low, close, volume])
+int n = na(aC) ? 0 : array.size(aC)
+
+// Native volume footprint (real bid/ask, bar-style) — confirmation source when available
+footprint fp = request.footprint(fpTicks, int(vaPct * 100), 300)
+bool  haveFp = ofNative and not na(fp)
+float fpBuy  = 0.0
+float fpSell = 0.0
+if haveFp
+    array<volume_row> fr = fp.rows()
+    int nfr = array.size(fr)
+    if nfr > 0
+        for i = 0 to nfr - 1
+            volume_row rr = array.get(fr, i)
+            fpBuy  += rr.buy_volume()
+            fpSell += rr.sell_volume()
+
+float buySum = 0.0
+float sellSum = 0.0
+if n > 0
+    for i = 0 to n - 1
+        [b, s] = f_classify(array.get(aO,i), array.get(aH,i), array.get(aL,i), array.get(aC,i), array.get(aV,i))
+        buySum  += b
+        sellSum += s
+else
+    [b, s] = f_classify(open, high, low, close, volume)
+    buySum  := b
+    sellSum := s
+float barDelta = buySum - sellSum
+float barVol   = buySum + sellSum
+float avgVol   = ta.sma(barVol, 20)
+float volRatio = avgVol > 0 ? barVol / avgVol : 0.0
+
+// Session (day) volume-at-price
+var map<int, float> sTot = map.new<int, float>()
+var int   sMinB = na
+var int   sMaxB = na
+var float cPoc = na
+var float cVah = na
+var float cVal = na
+var float pPoc = na
+var float pVah = na
+var float pVal = na
+var int   dayCount = 0
+var int   lastSigBar = na
+
+float pdH = request.security(syminfo.tickerid, "1D", high[1], lookahead=barmerge.lookahead_on)
+float pdL = request.security(syminfo.tickerid, "1D", low[1],  lookahead=barmerge.lookahead_on)
+bool newDay = timeframe.change("1D")
+
+// Day rollover: snapshot developing profile → prior, reset
+if barstate.isconfirmed and newDay
+    pPoc := cPoc
+    pVah := cVah
+    pVal := cVal
+    sTot.clear()
+    sMinB := na
+    sMaxB := na
+    dayCount := 0
+
+// Accumulate confirmed intrabars, then recompute developing POC/VAH/VAL
+if barstate.isconfirmed and n > 0
+    for i = 0 to n - 1
+        c = array.get(aC, i)
+        v = array.get(aV, i)
+        bin = int(math.round(c / binSize))
+        sTot.put(bin, (sTot.contains(bin) ? sTot.get(bin) : 0.0) + v)
+        sMinB := na(sMinB) or bin < sMinB ? bin : sMinB
+        sMaxB := na(sMaxB) or bin > sMaxB ? bin : sMaxB
+    if not na(sMinB) and sTot.size() > 0
+        array<float> tot = array.new<float>()
+        for bb = sMinB to sMaxB
+            array.push(tot, sTot.contains(bb) ? sTot.get(bb) : 0.0)
+        [pc, vh, vl] = f_profile(tot, sMinB, binSize, vaPct)
+        cPoc := pc
+        cVah := vh
+        cVal := vl
+
+// ─────────────────────────  SIGNAL EVALUATION  ─────────────────────────────
+float tol   = atr * tolFrac
+float slBuf = atr * slFrac
+bool inSess = na(time(timeframe.period, sessF)) == false
+
+// Order-flow confirmation — from the native footprint when available, else LTF proxy
+float ofDelta = haveFp ? (fpBuy - fpSell) : barDelta
+float ofVol   = haveFp ? (fpBuy + fpSell) : barVol
+float ofAvg   = ta.sma(ofVol, 20)
+float ofVR    = ofAvg > 0 ? ofVol / ofAvg : 0.0
+bool ofBull = ofDelta > 0 or (ofDelta < 0 and close > open and ofVR >= absVolF)   // buyers or sellers absorbed
+bool ofBear = ofDelta < 0 or (ofDelta > 0 and close < open and ofVR >= absVolF)   // sellers or buyers absorbed
+
+// Pick the support the bar rejected (low tapped level, close above it)
+f_supAt(float lvl, float tolv) => not na(lvl) and low <= lvl + tolv and low >= lvl - 3*tolv and close > lvl
+f_resAt(float lvl, float tolv) => not na(lvl) and high >= lvl - tolv and high <= lvl + 3*tolv and close < lvl
+
+float supLvl = na
+string supTag = ""
+if useVA and f_supAt(cVal, tol)
+    supLvl := cVal
+    supTag := "VAL"
+else if usePrev and f_supAt(pVal, tol)
+    supLvl := pVal
+    supTag := "pVAL"
+else if usePrev and f_supAt(pPoc, tol)
+    supLvl := pPoc
+    supTag := "pPOC"
+else if usePrev and f_supAt(pdL, tol)
+    supLvl := pdL
+    supTag := "PDL"
+
+float resLvl = na
+string resTag = ""
+if useVA and f_resAt(cVah, tol)
+    resLvl := cVah
+    resTag := "VAH"
+else if usePrev and f_resAt(pVah, tol)
+    resLvl := pVah
+    resTag := "pVAH"
+else if usePrev and f_resAt(pPoc, tol)
+    resLvl := pPoc
+    resTag := "pPOC"
+else if usePrev and f_resAt(pdH, tol)
+    resLvl := pdH
+    resTag := "PDH"
+
+// Build candidate long/short plans
+float lEntry = close
+float lSL = na(supLvl) ? na : supLvl - slBuf
+float lTP = tpMode == "Fixed R multiple" ? (na(lSL) ? na : close + rMult * (close - lSL)) : (close < cPoc ? cPoc : cVah)
+float lRR = (not na(lSL) and not na(lTP) and close > lSL) ? (lTP - lEntry) / (lEntry - lSL) : na
+
+float sEntry = close
+float sSL = na(resLvl) ? na : resLvl + slBuf
+float sTP = tpMode == "Fixed R multiple" ? (na(sSL) ? na : close - rMult * (sSL - close)) : (close > cPoc ? cPoc : cVal)
+float sRR = (not na(sSL) and not na(sTP) and sSL > close) ? (sEntry - sTP) / (sSL - sEntry) : na
+
+bool coolOk = na(lastSigBar) or (bar_index - lastSigBar) > cooldn
+bool gate   = barstate.isconfirmed and inSess and dayCount < maxDay and coolOk
+
+bool longSig  = gate and not na(supLvl) and ofBull and not na(lRR) and lRR >= minRR and lTP > lEntry
+bool shortSig = gate and not na(resLvl) and ofBear and not na(sRR) and sRR >= minRR and sTP < sEntry
+
+// ─────────────────────────  TRADE MANAGEMENT  ──────────────────────────────
+var int   tState = 0        // 0 flat, 1 long, -1 short
+var float tEntry = na
+var float tSL = na
+var float tTP = na
+var string tTag = ""
+var int   wins = 0
+var int   losses = 0
+
+var array<box>   tBoxes = array.new<box>()
+var array<line>  tLines = array.new<line>()
+var array<label> tLabs  = array.new<label>()
+
+f_drawPlan(int dir, float e, float sl, float tp, string tag, float rr) =>
+    col = dir > 0 ? buyCol : sellCol
+    x2 = bar_index + planLen
+    array.push(tBoxes, box.new(bar_index, e, x2, sl, bgcolor=color.new(sellCol, 82), border_color=na))          // risk
+    array.push(tBoxes, box.new(bar_index, tp, x2, e, bgcolor=color.new(buyCol, 82), border_color=na))           // reward
+    array.push(tLines, line.new(bar_index, e, x2, e, color=color.new(color.white, 0), width=1))
+    array.push(tLines, line.new(bar_index, sl, x2, sl, color=sellCol, style=line.style_dashed))
+    array.push(tLines, line.new(bar_index, tp, x2, tp, color=buyCol, style=line.style_dashed))
+    txt = (dir > 0 ? "▲ LONG " : "▼ SHORT ") + tag + "\nE " + str.tostring(e, format.mintick) + "  SL " + str.tostring(sl, format.mintick) + "  TP " + str.tostring(tp, format.mintick) + "\nR:R " + str.tostring(rr, "#.#")
+    array.push(tLabs, label.new(bar_index, dir > 0 ? sl : tp, txt, style=(dir > 0 ? label.style_label_up : label.style_label_down), color=color.new(col, 12), textcolor=color.white, size=size.small))
+
+// Open a new position on a signal (only when flat)
+if tState == 0 and (longSig or shortSig)
+    if longSig and (na(sRR) or lRR >= sRR)
+        tState := 1
+        tEntry := lEntry
+        tSL := lSL
+        tTP := lTP
+        tTag := supTag
+        if showPlan
+            f_drawPlan(1, lEntry, lSL, lTP, supTag, lRR)
+        alert("LONG " + supTag + " @ " + str.tostring(lEntry, format.mintick) + " SL " + str.tostring(lSL, format.mintick) + " TP " + str.tostring(lTP, format.mintick) + " (R:R " + str.tostring(lRR, "#.#") + ")", alert.freq_once_per_bar)
+        dayCount += 1
+        lastSigBar := bar_index
+    else if shortSig
+        tState := -1
+        tEntry := sEntry
+        tSL := sSL
+        tTP := sTP
+        tTag := resTag
+        if showPlan
+            f_drawPlan(-1, sEntry, sSL, sTP, resTag, sRR)
+        alert("SHORT " + resTag + " @ " + str.tostring(sEntry, format.mintick) + " SL " + str.tostring(sSL, format.mintick) + " TP " + str.tostring(sTP, format.mintick) + " (R:R " + str.tostring(sRR, "#.#") + ")", alert.freq_once_per_bar)
+        dayCount += 1
+        lastSigBar := bar_index
+
+// Manage the open position (check SL / TP intrabar on confirmed bars)
+bool hitTP = false
+bool hitSL = false
+if barstate.isconfirmed and tState == 1
+    if low <= tSL
+        hitSL := true
+    else if high >= tTP
+        hitTP := true
+if barstate.isconfirmed and tState == -1
+    if high >= tSL
+        hitSL := true
+    else if low <= tTP
+        hitTP := true
+if hitTP
+    wins += 1
+    tState := 0
+if hitSL
+    losses += 1
+    tState := 0
+plotshape(hitTP, "TP hit", shape.xcross, location.abovebar, buyCol, size=size.tiny, text="TP")
+plotshape(hitSL, "SL hit", shape.xcross, location.belowbar, sellCol, size=size.tiny, text="SL")
+
+// Cap stored trade drawings
+while array.size(tBoxes) > 60
+    box.delete(array.shift(tBoxes))
+while array.size(tLines) > 90
+    line.delete(array.shift(tLines))
+while array.size(tLabs) > 30
+    label.delete(array.shift(tLabs))
+
+// ─────────────────────────  LEVEL LINES (last bar)  ────────────────────────
+var array<line> lvlLines = array.new<line>()
+if showLvls and barstate.islast
+    for ln in lvlLines
+        line.delete(ln)
+    lvlLines.clear()
+    x1 = bar_index - 60
+    x2 = bar_index + 5
+    f_lvlLine(cPoc, x1, x2, pocCol, line.style_solid, lvlLines)
+    f_lvlLine(cVah, x1, x2, color.new(#5b9cf6,0), line.style_dashed, lvlLines)
+    f_lvlLine(cVal, x1, x2, color.new(#5b9cf6,0), line.style_dashed, lvlLines)
+    f_lvlLine(pPoc, x1, x2, color.new(#ff9800,0), line.style_dotted, lvlLines)
+    f_lvlLine(pdH,  x1, x2, color.new(color.gray,0), line.style_dotted, lvlLines)
+    f_lvlLine(pdL,  x1, x2, color.new(color.gray,0), line.style_dotted, lvlLines)
+
+// ─────────────────────────────  DASHBOARD  ─────────────────────────────────
+var table t = table.new(position.top_right, 2, 7, border_width=1, frame_color=color.new(color.gray,50), frame_width=1)
+if showTbl and barstate.islast
+    bias = na(cPoc) ? "—" : close > cPoc ? "Above POC (bull)" : "Below POC (bear)"
+    st   = tState == 1 ? "LONG open" : tState == -1 ? "SHORT open" : "flat"
+    stc  = tState == 1 ? buyCol : tState == -1 ? sellCol : color.new(color.gray,0)
+    total = wins + losses
+    wr = total > 0 ? str.tostring(wins / total * 100, "#") + "%" : "—"
+    table.cell(t, 0, 0, "OF SESSION TRADER", text_color=color.white, text_size=size.small, bgcolor=color.new(color.gray,70))
+    table.cell(t, 1, 0, haveFp ? "Footprint (real)" : ltfRes + " LTF", text_color = haveFp ? buyCol : color.new(color.gray,0), text_size=size.small, bgcolor=color.new(color.gray,70))
+    table.cell(t, 0, 1, "Bias", text_color=color.new(color.gray,0), text_size=size.small)
+    table.cell(t, 1, 1, bias, text_color = bias == "—" ? color.gray : (close > cPoc ? buyCol : sellCol), text_size=size.small)
+    table.cell(t, 0, 2, "POC / VA", text_color=color.new(color.gray,0), text_size=size.small)
+    table.cell(t, 1, 2, na(cPoc) ? "—" : str.tostring(cVal, format.mintick) + " · " + str.tostring(cPoc, format.mintick) + " · " + str.tostring(cVah, format.mintick), text_color=pocCol, text_size=size.tiny)
+    table.cell(t, 0, 3, "Position", text_color=color.new(color.gray,0), text_size=size.small)
+    table.cell(t, 1, 3, st, text_color=stc, text_size=size.small)
+    table.cell(t, 0, 4, "Plan", text_color=color.new(color.gray,0), text_size=size.small)
+    table.cell(t, 1, 4, tState == 0 ? "—" : "E " + str.tostring(tEntry, format.mintick) + " SL " + str.tostring(tSL, format.mintick) + " TP " + str.tostring(tTP, format.mintick), text_color=color.white, text_size=size.tiny)
+    table.cell(t, 0, 5, "Signals today", text_color=color.new(color.gray,0), text_size=size.small)
+    table.cell(t, 1, 5, str.tostring(dayCount) + " / " + str.tostring(maxDay), text_color=color.white, text_size=size.small)
+    table.cell(t, 0, 6, "Record (W/L · WR)", text_color=color.new(color.gray,0), text_size=size.small)
+    table.cell(t, 1, 6, str.tostring(wins) + "/" + str.tostring(losses) + " · " + wr, text_color=color.white, text_size=size.small)
+
+// ─────────────────────────────  ALERTS  ────────────────────────────────────
+alertcondition(longSig,  "Long signal",  "OF Trader: LONG setup at support with order-flow confirmation")
+alertcondition(shortSig, "Short signal", "OF Trader: SHORT setup at resistance with order-flow confirmation")
+alertcondition(hitTP, "Target hit", "OF Trader: take-profit reached")
+alertcondition(hitSL, "Stop hit",   "OF Trader: stop-loss reached")
