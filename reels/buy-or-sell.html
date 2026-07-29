@@ -1,0 +1,169 @@
+<meta charset="utf-8">
+<title>Liquidity State — Buy or Sell</title>
+<style>
+  @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-Bold.ttf');font-weight:700}
+  @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-ExtraBold.ttf');font-weight:800}
+  @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-Black.ttf');font-weight:900}
+  html,body{margin:0;padding:0;background:#06090C;overflow:hidden}
+  #stage{position:relative;width:1080px;height:1920px;overflow:hidden;font-family:'Tajawal',sans-serif;
+    background:radial-gradient(120% 80% at 50% 30%, #0F1A20 0%, #0A1015 45%, #05080B 100%)}
+  canvas#c{position:absolute;inset:0}
+  #big{position:absolute;left:50px;right:50px;top:190px;text-align:center;opacity:0;pointer-events:none;
+    direction:rtl;font-weight:900;font-size:104px;color:#EDEFF1;line-height:1.08;
+    text-shadow:0 6px 30px rgba(0,0,0,.7)}
+  #big em{font-style:normal;color:#E9C46A}
+  #cap{position:absolute;left:40px;right:40px;bottom:250px;text-align:center;opacity:0;pointer-events:none;
+    direction:rtl;font-weight:900;font-size:76px;color:#fff;
+    -webkit-text-stroke:3px #05080B;paint-order:stroke fill}
+  #cap b{color:#E9C46A;-webkit-text-stroke:3px #05080B}
+  #wm{position:absolute;left:60px;bottom:120px;display:flex;align-items:center;gap:12px;opacity:.0}
+  #wm .g{width:36px;height:36px}
+  #wm .t{font-weight:700;letter-spacing:2px;font-size:28px;color:rgba(215,222,228,.9)}
+</style>
+<div id="stage">
+  <canvas id="c" width="1080" height="1920"></canvas>
+  <div id="big"></div>
+  <div id="cap"></div>
+  <div id="wm">
+    <svg class="g" viewBox="0 0 100 100"><g fill="none" stroke="#d7c79a" stroke-width="3" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28"/><path d="M12,28 L50,43 L88,28"/><path d="M12,72 L50,43 L88,72"/><path d="M50,43 L50,94"/></g></svg>
+    <div class="t">@liquidity.state</div>
+  </div>
+</div>
+<script>
+const TRADE={"candles":[[4064.0,4075.2,4061.1,4075.2],[4075.3,4075.5,4049.0,4050.9],[4050.5,4054.5,4005.8,4022.4],[4022.4,4027.5,4017.5,4023.3],[4023.1,4025.5,3992.9,4000.3],[4000.5,4009.3,3999.2,4000.6],[4000.7,4012.7,3993.6,4008.5],[4008.8,4011.6,4000.5,4009.3],[4009.4,4013.6,4002.8,4008.7],[4005.9,4015.5,4005.8,4007.4],[4007.7,4009.9,3999.1,4007.9],[4008.6,4014.3,3990.4,4011.6],[4010.8,4019.0,3998.6,4017.0],[4017.5,4025.7,4012.7,4019.2],[4019.1,4025.7,4017.5,4022.6],[4023.7,4029.7,4019.9,4026.7],[4027.2,4040.4,4026.2,4037.8],[4037.7,4039.5,4028.0,4030.4],[4030.6,4036.4,4026.5,4027.3],[4027.3,4031.1,4020.8,4022.6],[4022.4,4031.2,4020.1,4028.7],[4028.6,4029.6,4021.9,4028.2],[4028.2,4039.0,4022.1,4038.1],[4038.5,4112.5,4029.8,4083.9],[4084.0,4096.4,4078.2,4084.0],[4084.0,4098.4,4077.9,4093.0],[4093.0,4108.7,4071.3,4073.1]],
+"lo":3980.6,"hi":4122.3,"entryIdx":22,"tp":4075.9,"sl":4019.2};
+const FPS=30,W=1080,H=1920;
+const c=document.getElementById('c'), g=c.getContext('2d');
+const CX0=80,CX1=1000,CY0=470,CY1=1150,PADT=70,PADB=70;
+const N=TRADE.candles.length, slotW=(CX1-CX0)/N, bodyW=Math.min(30,slotW*0.62);
+const xi=i=>CX0+i*slotW+slotW/2;
+const lo=TRADE.lo,hi=TRADE.hi;
+const py=p=>(CY0+PADT)+(hi-p)/(hi-lo)*((CY1-PADB)-(CY0+PADT));
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const ss=(a,b,x)=>{x=clamp((x-a)/(b-a),0,1);return x*x*(3-2*x);};
+const lerp=(a,b,x)=>a+(b-a)*x;
+const eOut=x=>1-Math.pow(1-clamp(x,0,1),3);
+const eBack=x=>{x=clamp(x,0,1);const s=1.7;return 1+ (s+1)*Math.pow(x-1,3)+s*Math.pow(x-1,2);};
+function rr(x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
+
+// deterministic starfield
+let _s=99; const rnd=()=>{_s=(_s*1664525+1013904223)&0x7fffffff;return _s/0x7fffffff;};
+const STARS=[]; for(let i=0;i<40;i++)STARS.push([rnd()*W,rnd()*H,0.4+rnd()*1.6,rnd()*6.28]);
+
+const T={decision:22, revealStart:5.6};
+const REV={23:5.6,24:6.05,25:6.5,26:6.95};
+// kinetic caption chunks [t, html]
+const CAPS=[
+ [8.0,"ليش <b>شراء؟</b>"],[8.8,"السعر <b>جمّع</b>"],[9.6,"تحت مقاومة"],[10.5,"بعدها"],
+ [11.0,"<b>اخترقها</b> بقوة"],[12.0,"الدخول <b>فوق الكسر</b>"],[13.0,"الستوب <b>تحت التجميع</b>"],
+ [14.2,"الهدف <b>ضعف المخاطرة</b>"],[15.4,"ربح <b>2R</b> ✅"],[16.4,"بهالبساطة"],[17.2,"<b>تقرأ الشارت</b>"],[18.4,""]
+];
+const TOTAL=21.5;
+
+function starfield(t){for(const s of STARS){const a=0.10+0.12*Math.sin(t*1.2+s[3]);g.fillStyle='rgba(150,200,190,'+a+')';g.beginPath();g.arc((s[0])%W,(s[1])%H,s[2],0,6.28);g.fill();}}
+function grid(){g.strokeStyle='rgba(120,150,160,0.05)';g.lineWidth=1;for(let x=0;x<W;x+=120){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=0;y<H;y+=120){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}}
+function candle(i,grow,scale){
+ const [o,h,l,cl]=TRADE.candles[i]; const up=cl>=o; const col=up?'#2ECC9A':'#E15A5A';
+ const x=xi(i); let yO=py(o),yC=py(cl),yH=py(h),yL=py(l);
+ if(grow<1){yH=lerp(yO,yH,grow);yL=lerp(yO,yL,grow);yC=lerp(yO,yC,grow);}
+ const bt=Math.min(yO,yC),bb=Math.max(yO,yC); const w=bodyW*(scale||1);
+ g.strokeStyle=col;g.fillStyle=col;g.lineWidth=2.5;
+ g.beginPath();g.moveTo(x,yH);g.lineTo(x,yL);g.stroke();
+ rr(x-w/2,bt,w,Math.max(3,bb-bt),3);g.fill();
+}
+function button(cx,cy,w,h,label,col1,col2,glow,alpha){
+ g.save();g.globalAlpha=alpha;
+ g.shadowColor=glow;g.shadowBlur=40;
+ const grd=g.createLinearGradient(0,cy-h/2,0,cy+h/2);grd.addColorStop(0,col1);grd.addColorStop(1,col2);
+ g.fillStyle=grd;rr(cx-w/2,cy-h/2,w,h,16);g.fill();g.shadowBlur=0;
+ g.fillStyle='rgba(255,255,255,0.18)';rr(cx-w/2+4,cy-h/2+4,w-8,h*0.4,12);g.fill();
+ g.fillStyle='#fff';g.font='800 46px Tajawal';g.textAlign='center';g.textBaseline='middle';
+ g.shadowColor='rgba(0,0,0,.4)';g.shadowBlur=6;g.fillText(label,cx,cy+2);g.restore();
+}
+function arrows(t,alpha){
+ // up/down arrows near decision candle
+ const x=xi(T.decision)+70, y=py(TRADE.candles[T.decision][3]);
+ g.save();g.globalAlpha=alpha;g.lineWidth=8;g.lineCap='round';
+ const pulse=0.7+0.3*Math.sin(t*5);
+ g.strokeStyle='rgba(46,204,154,'+pulse+')';
+ g.beginPath();g.moveTo(x,y-20);g.lineTo(x+70,y-90);g.stroke();
+ g.beginPath();g.moveTo(x+70,y-90);g.lineTo(x+44,y-84);g.moveTo(x+70,y-90);g.lineTo(x+64,y-64);g.stroke();
+ g.strokeStyle='rgba(225,90,90,'+pulse+')';
+ g.beginPath();g.moveTo(x,y+20);g.lineTo(x+70,y+90);g.stroke();
+ g.beginPath();g.moveTo(x+70,y+90);g.lineTo(x+44,y+84);g.moveTo(x+70,y+90);g.lineTo(x+64,y+64);g.stroke();
+ g.restore();
+}
+function ring(t,num,alpha){
+ const cx=W/2,cy=600,r=66;
+ g.save();g.globalAlpha=alpha;
+ g.strokeStyle='rgba(255,255,255,0.12)';g.lineWidth=8;g.beginPath();g.arc(cx,cy,r,0,6.28);g.stroke();
+ const frac=num[1]; g.strokeStyle='#E9C46A';g.lineWidth=8;g.lineCap='round';
+ g.beginPath();g.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+6.28*frac);g.stroke();
+ g.fillStyle='#fff';g.font='900 72px Tajawal';g.textAlign='center';g.textBaseline='middle';g.fillText(num[0],cx,cy+4);
+ g.restore();
+}
+const el=id=>document.getElementById(id);
+
+function render(t){
+ t=clamp(t,0,TOTAL);
+ g.clearRect(0,0,W,H);
+ // bg
+ const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0F1A20');bg.addColorStop(.5,'#0A1015');bg.addColorStop(1,'#05080B');
+ g.fillStyle=bg;g.fillRect(0,0,W,H);
+ grid(); starfield(t);
+ // zoom-punch on reveal
+ const punch=1+0.05*Math.max(0,Math.sin(clamp((t-T.revealStart)/0.4,0,1)*Math.PI));
+ g.save();g.translate(W/2,(CY0+CY1)/2);g.scale(punch,punch);g.translate(-W/2,-(CY0+CY1)/2);
+ // candles: setup 0..22 revealed 0.2-1.2; breakout on reveal
+ if(t>0.1){for(let i=0;i<=T.decision;i++){const ap=ss(0.1,1.1,t); if(ap>0) candle(i,1,1);} }
+ for(let i=T.decision+1;i<N;i++){ if(t>=REV[i]) candle(i,clamp(ss(REV[i],REV[i]+0.35,t),0,1),1); }
+ // target line during education
+ if(t>=8.0){const a=ss(8.0,8.5,t)*(1-ss(19,19.6,t));g.globalAlpha=a;g.strokeStyle='rgba(233,196,106,.8)';g.setLineDash([10,7]);g.lineWidth=2;g.beginPath();g.moveTo(CX0,py(TRADE.tp));g.lineTo(CX1,py(TRADE.tp));g.stroke();g.setLineDash([]);g.globalAlpha=1;}
+ g.restore();
+ // arrows during decision
+ const aArrow=ss(0.6,1.2,t)*(1-ss(5.2,5.6,t));
+ if(aArrow>0) arrows(t,aArrow);
+ // countdown ring 2.6-5.4
+ if(t>=2.6&&t<5.45){let num;if(t<3.55)num=['3',1-(t-2.6)/0.95];else if(t<4.5)num=['2',1-(t-3.55)/0.95];else num=['1',1-(t-4.5)/0.95];ring(t,num,ss(2.6,2.9,t)*(1-ss(5.2,5.45,t)));}
+ // BUY / SELL buttons
+ const bY=1360, bW=380, bH=118;
+ const showBtn=ss(0.3,0.7,t)*(1-ss(7.6,8.2,t));
+ if(showBtn>0){
+   const win=ss(T.revealStart,T.revealStart+0.5,t); // BUY wins
+   const buyScale=1+0.12*win + 0.03*Math.sin(t*6)*(win>0?1:0);
+   const buyGlow=win>0?'rgba(46,204,154,0.9)':'rgba(46,204,154,0.5)';
+   g.save();g.translate(300,bY);g.scale(buyScale,buyScale);g.translate(-300,-bY);
+   button(300,bY,bW,bH,'BUY','#3fe0a6','#1c7d5f',buyGlow,showBtn);g.restore();
+   button(780,bY,bW,bH,'SELL','#ef6b66','#8f2e2b','rgba(239,83,80,0.5)',showBtn*(win>0?1-0.6*win:1));
+ }
+ // ---- DOM texts ----
+ // big text: hook / reveal / cta
+ let bigHtml='',bigOp=0;
+ if(t<2.6){bigHtml='تشتري ولا <em>تبيع؟</em>';bigOp=ss(0.15,0.5,t)*(1-ss(2.2,2.5,t));}
+ else if(t>=2.6&&t<5.5){bigHtml='قرّر بسرعة 👇<br><span style="font-size:52px;color:#9FB4BC;font-weight:800">اكتب رأيك بالتعليقات</span>';bigOp=ss(2.7,3.0,t)*(1-ss(5.2,5.5,t));}
+ else if(t>=5.5&&t<7.8){bigHtml='الجواب: <em>شراء</em> 🟢';bigOp=ss(5.6,5.9,t)*(1-ss(7.4,7.8,t));}
+ else if(t>=19.4){bigHtml='احفظ 📌 وتابع<br><span style="font-size:46px;color:#E9C46A;font-weight:800;direction:ltr;display:inline-block">@liquidity.state</span>';bigOp=ss(19.6,19.9,t);}
+ const be=el('big');
+ if(be.dataset.h!==bigHtml){be.dataset.h=bigHtml;be.innerHTML=bigHtml;}
+ be.style.opacity=bigOp;
+ be.style.transform='scale('+lerp(0.9,1,eOut(ss(0,0.3,(t%3))))+')';
+ be.style.top=(t>=5.5&&t<7.8)?'150px':'190px';
+ // kinetic caption chunk
+ let cur=null,idx=-1; for(let i=0;i<CAPS.length;i++){if(t>=CAPS[i][0]){cur=CAPS[i];idx=i;}}
+ const ce=el('cap');
+ if(cur && cur[1]!==''){
+   const nx=CAPS[idx+1]; const inAt=cur[0],outAt=nx?nx[0]:19;
+   const fin=ss(inAt,inAt+0.18,t);
+   if(ce.dataset.i!==String(idx)){ce.dataset.i=String(idx);ce.innerHTML=cur[1];}
+   ce.style.opacity=fin;
+   ce.style.transform='scale('+lerp(0.7,1,eBack(ss(inAt,inAt+0.22,t)))+')';
+ } else ce.style.opacity=0;
+ // watermark
+ el('wm').style.opacity=ss(0.5,1.2,t)*0.85;
+}
+let _t0=null,_live=true;
+function loop(ts){if(_live){if(_t0==null)_t0=ts;render(((ts-_t0)/1000)%TOTAL);}requestAnimationFrame(loop);}
+window.__setT=t=>{_live=false;render(t);};
+window.__meta=()=>({fps:FPS,duration:TOTAL});
+document.fonts.ready.then(()=>{render(0);requestAnimationFrame(loop);});
+</script>
