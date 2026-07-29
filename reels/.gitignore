@@ -5,3 +5,6 @@ preview.mjs
 prev*.mjs
 
 sfx/*.wav
+out/frames_ls/
+out/ls_*.png
+out/ref/
