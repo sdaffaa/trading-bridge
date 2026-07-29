@@ -1,0 +1,100 @@
+<meta charset="utf-8">
+<title>Liquidity State — Carousel Reel</title>
+<style>
+  html,body{margin:0;padding:0;background:#0A1015;overflow:hidden}
+  #stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:#0A1015}
+  .slide{position:absolute;top:0;left:0;width:1080px;height:1920px;
+    background-size:cover;background-position:center;will-change:transform;
+    backface-visibility:hidden;transform-origin:center center}
+  .slide.s1{background-image:url(assets/1.png)}
+  .slide.s2{background-image:url(assets/2.png)}
+  .slide.s3{background-image:url(assets/3.png)}
+  .slide.s4{background-image:url(assets/4.png)}
+  .slide.s5{background-image:url(assets/5.png)}
+  /* seam shadow shown during transitions for depth */
+  #seam{position:absolute;top:0;bottom:0;width:120px;pointer-events:none;opacity:0;
+    background:linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,.45),rgba(0,0,0,0))}
+  /* subtle vignette to unify */
+  #vig{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 78% at 50% 42%, rgba(0,0,0,0) 60%, rgba(0,0,0,.28) 100%)}
+  /* segmented progress */
+  #prog{position:absolute;top:26px;left:40px;right:40px;height:5px;display:flex;gap:8px}
+  #prog .seg{flex:1;border-radius:4px;background:rgba(255,255,255,.16);overflow:hidden}
+  #prog .seg>i{display:block;height:100%;width:0;background:rgba(255,255,255,.9);border-radius:4px}
+</style>
+
+<div id="stage">
+  <div class="slide s1"></div>
+  <div class="slide s2"></div>
+  <div class="slide s3"></div>
+  <div class="slide s4"></div>
+  <div class="slide s5"></div>
+  <div id="seam"></div>
+  <div id="vig"></div>
+  <div id="prog">
+    <div class="seg"><i></i></div><div class="seg"><i></i></div><div class="seg"><i></i></div>
+    <div class="seg"><i></i></div><div class="seg"><i></i></div>
+  </div>
+</div>
+
+<script>
+const FPS=30, W=1080, N=5;
+const HOLDS=[3.3,3.2,3.2,3.2,3.7];   // seconds each slide is centered
+const TR=0.6;                         // transition duration
+// build timeline segments over p (slide index, fractional = mid-swipe)
+const segs=[]; let time=0;
+for(let i=0;i<N;i++){
+  segs.push({a:time,b:time+HOLDS[i],pa:i,pb:i,hold:true}); time+=HOLDS[i];
+  if(i<N-1){segs.push({a:time,b:time+TR,pa:i,pb:i+1,hold:false}); time+=TR;}
+}
+const TOTAL=time;
+
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const ss=(a,b,x)=>{x=clamp((x-a)/(b-a),0,1);return x*x*(3-2*x);};
+const lerp=(a,b,x)=>a+(b-a)*x;
+const easeIO=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+
+function pAt(t){
+  for(const s of segs){ if(t>=s.a&&t<=s.b){ if(s.hold)return s.pa; return lerp(s.pa,s.pb,easeIO(ss(s.a,s.b,t))); } }
+  return N-1;
+}
+// per-slide visible lifespan for Ken Burns
+const life=[];
+for(let i=0;i<N;i++){
+  let cs=null,ce=null;
+  segs.forEach(s=>{ if((s.pa===i||s.pb===i)){ if(cs===null)cs=s.a; ce=s.b; } });
+  life.push([cs,ce]);
+}
+
+const slides=[...document.querySelectorAll('.slide')];
+const segEls=[...document.querySelectorAll('#prog .seg>i')];
+const seam=document.getElementById('seam');
+
+function render(t){
+  t=clamp(t,0,TOTAL);
+  const p=pAt(t);
+  slides.forEach((el,i)=>{
+    const off=(i-p)*W;
+    if(Math.abs(i-p)>1.25){el.style.opacity=0;el.style.display='none';return;}
+    el.style.display='block';el.style.opacity=1;
+    const kb=clamp((t-life[i][0])/((life[i][1]-life[i][0])||1),0,1);
+    const scale=lerp(1.045,1.11,kb);
+    const drift=lerp(-8,8,kb);        // subtle vertical drift
+    el.style.transform=`translate3d(${off}px,${drift}px,0) scale(${scale})`;
+  });
+  // seam during transition
+  const frac=Math.abs(p-Math.round(p));
+  const inTrans=frac>0.001?1:0;
+  seam.style.opacity=inTrans?Math.sin(frac*Math.PI)*0.9:0;
+  seam.style.left=((Math.ceil(p)-p)*W-60)+'px';
+  // progress segments (continuous)
+  const op=t/TOTAL*N;
+  segEls.forEach((el,i)=>{el.style.width=(clamp(op-i,0,1)*100)+'%';});
+}
+
+let _t0=null,_live=true;
+function loop(ts){if(_live){if(_t0==null)_t0=ts;render(((ts-_t0)/1000)%TOTAL);}requestAnimationFrame(loop);}
+window.__setT=t=>{_live=false;render(t);};
+window.__meta=()=>({fps:FPS,duration:TOTAL});
+render(0); requestAnimationFrame(loop);
+</script>
