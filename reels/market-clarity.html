@@ -7,98 +7,102 @@
   @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-ExtraBold.ttf');font-weight:800}
   @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-Black.ttf');font-weight:900}
 
-  html,body{margin:0;padding:0;background:#0b171c;overflow:hidden}
+  html,body{margin:0;padding:0;background:#06090C;overflow:hidden}
   #stage{position:relative;width:1080px;height:1920px;overflow:hidden;font-family:'Tajawal',sans-serif;
-    background:radial-gradient(120% 80% at 50% 16%, #163039 0%, #0E1E24 46%, #0B171C 100%)}
-  #stage .tex{position:absolute;inset:0;opacity:.18;mix-blend-mode:screen}
+    background:linear-gradient(180deg,#0F151B 0%, #0A1015 42%, #06090C 100%)}
+  /* premium vignette */
+  #stage .vig{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(115% 75% at 50% 34%, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%)}
   canvas#chart{position:absolute;inset:0}
 
-  #prog{position:absolute;top:34px;left:60px;right:60px;height:6px;border-radius:6px;background:rgba(159,180,188,.18);overflow:hidden}
-  #prog>i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#2ECC9A,#7fe8cd)}
+  #prog{position:absolute;top:0;left:0;right:0;height:3px;background:rgba(201,162,75,.10)}
+  #prog>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#B4842C,#E6C879)}
 
-  #brandtop{position:absolute;top:70px;left:0;right:0;display:flex;gap:14px;align-items:center;justify-content:center;color:#cfe0e5;font-weight:800;letter-spacing:3px;font-size:26px}
-  #brandtop .gem{width:34px;height:34px}
+  #brandtop{position:absolute;top:66px;left:0;right:0;display:flex;gap:13px;align-items:center;justify-content:center;
+    color:#9FA9B1;font-weight:700;letter-spacing:6px;font-size:22px}
+  #brandtop .gem{width:28px;height:28px;opacity:.9}
 
-  /* step chip */
-  #step{position:absolute;top:150px;left:0;right:0;display:flex;justify-content:center;opacity:0}
-  #step .chip{display:flex;align-items:center;gap:16px;background:rgba(46,204,154,.12);border:1.5px solid rgba(46,204,154,.5);
-    padding:10px 26px 10px 16px;border-radius:100px}
-  #step .num{width:52px;height:52px;border-radius:50%;background:#2ECC9A;color:#082019;font-weight:900;font-size:34px;
-    display:flex;align-items:center;justify-content:center}
-  #step .ttl{color:#eaf6f2;font-weight:800;font-size:34px;direction:rtl}
+  /* editorial section index (top-right, RTL) */
+  #step{position:absolute;top:150px;right:64px;text-align:right;opacity:0}
+  #step .idx{direction:ltr;display:inline-block;font-weight:700;font-size:40px;letter-spacing:1px;color:#C9A24B}
+  #step .idx .of{font-size:24px;color:#5E6870;font-weight:500;margin-left:4px}
+  #step .rule{height:2px;width:96px;margin:12px 0 12px auto;background:linear-gradient(90deg,rgba(201,162,75,0),#C9A24B)}
+  #step .ttl{direction:rtl;color:#E7EAEC;font-weight:700;font-size:36px}
 
-  #hookwrap{position:absolute;left:60px;right:60px;bottom:300px;display:flex;align-items:flex-end;justify-content:center;height:360px}
-  #hook{color:#fff;font-weight:900;text-align:center;line-height:1.12;font-size:96px;text-shadow:0 4px 24px rgba(0,0,0,.55);direction:rtl;unicode-bidi:plaintext}
-  #hook .sub{display:block;font-size:46px;font-weight:700;color:#9FB4BC;margin-top:20px}
-  #hook em{font-style:normal;color:#2ECC9A}
-  #hook b{font-weight:900;color:#E9C46A}
+  /* hook — refined, editorial */
+  #hookwrap{position:absolute;left:70px;right:70px;bottom:322px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:320px}
+  #hook{color:#EDEFF1;font-weight:700;text-align:center;line-height:1.28;font-size:62px;direction:rtl;unicode-bidi:plaintext;
+    text-shadow:0 2px 18px rgba(0,0,0,.5)}
+  #hook .sub{display:block;font-size:33px;font-weight:400;color:#8A949C;margin-top:16px;letter-spacing:.5px}
+  #hook em{font-style:normal;color:#D9B25A}
+  #hook b{font-weight:800;color:#D9B25A}
+  #hookmark{width:54px;height:3px;background:#C9A24B;margin-bottom:30px;opacity:.9}
 
-  .lab{position:absolute;transform:translate(-50%,-50%);color:#cdd9dd;font-weight:800;font-size:30px;white-space:nowrap;pointer-events:none;direction:rtl;unicode-bidi:plaintext;text-shadow:0 2px 8px rgba(0,0,0,.7)}
-  .tag{position:absolute;transform:translate(-50%,-50%);padding:7px 18px;border-radius:11px;font-weight:800;font-size:28px;white-space:nowrap;pointer-events:none;letter-spacing:.4px}
-  .tag.gold{background:rgba(233,196,106,.16);color:#f0d38a;border:1.5px solid rgba(233,196,106,.6)}
-  .tag.teal{background:rgba(46,204,154,.15);color:#7fe8cd;border:1.5px solid rgba(46,204,154,.6)}
-  .tag.red{background:rgba(225,90,90,.16);color:#f0a3a3;border:1.5px solid rgba(225,90,90,.6)}
-  .tag.grey{background:rgba(159,180,188,.14);color:#c4d3d8;border:1.5px solid rgba(159,180,188,.45)}
+  /* annotations — terminal style, minimal */
+  .lab{position:absolute;transform:translate(-50%,-50%);color:#9AA4AC;font-weight:600;font-size:26px;white-space:nowrap;
+    pointer-events:none;direction:rtl;unicode-bidi:plaintext;letter-spacing:.4px}
+  .tag{position:absolute;transform:translate(-50%,-50%);padding:5px 13px;border-radius:4px;font-weight:700;font-size:24px;
+    white-space:nowrap;pointer-events:none;letter-spacing:1.2px;background:rgba(8,12,16,.72);backdrop-filter:blur(2px)}
+  .tag.gold{color:#D9B25A;border:1px solid rgba(201,162,75,.65)}
+  .tag.up{color:#7FC9B4;border:1px solid rgba(63,158,133,.6)}
+  .tag.dn{color:#D08C86;border:1px solid rgba(176,82,76,.6)}
+  .tag.neu{color:#AEB8BF;border:1px solid rgba(150,165,175,.4)}
 
-  #logo{position:absolute;bottom:120px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:12px;opacity:.96}
-  #logo .gem{width:60px;height:60px;filter:drop-shadow(0 4px 14px rgba(0,0,0,.5))}
-  #logo .name{color:#eaf2f4;font-weight:900;letter-spacing:6px;font-size:30px}
-  #logo .sub{color:#9FB4BC;font-weight:700;letter-spacing:2px;font-size:23px;direction:rtl}
+  #logo{position:absolute;bottom:132px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:11px}
+  #logo .dvd{width:150px;height:1px;background:linear-gradient(90deg,rgba(201,162,75,0),rgba(201,162,75,.5),rgba(201,162,75,0));margin-bottom:6px}
+  #logo .gem{width:46px;height:46px;opacity:.92}
+  #logo .name{color:#C7CDD2;font-weight:700;letter-spacing:8px;font-size:26px}
+  #logo .sub{color:#6D767E;font-weight:500;letter-spacing:2px;font-size:21px;direction:rtl}
 </style>
 
 <div id="stage">
-  <svg class="tex" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice">
-    <g stroke="#3a6a78" stroke-width="1" fill="#6fd7bd">
-      <line x1="120" y1="230" x2="360" y2="150"/><line x1="360" y1="150" x2="520" y2="290"/>
-      <line x1="740" y1="1620" x2="960" y2="1540"/><line x1="520" y1="1740" x2="740" y2="1620"/>
-      <circle cx="120" cy="230" r="3"/><circle cx="360" cy="150" r="3"/><circle cx="520" cy="290" r="3"/>
-      <circle cx="960" cy="1540" r="3"/><circle cx="740" cy="1620" r="3"/><circle cx="520" cy="1740" r="3"/>
-    </g>
-  </svg>
   <canvas id="chart" width="1080" height="1920"></canvas>
+  <div class="vig"></div>
   <div id="prog"><i></i></div>
   <div id="brandtop">
-    <svg class="gem" viewBox="0 0 100 100"><g fill="none" stroke="#eef5f7" stroke-width="2.4" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="rgba(226,240,244,0.16)"/><path d="M12,28 L50,43 L88,28" opacity="0.95"/><path d="M12,72 L50,43 L88,72" opacity="0.95"/><path d="M50,43 L50,94" opacity="0.95"/><path d="M50,6 L50,43" opacity="0.85"/><path d="M31,17 L50,43 L69,17" opacity="0.7" stroke-width="1.6"/><path d="M12,50 L50,43 L88,50" opacity="0.45" stroke-width="1.4"/></g></svg>
+    <svg class="gem" viewBox="0 0 100 100"><g fill="none" stroke="#c8ccd0" stroke-width="2.4" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="rgba(200,204,208,0.10)"/><path d="M12,28 L50,43 L88,28" opacity="0.9"/><path d="M12,72 L50,43 L88,72" opacity="0.9"/><path d="M50,43 L50,94" opacity="0.9"/><path d="M50,6 L50,43" opacity="0.8"/><path d="M31,17 L50,43 L69,17" opacity="0.6" stroke-width="1.6"/></g></svg>
     <span>LIQUIDITY&nbsp;STATE</span>
   </div>
-  <div id="step"><div class="chip"><div class="num">1</div><div class="ttl"></div></div></div>
+  <div id="step"><div class="idx"><span class="n">01</span><span class="of">/03</span></div><div class="rule"></div><div class="ttl"></div></div>
   <div id="ov"></div>
-  <div id="hookwrap"><div id="hook"></div></div>
+  <div id="hookwrap"><div id="hookmark"></div><div id="hook"></div></div>
   <div id="logo">
-    <svg class="gem" viewBox="0 0 100 100"><g fill="none" stroke="#eef5f7" stroke-width="2.4" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="rgba(226,240,244,0.16)"/><path d="M12,28 L50,43 L88,28" opacity="0.95"/><path d="M12,72 L50,43 L88,72" opacity="0.95"/><path d="M50,43 L50,94" opacity="0.95"/><path d="M50,6 L50,43" opacity="0.85"/><path d="M31,17 L50,43 L69,17" opacity="0.7" stroke-width="1.6"/><path d="M12,50 L50,43 L88,50" opacity="0.45" stroke-width="1.4"/></g></svg>
+    <div class="dvd"></div>
+    <svg class="gem" viewBox="0 0 100 100"><g fill="none" stroke="#d7c79a" stroke-width="2.2" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28" fill="rgba(215,199,154,0.10)"/><path d="M12,28 L50,43 L88,28" opacity="0.9"/><path d="M12,72 L50,43 L88,72" opacity="0.9"/><path d="M50,43 L50,94" opacity="0.9"/><path d="M50,6 L50,43" opacity="0.8"/><path d="M31,17 L50,43 L69,17" opacity="0.6" stroke-width="1.5"/></g></svg>
     <div class="name">LIQUIDITY&nbsp;STATE</div>
-    <div class="sub">@liquidity.state · لغرض تعليمي</div>
+    <div class="sub">XAU/USD · لغرض تعليمي</div>
   </div>
 </div>
 
 <script>
 /* ===================== CONFIG ===================== */
 const FPS=30;
-const CX0=95, CX1=900, CY0=450, CY1=1130;   // chart box (right gutter for profile)
+const CX0=110, CX1=858, CY0=470, CY1=1150;   // chart box (right gutter for axis/profile)
+const AXIS_X=1002;
 
 /* Candles below are REAL COMEX Gold (GC=F, 1H, ~XAUUSD) pulled from a live feed. */
 const SCENES=[
-  { key:'hook', dur:4.2, lo:4001.1, hi:4100.1,
+  { key:'hook', dur:4.6, lo:4001.1, hi:4100.1,
     candles:[[4078.2,4081.2,4074.5,4079.8],[4079.9,4091.8,4078.0,4085.5],[4085.4,4086.4,4077.6,4078.6],[4083.0,4085.7,4072.3,4075.1],[4075.4,4076.1,4071.0,4074.4],[4074.4,4075.5,4058.1,4058.5],[4058.3,4061.2,4042.9,4045.7],[4045.9,4049.7,4041.1,4042.3],[4042.3,4051.5,4040.7,4049.6],[4049.0,4049.7,4041.2,4042.1],[4041.9,4046.9,4034.6,4045.2],[4045.5,4052.8,4042.9,4048.7],[4048.3,4052.9,4045.8,4047.3],[4047.3,4055.6,4041.9,4045.7],[4045.5,4046.1,4018.1,4023.3],[4023.1,4028.2,4016.5,4025.6],[4026.0,4031.9,4022.5,4027.8],[4027.3,4037.9,4022.2,4029.4],[4029.4,4036.1,4019.3,4021.4],[4021.9,4034.1,4011.1,4023.8],[4024.6,4047.4,4021.9,4046.5],[4046.7,4046.8,4036.6,4037.6],[4037.9,4041.9,4025.3,4028.0],[4028.1,4030.5,4021.4,4023.1],[4022.8,4038.7,4021.5,4025.9],[4025.8,4030.6,4022.2,4028.8],[4020.9,4034.0,4013.2,4017.9],[4017.4,4026.0,4015.0,4024.3],[4025.0,4030.7,4017.1,4021.3],[4021.0,4030.0,4009.3,4025.0],[4025.0,4028.2,4022.3,4026.9],[4026.9,4026.9,4026.9,4026.9]] },
   { key:'profile', dur:7.0, title:'البروفايل اليومي والأسبوعي', lo:4333.8, hi:4373.1,
     candles:[[4344.4,4364.5,4341.4,4355.7],[4355.6,4368.1,4355.4,4361.8],[4361.5,4362.3,4346.4,4361.5],[4361.8,4364.4,4357.4,4360.0],[4359.6,4364.3,4352.4,4355.6],[4355.3,4356.7,4351.3,4353.0],[4352.6,4355.9,4348.7,4355.0],[4354.8,4358.0,4349.1,4350.8],[4350.9,4361.9,4348.2,4356.9],[4356.4,4369.8,4354.1,4361.0],[4360.9,4364.4,4349.6,4351.2],[4351.0,4353.7,4348.4,4351.2],[4352.2,4353.6,4337.1,4346.1],[4346.2,4353.8,4340.4,4346.1],[4346.5,4351.2,4340.1,4351.2],[4351.1,4352.5,4344.1,4344.7]] },
-  { key:'structure', dur:6.4, title:'الماركت ستركتشر', lo:4093.7, hi:4201.4,
+  { key:'structure', dur:6.6, title:'الماركت ستركتشر', lo:4093.7, hi:4201.4,
     candles:[[4141.9,4144.6,4135.4,4135.8],[4135.4,4150.9,4132.7,4137.1],[4136.9,4144.6,4130.6,4142.4],[4142.4,4150.5,4142.4,4147.1],[4147.1,4170.0,4143.0,4168.6],[4168.6,4187.0,4166.0,4184.1],[4184.1,4192.4,4167.3,4170.0],[4169.7,4175.1,4154.5,4165.0],[4165.0,4166.7,4146.9,4150.1],[4150.4,4158.7,4148.2,4156.6],[4156.7,4159.8,4151.8,4155.9],[4156.0,4156.5,4136.1,4138.0],[4137.9,4138.7,4102.7,4125.1],[4125.3,4126.7,4114.2,4116.6],[4106.5,4116.9,4104.0,4109.5]],
     swings:[{i:2,p:4130.6,t:'HL'},{i:6,p:4192.4,t:'HH'}],
     bos:{p:4130.6, breakI:12} },
-  { key:'balance', dur:6.4, title:'التوازن وعدم التوازن', lo:4184.4, hi:4341.6,
+  { key:'balance', dur:6.6, title:'التوازن وعدم التوازن', lo:4184.4, hi:4341.6,
     candles:[[4212.1,4231.2,4203.0,4206.7],[4207.4,4229.5,4197.5,4224.9],[4224.9,4256.8,4221.0,4232.4],[4232.3,4254.1,4228.6,4236.5],[4236.5,4247.1,4234.0,4241.8],[4242.2,4256.2,4234.9,4236.2],[4236.2,4240.8,4223.2,4231.9],[4231.6,4240.6,4230.7,4238.8],[4325.6,4327.0,4300.0,4305.8],[4305.6,4315.4,4301.3,4314.3],[4314.3,4328.5,4312.7,4313.1]],
     dispI:8, balance:[4197.5,4256.8,0,7], imbalance:[4240.6,4301.3,7,9] },
-  { key:'cta', dur:2.6 }
+  { key:'cta', dur:3.0 }
 ];
 
 const HOOKS=[
   {t:0.0, html:"إذا تبي <em>حركة السوق</em><br>تصير واضحة"},
-  {t:2.3, html:"تعلّم <em>3 أشياء</em> بس"},
-  {t:4.2, html:"وين السوق قضى وقته<br><span class='sub'>= منطقة القيمة</span>"},
-  {t:11.2,html:"الهيكل يكسر<br><em>الاتجاه يتغيّر</em>"},
-  {t:17.6,html:"من التوازن…<br><em>تجي الحركة القوية</em>"},
-  {t:24.0,html:"احفظها 📌 وطبّقها<br><span class='sub'>3 أدوات تكفيك</span>"}
+  {t:2.5, html:"تحتاج <em>ثلاث أدوات</em> فقط"},
+  {t:4.6, html:"أين قضى السعر وقته<br><span class='sub'>هي منطقة القيمة</span>"},
+  {t:11.6,html:"حين يُكسر الهيكل<br><em>يتغيّر الاتجاه</em>"},
+  {t:18.2,html:"من التوازن<br><em>تولد الحركة</em>"},
+  {t:24.8,html:"احفظ المنشور<br><span class='sub'>ثلاث أدوات تكفيك</span>"}
 ];
 /* ================================================= */
 
@@ -106,6 +110,7 @@ const cv=document.getElementById('chart'), ctx=cv.getContext('2d');
 const ov=document.getElementById('ov'), hook=document.getElementById('hook');
 const stepEl=document.getElementById('step');
 const W=1080,H=1920;
+const BULL='#3F9E85', BEAR='#B0524C', GOLD='#C9A24B';
 const TOTAL=SCENES.reduce((a,s)=>a+s.dur,0);
 let acc=0; SCENES.forEach(s=>{s.start=acc; acc+=s.dur; s.end=acc;});
 
@@ -115,42 +120,62 @@ const lerp=(a,b,x)=>a+(b-a)*x;
 const eOut=x=>1-Math.pow(1-clamp(x,0,1),3);
 
 function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-
 const n=s=>s.candles.length;
 const cxi=(s,i)=>{const st=(CX1-CX0)/(n(s)-1);return CX0+i*st;};
-const cwv=s=>(CX1-CX0)/(n(s)-1)*0.56;
+const cwv=s=>Math.min(30,(CX1-CX0)/(n(s)-1)*0.5);
 const pyv=(s,p)=>CY0+(s.hi-p)/(s.hi-s.lo)*(CY1-CY0);
 
-function candle(s,i,grow,alpha){
-  const [o,h,l,c]=s.candles[i]; const up=c>=o; const col=up?'#2ECC9A':'#E15A5A';
+function candle(s,i,alpha){
+  const [o,h,l,c]=s.candles[i]; const up=c>=o; const col=up?BULL:BEAR;
   const x=cxi(s,i); const yO=pyv(s,o),yC=pyv(s,c),yH=pyv(s,h),yL=pyv(s,l);
   const bt=Math.min(yO,yC),bb=Math.max(yO,yC);
-  const gt=lerp(yO,bt,grow),gb=lerp(yO,bb,grow),gH=lerp(yO,yH,grow),gL=lerp(yO,yL,grow);
-  ctx.globalAlpha=alpha; ctx.strokeStyle=col; ctx.lineWidth=3;
-  ctx.beginPath();ctx.moveTo(x,gH);ctx.lineTo(x,gL);ctx.stroke();
-  ctx.fillStyle=col; const w=cwv(s); rr(x-w/2,gt,w,Math.max(3,gb-gt),5); ctx.fill();
+  ctx.globalAlpha=alpha; ctx.strokeStyle=col; ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(x,yH);ctx.lineTo(x,yL);ctx.stroke();
+  ctx.fillStyle=col; const w=cwv(s); rr(x-w/2,bt,w,Math.max(2,bb-bt),2); ctx.fill();
   ctx.globalAlpha=1;
 }
 function hline(y,col,lw,dash,x0,x1){ctx.save();ctx.strokeStyle=col;ctx.lineWidth=lw;if(dash)ctx.setLineDash(dash);ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke();ctx.restore();}
+
+// ---- terminal chrome: header, grid, price axis ----
+function drawChrome(s,alpha,axis){
+  ctx.save();
+  // header
+  ctx.globalAlpha=alpha*0.92; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillStyle='#D6DBDF'; ctx.font='700 34px Tajawal';
+  ctx.fillText('XAU / USD', CX0, CY0-34);
+  ctx.fillStyle='#6E7A84'; ctx.font='500 22px Tajawal';
+  ctx.fillText('1H · COMEX GOLD', CX0, CY0-8);
+  // last price (scene close)
+  const last=s.candles[n(s)-1][3];
+  ctx.textAlign='right'; ctx.fillStyle=GOLD; ctx.font='700 30px Tajawal';
+  ctx.fillText(last.toFixed(1), AXIS_X, CY0-22);
+  // grid + axis labels
+  const levels=5;
+  ctx.textAlign='left'; ctx.font='500 21px Tajawal';
+  for(let k=0;k<levels;k++){
+    const p=s.lo+k/(levels-1)*(s.hi-s.lo); const y=pyv(s,p);
+    ctx.globalAlpha=alpha*0.05; hline(y,'#C6D0DA',1,null,CX0,axis?AXIS_X-84:990);
+    if(axis){ctx.globalAlpha=alpha*0.5; ctx.fillStyle='#6E7A84'; ctx.fillText(p.toFixed(1), AXIS_X-74, y+7);}
+  }
+  ctx.globalAlpha=1; ctx.restore();
+}
 
 function computeProfile(s,bins){
   const arr=new Array(bins).fill(0); const {lo,hi}=s;
   for(const [o,h,l,c] of s.candles){
     const b0=Math.floor((l-lo)/(hi-lo)*bins), b1=Math.ceil((h-lo)/(hi-lo)*bins);
-    for(let b=Math.max(0,b0);b<Math.min(bins,b1);b++) arr[b]+= (Math.abs(c-o)+0.5); // weight bodies
+    for(let b=Math.max(0,b0);b<Math.min(bins,b1);b++) arr[b]+=(Math.abs(c-o)+0.5);
   }
   const max=Math.max(...arr); let pocB=arr.indexOf(max);
-  // value area 70%
   const total=arr.reduce((a,v)=>a+v,0); let lo_=pocB,hi_=pocB,accv=arr[pocB];
   while(accv<total*0.7 && (lo_>0||hi_<bins-1)){
     const dn=lo_>0?arr[lo_-1]:-1, upv=hi_<bins-1?arr[hi_+1]:-1;
     if(upv>=dn){hi_++;accv+=arr[hi_];}else{lo_--;accv+=arr[lo_];}
   }
   const binP=b=>lo+(b+0.5)/bins*(hi-lo);
-  return {arr,max,pocP:binP(pocB),vah:lo+ (hi_+1)/bins*(hi-lo),val:lo+lo_/bins*(hi-lo),bins};
+  return {arr,max,pocP:binP(pocB),vah:lo+(hi_+1)/bins*(hi-lo),val:lo+lo_/bins*(hi-lo),bins};
 }
 
-// DOM overlay helpers
 function setEl(id,txt,x,y,cls,alpha,fs){
   let e=document.getElementById(id);
   if(!e){e=document.createElement('div');e.id=id;ov.appendChild(e);}
@@ -160,106 +185,108 @@ function setEl(id,txt,x,y,cls,alpha,fs){
 }
 function clearOv(keepIds){[...ov.children].forEach(c=>{if(!keepIds.includes(c.id))c.style.display='none';});}
 
+function reveal(s,lt,step,dur){for(let i=0;i<n(s);i++){const ap=ss(i*step, i*step+dur, lt); if(ap>0) candle(s,i,eOut(ap));}}
+
+function drawHookScene(s,lt,alpha){
+  drawChrome(s,alpha,true);
+  ctx.globalAlpha=alpha; reveal(s,lt,0.045,0.5); ctx.globalAlpha=1;
+  clearOv([]);
+}
+
 function drawProfileScene(s,lt,alpha){
-  const grow=Math.min(1, lt/1.4);
-  for(let i=0;i<n(s);i++){const ap=ss(i*0.05, i*0.05+0.4, lt); if(ap>0) candle(s,i,eOut(ap),alpha*ap);}
+  drawChrome(s,alpha,false);
+  ctx.globalAlpha=alpha; reveal(s,lt,0.05,0.45); ctx.globalAlpha=1;
   const pf=computeProfile(s,26);
-  const aPf=eOut(ss(1.2,2.2,lt)); if(aPf>0){
-    const RX=1000, maxLen=300, bh=(CY1-CY0)/pf.bins;
+  const aPf=eOut(ss(1.4,2.6,lt));
+  if(aPf>0){
+    const RX=1000, maxLen=250, bh=(CY1-CY0)/pf.bins;
     for(let b=0;b<pf.bins;b++){
       const p=s.lo+(b+0.5)/pf.bins*(s.hi-s.lo); const y=pyv(s,p);
-      const len=pf.arr[b]/pf.max*maxLen*aPf; const isPoc=Math.abs(p-pf.pocP)<(s.hi-s.lo)/pf.bins;
-      ctx.globalAlpha=alpha*(isPoc?.55:.28); ctx.fillStyle=isPoc?'#E9C46A':'#2ECC9A';
-      rr(RX-len,y-bh/2+1,len,bh-2,3); ctx.fill(); ctx.globalAlpha=1;
+      const len=pf.arr[b]/pf.max*maxLen*aPf;
+      const inVA=p<=pf.vah&&p>=pf.val; const isPoc=Math.abs(p-pf.pocP)<(s.hi-s.lo)/pf.bins;
+      ctx.globalAlpha=alpha*(isPoc?.6:inVA?.34:.16);
+      ctx.fillStyle=isPoc?GOLD:(inVA?'#9C8A57':'#5A6a72');
+      rr(RX-len,y-bh/2+1,len,Math.max(1,bh-2),2); ctx.fill(); ctx.globalAlpha=1;
     }
-    // VAH/VAL/POC lines
-    hline(pyv(s,pf.vah),'rgba(159,180,188,.7)',2,[9,7],CX0,1000);
-    hline(pyv(s,pf.val),'rgba(159,180,188,.7)',2,[9,7],CX0,1000);
-    hline(pyv(s,pf.pocP),'rgba(233,196,106,.9)',2.5,[2,0],CX0,1000);
+    hline(pyv(s,pf.vah),'rgba(150,165,175,.55)',1.5,[8,7],CX0,1000);
+    hline(pyv(s,pf.val),'rgba(150,165,175,.55)',1.5,[8,7],CX0,1000);
+    hline(pyv(s,pf.pocP),'rgba(201,162,75,.9)',2,null,CX0,1000);
   }
-  // labels
-  const la=eOut(ss(1.6,2.4,lt))*alpha;
-  const pf2=pf;
-  setEl('pPOC','POC', 250, pyv(s,pf2.pocP), 'tag gold', la, 28);
-  setEl('pVAH','VAH', 150, pyv(s,pf2.vah)-4, 'tag grey', la, 26);
-  setEl('pVAL','VAL', 150, pyv(s,pf2.val)+4, 'tag grey', la, 26);
-  setEl('pVA','منطقة القيمة', 980, pyv(s,pf2.pocP)+130, 'lab', la, 30);
+  const la=eOut(ss(1.8,2.8,lt))*alpha;
+  setEl('pPOC','POC', 250, pyv(s,pf.pocP), 'tag gold', la, 24);
+  setEl('pVAH','VAH', 168, pyv(s,pf.vah)-2, 'tag neu', la, 22);
+  setEl('pVAL','VAL', 168, pyv(s,pf.val)+2, 'tag neu', la, 22);
+  setEl('pVA','منطقة القيمة', 250, pyv(s,pf.pocP)+90, 'lab', la*.9, 26);
   clearOv(['pPOC','pVAH','pVAL','pVA']);
 }
 
 function drawStructureScene(s,lt,alpha){
-  for(let i=0;i<n(s);i++){const ap=ss(i*0.06, i*0.06+0.4, lt); if(ap>0) candle(s,i,eOut(ap),alpha*ap);}
+  drawChrome(s,alpha,true);
+  ctx.globalAlpha=alpha; reveal(s,lt,0.06,0.45); ctx.globalAlpha=1;
   const keep=[];
-  const aSw=eOut(ss(1.4,2.4,lt))*alpha;
+  const aSw=eOut(ss(1.6,2.6,lt))*alpha;
   s.swings.forEach((sw,k)=>{
     const x=cxi(s,sw.i), y=pyv(s,sw.p); const above=sw.t==='HH';
-    ctx.globalAlpha=aSw; ctx.fillStyle=above?'#2ECC9A':'#E9C46A';
-    ctx.beginPath();ctx.arc(x,y,7,0,7); ctx.fill(); ctx.globalAlpha=1;
-    const id='sw'+k; setEl(id, sw.t, x, y+(above?-46:46), 'tag '+(above?'teal':'gold'), aSw, 26); keep.push(id);
+    ctx.globalAlpha=aSw; ctx.fillStyle=above?BULL:GOLD;
+    ctx.beginPath();ctx.arc(x,y,5,0,7); ctx.fill(); ctx.globalAlpha=1;
+    const id='sw'+k; setEl(id, sw.t, x, y+(above?-40:40), 'tag '+(above?'up':'gold'), aSw, 23); keep.push(id);
   });
-  // BOS line + break
-  const aBos=eOut(ss(2.8,3.8,lt))*alpha;
+  const aBos=eOut(ss(3.0,4.0,lt))*alpha;
   if(aBos>0){
-    hline(pyv(s,s.bos.p),'rgba(225,90,90,.9)',2.5,[10,7],cxi(s,5),cxi(s,n(s)-1));
+    hline(pyv(s,s.bos.p),'rgba(176,82,76,.85)',1.5,[9,7],cxi(s,4),AXIS_X-84);
     const bx=cxi(s,s.bos.breakI);
-    setEl('bos','كسر الهيكل · BOS', bx+70, pyv(s,s.bos.p)+70, 'tag red', aBos, 28); keep.push('bos');
-    // down arrow at break
-    ctx.globalAlpha=aBos;ctx.strokeStyle='#E15A5A';ctx.lineWidth=4;
+    setEl('bos','BOS · كسر الهيكل', bx+40, pyv(s,s.bos.p)+64, 'tag dn', aBos, 24); keep.push('bos');
+    ctx.globalAlpha=aBos;ctx.strokeStyle=BEAR;ctx.lineWidth=3;
     const ay=pyv(s,s.bos.p);
-    ctx.beginPath();ctx.moveTo(bx,ay+6);ctx.lineTo(bx,ay+52);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(bx-12,ay+38);ctx.lineTo(bx,ay+56);ctx.lineTo(bx+12,ay+38);ctx.stroke();ctx.globalAlpha=1;
+    ctx.beginPath();ctx.moveTo(bx,ay+4);ctx.lineTo(bx,ay+46);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(bx-10,ay+34);ctx.lineTo(bx,ay+50);ctx.lineTo(bx+10,ay+34);ctx.stroke();ctx.globalAlpha=1;
   }
   clearOv(keep);
 }
 
 function drawBalanceScene(s,lt,alpha){
-  for(let i=0;i<n(s);i++){const ap=ss(i*0.06, i*0.06+0.4, lt); if(ap>0) candle(s,i,eOut(ap),alpha*ap);}
+  drawChrome(s,alpha,true);
+  ctx.globalAlpha=alpha; reveal(s,lt,0.06,0.45); ctx.globalAlpha=1;
   const keep=[];
-  // balance box
-  const aBal=eOut(ss(1.4,2.3,lt))*alpha;
+  const aBal=eOut(ss(1.6,2.5,lt))*alpha;
   if(aBal>0){
     const [pl,ph,i0,i1]=s.balance; const x=cxi(s,i0)-cwv(s); const w=cxi(s,i1)+cwv(s)-x;
     const y=pyv(s,ph),h=pyv(s,pl)-y;
-    ctx.globalAlpha=aBal*.9; ctx.fillStyle='rgba(159,180,188,.10)'; rr(x,y,w,h,8);ctx.fill();
-    ctx.strokeStyle='rgba(159,180,188,.6)';ctx.lineWidth=2;ctx.setLineDash([8,6]);rr(x,y,w,h,8);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
-    setEl('bal','توازن · Balance', x+w/2, y-40, 'tag grey', aBal, 28); keep.push('bal');
+    ctx.globalAlpha=aBal*.55; ctx.fillStyle='rgba(150,165,175,.07)'; rr(x,y,w,h,3);ctx.fill();
+    ctx.strokeStyle='rgba(150,165,175,.5)';ctx.lineWidth=1.5;ctx.setLineDash([7,6]);rr(x,y,w,h,3);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+    setEl('bal','BALANCE · توازن', x+w/2, y-32, 'tag neu', aBal, 24); keep.push('bal');
   }
-  // imbalance / FVG box
-  const aImb=eOut(ss(2.8,3.7,lt))*alpha;
+  const aImb=eOut(ss(3.0,3.9,lt))*alpha;
   if(aImb>0){
     const [pl,ph,i0,i1]=s.imbalance; const x=cxi(s,i0)-cwv(s)*0.3; const w=cxi(s,i1)+cwv(s)-x;
     const y=pyv(s,ph),h=pyv(s,pl)-y;
-    ctx.globalAlpha=aImb*.95; ctx.fillStyle='rgba(233,196,106,.16)'; rr(x,y,w*aImb,h,8);ctx.fill();
-    ctx.strokeStyle='rgba(233,196,106,.8)';ctx.lineWidth=2;rr(x,y,w*aImb,h,8);ctx.stroke();ctx.globalAlpha=1;
-    setEl('imb','عدم توازن · FVG', x+w*0.5, pyv(s,ph)+h+50, 'tag gold', aImb, 28); keep.push('imb');
-    // up arrow
-    ctx.globalAlpha=aImb;ctx.strokeStyle='#2ECC9A';ctx.lineWidth=4;
-    const ax=cxi(s,s.dispI)-4, y0=pyv(s,s.imbalance[0])+30, y1=y0-70*aImb;
+    ctx.globalAlpha=aImb*.85; ctx.fillStyle='rgba(201,162,75,.12)'; rr(x,y,w*aImb,h,3);ctx.fill();
+    ctx.strokeStyle='rgba(201,162,75,.75)';ctx.lineWidth=1.5;rr(x,y,w*aImb,h,3);ctx.stroke();ctx.globalAlpha=1;
+    setEl('imb','FVG · عدم توازن', x+w*0.5, pyv(s,ph)+h+42, 'tag gold', aImb, 24); keep.push('imb');
+    ctx.globalAlpha=aImb;ctx.strokeStyle=GOLD;ctx.lineWidth=3;
+    const ax=cxi(s,s.dispI)-4, y0=pyv(s,s.imbalance[0])+26, y1=y0-64*aImb;
     ctx.beginPath();ctx.moveTo(ax,y0);ctx.lineTo(ax,y1);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(ax-12,y1+16);ctx.lineTo(ax,y1);ctx.lineTo(ax+12,y1+16);ctx.stroke();ctx.globalAlpha=1;
+    ctx.beginPath();ctx.moveTo(ax-10,y1+14);ctx.lineTo(ax,y1);ctx.lineTo(ax+10,y1+14);ctx.stroke();ctx.globalAlpha=1;
   }
   clearOv(keep);
-}
-
-function drawHookScene(s,lt,alpha){
-  // real gold candles, revealed left-to-right
-  for(let i=0;i<n(s);i++){const ap=ss(i*0.03, i*0.03+0.45, lt); if(ap>0) candle(s,i,eOut(ap),alpha*ap*0.97);}
-  clearOv([]);
 }
 
 function drawCTA(lt,a){
   const items=['البروفايل اليومي والأسبوعي','الماركت ستركتشر','التوازن وعدم التوازن'];
   const keep=[];
-  const ah=eOut(ss(0.2,0.8,lt))*a;
-  setEl('rH','الخلاصة', 540, 640, 'lab', ah, 40); keep.push('rH');
+  const ah=eOut(ss(0.2,0.9,lt))*a;
+  setEl('rH','الخلاصة', 540, 636, 'lab', ah, 30); keep.push('rH');
+  // thin rule under header
+  ctx.globalAlpha=ah*0.8; ctx.strokeStyle='rgba(201,162,75,.5)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(486,664);ctx.lineTo(594,664);ctx.stroke();ctx.globalAlpha=1;
   items.forEach((it,k)=>{
-    const av=eOut(ss(0.5+k*0.28, 1.1+k*0.28, lt))*a;
-    const e=document.getElementById('r'+k)||(()=>{const d=document.createElement('div');d.id='r'+k;ov.appendChild(d);return d;})();
-    e.className='tag teal'; e.innerHTML=it; e.style.position='absolute';
-    e.style.left='540px'; e.style.top=(740+k*100)+'px'; e.style.transform='translate(-50%,-50%)';
-    e.style.fontSize='34px'; e.style.padding='16px 34px'; e.style.borderRadius='16px';
-    e.style.opacity=av; e.style.display=av<=.01?'none':'block';
-    keep.push('r'+k);
+    const av=eOut(ss(0.6+k*0.3, 1.2+k*0.3, lt))*a;
+    const id='r'+k; let e=document.getElementById(id)||(()=>{const d=document.createElement('div');d.id=id;ov.appendChild(d);return d;})();
+    e.className=''; e.style.position='absolute'; e.style.left='540px'; e.style.top=(732+k*86)+'px';
+    e.style.transform='translate(-50%,-50%)'; e.style.direction='rtl'; e.style.whiteSpace='nowrap';
+    e.style.fontFamily="'Tajawal'"; e.style.fontWeight='600'; e.style.fontSize='34px'; e.style.color='#E1E5E8';
+    e.innerHTML="<span style='color:#C9A24B;font-weight:700;margin-left:14px;direction:ltr;display:inline-block'>0"+(k+1)+"</span>"+it;
+    e.style.opacity=av; e.style.display=av<=.01?'none':'block'; keep.push(id);
   });
   clearOv(keep);
 }
@@ -268,35 +295,34 @@ function render(t){
   t=clamp(t,0,TOTAL);
   document.querySelector('#prog>i').style.width=(t/TOTAL*100)+'%';
   ctx.clearRect(0,0,W,H);
-  // draw scenes with crossfade
   SCENES.forEach(s=>{
-    const fin=ss(s.start,s.start+0.45,t), fout=ss(s.end-0.4,s.end,t);
+    const fin=ss(s.start,s.start+0.55,t), fout=ss(s.end-0.5,s.end,t);
     const a=fin*(1-fout); if(a<=0.01) return;
     const lt=t-s.start;
     if(s.key==='hook') drawHookScene(s,lt,a);
     else if(s.key==='profile') drawProfileScene(s,lt,a);
     else if(s.key==='structure') drawStructureScene(s,lt,a);
     else if(s.key==='balance') drawBalanceScene(s,lt,a);
-    else if(s.key==='cta'){ drawCTA(lt,a); }
+    else if(s.key==='cta') drawCTA(lt,a);
   });
-  // step chip
+  // section index
   const cur=SCENES.find(s=>t>=s.start&&t<s.end)||SCENES[SCENES.length-1];
   if(cur.title){
     const idx=SCENES.filter(x=>x.title).indexOf(cur)+1;
-    const a=ss(cur.start+0.2,cur.start+0.8,t)*(1-ss(cur.end-0.5,cur.end,t));
+    const a=ss(cur.start+0.3,cur.start+1.0,t)*(1-ss(cur.end-0.6,cur.end,t));
     stepEl.style.opacity=a;
-    stepEl.querySelector('.num').textContent=idx;
+    stepEl.querySelector('.n').textContent='0'+idx;
     stepEl.querySelector('.ttl').textContent=cur.title;
   } else stepEl.style.opacity=0;
-  // brand top fade for cta
-  document.getElementById('brandtop').style.opacity=1;
-  // hook text
+  // hook
   let hb=HOOKS[0],hi=0; for(let i=0;i<HOOKS.length;i++){if(t>=HOOKS[i].t){hb=HOOKS[i];hi=i;}}
   const nx=HOOKS[hi+1]; const inAt=hb.t,outAt=nx?nx.t:TOTAL;
-  const fin=ss(inAt,inAt+0.4,t),fout=nx?ss(outAt-0.35,outAt,t):0;
+  const fin=ss(inAt,inAt+0.5,t),fout=nx?ss(outAt-0.45,outAt,t):0;
   if(hook.dataset.i!=String(hi)){hook.dataset.i=String(hi);hook.innerHTML=hb.html;}
   const ap=fin*(1-fout); hook.style.opacity=ap;
-  hook.style.transform=`translateY(${(1-eOut(fin))*36}px)`;
+  hook.parentElement.style.opacity=1;
+  document.getElementById('hookmark').style.opacity=ap*0.9;
+  hook.style.transform=`translateY(${(1-eOut(fin))*18}px)`;
 }
 
 let _t0=null,_live=true;
