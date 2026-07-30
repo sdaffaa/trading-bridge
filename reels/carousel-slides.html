@@ -1,0 +1,253 @@
+<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8">
+<title>Liquidity State — Trader Foundations Carousel</title>
+<style>
+  @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-Regular.ttf');font-weight:400}
+  @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-Medium.ttf');font-weight:500}
+  @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-Bold.ttf');font-weight:700}
+  @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-ExtraBold.ttf');font-weight:800}
+  @font-face{font-family:'Tajawal';src:url('fonts/Tajawal-Black.ttf');font-weight:900}
+  :root{
+    --bg0:#12262E; --bg1:#0E1E24; --bg2:#0A181D;
+    --surface:#1B3A45; --line:rgba(46,204,154,.14);
+    --white:#F4F8F8; --grey:#9FB4BC;
+    --green:#2ECC9A; --red:#E15A5A; --gold:#E9C46A;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#050d10;font-family:'Tajawal',sans-serif}
+  .slide{position:relative;width:1080px;height:1350px;overflow:hidden;color:var(--white);
+    background:radial-gradient(120% 90% at 78% 8%, #16303A 0%, var(--bg1) 45%, var(--bg2) 100%);
+    display:flex;flex-direction:column}
+  /* faint constellation texture */
+  .tex{position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background-image:radial-gradient(rgba(159,180,188,.10) 1.4px, transparent 1.4px);
+    background-size:46px 46px;-webkit-mask-image:radial-gradient(120% 90% at 78% 8%, #000 0%, transparent 72%);
+            mask-image:radial-gradient(120% 90% at 78% 8%, #000 0%, transparent 72%)}
+  .glow{position:absolute;width:620px;height:620px;border-radius:50%;filter:blur(90px);opacity:.20;pointer-events:none}
+  .glow.g1{background:#2ECC9A;top:-180px;left:-160px}
+  .glow.g2{background:#E9C46A;bottom:-220px;right:-180px;opacity:.13}
+
+  /* header / footer (identical across slides) */
+  .hd{position:absolute;top:64px;left:90px;right:90px;display:flex;align-items:center;justify-content:space-between;z-index:5}
+  .brand{display:flex;align-items:center;gap:16px}
+  .brand svg{width:46px;height:46px}
+  .brand .h{font-weight:700;letter-spacing:1.5px;font-size:28px;color:#D7E2E2}
+  .count{font-weight:800;font-size:26px;color:var(--grey);letter-spacing:1px}
+  .ft{position:absolute;bottom:56px;left:90px;right:90px;display:flex;align-items:center;justify-content:space-between;z-index:5}
+  .dots{display:flex;gap:12px}
+  .dots i{width:13px;height:13px;border-radius:50%;background:rgba(159,180,188,.30)}
+  .dots i.on{background:var(--gold);box-shadow:0 0 14px rgba(233,196,106,.7)}
+  .swipe{font-weight:800;font-size:30px;color:var(--gold);display:flex;align-items:center;gap:10px}
+  .lguf{font-weight:500;font-size:22px;color:var(--grey)}
+
+  .body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:186px 96px 148px;z-index:4}
+  .kick{font-weight:800;font-size:30px;letter-spacing:2px;color:var(--gold);margin-bottom:20px}
+  .kick .en{color:var(--grey);font-weight:500}
+  h1{font-weight:900;font-size:106px;line-height:1.02;letter-spacing:-1px}
+  h1 .en{display:block;font-weight:700;font-size:34px;letter-spacing:5px;color:var(--green);margin-top:14px}
+  .rule{width:120px;height:6px;border-radius:6px;background:var(--gold);margin:26px 0 30px}
+  .def{font-weight:500;font-size:38px;line-height:1.5;color:#DCE7E7}
+  .def b{color:var(--gold);font-weight:800}
+
+  .card{background:linear-gradient(180deg, rgba(27,58,69,.92), rgba(20,44,53,.92));
+    border:1.5px solid var(--line);border-radius:26px;padding:26px 36px}
+  .row{display:flex;gap:22px;align-items:center}
+  .ico{width:58px;height:58px;flex:none;border-radius:16px;display:grid;place-items:center;
+    background:rgba(46,204,154,.12);border:1.5px solid var(--line)}
+  .ico svg{width:34px;height:34px}
+  .ct .t{font-weight:800;font-size:37px}
+  .ct .s{font-weight:500;font-size:29px;color:var(--grey);line-height:1.4;margin-top:4px}
+  .ltr{direction:ltr;unicode-bidi:isolate}
+
+  .q{font-weight:500;font-size:31px;color:#C4D3D3;line-height:1.5;padding-right:34px;position:relative}
+  .q::before{content:"؟";position:absolute;right:0;top:-2px;color:var(--gold);font-weight:900;font-size:34px}
+  .take{font-weight:900;font-size:52px;line-height:1.2;text-align:center}
+  .take b{color:var(--gold)}
+
+  /* cover tree */
+  .tree{display:flex;align-items:center;gap:0;justify-content:center;margin-top:8px}
+  .rootnode{font-weight:900;font-size:96px;color:#fff;white-space:nowrap;
+    text-shadow:0 0 40px rgba(46,204,154,.35)}
+  .bracket{width:70px;align-self:stretch;border-top:4px solid var(--gold);border-bottom:4px solid var(--gold);
+    border-left:4px solid var(--gold);border-radius:0 0 0 0;margin:64px 0}
+  .stem{width:64px;height:4px;background:var(--gold);align-self:center}
+  .chips{display:flex;flex-direction:column;gap:20px}
+  .chip{display:flex;align-items:center;gap:20px;background:rgba(27,58,69,.85);border:1.5px solid var(--line);
+    border-radius:18px;padding:20px 28px;min-width:420px}
+  .chip .n{width:52px;height:52px;flex:none;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:30px;
+    color:var(--bg1);background:var(--gold)}
+  .chip .cn{font-weight:800;font-size:44px}
+  .chip .ce{font-weight:600;font-size:24px;color:var(--grey);letter-spacing:2px}
+
+  /* risk scale */
+  .scale{display:flex;justify-content:space-between;align-items:flex-end;margin:30px 8px 0;position:relative}
+  .scale::before{content:"";position:absolute;left:6%;right:6%;bottom:96px;height:4px;background:rgba(159,180,188,.28)}
+  .step{display:flex;flex-direction:column;align-items:center;gap:14px;z-index:2;flex:1}
+  .bags{display:flex;gap:8px;height:56px;align-items:flex-end}
+  .bags svg{width:40px;height:40px}
+  .node{width:20px;height:20px;border-radius:50%;border:4px solid var(--bg1)}
+  .lab{font-weight:800;font-size:34px}
+  .pct{font-weight:800;font-size:30px}
+  /* consistency chips */
+  .same{display:flex;gap:20px;justify-content:center;margin:8px 0 4px}
+  .same .s{background:rgba(46,204,154,.10);border:1.5px solid var(--line);border-radius:18px;
+    padding:22px 40px;font-weight:800;font-size:42px;color:#fff}
+  /* patience columns */
+  .cols{display:flex;gap:26px}
+  .col{flex:1;border-radius:26px;padding:30px 30px 34px;border:1.5px solid var(--line)}
+  .col.win{background:rgba(46,204,154,.09)} .col.lose{background:rgba(225,90,90,.09)}
+  .col h3{font-weight:900;font-size:40px;margin-bottom:6px}
+  .col.win h3{color:var(--green)} .col.lose h3{color:var(--red)}
+  .col .en2{font-weight:600;font-size:22px;letter-spacing:2px;color:var(--grey);margin-bottom:18px}
+  .stepline{font-weight:600;font-size:30px;line-height:1.35;color:#DCE7E7;padding:16px 0;border-top:1px dashed rgba(159,180,188,.22)}
+  .stepline:first-of-type{border-top:none}
+  .vs{align-self:center;font-weight:900;font-size:40px;color:var(--gold);flex:none}
+</style></head>
+<body>
+
+<!-- ============ SLIDE 1 — COVER ============ -->
+<div class="slide" id="s1">
+  <div class="tex"></div><div class="glow g1"></div><div class="glow g2"></div>
+  <div class="hd">
+    <div class="brand">
+      <svg viewBox="0 0 100 100"><g fill="none" stroke="#d7c79a" stroke-width="4" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28"/><path d="M12,28 L50,43 L88,28"/><path d="M12,72 L50,43 L88,72"/><path d="M50,43 L50,94"/></g></svg>
+      <div class="h" dir="ltr">@liquidity.state</div>
+    </div>
+    <div class="count">١ / ٥</div>
+  </div>
+  <div class="body">
+    <div class="kick">سلسلة · أساسيات المتداول</div>
+    <h1 style="font-size:96px">٥ ركائز<br>يتجاهلها أغلب<br>المتداولين</h1>
+    <div class="rule"></div>
+    <div class="tree">
+      <div class="chips">
+        <div class="chip"><span class="n">١</span><div><div class="cn">الانضباط</div><div class="ce">DISCIPLINE</div></div></div>
+        <div class="chip"><span class="n">٢</span><div><div class="cn">المخاطرة</div><div class="ce">RISK</div></div></div>
+        <div class="chip"><span class="n">٣</span><div><div class="cn">الثبات</div><div class="ce">CONSISTENCY</div></div></div>
+        <div class="chip"><span class="n">٤</span><div><div class="cn">الصبر</div><div class="ce">PATIENCE</div></div></div>
+        <div class="chip"><span class="n">٥</span><div><div class="cn">العقلية</div><div class="ce">MINDSET</div></div></div>
+      </div>
+      <div class="stem"></div>
+      <div class="bracket"></div>
+      <div class="rootnode">التعلّم</div>
+    </div>
+  </div>
+  <div class="ft">
+    <div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+    <div class="swipe">اسحب <span style="font-size:36px">←</span></div>
+  </div>
+</div>
+
+<!-- ============ SLIDE 2 — DISCIPLINE ============ -->
+<div class="slide" id="s2">
+  <div class="tex"></div><div class="glow g1"></div><div class="glow g2"></div>
+  <div class="hd">
+    <div class="brand"><svg viewBox="0 0 100 100"><g fill="none" stroke="#d7c79a" stroke-width="4" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28"/><path d="M12,28 L50,43 L88,28"/><path d="M12,72 L50,43 L88,72"/><path d="M50,43 L50,94"/></g></svg><div class="h" dir="ltr">@liquidity.state</div></div>
+    <div class="count">٢ / ٥</div>
+  </div>
+  <div class="body">
+    <div class="kick">الركيزة الأولى</div>
+    <h1>الانضباط<span class="en">DISCIPLINE</span></h1>
+    <div class="rule"></div>
+    <div class="def" style="margin-bottom:26px;font-size:34px">القدرة على التصرّف <b>باستمرار</b> وفق خطة أو قواعد اخترتها — مو حسب مزاج اللحظة.</div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card row"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#2ECC9A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V5z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <div class="ct"><div class="t">ضبط النفس</div><div class="s">مقاومة الاندفاع — ما تدخل صفقة انتقامية.</div></div></div>
+      <div class="card row"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#E9C46A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg></div>
+        <div class="ct"><div class="t">الثبات</div><div class="s">تكرار الأفعال الصحيحة مع الوقت… ربحت أو خسرت.</div></div></div>
+      <div class="card row"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#E15A5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+        <div class="ct"><div class="t">المحاسبة</div><div class="s">تلزم نفسك بمعاييرك مهما كانت النتيجة.</div></div></div>
+    </div>
+    <div style="margin-top:26px;display:flex;flex-direction:column;gap:12px">
+      <div class="q" style="font-size:29px">كم مرة فعلًا تحاسب نفسك</div>
+      <div class="q" style="font-size:29px">لو التزمت الانضباط… كم بتتقدّم أسرع</div>
+      <div class="q" style="font-size:29px">لما ما أحد يراقبك… وش تسوي</div>
+    </div>
+  </div>
+  <div class="ft"><div class="dots"><i></i><i class="on"></i><i></i><i></i><i></i></div><div class="swipe">اسحب <span style="font-size:36px">←</span></div></div>
+</div>
+
+<!-- ============ SLIDE 3 — RISK ============ -->
+<div class="slide" id="s3">
+  <div class="tex"></div><div class="glow g1"></div><div class="glow g2"></div>
+  <div class="hd">
+    <div class="brand"><svg viewBox="0 0 100 100"><g fill="none" stroke="#d7c79a" stroke-width="4" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28"/><path d="M12,28 L50,43 L88,28"/><path d="M12,72 L50,43 L88,72"/><path d="M50,43 L50,94"/></g></svg><div class="h" dir="ltr">@liquidity.state</div></div>
+    <div class="count">٣ / ٥</div>
+  </div>
+  <div class="body">
+    <div class="kick">الركيزة الثانية</div>
+    <h1>المخاطرة<span class="en">RISK</span></h1>
+    <div class="rule"></div>
+    <div class="def" style="margin-bottom:30px">النسبة المحددة <b>مسبقًا</b> من حسابك اللي ممكن تخسرها في صفقة وحدة.</div>
+    <div class="scale">
+      <div class="step"><div class="bags"><svg viewBox="0 0 24 24" fill="none" stroke="#2ECC9A" stroke-width="1.8"><path d="M9 3h6l-1.5 3h-3z"/><path d="M8 6h8c2 3 3 6 3 9a6 6 0 0 1-6 6H11a6 6 0 0 1-6-6c0-3 1-6 3-9z"/></svg></div>
+        <div class="node" style="background:var(--green)"></div><div class="lab" style="color:var(--green)">منخفضة</div><div class="pct ltr" style="color:var(--green)">0.5%</div></div>
+      <div class="step"><div class="bags"><svg viewBox="0 0 24 24" fill="none" stroke="#E9C46A" stroke-width="1.8"><path d="M9 3h6l-1.5 3h-3z"/><path d="M8 6h8c2 3 3 6 3 9a6 6 0 0 1-6 6H11a6 6 0 0 1-6-6c0-3 1-6 3-9z"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="#E9C46A" stroke-width="1.8"><path d="M9 3h6l-1.5 3h-3z"/><path d="M8 6h8c2 3 3 6 3 9a6 6 0 0 1-6 6H11a6 6 0 0 1-6-6c0-3 1-6 3-9z"/></svg></div>
+        <div class="node" style="background:var(--gold)"></div><div class="lab" style="color:var(--gold)">طبيعية</div><div class="pct ltr" style="color:var(--gold)">0.5–1%</div></div>
+      <div class="step"><div class="bags"><svg viewBox="0 0 24 24" fill="none" stroke="#E15A5A" stroke-width="1.8"><path d="M9 3h6l-1.5 3h-3z"/><path d="M8 6h8c2 3 3 6 3 9a6 6 0 0 1-6 6H11a6 6 0 0 1-6-6c0-3 1-6 3-9z"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="#E15A5A" stroke-width="1.8"><path d="M9 3h6l-1.5 3h-3z"/><path d="M8 6h8c2 3 3 6 3 9a6 6 0 0 1-6 6H11a6 6 0 0 1-6-6c0-3 1-6 3-9z"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="#E15A5A" stroke-width="1.8"><path d="M9 3h6l-1.5 3h-3z"/><path d="M8 6h8c2 3 3 6 3 9a6 6 0 0 1-6 6H11a6 6 0 0 1-6-6c0-3 1-6 3-9z"/></svg></div>
+        <div class="node" style="background:var(--red)"></div><div class="lab" style="color:var(--red)">عالية</div><div class="pct ltr" style="color:var(--red)">2–5%+</div></div>
+    </div>
+    <div style="margin-top:40px;display:flex;flex-direction:column;gap:14px">
+      <div class="q">كم مرة فعلًا تلتزم بمخاطرتك</div>
+      <div class="q">كم مرة قلت «بس شنو لو هذي تشتغل»</div>
+    </div>
+    <div class="card" style="margin-top:32px;text-align:center;border-color:rgba(233,196,106,.35)">
+      <div style="font-weight:900;font-size:44px;line-height:1.3">ما تتحكم بالنتائج… لكن تتحكم <b style="color:var(--gold)">كليًا بالمخاطرة</b></div>
+    </div>
+  </div>
+  <div class="ft"><div class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></div><div class="swipe">اسحب <span style="font-size:36px">←</span></div></div>
+</div>
+
+<!-- ============ SLIDE 4 — CONSISTENCY ============ -->
+<div class="slide" id="s4">
+  <div class="tex"></div><div class="glow g1"></div><div class="glow g2"></div>
+  <div class="hd">
+    <div class="brand"><svg viewBox="0 0 100 100"><g fill="none" stroke="#d7c79a" stroke-width="4" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28"/><path d="M12,28 L50,43 L88,28"/><path d="M12,72 L50,43 L88,72"/><path d="M50,43 L50,94"/></g></svg><div class="h" dir="ltr">@liquidity.state</div></div>
+    <div class="count">٤ / ٥</div>
+  </div>
+  <div class="body">
+    <div class="kick">الركيزة الثالثة</div>
+    <h1>الثبات<span class="en">CONSISTENCY</span></h1>
+    <div class="rule"></div>
+    <div class="def" style="margin-bottom:44px">القدرة على تكرار <b>نفس العملية</b> عالية الجودة مع الوقت… بغضّ النظر عن النتائج.</div>
+    <div style="display:grid;place-items:center;margin-bottom:16px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E9C46A" stroke-width="1.6" style="width:120px;height:120px;opacity:.9"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
+    </div>
+    <div style="text-align:center;font-weight:700;font-size:40px;color:#DCE7E7;margin-bottom:24px">كل يوم… تداول بنفس:</div>
+    <div class="same"><div class="s">المخاطرة</div><div class="s">الزوج</div><div class="s">الوقت</div></div>
+    <div class="card" style="margin-top:44px;text-align:center;border-color:rgba(233,196,106,.35)">
+      <div style="font-weight:900;font-size:50px">التزم <b style="color:var(--gold)">بالخطة</b> … لا <b style="color:var(--red)">بمزاجك</b></div>
+    </div>
+  </div>
+  <div class="ft"><div class="dots"><i></i><i></i><i></i><i class="on"></i><i></i></div><div class="swipe">اسحب <span style="font-size:36px">←</span></div></div>
+</div>
+
+<!-- ============ SLIDE 5 — PATIENCE ============ -->
+<div class="slide" id="s5">
+  <div class="tex"></div><div class="glow g1"></div><div class="glow g2"></div>
+  <div class="hd">
+    <div class="brand"><svg viewBox="0 0 100 100"><g fill="none" stroke="#d7c79a" stroke-width="4" stroke-linejoin="round"><polygon points="50,6 88,28 88,72 50,94 12,72 12,28"/><path d="M12,28 L50,43 L88,28"/><path d="M12,72 L50,43 L88,72"/><path d="M50,43 L50,94"/></g></svg><div class="h" dir="ltr">@liquidity.state</div></div>
+    <div class="count">٥ / ٥</div>
+  </div>
+  <div class="body">
+    <div class="kick">الركيزة الرابعة</div>
+    <h1>الصبر<span class="en">PATIENCE</span></h1>
+    <div class="rule"></div>
+    <div class="def" style="margin-bottom:34px">تنتظر الإعداد <b>عالي الاحتمال</b> والظروف المثالية… دون ما تجبر صفقة أو تتفاعل مع كل حركة.</div>
+    <div class="cols">
+      <div class="col win"><h3>الرابح</h3><div class="en2">PROFITABLE</div>
+        <div class="stepline">ينتظر الظروف الجيدة</div>
+        <div class="stepline">يصطاد الإعداد عالي الاحتمال</div>
+        <div class="stepline">يكتفي بما يكفي… ويكرّر</div></div>
+      <div class="vs">×</div>
+      <div class="col lose"><h3>الخاسر</h3><div class="en2">UNPROFITABLE</div>
+        <div class="stepline">يتداول ظروف سيئة</div>
+        <div class="stepline">يطارد سوق عرضي</div>
+        <div class="stepline">ينهار نفسيًا… ويلوم السوق</div></div>
+    </div>
+    <div class="take" style="margin-top:40px">أنت <b>أي واحد</b> فيهم؟</div>
+  </div>
+  <div class="ft"><div class="dots"><i></i><i></i><i></i><i></i><i class="on"></i></div>
+    <div class="swipe" style="color:var(--green)">احفظ الدرس 📌</div></div>
+</div>
+
+</body></html>
