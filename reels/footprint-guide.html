@@ -169,6 +169,49 @@ function profileSVG(levels){
   return `<div class="fp" style="direction:ltr"><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${rows}</svg></div>`;
 }
 
+// ===== candlestick chart (SVG) with annotations =====
+// candles: [{o,h,l,c}]; over: annotation list
+function chart(candles, over=[], {w=940,h=440,pad=46,rightPad=150}={}){
+  const lo=Math.min(...candles.map(c=>c.l)), hi=Math.max(...candles.map(c=>c.h));
+  const rng=(hi-lo)||1, PADp=rng*0.10, LO=lo-PADp, HI=hi+PADp;
+  const n=candles.length, plotW=w-pad-rightPad, cw=plotW/n;
+  const X=i=>pad+i*cw+cw/2, Y=p=>pad+(HI-p)/(HI-LO)*(h-2*pad);
+  const bw=Math.max(6,cw*0.56);
+  let cs='';
+  candles.forEach((c,i)=>{const up=c.c>=c.o,col=up?'#2ECC9A':'#C86A62';
+    const x=X(i),top=Y(Math.max(c.o,c.c)),bot=Y(Math.min(c.o,c.c)),bh=Math.max(2,bot-top);
+    cs+=`<line x1="${x.toFixed(1)}" y1="${Y(c.h).toFixed(1)}" x2="${x.toFixed(1)}" y2="${Y(c.l).toFixed(1)}" stroke="${col}" stroke-width="2.4"/>`+
+        `<rect x="${(x-bw/2).toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2.5" fill="${col}"/>`;});
+  let ov='';
+  for(const o of over){
+    if(o.t==='hline'){const y=Y(o.p);ov+=`<line x1="${pad}" y1="${y}" x2="${w-rightPad+70}" y2="${y}" stroke="${o.c||'#E9C46A'}" stroke-width="2.2" stroke-dasharray="${o.dash||'10 7'}"/>`+
+      (o.label?`<text x="${w-rightPad+78}" y="${y+7}" fill="${o.c||'#E9C46A'}" font-family="Pop" font-size="21">${o.label}</text>`:'');}
+    if(o.t==='zone'){const y1=Y(Math.max(o.p1,o.p2)),y2=Y(Math.min(o.p1,o.p2));const x1=o.i1!=null?X(o.i1)-cw/2:pad;const x2=o.i2!=null?X(o.i2)+cw/2:w-rightPad+70;
+      ov+=`<rect x="${x1}" y="${y1}" width="${(x2-x1)}" height="${(y2-y1)}" fill="${o.c||'rgba(46,204,154,.16)'}" stroke="${o.sc||'rgba(46,204,154,.5)'}" stroke-width="1.5" rx="4"/>`+
+      (o.label?`<text x="${x2-8}" y="${(y1+y2)/2+7}" fill="${o.tc||'#8FE9CF'}" font-family="Pop" font-size="20" text-anchor="end">${o.label}</text>`:'');}
+    if(o.t==='lbl'){ov+=`<text x="${X(o.i)}" y="${Y(o.p)}" fill="${o.c||'#DCE8E8'}" font-family="Pop" font-size="${o.fs||20}" text-anchor="${o.anchor||'middle'}">${o.text}</text>`;}
+    if(o.t==='sweep'){const x=X(o.i),y=Y(o.p);ov+=`<circle cx="${x}" cy="${y}" r="9" fill="none" stroke="${o.c||'#E15A5A'}" stroke-width="2.5"/>`+
+      (o.text?`<text x="${x}" y="${y-18}" fill="${o.c||'#E15A5A'}" font-family="Pop" font-size="19" text-anchor="middle">${o.text}</text>`:'');}
+    if(o.t==='arrow'){const x=X(o.i),y=Y(o.p),d=o.dir==='down'?-1:1;ov+=`<path d="M${x} ${y} L${x-9} ${y+18*d} L${x+9} ${y+18*d} Z" fill="${o.c||'#2ECC9A'}"/>`+
+      (o.text?`<text x="${x}" y="${y+ (d>0?40:-24)}" fill="${o.c||'#2ECC9A'}" font-family="Pop" font-size="19" text-anchor="middle">${o.text}</text>`:'');}
+  }
+  return `<div class="fp" style="direction:ltr;padding:20px 16px"><svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto">${cs}${ov}</svg></div>`;
+}
+// mini vertical volume profile overlay to the right of a chart price range (standalone illustration)
+function partdiv(num,title,sub,tag){return page(`
+  <div class="glow" style="background:#2ECC9A;top:-150px;right:-120px;width:560px;height:560px;opacity:.14"></div>
+  <div class="glow" style="background:#E9C46A;bottom:-180px;left:-150px;width:480px;height:480px;opacity:.08"></div>
+  <div style="position:absolute;top:70px;left:80px;right:80px;display:flex;align-items:center;gap:14px;color:#EAF3F2"><div style="width:44px;height:44px">${GEMW}</div><div class="lat" style="font-weight:600;font-size:24px;letter-spacing:4px">LIQUIDITY STATE</div></div>
+  <div style="position:absolute;top:0;bottom:0;left:80px;right:80px;display:flex;flex-direction:column;justify-content:center;color:#EAF3F2">
+    <div class="lat" style="font-weight:600;font-size:150px;color:rgba(46,204,154,.16);line-height:1">${num}</div>
+    <div class="kick" style="margin-top:-10px">${tag||'الجزء'}</div>
+    <h1 class="big" style="color:#fff;font-size:88px">${title}</h1>
+    <div class="rule" style="background:#2ECC9A"></div>
+    <div style="font-weight:600;font-size:40px;color:#B7C8C6;line-height:1.5;max-width:820px">${sub}</div>
+  </div>
+  <div style="position:absolute;bottom:70px;left:80px;right:80px;display:flex;justify-content:space-between;color:#7C8C92" class="lat"><div style="font-size:24px" dir="ltr">@liquidity.state</div><div style="font-size:22px">لغرض تعليمي فقط</div></div>
+`,'dark');}
+
 // ---- page template ----
 function page(inner, cls=''){return `<div class="page ${cls}">${inner}</div>`;}
 function head(ch){return `<div class="hd"><div class="wm">${GEM}<b>LIQUIDITY STATE</b></div><div class="ch">${ch}</div></div>`;}
@@ -207,18 +250,181 @@ P.push(page(`
 /* ============ 2 · INDEX ============ */
 P.push(cpage('المحتويات', `
   <h2>المحتويات</h2><div class="rule"></div>
-  <table class="idx" style="font-size:26px">
-    <tr><td class="num">·</td><td><b>الأساسيات</b> — لماذا الفوت برنت · تشريح البار · قراءة الخلية</td><td class="pg">03</td></tr>
-    <tr><td class="num">·</td><td><b>أنواع العرض</b> — Bid×Ask · Delta · Volume · Profile · Delta% · CVD</td><td class="pg">06</td></tr>
-    <tr><td class="num">·</td><td><b>المفاهيم</b> — الدلتا · CVD · POC · HVN/LVN</td><td class="pg">10</td></tr>
-    <tr><td class="num">·</td><td><b>الاختلالات</b> — القطري · المكدّس · المزاد غير المكتمل</td><td class="pg">13</td></tr>
-    <tr><td class="num">·</td><td><b>النماذج</b> — امتصاص · استنزاف · محاصرون · انحراف · إعادة اختبار</td><td class="pg">16</td></tr>
-    <tr><td class="num">·</td><td><b>بروتوكول القراءة</b> (٥ خطوات)</td><td class="pg">21</td></tr>
-    <tr><td class="num">·</td><td><b>طرق الدخول</b> — نظرة عامة + ٤ صفقات كاملة بوقف/هدف</td><td class="pg">22</td></tr>
-    <tr><td class="num">·</td><td><b>الدمج · إدارة المخاطرة · أخطاء · خلاصة وتشيك ليست</b></td><td class="pg">27</td></tr>
+  <table class="idx" style="font-size:25px">
+    <tr><td class="num">◆</td><td><b>الأساس</b> — خريطة المدارس الأربع</td><td class="pg">03</td></tr>
+    <tr><td class="num" style="color:var(--gold)">١</td><td><b>ICT</b> — السيولة · مصفوفات PD · الهيكل والزمن</td><td class="pg">04</td></tr>
+    <tr><td class="num" style="color:var(--gold)">٢</td><td><b>SMC</b> — الهيكل · الإغراء والـ POI · نماذج الدخول</td><td class="pg">08</td></tr>
+    <tr><td class="num" style="color:var(--gold)">٣</td><td><b>Volume Profile</b> — التشريح · الأشكال · الاستراتيجيات</td><td class="pg">12</td></tr>
+    <tr><td class="num" style="color:var(--gold)">٤</td><td><b>Footprint</b> — المفاهيم · الاختلالات · ٥ نماذج · ٤ دخولات</td><td class="pg">16</td></tr>
+    <tr><td class="num" style="color:var(--gold)">٥</td><td><b>الدمج (Confluence)</b> — البروتوكول · بطاقة التسجيل · التعارض</td><td class="pg">41</td></tr>
+    <tr><td class="num" style="color:var(--gold)">٦</td><td><b>نماذج الدخول والاستراتيجيات</b> — كتالوج · صفقة A+ · دفاتر لعب</td><td class="pg">46</td></tr>
+    <tr><td class="num" style="color:var(--gold)">٧</td><td><b>المخاطرة والنفسية</b> — الإدارة · التنفيذ · أخطاء شائعة</td><td class="pg">51</td></tr>
+    <tr><td class="num">◆</td><td><b>المعجم</b> + تشيك ليست الخلاصة</td><td class="pg">55</td></tr>
   </table>
-  <div class="note gold" style="margin-top:26px"><div class="t">كيف تقرأ هذا الدليل</div><p>كل مفهوم مصحوب بمخطط فوت برنت دقيق، وكل نموذج ينتهي بطريقة دخول واضحة. القاعدة الحاكمة تتكرّر: <b>مكان + تدفّق + مُحفّز هيكل.</b></p></div>
+  <div class="note gold" style="margin-top:22px"><div class="t">كيف تقرأ هذا الكتاب</div><p>سبع مدارس تُبنى طبقةً فوق طبقة حتى تلتقي في قرار واحد. القاعدة الحاكمة تتكرّر في كل صفحة: <b>مكان (هيكل) + تدفّق (فوت برنت) + مُحفّز، في الوقت الصحيح.</b></p></div>
 `));
+
+/* ============ FOUNDATION · THE 4-LAYER STACK ============ */
+P.push(cpage('خريطة المدارس', `
+  <div class="kick">قبل أن نبدأ</div>
+  <h2><span class="n">◆</span> خريطة المدارس الأربع</h2><div class="rule"></div>
+  <p>هذا الكتاب لا يعلّمك أداة واحدة، بل <b>منظومة قرار</b>. كل مدرسة تجيب على سؤال واحد فقط، وقوّتها تظهر حين تتقاطع الأجوبة الأربعة — لأنها أربع <b>قياسات مستقلة</b> لنفس النية المؤسسية.</p>
+  <table class="idx">
+    <tr><td class="num" style="color:var(--gold)">١</td><td><b style="color:var(--teal)">ICT</b> — الزمن والسيولة</td><td class="pg">متى؟ وإلى أين؟</td></tr>
+    <tr><td class="num" style="color:var(--gold)">٢</td><td><b style="color:var(--teal)">SMC</b> — الهيكل ونقاط الاهتمام</td><td class="pg">أين الدخول؟</td></tr>
+    <tr><td class="num" style="color:var(--gold)">٣</td><td><b style="color:var(--teal)">Volume Profile</b> — القبول والرفض</td><td class="pg">مقبول أم مرفوض؟</td></tr>
+    <tr><td class="num" style="color:var(--gold)">٤</td><td><b style="color:var(--teal)">Footprint</b> — تدفّق الأوامر</td><td class="pg">مَن يفوز الآن؟</td></tr>
+  </table>
+  <div class="note gold"><div class="t">القاعدة الحاكمة للكتاب</div><p>الزمن + الهيكل + موقع الحجم + العدوانية = أربعة أدلّة منفصلة. حين <b>تتّفق</b> تتضاعف الاحتمالية، وحين <b>تتعارض</b> فالتعارض نفسه معلومة. لا صفقة من طبقة واحدة أبدًا.</p></div>
+`));
+
+/* ============ PART 1 · ICT ============ */
+const ICT_A=[
+  {o:4110,h:4114,l:4106,c:4108},{o:4108,h:4110,l:4102,c:4104},{o:4104,h:4106,l:4100,c:4101},
+  {o:4101,h:4103,l:4099,c:4102},{o:4102,h:4104,l:4096,c:4098},{o:4098,h:4108,l:4097,c:4107},
+  {o:4107,h:4115,l:4106,c:4113},{o:4113,h:4116,l:4111,c:4112},{o:4112,h:4114,l:4105,c:4106},
+  {o:4106,h:4110,l:4104,c:4109},{o:4109,h:4118,l:4108,c:4117},{o:4117,h:4124,l:4116,c:4122},
+  {o:4122,h:4126,l:4120,c:4121},{o:4121,h:4123,l:4118,c:4120}
+];
+P.push(partdiv('١','ICT — الزمن والسعر','منهج «الزمن والسعر»: السعر يُسلَّم نحو السيولة والفجوات، والزمن (الكِل زونز) يحدّد <b style="color:#2ECC9A">متى</b> يحدث التسليم.','الجزء الأول'));
+
+P.push(cpage('ICT · السيولة والسرد', `
+  <div class="kick"><span dir="ltr">ICT · 01</span></div>
+  <h2>السيولة والسرد والكنس</h2><div class="rule"></div>
+  <p>السعر يسعى لشيئين فقط: <b>السيولة</b> (أوامر الإيقاف) و<b>عدم الكفاءة</b> (الفجوات). فوق القمم سيولة شرائية <b>BSL</b>، وتحت القيعان سيولة بيعية <b>SSL</b>. الهدف الأعلى للسعر يُسمّى <b>Draw on Liquidity</b>.</p>
+  ${chart(ICT_A,[
+    {t:'hline',p:4099,c:'#E15A5A',label:'SSL'},
+    {t:'sweep',i:4,p:4096,text:'كنس'},
+    {t:'zone',p1:4104,p2:4106,i1:5,i2:9,c:'rgba(46,204,154,.14)',sc:'rgba(46,204,154,.5)',tc:'#8FE9CF',label:'FVG'},
+    {t:'lbl',i:6,p:4119,text:'MSS ↑',c:'#2ECC9A',fs:21},
+    {t:'hline',p:4116,c:'#E9C46A',label:'BSL'},
+    {t:'arrow',i:8,p:4104,dir:'up',c:'#2ECC9A',text:'OTE'}
+  ])}
+  <div class="note warn"><div class="t">كنس أم كسر؟</div><p><b>الكنس</b> يأخذ المستوى بفتيل ثم يُغلق عائدًا داخل النطاق (تلاعب). <b>الكسر</b> يُغلق بحزم خلفه مع استمرار. صنّف كل اختراق قبل أن تتصرّف — الخلط بينهما أكبر خطأ في المنهج.</p></div>
+`));
+
+P.push(cpage('ICT · مصفوفات PD', `
+  <div class="kick"><span dir="ltr">ICT · 02</span></div>
+  <h2>مصفوفات العرض/الطلب (PD Arrays)</h2><div class="rule"></div>
+  <p>قائمة «التسليم» مرتّبة بالقوة: <b>الفجوة FVG</b> (فراغ ٣ شموع) ثم <b>الأوردر بلوك OB</b> (آخر شمعة معاكسة قبل الدفعة التي كسرت الهيكل) ثم <b>البريكر</b> (أوردر بلوك فاشل انقلب دعمًا/مقاومة).</p>
+  ${chart(ICT_A.slice(4,12),[
+    {t:'zone',p1:4104,p2:4106,i1:1,i2:5,c:'rgba(46,204,154,.16)',sc:'rgba(46,204,154,.55)',tc:'#8FE9CF',label:'FVG'},
+    {t:'zone',p1:4096,p2:4099,i1:0,i2:1,c:'rgba(233,196,106,.14)',sc:'rgba(233,196,106,.5)',tc:'#E9C46A',label:'OB'},
+    {t:'lbl',i:2,p:4116,text:'إزاحة',c:'#DCE8E8',fs:20},
+    {t:'arrow',i:4,p:4104,dir:'up',c:'#2ECC9A',text:'CE 50%'}
+  ])}
+  <div class="note gold"><div class="t">شرط الصلاحية</div><p>لا مصفوفة بلا <b>إزاحة</b> (شموع كبيرة تترك فجوة). أوردر بلوك ملتصق بفجوة FVG أقوى من أيّهما وحده. <b>منتصف المصفوفة (CE 50٪)</b> هو سعر الدخول المكرّر.</p></div>
+`));
+
+P.push(cpage('ICT · الهيكل والزمن', `
+  <div class="kick"><span dir="ltr">ICT · 03</span></div>
+  <h2>الهيكل، والخصم/العلاوة، والكِل زونز</h2><div class="rule"></div>
+  <p><b>MSS</b> إزاحة تكسر سوينق مهمًّا بعد كنس سيولة = إشارة الانعكاس. ارسم فيبوناتشي على مدى الصفقة: تحت ٥٠٪ = <b>خصم</b> (منطقة شراء)، فوقه = <b>علاوة</b> (منطقة بيع). أفضل دخول <b>OTE</b> بين ٦٢٪ و٧٩٪.</p>
+  <div class="kpi">
+    <div class="k"><div class="kv" style="font-size:34px">London</div><div class="kl">‎02:00–05:00 نيويورك · سوينق جوداس</div></div>
+    <div class="k"><div class="kv" style="font-size:34px">NY AM</div><div class="kl">‎07:00–10:00 · أعلى تقلّب للذهب</div></div>
+    <div class="k"><div class="kv" style="font-size:30px">Silver B.</div><div class="kl">‎10:00–11:00 · نافذة الرصاصة</div></div>
+  </div>
+  <p><b>Power of Three (AMD):</b> كل جلسة تتحرّك تجميع → <b>تلاعب</b> (سوينق كاذب يكنس السيولة) → توزيع (الحركة الحقيقية).</p>
+  <div class="note warn"><div class="t">توقيت الكويت</div><p>نيويورك = الكويت − ٧ ساعات صيفًا (− ٨ شتاءً). النموذج المثالي خارج الكِل زون يهبط درجة كاملة. النموذج «المثالي» وقت غداء نيويورك ليس نموذجًا.</p></div>
+`));
+
+/* ============ PART 2 · SMC ============ */
+const SMC_C=[
+  {o:4100,h:4104,l:4098,c:4103},{o:4103,h:4108,l:4102,c:4107},{o:4107,h:4109,l:4103,c:4104},
+  {o:4104,h:4112,l:4103,c:4111},{o:4111,h:4113,l:4106,c:4107},{o:4107,h:4116,l:4106,c:4115},
+  {o:4115,h:4117,l:4109,c:4110},{o:4110,h:4114,l:4108,c:4109},{o:4109,h:4111,l:4103,c:4104},
+  {o:4104,h:4106,l:4100,c:4101},{o:4101,h:4108,l:4100,c:4107},{o:4107,h:4108,l:4101,c:4102},
+  {o:4102,h:4103,l:4096,c:4097}
+];
+P.push(partdiv('٢','SMC — الهيكل والسيولة','منهج «الهيكل أولًا»: نقرأ تدفّق المؤسسات عبر تتابع الكسور والارتدادات، وندخل من نقاط اهتمام مصقولة <b style="color:#2ECC9A">مع</b> الاتجاه الهيكلي.','الجزء الثاني'));
+
+P.push(cpage('SMC · الهيكل', `
+  <div class="kick"><span dir="ltr">SMC · 01</span></div>
+  <h2>BOS مقابل CHoCH · داخلي وخارجي</h2><div class="rule"></div>
+  <p><b>BOS</b> إغلاق جسم خلف آخر سوينق <b>باتجاه</b> الترند = استمرار. <b>CHoCH</b> إغلاق جسم <b>ضد</b> الترند = أول إنذار انعكاس (ذو معنى فقط بعد كنس سيولة). الفتيل وحده لا يكسر — إغلاق الجسم فقط.</p>
+  ${chart(SMC_C,[
+    {t:'lbl',i:3,p:4114,text:'BOS',c:'#2ECC9A',fs:20},
+    {t:'lbl',i:5,p:4119,text:'BOS',c:'#2ECC9A',fs:20},
+    {t:'hline',p:4106,c:'#9598A1',dash:'6 6',label:'HL'},
+    {t:'lbl',i:8,p:4100,text:'CHoCH ↓',c:'#E15A5A',fs:21},
+    {t:'zone',p1:4107,p2:4109,i1:10,i2:11,c:'rgba(206,81,64,.15)',sc:'rgba(206,81,64,.5)',tc:'#F0A79E',label:'OB'},
+    {t:'hline',p:4097,c:'#E9C46A',label:'هدف'}
+  ])}
+  <div class="note warn"><div class="t">الخطأ رقم ١</div><p>الهيكل <b>الخارجي</b> يعطي الاتجاه، و<b>الداخلي</b> يعطي الدخول. CHoCH داخلي ضد الاتجاه الخارجي = <b>إشارة ارتداد للدخول</b>، لا إشارة انعكاس.</p></div>
+`));
+
+P.push(cpage('SMC · السيولة والإغراء', `
+  <div class="kick"><span dir="ltr">SMC · 02</span></div>
+  <h2>السيولة، الإغراء (IDM)، وترتيب الـ POI</h2><div class="rule"></div>
+  <p><b>الإغراء (Inducement):</b> ارتداد صغير قبل الـ POI مصمَّم ليُكنَس فيتحوّل الداخلون مبكرًا إلى وقود. <b>قانون الدخول:</b> بلا كنس إغراء → الـ POI غير صالح بعد.</p>
+  ${chart(SMC_C.slice(6,13),[
+    {t:'hline',p:4108,c:'#9598A1',dash:'5 6',label:'IDM'},
+    {t:'sweep',i:1,p:4108,c:'#E9C46A',text:'كنس'},
+    {t:'zone',p1:4101,p2:4103,i1:4,i2:5,c:'rgba(206,81,64,.15)',sc:'rgba(206,81,64,.5)',tc:'#F0A79E',label:'POI'},
+    {t:'arrow',i:5,p:4108,dir:'down',c:'#E15A5A',text:'دخول'}
+  ])}
+  <div class="cap">ترتيب الـ POI بالقوّة: <b>أوردر بلوك أقصى</b> (أصل الكسر الخارجي) → قراري → بريكر → منطقة عرض/طلب → فجوة FVG.</div>
+  <div class="note gold"><div class="t">هرم الصقل</div><p>منطقة الإطار الأعلى (4H/1H) ← انزل لإطار أدنى داخلها ← انتظر كنس إغراء + CHoCH صغير داخل المنطقة ← ادخل. نفس الفكرة بوقف أصغر بمراحل.</p></div>
+`));
+
+P.push(cpage('SMC · نماذج الدخول', `
+  <div class="kick"><span dir="ltr">SMC · 03</span></div>
+  <h2>نموذجا الدخول: استمرار وانعكاس</h2><div class="rule"></div>
+  <div class="steps">
+    <div class="st"><div class="b">أ</div><div class="tx"><b>الاستمرار (مع الاتجاه)</b><span>ترند خارجي مؤكَّد ← كنس الإغراء تحت/فوق الـ POI ← لمس الـ POI ← CHoCH صغير يؤكّد ← دخول. الوقف خلف طرف الـ POI، الهدف عند السيولة الخارجية التالية.</span></div></div>
+    <div class="st"><div class="b">ب</div><div class="tx"><b>الانعكاس</b><span>كنس سيولة خارجية كبرى ← CHoCH بإزاحة على إطار التنفيذ ← ارتداد إلى OB/FVG الذي سبّب الـ CHoCH ← دخول. الوقف خلف طرف الكنس، الهدفان: سيولة داخلية ثم سيولة خارجية معاكسة.</span></div></div>
+  </div>
+  <div class="note warn"><div class="t">موت الفكرة</div><p>تموت الصفقة حين يُغلَق الجسم عبر السوينق المحمي — خروج بلا استثناء. جزئي عند 1:2، وتتبّع هيكلي خلف كل سوينق محمي جديد بعد BOS.</p></div>
+`));
+
+/* ============ PART 3 · VOLUME PROFILE ============ */
+const VP_C=[
+  {o:4090,h:4092,l:4086,c:4088},{o:4088,h:4094,l:4087,c:4093},{o:4093,h:4097,l:4092,c:4096},
+  {o:4096,h:4100,l:4095,c:4099},{o:4099,h:4103,l:4098,c:4102},{o:4102,h:4106,l:4101,c:4105},
+  {o:4105,h:4109,l:4104,c:4108},{o:4108,h:4110,l:4106,c:4107}
+];
+P.push(partdiv('٣','Volume Profile — القبول والرفض','تطبيق «نظرية المزاد»: السوق يتناوب بين توازن (قبول) وعدم توازن (رفض). البروفايل يُظهر <b style="color:#2ECC9A">أين</b> جرت الصفقات.','الجزء الثالث'));
+
+P.push(cpage('VP · التشريح', `
+  <div class="kick"><span dir="ltr">VP · 01</span></div>
+  <h2>POC · منطقة القيمة · HVN / LVN</h2><div class="rule"></div>
+  <p><b>POC</b> أعلى سعر حجمًا (الأعدل). <b>منطقة القيمة VA</b> تحتوي ٧٠٪ من الحجم (قمّتها VAH وقاعها VAL). <b>HVN</b> عقدة قبول يبطئ فيها السعر ويرتدّ، و<b>LVN</b> عقدة رفض يعبرها بسرعة.</p>
+  ${profileSVG([{p:'4133',v:120,tag:'LVN'},{p:'4131',v:300,tag:'VAH'},{p:'4129',v:520,tag:'POC'},{p:'4127',v:360,tag:'HVN'},{p:'4125',v:150,tag:'VAL'},{p:'4123',v:90,tag:'LVN'}])}
+  <div class="cap"><b>HVN</b> = دعم/مقاومة حقيقية. <b>LVN</b> = منطقة عبور ووضع الوقف خلفها. <b>POC عارٍ</b> (لم يُلمَس منذ جلسته) = مغناطيس عالي الاحتمال.</div>
+  <div class="note warn"><div class="t">خطأ جوهري</div><p>الـ <b>LVN ليست دعمًا</b> — بل ممرّ عبور. الدعم/المقاومة عند الـ HVN. ووخزة فتيل فوق VAH ليست «قبولًا خارج القيمة»؛ القبول = وقت + حجم يُبنى هناك.</p></div>
+`));
+
+P.push(cpage('VP · الأشكال', `
+  <div class="kick"><span dir="ltr">VP · 02</span></div>
+  <h2>أشكال البروفايل ونوع اليوم</h2><div class="rule"></div>
+  <p>الشكل يختار الاستراتيجية — تطبيق تكتيك التوازن على بروفايل ترند هو الخطأ الأكبر.</p>
+  <ul class="clean">
+    <li><b>D (متوازن):</b> جرس متماثل → توازن. تلاشَ الأطراف (اشترِ VAL، بِع VAH، الهدف POC).</li>
+    <li><b>P:</b> رأس سمين وذيل رفيع أسفل → تغطية شراء/يوم صاعد. في ترند صاعد = استمرار.</li>
+    <li><b>b:</b> عكس P → تصفية شراء/يوم هابط.</li>
+    <li><b>B (توزيع مزدوج):</b> عقدتان يفصلهما LVN → منطقة القرار هي خط الـ LVN الفاصل.</li>
+    <li><b>رفيع ممدود (ترند):</b> حجم موزّع رفيع على مدى طويل → <b>لا تلاشِ شيئًا</b>؛ انضمّ للارتدادات فقط.</li>
+  </ul>
+  <div class="note gold"><div class="t">التسلسل الهرمي</div><p>تداول تكتيكيًا (بروفايل الجلسة) باتجاه ما يسمح به <b>البروفايل المركّب</b> (متعدد الأيام). شراء VAL داخل فراغ LVN مركّب = صفقة رديئة.</p></div>
+`));
+
+P.push(cpage('VP · الاستراتيجيات', `
+  <div class="kick"><span dir="ltr">VP · 03</span></div>
+  <h2>دفتر لعب البروفايل</h2><div class="rule"></div>
+  <p><b>قاعدة ٨٠٪:</b> إذا فتح السعر (أو عاد) داخل قيمة الأمس وثبت فترتين بالداخل → ~٨٠٪ احتمال دوران كامل عبر المنطقة. ادخل من الحافة، الهدف الحافة المقابلة.</p>
+  ${chart(VP_C,[
+    {t:'hline',p:4108,c:'#E9C46A',label:'VAH'},
+    {t:'hline',p:4100,c:'#8FB3AD',dash:'4 6',label:'POC'},
+    {t:'hline',p:4092,c:'#E9C46A',label:'VAL'},
+    {t:'arrow',i:2,p:4092,dir:'up',c:'#2ECC9A',text:'دخول'},
+    {t:'lbl',i:5,p:4111,text:'دوران كامل',c:'#DCE8E8',fs:20}
+  ])}
+  <div class="cap"><b>تلاشٍ استجابي</b> (أيام التوازن): تلاشَ رفض VAH/VAL نحو POC. <b>اختراق مبادِر:</b> قبول خارج القيمة يقلب الحافة القديمة ويستهدف الـ POC العاري التالي.</div>
+`));
+
+/* ============ PART 4 · FOOTPRINT ============ */
+P.push(partdiv('٤','Footprint — تدفّق الأوامر','الطبقة العليا من المنظومة: عند اللحظة والمكان اللذين حدّدتهما المدارس، مَن يفوز فعلًا الآن — بائع مبادِر أم مشترٍ؟ هذه الطبقة وحدها تملك حقّ <b style="color:#2ECC9A">النقض</b>.','الجزء الرابع'));
 
 /* ============ 3 · WHY ============ */
 P.push(cpage('لماذا الفوت برنت؟', `
@@ -572,6 +778,59 @@ P.push(cpage('الدخول عمليًا ٤', `
   <div class="note warn"><div class="t">الانضباط</div><p>الانحراف وحده <b>ليس دخولًا</b>. انتظر مُحفّز الهيكل (CHoCH/MSS). بلا كسر → صبر لا صفقة.</p></div>
 `));
 
+/* ============ PART 5 · CONFLUENCE ============ */
+P.push(partdiv('٥','دمج المدارس · Confluence','كيف نجمع الأربعة في قرار واحد: بروتوكول بترتيب صارم، وبطاقة تسجيل من ١٠ معايير، وقواعد لحلّ التعارض. هنا يتحوّل «المعرفة» إلى <b style="color:#2ECC9A">إشارة</b>.','الجزء الخامس'));
+
+P.push(cpage('البروتوكول · الترتيب', `
+  <div class="kick">دمج · <span dir="ltr">01</span></div>
+  <h2>بروتوكول القراءة · بالترتيب الصارم</h2><div class="rule"></div>
+  <p>القوّة في أن الطبقات <b>أدلّة مستقلة</b>. شغّلها بهذا الترتيب دائمًا — كل طبقة تُسلّم مخرجًا محدّدًا للتي تليها.</p>
+  <div class="steps">
+    <div class="st"><div class="b">0</div><div class="tx"><b>قراءة موضوعية</b><span>الأداة · الفريم · آخر سعر · المستويات. كل ما بعده يستشهد بهذه الأرقام فقط.</span></div></div>
+    <div class="st"><div class="b">1</div><div class="tx"><b>ICT — السرد والزمن</b><span>أين الـ DOL؟ هل كُنِست سيولة أم كُسِرت؟ خصم/علاوة؟ أي كِل زون؟ ← الاتجاه + الهدف + نافذة الوقت.</span></div></div>
+    <div class="st"><div class="b">2</div><div class="tx"><b>SMC — الهيكل والـ POI</b><span>خارجي/داخلي · آخر كسر (BOS/CHoCH) · ترتيب الـ POI · حالة الإغراء ← منطقة الدخول الدقيقة + الإبطال.</span></div></div>
+    <div class="st"><div class="b">3</div><div class="tx"><b>Volume Profile — الموقع</b><span>هل الـ POI عند حافة HVN/قيمة (جودة) أم داخل فراغ LVN (عبور)؟ ← درجة الموقع + المغانط.</span></div></div>
+    <div class="st"><div class="b">4</div><div class="tx"><b>Footprint — التأكيد</b><span>CVD متوافق؟ امتصاص أم اختراق عند المنطقة؟ ← تأكيد / انتظار / <b>نقض</b>.</span></div></div>
+  </div>
+`));
+
+P.push(cpage('بطاقة التسجيل', `
+  <div class="kick">دمج · <span dir="ltr">02</span></div>
+  <h2>بطاقة التسجيل · ١٠ معايير</h2><div class="rule"></div>
+  <p>لكل معيار ٠ (غائب) · ١ (جزئي) · ٢ (كامل). اجمع، ثم صنّف — واذكر الحساب صراحةً، لا تخمّن الدرجة.</p>
+  <table class="idx" style="font-size:25px">
+    <tr><td class="num">١</td><td>اتجاه الإطار الأعلى متوافق</td><td class="pg">ICT</td></tr>
+    <tr><td class="num">٢</td><td>سيولة كُنِست قبل النموذج (اكتمل التلاعب)</td><td class="pg">ICT</td></tr>
+    <tr><td class="num">٣</td><td>داخل كِل زون / نافذة صالحة</td><td class="pg">ICT</td></tr>
+    <tr><td class="num">٤</td><td>في النصف الصحيح (خصم/علاوة)</td><td class="pg">ICT</td></tr>
+    <tr><td class="num">٥</td><td>جودة كسر الهيكل (إزاحة، الطبقة الصحيحة)</td><td class="pg">SMC</td></tr>
+    <tr><td class="num">٦</td><td>جودة الـ POI (أقصى/قراري، غير ممسوس، فجوة ملتصقة)</td><td class="pg">SMC</td></tr>
+    <tr><td class="num">٧</td><td>كُنِس الإغراء قبل الـ POI</td><td class="pg">SMC</td></tr>
+    <tr><td class="num">٨</td><td>الـ POI عند HVN/حافة قيمة (لا وسط LVN)</td><td class="pg">VP</td></tr>
+    <tr><td class="num">٩</td><td>مسار مغانط نظيف للهدف (POC عارٍ متوافق)</td><td class="pg">VP</td></tr>
+    <tr><td class="num">١٠</td><td>تأكيد تدفّق عند الدخول (امتصاص/محاصرون/دلتا)</td><td class="pg">FP</td></tr>
+  </table>
+  <div class="kpi" style="margin-top:16px">
+    <div class="k"><div class="kv">17–20</div><div class="kl">A+ · حجم كامل</div></div>
+    <div class="k"><div class="kv">13–16</div><div class="kl">A · قياسي</div></div>
+    <div class="k"><div class="kv">9–12</div><div class="kl">B · مصغّر أو تجاهل</div></div>
+    <div class="k"><div class="kv">‎&lt;9</div><div class="kl">لا صفقة</div></div>
+  </div>
+`));
+
+P.push(cpage('حلّ التعارض', `
+  <div class="kick">دمج · <span dir="ltr">03</span></div>
+  <h2>حين تتعارض المدارس</h2><div class="rule"></div>
+  <p>التعارض معلومة. هذه قواعد الفصل — والأولوية عند التنفيذ للتدفّق:</p>
+  <ul class="clean">
+    <li><b>هيكل صاعد + امتصاص للمشترين عند الـ POI</b> → الفوت برنت يفوز: قف، أعد التسليح عند الـ POI التالي. التدفّق <b>ينقض</b> ولا يُنشئ.</li>
+    <li><b>POI داخل فراغ LVN</b> → خفّض الدرجة؛ فضّل الـ POI الذي يتقاطع مع HVN، أو توقّع عبورًا سريعًا للعقدة التالية (وهي لعبة بحدّ ذاتها).</li>
+    <li><b>اتجاه ICT ضد الهيكل الداخلي لـ SMC</b> → افحص الطبقة: CHoCH داخلي ضد اتجاه الإطار الأعلى هو غالبًا الارتداد <b>الذي يبني</b> الدخول.</li>
+    <li><b>خارج الكِل زون وكل شيء آخر مثالي</b> → سقّف الدرجة عند B، وسجّل النافذة التالية بدل الإجبار.</li>
+  </ul>
+  <div class="note gold"><div class="t">الحدّ الأدنى</div><p>لا خطّة صفقة من طبقة واحدة أبدًا — <b>اتفاق طبقتين على الأقل</b>. الهيكل يقول أين، والتدفّق يقول هل.</p></div>
+`));
+
 /* ============ 21 · CONFLUENCE ============ */
 P.push(cpage('الدمج مع الهيكل', `
   <div class="kick">بوّابة التقاطع</div>
@@ -586,6 +845,71 @@ P.push(cpage('الدمج مع الهيكل', `
   <p>القاعدة باختصار: <b>الهيكل يحدّد أين تنظر، والفوت برنت يؤكّد مَن يفوز هناك.</b></p>
 `));
 
+/* ============ PART 6 · ENTRY MODELS & STRATEGIES ============ */
+P.push(partdiv('٦','نماذج الدخول والاستراتيجيات','كتالوج شامل لكل نماذج الدخول عبر المدارس الأربع، مع صفقة A+ كاملة بالخطوات، ودفاتر لعب جاهزة للاتجاه والانعكاس والنطاق.','الجزء السادس'));
+
+P.push(cpage('كتالوج نماذج الدخول', `
+  <div class="kick">دخول · <span dir="ltr">01</span></div>
+  <h2>كل النماذج · في جدول واحد</h2><div class="rule"></div>
+  <table class="idx" style="font-size:24px">
+    <tr><td class="num" style="color:var(--gold)">ICT</td><td><b>A+ (نموذج ٢٠٢٢):</b> كنس سيولة ← MSS + FVG ← ارتداد OTE ← دخول</td><td class="pg">وقف خلف الكنس</td></tr>
+    <tr><td class="num" style="color:var(--gold)">ICT</td><td><b>Silver Bullet:</b> نفس التسلسل داخل ‎10:00–11:00 على فجوة قريبة</td><td class="pg">هدف السيولة</td></tr>
+    <tr><td class="num" style="color:var(--teal)">SMC</td><td><b>استمرار:</b> كنس إغراء ← لمس POI ← CHoCH صغير ← دخول</td><td class="pg">خلف الـ POI</td></tr>
+    <tr><td class="num" style="color:var(--teal)">SMC</td><td><b>انعكاس:</b> كنس خارجي ← CHoCH بإزاحة ← ارتداد للـ OB</td><td class="pg">خلف الكنس</td></tr>
+    <tr><td class="num" style="color:#7A6BCF">VP</td><td><b>قاعدة ٨٠٪:</b> عودة داخل القيمة ← دوران للحافة المقابلة</td><td class="pg">خلف الحافة</td></tr>
+    <tr><td class="num" style="color:#7A6BCF">VP</td><td><b>اختراق مبادِر:</b> قبول خارج القيمة ← ارتداد للحافة المنقلبة</td><td class="pg">داخل القيمة</td></tr>
+    <tr><td class="num" style="color:#7A6BCF">VP</td><td><b>مغناطيس POC عارٍ:</b> تسلسل الـ nPOC كأهداف في حركة اتجاهية</td><td class="pg">عقدة سابقة</td></tr>
+    <tr><td class="num" style="color:var(--red)">FP</td><td><b>امتصاص · استنزاف · محاصرون · انحراف · إعادة اختبار مكدّس</b></td><td class="pg">إبطال تدفّقي</td></tr>
+  </table>
+  <div class="note gold"><div class="t">الصيغة الموحّدة</div><p>كل نموذج أعلاه يختصر إلى: <b>سياق (متى/أين) + نمط (تدفّق/هيكل) + مُحفّز</b>. غيّروا الأسماء، يبقى الهيكل واحدًا.</p></div>
+`));
+
+P.push(cpage('صفقة A+ كاملة', `
+  <div class="kick">دخول · <span dir="ltr">02</span></div>
+  <h2>مثال A+ · المدارس الأربع مجتمعة</h2><div class="rule"></div>
+  <p>ذهب · 5m · جلسة نيويورك. تتبّع كيف تتراكم الأدلّة الأربعة على نفس المنطقة.</p>
+  ${chart(ICT_A,[
+    {t:'hline',p:4099,c:'#E15A5A',label:'SSL'},
+    {t:'sweep',i:4,p:4096,text:'كنس'},
+    {t:'zone',p1:4104,p2:4106,i1:5,i2:9,c:'rgba(46,204,154,.14)',sc:'rgba(46,204,154,.5)',tc:'#8FE9CF',label:'FVG'},
+    {t:'lbl',i:6,p:4119,text:'MSS',c:'#2ECC9A',fs:20},
+    {t:'arrow',i:8,p:4104,dir:'up',c:'#2ECC9A',text:'امتصاص'},
+    {t:'hline',p:4116,c:'#E9C46A',label:'BSL'}
+  ])}
+  <div class="kpi" style="margin-top:18px">
+    <div class="k"><div class="kv" style="color:#237067;font-size:34px">دخول</div><div class="kl">FVG · 4105</div></div>
+    <div class="k"><div class="kv" style="color:#CE5140;font-size:34px">وقف</div><div class="kl">تحت الكنس · 4095</div></div>
+    <div class="k"><div class="kv" style="color:#C79A3A;font-size:34px">هدف</div><div class="kl">BSL · 4116 · ‎+2.2R</div></div>
+  </div>
+  <div class="cap"><b>الدرجة:</b> ICT (كنس✓ زمن✓ خصم✓) + SMC (MSS✓ POI✓) + VP (حافة HVN✓) + FP (امتصاص✓) = <b>18/20 → A+</b>.</div>
+`));
+
+P.push(cpage('دفتر لعب · اتجاه', `
+  <div class="kick">دخول · <span dir="ltr">03</span></div>
+  <h2>دفتر لعب الاستمرار (اتجاه)</h2><div class="rule"></div>
+  <div class="steps">
+    <div class="st"><div class="b">١</div><div class="tx"><b>السياق</b><span>ترند خارجي بتتابع BOS · بروفايل رفيع/ممدود (يوم اتجاه) · CVD يصعد مع السعر.</span></div></div>
+    <div class="st"><div class="b">٢</div><div class="tx"><b>الانتظار</b><span>ارتداد إلى فجوة FVG أو حافة HVN داخل الاتجاه، مع كنس إغراء الارتداد.</span></div></div>
+    <div class="st"><div class="b">٣</div><div class="tx"><b>المُحفّز</b><span>اختلالات شراء مكدّسة جديدة أو CHoCH صغير مؤيّد للاتجاه عند المنطقة.</span></div></div>
+    <div class="st"><div class="b">٤</div><div class="tx"><b>الإدارة</b><span>وقف خلف الـ POI/التكديس · هدف السيولة الخارجية التالية · تتبّع خلف كل سوينق محمي.</span></div></div>
+  </div>
+  <div class="note warn"><div class="t">القاعدة</div><p>في يوم الاتجاه <b>لا تتلاشَ الأطراف أبدًا</b> — انضمّ للارتدادات فقط. تلاشي الترند هو الخطأ الأكبر في البروفايل.</p></div>
+`));
+
+P.push(cpage('دفتر لعب · انعكاس ونطاق', `
+  <div class="kick">دخول · <span dir="ltr">04</span></div>
+  <h2>دفتر لعب الانعكاس والنطاق</h2><div class="rule"></div>
+  <ul class="clean">
+    <li><b>انعكاس عند السيولة:</b> كنس سيولة خارجية كبرى ← انحراف دلتا/CVD ← CHoCH بإزاحة ← ارتداد للـ OB ← دخول. الهدفان: سيولة داخلية ثم خارجية معاكسة.</li>
+    <li><b>نطاق/توازن (بروفايل D):</b> تلاشَ رفض VAH/VAL نحو POC بتأكيد امتصاص أو محاصرين عند الحافة. الوقف خلف الحافة، الهدف POC ثم الحافة المقابلة.</li>
+    <li><b>قاعدة ٨٠٪:</b> عودة داخل قيمة الأمس + ثبات فترتين ← دوران كامل. ادخل من حافة الدخول، الهدف الحافة المقابلة.</li>
+  </ul>
+  <div class="note gold"><div class="t">الفلتر الحاكم</div><p>الانعكاس بلا كنس سيولة سابق = سكين هابط. النطاق داخل ترند مركّب = فخّ. صنّف الشكل واليوم <b>قبل</b> اختيار دفتر اللعب.</p></div>
+`));
+
+/* ============ PART 7 · RISK & PSYCHOLOGY ============ */
+P.push(partdiv('٧','المخاطرة والنفسية والتنفيذ','لا منهج ينجو بلا انضباط: أين يوضع الوقف، كم تخاطر، ومتى تصمت الأنا. البقاء أولًا — دائمًا.','الجزء السابع'));
+
 /* ============ 22 · RISK ============ */
 P.push(cpage('إدارة المخاطرة', `
   <div class="kick">البقاء أولًا</div>
@@ -597,6 +921,21 @@ P.push(cpage('إدارة المخاطرة', `
     <li><b>الهدف بالسيولة:</b> استهدف مجمّعات السيولة والفراغات المنطقية، وقِس بمضاعفات R لا بالنقاط.</li>
   </ul>
   <div class="note warn"><div class="t">تحذير جوهري</div><p>لا تثق بدلتا الوسيط التقريبية وكأنها شريط حقيقي. منصّات كثيرة تُقرّب التصنيف. اعرف مصدر بياناتك، وميّز بين <b>التقريب</b> و<b>التغذية الحقيقية</b> (عقود مثل GC للذهب).</p></div>
+`));
+
+/* ============ PSYCHOLOGY ============ */
+P.push(cpage('النفسية والتنفيذ', `
+  <div class="kick">العقل قبل الأداة</div>
+  <h2><span class="n">◆</span> النفسية والتنفيذ</h2><div class="rule"></div>
+  <p>المنهج المثالي بأنا سيئة = حساب خاسر. البوّابة التي بنيناها لا قيمة لها إن تجاوزتها يدك عند أول ملل.</p>
+  <ul class="clean">
+    <li><b>الصبر هو الميزة:</b> «عالي الجودة فقط» يعني رفض ٩٠٪ من النماذج. الملل ليس مبرّرًا للدخول.</li>
+    <li><b>الخطة قبل الشمعة:</b> عرّف الدخول والوقف والهدف وطباعة الإلغاء <b>قبل</b> الدخول — لا تتفاوض بعدها.</li>
+    <li><b>الوقف عقد لا اقتراح:</b> تحريك الوقف ضد الصفقة يُبطل كل إحصائياتك. موت الفكرة = خروج فوري.</li>
+    <li><b>افصل النتيجة عن القرار:</b> صفقة رابحة بقرار سيئ = عادة خطرة. قيّم جودة <b>القرار</b>، لا اللون الأخضر.</li>
+    <li><b>سجّل كل صفقة:</b> السياق + النمط + المحفّز + الدرجة + النتيجة. المذكّرة تكشف أي ركيزة تصفّي أكثر الضوضاء.</li>
+  </ul>
+  <div class="note gold"><div class="t">القاعدة الواحدة</div><p>إن لم تستطع نطق <b>السياق + النمط + المحفّز</b> بجملة — فهي ضوضاء لا صفقة. انتظر.</p></div>
 `));
 
 /* ============ 23 · MISTAKES ============ */
@@ -612,6 +951,40 @@ P.push(cpage('أخطاء شائعة', `
     <li>تثبيت CVD بشكل غير متّسق — ثبّته على الجلسة؛ المستوى المطلق لـ CVD غير المرسو بلا معنى.</li>
   </ul>
   <div class="note"><div class="t">القاعدة العملية</div><p>إن لم تستطع تسمية <b>السياق + النمط + محفّز الهيكل</b> بجملة واحدة — فهي ليست صفقة، بل ضوضاء. انتظر.</p></div>
+`));
+
+/* ============ GLOSSARY ============ */
+P.push(cpage('المعجم · ١', `
+  <div class="kick">مرجع سريع</div>
+  <h2><span class="n">◆</span> معجم المصطلحات (١)</h2><div class="rule"></div>
+  <table class="idx" style="font-size:24px">
+    <tr><td style="width:220px"><b class="lat" style="color:var(--teal)">BSL / SSL</b></td><td>سيولة شرائية فوق القمم / بيعية تحت القيعان.</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">DOL</b></td><td>الهدف الأعلى للسيولة الذي يُسلَّم نحوه السعر.</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">FVG</b></td><td>فجوة القيمة العادلة — فراغ ٣ شموع من عدم كفاءة.</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">OB</b></td><td>أوردر بلوك — آخر شمعة معاكسة قبل الإزاحة الكاسرة.</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">OTE</b></td><td>الدخول الأمثل — ارتداد ٦٢٪–٧٩٪ للإزاحة.</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">MSS</b></td><td>تحوّل الهيكل بإزاحة بعد كنس = إشارة انعكاس.</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">BOS / CHoCH</b></td><td>كسر هيكل باتجاه الترند / تغيّر طابع ضدّه (إغلاق جسم).</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">IDM</b></td><td>إغراء — ارتداد صغير يُكنَس قبل الـ POI.</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">POI</b></td><td>نقطة اهتمام — منطقة الدخول المصقولة.</td></tr>
+  </table>
+`));
+
+P.push(cpage('المعجم · ٢', `
+  <div class="kick">مرجع سريع</div>
+  <h2><span class="n">◆</span> معجم المصطلحات (٢)</h2><div class="rule"></div>
+  <table class="idx" style="font-size:24px">
+    <tr><td style="width:220px"><b class="lat" style="color:var(--teal)">POC</b></td><td>نقطة التحكّم — أعلى سعر حجمًا (الأعدل).</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">VA / VAH / VAL</b></td><td>منطقة القيمة (٧٠٪ من الحجم) وقمّتها وقاعها.</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">HVN / LVN</b></td><td>عقدة حجم عالية (قبول/ارتداد) / منخفضة (رفض/عبور).</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">nPOC</b></td><td>POC عارٍ لم يُلمَس منذ جلسته = مغناطيس.</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">Delta / CVD</b></td><td>الطلب − العرض في البار / مجموعها الجاري كخط.</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">Imbalance</b></td><td>اختلال قطري ‎3:1‎ فأكثر بين طلب وعرض متجاورين.</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">Absorption</b></td><td>حجم مبادِر كبير يُمتَص بلا تقدّم سعري.</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">Exhaustion</b></td><td>تلاشي الحجم عند الدفع = نفاد المبادِر.</td></tr>
+    <tr><td><b class="lat" style="color:var(--teal)">Killzone</b></td><td>نافذة زمنية عالية الاحتمال (لندن / نيويورك).</td></tr>
+  </table>
+  <div class="note gold"><div class="t">ختامًا</div><p>المصطلحات تتعدّد، والفكرة واحدة: <b>مكان يحدّده الهيكل، وتؤكّده بصمة التدفّق، في الوقت الصحيح.</b></p></div>
 `));
 
 /* ============ 24 · SUMMARY / CTA ============ */
