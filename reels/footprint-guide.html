@@ -141,12 +141,40 @@ function cvdSVG({price, cvd, priceLbl, cvdLbl, marks}){
     <span style="color:#9AAAB0">▬ ${priceLbl||'السعر'}</span><span style="color:#2ECC9A">▬ ${cvdLbl||'CVD'}</span></div></div>`;
 }
 
+// single-value column renderer for alternate display types
+function dcol(levels, mode, {delta,vol,label}={}){
+  const rows=levels.map(L=>{
+    const b=+L.bid,a=+L.ask,d=a-b,v=a+b,pct=v?Math.round(d/v*100):0;
+    let txt='',tc='#C7D3D3',bg='transparent',barW=0,barC='';
+    if(mode==='delta'){txt=(d>0?'+':'')+d;tc=d>=0?'#74C7AC':'#D08A86';bg=d>=0?'rgba(28,110,82,.28)':'rgba(155,61,52,.28)';}
+    if(mode==='pct'){txt=(d>0?'+':'')+pct+'%';tc=d>=0?'#74C7AC':'#D08A86';bg=d>=0?'rgba(28,110,82,.28)':'rgba(155,61,52,.28)';}
+    if(mode==='vol'){txt=v;tc='#DCE8E8';barW=Math.min(1,v/560);barC='rgba(116,199,172,.28)';}
+    const barEl=mode==='vol'?`<div style="position:absolute;left:0;top:7px;bottom:7px;width:${(barW*100).toFixed(0)}%;background:${barC};border-radius:5px"></div>`:'';
+    return `<div style="display:grid;grid-template-columns:150px 168px;column-gap:16px;align-items:center;height:48px">
+      <div class="bprice">${L.p}</div>
+      <div style="position:relative;height:100%;display:flex;align-items:center;justify-content:center;border-radius:6px;background:${bg}">${barEl}<span class="mono" style="position:relative;font-weight:700;font-size:26px;color:${tc}">${txt}</span></div></div>`;
+  }).join('');
+  const s = (delta!=null)?`<div class="bsum" style="grid-template-columns:150px 168px;column-gap:16px"><div class="v" style="grid-column:1/2">${vol?('Vol '+vol):''}</div><div class="d" style="grid-column:2/3;color:${(typeof delta==='number'?delta:parseFloat(String(delta)))>=0?'#74C7AC':'#D08A86'}">Δ ${delta}</div></div>`:'';
+  return `<div class="bar" style="direction:ltr">${rows}${s}${label?`<div class="barlab">${label}</div>`:''}</div>`;
+}
+// mini volume profile (horizontal bars) with POC/HVN/LVN
+function profileSVG(levels){
+  const W=520,rh=54,pad=8,H=levels.length*rh+2*pad,maxv=Math.max(...levels.map(l=>l.v));
+  let rows=levels.map((l,i)=>{const w=(l.v/maxv)*(W-230),y=pad+i*rh;
+    const col=l.tag==='POC'?'#E9C46A':l.tag==='LVN'?'#4B5F68':'#3E8C7E';
+    const px=w+22, tx=px+String(l.p).length*15+20;
+    return `<rect x="10" y="${y+8}" width="${w}" height="${rh-16}" rx="5" fill="${col}" opacity="${l.tag==='LVN'?0.5:0.9}"/>
+      <text x="${px}" y="${y+rh/2+2}" fill="#9AAAB0" font-family="Mono" font-size="22" dominant-baseline="middle">${l.p}</text>
+      ${l.tag?`<text x="${tx}" y="${y+rh/2+2}" fill="${col}" font-family="Pop" font-weight="600" font-size="20" dominant-baseline="middle">${l.tag}</text>`:''}`;}).join('');
+  return `<div class="fp" style="direction:ltr"><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${rows}</svg></div>`;
+}
+
 // ---- page template ----
 function page(inner, cls=''){return `<div class="page ${cls}">${inner}</div>`;}
 function head(ch){return `<div class="hd"><div class="wm">${GEM}<b>LIQUIDITY STATE</b></div><div class="ch">${ch}</div></div>`;}
-function foot(n){return `<div class="ft"><div>الفوت برنت · دليل تعليمي</div><div class="pg">صفحة <b>${n}</b> / 24</div></div>`;}
+function foot(n){return `<div class="ft"><div>الفوت برنت · دليل تعليمي</div><div class="pg">صفحة <b>${n}</b> / @@TOT@@</div></div>`;}
 function content(html){return `<div class="content">${html}</div>`;}
-function cpage(ch,n,html){return page(head(ch)+content(html)+foot(n));}
+function cpage(ch,html){const n=P.length+1;return page(head(ch)+content(html)+foot(n));}
 
 const P=[];
 
@@ -177,30 +205,23 @@ P.push(page(`
 `,'dark'));
 
 /* ============ 2 · INDEX ============ */
-P.push(cpage('المحتويات', 2, `
+P.push(cpage('المحتويات', `
   <h2>المحتويات</h2><div class="rule"></div>
-  <table class="idx">
-    <tr><td class="num">01</td><td>لماذا الفوت برنت؟ السؤال الوحيد المهم</td><td class="pg">03</td></tr>
-    <tr><td class="num">02</td><td>ما هو الفوت برنت؟ تشريح البار</td><td class="pg">04</td></tr>
-    <tr><td class="num">03</td><td>قراءة الخلية: Bid × Ask</td><td class="pg">05</td></tr>
-    <tr><td class="num">04</td><td>الدلتا Delta</td><td class="pg">06</td></tr>
-    <tr><td class="num">05</td><td>الدلتا التراكمية CVD</td><td class="pg">07</td></tr>
-    <tr><td class="num">06</td><td>نقطة التحكم POC ومناطق القبول</td><td class="pg">08</td></tr>
-    <tr><td class="num">07</td><td>الاختلال القطري Diagonal Imbalance</td><td class="pg">09</td></tr>
-    <tr><td class="num">08</td><td>الاختلالات المكدّسة Stacked</td><td class="pg">10</td></tr>
-    <tr><td class="num">09</td><td>المزاد غير المكتمل و Zero Prints</td><td class="pg">11</td></tr>
-    <tr><td class="num">10</td><td>النموذج ١: الامتصاص Absorption</td><td class="pg">12</td></tr>
-    <tr><td class="num">11</td><td>النموذج ٢: الاستنزاف Exhaustion</td><td class="pg">13</td></tr>
-    <tr><td class="num">12</td><td>النموذج ٣: المحاصرون Trapped</td><td class="pg">14</td></tr>
-    <tr><td class="num">13</td><td>النموذج ٤: انحراف الدلتا Divergence</td><td class="pg">15</td></tr>
-    <tr><td class="num">14</td><td>بروتوكول القراءة (٥ خطوات)</td><td class="pg">17</td></tr>
-    <tr><td class="num">15</td><td>الدخول عمليًا: ٣ نماذج صفقات</td><td class="pg">18</td></tr>
-    <tr><td class="num">16</td><td>الدمج + إدارة المخاطرة + أخطاء + خلاصة</td><td class="pg">21</td></tr>
+  <table class="idx" style="font-size:26px">
+    <tr><td class="num">·</td><td><b>الأساسيات</b> — لماذا الفوت برنت · تشريح البار · قراءة الخلية</td><td class="pg">03</td></tr>
+    <tr><td class="num">·</td><td><b>أنواع العرض</b> — Bid×Ask · Delta · Volume · Profile · Delta% · CVD</td><td class="pg">06</td></tr>
+    <tr><td class="num">·</td><td><b>المفاهيم</b> — الدلتا · CVD · POC · HVN/LVN</td><td class="pg">10</td></tr>
+    <tr><td class="num">·</td><td><b>الاختلالات</b> — القطري · المكدّس · المزاد غير المكتمل</td><td class="pg">13</td></tr>
+    <tr><td class="num">·</td><td><b>النماذج</b> — امتصاص · استنزاف · محاصرون · انحراف · إعادة اختبار</td><td class="pg">16</td></tr>
+    <tr><td class="num">·</td><td><b>بروتوكول القراءة</b> (٥ خطوات)</td><td class="pg">21</td></tr>
+    <tr><td class="num">·</td><td><b>طرق الدخول</b> — نظرة عامة + ٤ صفقات كاملة بوقف/هدف</td><td class="pg">22</td></tr>
+    <tr><td class="num">·</td><td><b>الدمج · إدارة المخاطرة · أخطاء · خلاصة وتشيك ليست</b></td><td class="pg">27</td></tr>
   </table>
+  <div class="note gold" style="margin-top:26px"><div class="t">كيف تقرأ هذا الدليل</div><p>كل مفهوم مصحوب بمخطط فوت برنت دقيق، وكل نموذج ينتهي بطريقة دخول واضحة. القاعدة الحاكمة تتكرّر: <b>مكان + تدفّق + مُحفّز هيكل.</b></p></div>
 `));
 
 /* ============ 3 · WHY ============ */
-P.push(cpage('لماذا الفوت برنت؟', 3, `
+P.push(cpage('لماذا الفوت برنت؟', `
   <div class="kick">الفكرة الجوهرية</div>
   <h2><span class="n">٠١.</span> السؤال الوحيد الذي يُحرّك السعر</h2><div class="rule"></div>
   <p class="lead">الشمعة تخبرك أين ذهب السعر… <b>الفوت برنت يخبرك مَن حرّكه.</b></p>
@@ -215,7 +236,7 @@ P.push(cpage('لماذا الفوت برنت؟', 3, `
 `));
 
 /* ============ 4 · ANATOMY ============ */
-P.push(cpage('تشريح البار', 4, `
+P.push(cpage('تشريح البار', `
   <div class="kick">التركيب</div>
   <h2><span class="n">٠٢.</span> ما هو الفوت برنت؟ تشريح البار</h2><div class="rule"></div>
   <p>بدل جسم وفتيل، البار يتكوّن من صفوف أسعار. كل صف يعرض حجمَين: يسار = البيع المبادِر على الـ Bid، يمين = الشراء المبادِر على الـ Ask.</p>
@@ -231,7 +252,7 @@ P.push(cpage('تشريح البار', 4, `
 `));
 
 /* ============ 5 · CELL ============ */
-P.push(cpage('قراءة الخلية', 5, `
+P.push(cpage('قراءة الخلية', `
   <div class="kick">اللبنة الأساسية</div>
   <h2><span class="n">٠٣.</span> قراءة الخلية: Bid × Ask</h2><div class="rule"></div>
   <p>عند كل سعر يوجد رقمان: البيع المنفَّذ على العرض × الشراء المنفَّذ على الطلب. <b>أوامر البيع بالسوق تُنفَّذ على الـ Bid، وأوامر الشراء بالسوق تُنفَّذ على الـ Ask.</b></p>
@@ -248,8 +269,60 @@ P.push(cpage('قراءة الخلية', 5, `
   <p>مجموع كل حجوم الشراء ناقص كل حجوم البيع في البار = <b>الدلتا</b> — موضوع الصفحة التالية.</p>
 `));
 
+/* ===== DISPLAY TYPES SECTION ===== */
+const CMP=[{p:'4131.0',bid:'28',ask:'205'},{p:'4129.5',bid:'40',ask:'168'},{p:'4128.0',bid:'150',ask:'240'},{p:'4126.5',bid:'96',ask:'70'},{p:'4125.0',bid:'175',ask:'52'}];
+
+P.push(cpage('أنواع العرض', `
+  <div class="kick">نفس الداتا · طرق عرض مختلفة</div>
+  <h2><span class="n">◆</span> أنواع عرض الفوت برنت</h2><div class="rule"></div>
+  <p>الفوت برنت داتا واحدة تُعرض بطرق متعددة؛ كل نوع يُبرز زاوية مختلفة. اختر النوع حسب هدفك من القراءة.</p>
+  <table class="idx">
+    <tr><td class="num">1</td><td><b style="color:var(--teal)">Bid × Ask</b> — بيع × شراء لكل سعر</td><td class="pg">اختلالات · امتصاص</td></tr>
+    <tr><td class="num">2</td><td><b style="color:var(--teal)">Delta</b> — رقم واحد (طلب−عرض)</td><td class="pg">مسح سريع</td></tr>
+    <tr><td class="num">3</td><td><b style="color:var(--teal)">Volume</b> — إجمالي الحجم لكل سعر</td><td class="pg">القبول · POC</td></tr>
+    <tr><td class="num">4</td><td><b style="color:var(--teal)">Profile</b> — توزيع الحجم داخل البار</td><td class="pg">HVN / LVN</td></tr>
+    <tr><td class="num">5</td><td><b style="color:var(--teal)">Delta %</b> — شدّة الاختلال كنسبة</td><td class="pg">مقارنة مستويات</td></tr>
+    <tr><td class="num">6</td><td><b style="color:var(--teal)">Cumulative Delta</b> — CVD كخط/شموع</td><td class="pg">الاتجاه · التباعد</td></tr>
+  </table>
+  <div class="note gold"><div class="t">القاعدة</div><p>ابدأ بـ <b>Bid×Ask</b> للتحليل الدقيق، و<b>Delta/Volume</b> للمسح السريع، و<b>Profile + CVD</b> للسياق العام.</p></div>
+`));
+
+P.push(cpage('Bid×Ask · Delta · Volume', `
+  <div class="kick">مقارنة مباشرة</div>
+  <h2><span class="n">◆</span> ثلاثة أنواع · نفس البار</h2><div class="rule"></div>
+  <p>نفس المستويات معروضة بثلاث طرق. لاحظ كيف يبسّط كل نوع المعلومة على حساب تفاصيل أخرى.</p>
+  <div class="fp">
+    <div class="fpbars">${bar(CMP.map((l,i)=>({...l,imb:i<2?'buy':(i>3?'sell':null),poc:i===2})),{delta:322,vol:'1.4k'})}</div>
+    <div class="barlab" style="margin-bottom:14px">Bid × Ask</div>
+    <div class="fpbars" style="gap:70px;border-top:1px solid #223540;padding-top:20px">
+      <div>${dcol(CMP,'delta',{})}<div class="barlab">Delta</div></div>
+      <div>${dcol(CMP,'vol',{})}<div class="barlab">Volume</div></div>
+    </div>
+  </div>
+  ${legend([{c:'#1C6E52',t:'دلتا/اختلال موجب'},{c:'#9B3D34',t:'سالب'},{c:'rgba(116,199,172,.4)',t:'كثافة الحجم'}])}
+  <div class="note"><div class="t">متى تستخدم أيًّا؟</div><p><b>Bid×Ask</b>: لرؤية الاختلال القطري والامتصاص. <b>Delta</b>: لمعرفة مَن فاز صافيًا بسرعة. <b>Volume</b>: لتحديد أين تركّز القبول (POC).</p></div>
+`));
+
+P.push(cpage('البروفايل الحجمي', `
+  <div class="kick">شكل المزاد</div>
+  <h2><span class="n">◆</span> البروفايل الحجمي · HVN / LVN</h2><div class="rule"></div>
+  <p>يرسم توزيع الحجم كأعمدة أفقية: أطول عمود = <b>POC</b>. عُقد الحجم العالية <b>HVN</b> = قبول/توازن يجذب السعر، والمنخفضة <b>LVN</b> = رفض يعبره السعر بسرعة.</p>
+  ${profileSVG([{p:'4133',v:120,tag:'LVN'},{p:'4131',v:300,tag:'HVN'},{p:'4129',v:520,tag:'POC'},{p:'4127',v:280,tag:'HVN'},{p:'4125',v:90,tag:'LVN'}])}
+  <div class="cap">أطول عمود = <b>POC</b> (أعلى قبول). عُقد <b>HVN</b> مناطق توازن، و<b>LVN</b> فراغات يعبرها السعر بسرعة.</div>
+  <div class="note gold"><div class="t">استخدام عملي</div><p>حواف <b>HVN</b> و<b>الـ POC العاري</b> أهداف وردود فعل ممتازة — وهي «الأماكن» التي يؤكّدها الفوت برنت بالتدفّق.</p></div>
+`));
+
+P.push(cpage('Delta% · CVD', `
+  <div class="kick">الشدّة والاتجاه</div>
+  <h2><span class="n">◆</span> Delta % والدلتا التراكمية</h2><div class="rule"></div>
+  <p><b>Delta %</b> يعرض الدلتا كنسبة من حجم الخلية — يعزل «شدّة» الاختلال عن حجمه المطلق، فتقارن مستويات بأحجام مختلفة بعدل.</p>
+  <div class="fp"><div class="fpbars"><div>${dcol(CMP,'pct',{})}<div class="barlab">Delta %</div></div></div></div>
+  <p style="margin-top:22px"><b>Cumulative Delta (CVD)</b> يجمع الدلتا عبر البارات كخط — لقراءة اتجاه العدوانية والتباعد مع السعر (كما في الصفحة القادمة).</p>
+  <div class="note"><div class="t">تذكير</div><p>النسبة العالية على حجم صغير قد تخدع — اقرأ الـ Delta% مع الحجم الخام، لا معزولًا.</p></div>
+`));
+
 /* ============ 6 · DELTA ============ */
-P.push(cpage('الدلتا', 6, `
+P.push(cpage('الدلتا', `
   <div class="kick">مقياس العدوانية</div>
   <h2><span class="n">٠٤.</span> الدلتا Delta</h2><div class="rule"></div>
   <p><b>الدلتا = مجموع الطلب − مجموع العرض</b> في البار. الإشارة تخبرك مَن كان أكثر عدوانية، والحجم يخبرك بالمقدار.</p>
@@ -261,7 +334,7 @@ P.push(cpage('الدلتا', 6, `
 `));
 
 /* ============ 7 · CVD ============ */
-P.push(cpage('الدلتا التراكمية', 7, `
+P.push(cpage('الدلتا التراكمية', `
   <div class="kick">خط اتجاه العدوانية</div>
   <h2><span class="n">٠٥.</span> الدلتا التراكمية CVD</h2><div class="rule"></div>
   <p>الـ <b>CVD</b> هو المجموع الجاري للدلتا عبر البارات — يرسم لك «خط اتجاه العدوانية» للجلسة. قارنه دائمًا باتجاه السعر.</p>
@@ -271,7 +344,7 @@ P.push(cpage('الدلتا التراكمية', 7, `
 `));
 
 /* ============ 8 · POC ============ */
-P.push(cpage('نقطة التحكم', 8, `
+P.push(cpage('نقطة التحكم', `
   <div class="kick">القبول داخل البار</div>
   <h2><span class="n">٠٦.</span> نقطة التحكم POC ومناطق القبول</h2><div class="rule"></div>
   <p>الـ <b>POC</b> هو السعر صاحب أكبر حجم داخل البار — نقطة «القبول». <b>موقع POC داخل البار تشخيصي:</b> POC عند قاع شمعة صاعدة = المشترون دافعوا عن القاع.</p>
@@ -286,7 +359,7 @@ P.push(cpage('نقطة التحكم', 8, `
 `));
 
 /* ============ 9 · DIAGONAL IMB ============ */
-P.push(cpage('الاختلال القطري', 9, `
+P.push(cpage('الاختلال القطري', `
   <div class="kick">أهم مفهوم عملي</div>
   <h2><span class="n">٠٧.</span> الاختلال القطري Diagonal Imbalance</h2><div class="rule"></div>
   <p>قارِن <b>الطلب عند السعر P مع العرض عند P−1 (قطريًا)</b> — لأن الشراء المبادِر عند P يلتهم العروض التي كان بائعو P−1 يضربونها. نسبة <b>٣:١ (٣٠٠٪) فأكثر = اختلال.</b></p>
@@ -300,7 +373,7 @@ P.push(cpage('الاختلال القطري', 9, `
 `));
 
 /* ============ 10 · STACKED ============ */
-P.push(cpage('الاختلالات المكدّسة', 10, `
+P.push(cpage('الاختلالات المكدّسة', `
   <div class="kick">بصمة المؤسسات</div>
   <h2><span class="n">٠٨.</span> الاختلالات المكدّسة Stacked</h2><div class="rule"></div>
   <p><b>٣ اختلالات قطرية متتالية أو أكثر بنفس الاتجاه</b> = إلحاح مؤسسي. منطقة التكديس تتحوّل إلى <b>نطاق دعم/مقاومة</b> يُتوقّع أن يصمد عند إعادة الاختبار.</p>
@@ -316,7 +389,7 @@ P.push(cpage('الاختلالات المكدّسة', 10, `
 `));
 
 /* ============ 11 · UNFINISHED ============ */
-P.push(cpage('المزاد غير المكتمل', 11, `
+P.push(cpage('المزاد غير المكتمل', `
   <div class="kick">الطباعات الصفرية</div>
   <h2><span class="n">٠٩.</span> المزاد غير المكتمل و Zero Prints</h2><div class="rule"></div>
   <p>عند طرف البار: وجود <b>طباعة صفرية (Zero) على أحد الجانبين</b> = المزاد اكتمل هناك → الطرف قد يصمد. أما إذا تداول الجانبان عند الطرف (بلا صفر) = <b>مزاد غير مكتمل</b> → السعر يميل للعودة إليه.</p>
@@ -328,7 +401,7 @@ P.push(cpage('المزاد غير المكتمل', 11, `
 `));
 
 /* ============ 12 · ABSORPTION ============ */
-P.push(cpage('النموذج ١ · الامتصاص', 12, `
+P.push(cpage('النموذج ١ · الامتصاص', `
   <div class="kick">وقود الانعكاس</div>
   <h2><span class="n">١٠.</span> الامتصاص Absorption</h2><div class="rule"></div>
   <p>حجم مبادِر ضخم يدخل مستوى <b>دون تقدّم في السعر</b> — أوامر حدّية سلبية تلتهم أوامر السوق. التوقيع: حجم كبير على البيع عند القيعان، لكن القيعان <b>تصمد</b> (امتُصّ البائعون).</p>
@@ -343,7 +416,7 @@ P.push(cpage('النموذج ١ · الامتصاص', 12, `
 `));
 
 /* ============ 13 · EXHAUSTION ============ */
-P.push(cpage('النموذج ٢ · الاستنزاف', 13, `
+P.push(cpage('النموذج ٢ · الاستنزاف', `
   <div class="kick">موت الاتجاه</div>
   <h2><span class="n">١١.</span> الاستنزاف Exhaustion</h2><div class="rule"></div>
   <p>عكس الامتصاص. هنا الحجم والدلتا <b>يتضاءلان</b> كلما دفع السعر الطرف: دفعات أخيرة بطباعات متناقصة، وحجم ضئيل جدًا عند القمة/القاع (طباعات مفردة). <b>المبادِر نفد.</b></p>
@@ -358,7 +431,7 @@ P.push(cpage('النموذج ٢ · الاستنزاف', 13, `
 `));
 
 /* ============ 14 · TRAPPED ============ */
-P.push(cpage('النموذج ٣ · المحاصرون', 14, `
+P.push(cpage('النموذج ٣ · المحاصرون', `
   <div class="kick">وقود من الخسائر</div>
   <h2><span class="n">١٢.</span> المتداولون المحاصرون Trapped</h2><div class="rule"></div>
   <p>دفعة حجم مبادِر عند طرف (محاولة اختراق) ثم <b>انعكاس فوري عبر تلك العنقود</b>. دخول المخترقين أصبح خاسرًا، وخروجهم القسري يُغذّي الانعكاس.</p>
@@ -373,7 +446,7 @@ P.push(cpage('النموذج ٣ · المحاصرون', 14, `
 `));
 
 /* ============ 15 · DIVERGENCE ============ */
-P.push(cpage('النموذج ٤ · انحراف الدلتا', 15, `
+P.push(cpage('النموذج ٤ · انحراف الدلتا', `
   <div class="kick">إنذار مبكّر</div>
   <h2><span class="n">١٣.</span> انحراف الدلتا Delta Divergence</h2><div class="rule"></div>
   <p>السعر يصنع <b>قمة أعلى</b> بينما الدلتا/الـ CVD يصنع <b>قمة أدنى</b> — جهد لا يُنتج نتيجة، أو تقدّم بسحب سلبي لا بعدوانية حقيقية.</p>
@@ -383,7 +456,7 @@ P.push(cpage('النموذج ٤ · انحراف الدلتا', 15, `
 `));
 
 /* ============ 16 · STACKED RETEST ============ */
-P.push(cpage('النموذج ٥ · إعادة اختبار', 16, `
+P.push(cpage('النموذج ٥ · إعادة اختبار', `
   <div class="kick">استمرار موثّق</div>
   <h2><span class="n">١٤.</span> إعادة اختبار الاختلال المكدّس</h2><div class="rule"></div>
   <p>الاتجاه يترك خلفه اختلالات مكدّسة → السعر يرتدّ إلى نطاق التكديس → <b>النطاق يصمد</b> → دخول استمرار مع وقف خلف التكديس.</p>
@@ -399,7 +472,7 @@ P.push(cpage('النموذج ٥ · إعادة اختبار', 16, `
 `));
 
 /* ============ 17 · PROTOCOL ============ */
-P.push(cpage('بروتوكول القراءة', 17, `
+P.push(cpage('بروتوكول القراءة', `
   <div class="kick">خطوة بخطوة</div>
   <h2><span class="n">١٥.</span> بروتوكول القراءة لكل قرار</h2><div class="rule"></div>
   <div class="steps">
@@ -412,8 +485,23 @@ P.push(cpage('بروتوكول القراءة', 17, `
   <div class="note gold"><div class="t">القاعدة الذهبية</div><p><b>الفوت برنت = مَن.  الهيكل = أين.</b> لا تدخل إلا عندما يتقاطع الاثنان.</p></div>
 `));
 
+/* ===== ENTRY METHODS OVERVIEW ===== */
+P.push(cpage('طرق الدخول · نظرة عامة', `
+  <div class="kick">الخريطة</div>
+  <h2><span class="n">◆</span> طرق الدخول — كل نموذج ومُحفّزه</h2><div class="rule"></div>
+  <p>كل نموذج تدفّق يقابله مُحفّز دخول ووقف منطقي. القاعدة الثابتة: <b>سياق (مكان) + نمط (تدفّق) + مُحفّز هيكل.</b></p>
+  <table class="idx">
+    <tr><td class="num" style="color:var(--teal)">١</td><td><b>امتصاص</b> عند سيولة مكنوسة → دخول فوق الامتصاص، وقف تحت القاع الممتَص.</td></tr>
+    <tr><td class="num" style="color:var(--teal)">٢</td><td><b>اختلالات مكدّسة</b> → دخول على إعادة اختبار النطاق، وقف خلف التكديس.</td></tr>
+    <tr><td class="num" style="color:var(--teal)">٣</td><td><b>محاصرون</b> عند قمة مكنوسة → دخول تحت الكسر، وقف فوق القمة.</td></tr>
+    <tr><td class="num" style="color:var(--teal)">٤</td><td><b>انحراف دلتا + CHoCH</b> → دخول بعد تأكيد كسر الهيكل، وقف خلف الطرف.</td></tr>
+    <tr><td class="num" style="color:var(--teal)">٥</td><td><b>إعادة اختبار POC/نطاق</b> → دخول استمرار مع ردّ فعل تدفّقي جديد.</td></tr>
+  </table>
+  <div class="note gold"><div class="t">الثابت في كل دخول</div><p>الوقف عند <b>إبطال تدفّقي</b> واضح، والمخاطرة <b>‎≤1٪</b>، والهدف عند سيولة/فراغ بمضاعفات R — لا نقاط عشوائية.</p></div>
+`));
+
 /* ============ 18 · ENTRY 1 ============ */
-P.push(cpage('الدخول عمليًا ١', 18, `
+P.push(cpage('الدخول عمليًا ١', `
   <div class="kick">صفقة نموذجية</div>
   <h2><span class="n">١٦.</span> امتصاص عند سيولة مكنوسة → لونق</h2><div class="rule"></div>
   <p><b>السياق:</b> السعر يكنس قاعًا سابقًا (سيولة بيعية). <b>التدفّق:</b> حجم بيع ضخم لكن القاع يصمد = امتصاص. <b>المُحفّز:</b> شمعة صعود تكسر آخر قمة صغيرة (MSS).</p>
@@ -432,7 +520,7 @@ P.push(cpage('الدخول عمليًا ١', 18, `
 `));
 
 /* ============ 19 · ENTRY 2 ============ */
-P.push(cpage('الدخول عمليًا ٢', 19, `
+P.push(cpage('الدخول عمليًا ٢', `
   <div class="kick">صفقة نموذجية</div>
   <h2><span class="n">١٧.</span> اختراق باختلالات مكدّسة</h2><div class="rule"></div>
   <p><b>السياق:</b> تجميع تحت مقاومة. <b>التدفّق:</b> شمعة اختراق تحمل ٣+ اختلالات شراء مكدّسة = إلحاح حقيقي. <b>الدخول:</b> على إعادة اختبار حافة التكديس، لا مطاردة.</p>
@@ -452,7 +540,7 @@ P.push(cpage('الدخول عمليًا ٢', 19, `
 `));
 
 /* ============ 20 · ENTRY 3 ============ */
-P.push(cpage('الدخول عمليًا ٣', 20, `
+P.push(cpage('الدخول عمليًا ٣', `
   <div class="kick">صفقة نموذجية</div>
   <h2><span class="n">١٨.</span> انعكاس محاصرين عند قمة مكنوسة</h2><div class="rule"></div>
   <p><b>السياق:</b> السعر يكنس قمة (سيولة شرائية). <b>التدفّق:</b> دفعة شراء عند الطرف ثم إغلاق عائد عبرها = محاصرون. <b>المُحفّز:</b> تغيّر طابع هبوطي (CHoCH).</p>
@@ -470,8 +558,22 @@ P.push(cpage('الدخول عمليًا ٣', 20, `
   <div class="note warn"><div class="t">تذكير</div><p>بلا كنس سيولة واضح فوق القمة، «المحاصرون» يفقدون حدّتهم. السياق يسبق التدفّق دائمًا.</p></div>
 `));
 
+/* ===== ENTRY 4 ===== */
+P.push(cpage('الدخول عمليًا ٤', `
+  <div class="kick">صفقة نموذجية</div>
+  <h2><span class="n">◆</span> انحراف دلتا + تغيّر طابع → دخول</h2><div class="rule"></div>
+  <p><b>السياق:</b> السعر عند مقاومة/سيولة علوية. <b>التدفّق:</b> قمة أعلى بالسعر مقابل قمة أدنى بالـ CVD (انحراف). <b>المُحفّز:</b> كسر هيكل هبوطي (CHoCH) يؤكّد الانعكاس.</p>
+  ${cvdSVG({price:[30,46,40,64,54,80,62,90],cvd:[28,52,46,68,56,66,50,54],priceLbl:'السعر (HH)',cvdLbl:'CVD (LH)',marks:[{i:7,arr:'price',c:'#849499',t:'HH'},{i:7,arr:'cvd',c:'#CE5140',t:'LH'}]})}
+  <div class="kpi" style="margin-top:22px">
+    <div class="k"><div class="kv" style="color:#CE5140">دخول</div><div class="kl">بعد كسر CHoCH · إعادة اختبار</div></div>
+    <div class="k"><div class="kv" style="color:#237067">وقف</div><div class="kl">فوق القمة (HH)</div></div>
+    <div class="k"><div class="kv" style="color:#C79A3A">هدف</div><div class="kl">سيولة/فراغ بالأسفل · 2R+</div></div>
+  </div>
+  <div class="note warn"><div class="t">الانضباط</div><p>الانحراف وحده <b>ليس دخولًا</b>. انتظر مُحفّز الهيكل (CHoCH/MSS). بلا كسر → صبر لا صفقة.</p></div>
+`));
+
 /* ============ 21 · CONFLUENCE ============ */
-P.push(cpage('الدمج مع الهيكل', 21, `
+P.push(cpage('الدمج مع الهيكل', `
   <div class="kick">بوّابة التقاطع</div>
   <h2><span class="n">١٩.</span> الدمج مع الهيكل والسيولة</h2><div class="rule"></div>
   <p>الفوت برنت مجهر تأكيد، وليس أداة تحديد مكان. أعلى جودة صفقة = <b>مستوى مفتاحي + بصمة تدفّق تؤكّده.</b></p>
@@ -485,7 +587,7 @@ P.push(cpage('الدمج مع الهيكل', 21, `
 `));
 
 /* ============ 22 · RISK ============ */
-P.push(cpage('إدارة المخاطرة', 22, `
+P.push(cpage('إدارة المخاطرة', `
   <div class="kick">البقاء أولًا</div>
   <h2><span class="n">٢٠.</span> إدارة المخاطرة بالفوت برنت</h2><div class="rule"></div>
   <ul class="clean">
@@ -498,7 +600,7 @@ P.push(cpage('إدارة المخاطرة', 22, `
 `));
 
 /* ============ 23 · MISTAKES ============ */
-P.push(cpage('أخطاء شائعة', 23, `
+P.push(cpage('أخطاء شائعة', `
   <div class="kick">تجنّبها</div>
   <h2><span class="n">٢١.</span> أخطاء شائعة تُفسد القراءة</h2><div class="rule"></div>
   <ul class="clean">
@@ -517,7 +619,7 @@ P.push(page(`
   <div class="glow" style="background:#2ECC9A;top:-140px;left:-120px;width:520px;height:520px;opacity:.14"></div>
   <div style="position:absolute;top:70px;left:80px;right:80px;display:flex;align-items:center;justify-content:space-between;color:#EAF3F2">
     <div style="display:flex;align-items:center;gap:14px"><div style="width:44px;height:44px">${GEMW}</div><div class="lat" style="font-weight:600;font-size:24px;letter-spacing:4px">LIQUIDITY STATE</div></div>
-    <div class="lat" style="font-size:22px;color:#7C8C92">24 / 24</div>
+    <div class="lat" style="font-size:22px;color:#7C8C92">@@TOT@@ / @@TOT@@</div>
   </div>
   <div style="position:absolute;top:200px;left:80px;right:80px;color:#EAF3F2">
     <div class="kick">الخلاصة</div>
@@ -536,7 +638,7 @@ P.push(page(`
   </div>
 `,'dark'));
 
-document.getElementById('root').innerHTML = P.join('');
+document.getElementById('root').innerHTML = P.join('').replaceAll('@@TOT@@', String(P.length));
 window.__ready=true;
 </script>
 </body></html>
