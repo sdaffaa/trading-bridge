@@ -8,3 +8,11 @@ sfx/*.wav
 out/frames_ls/
 out/ls_*.png
 out/ref/
+out/fp/
+out/canva/
+out/ref/
+canva_cover_preview.jpg
+b64.txt
+cover_canva*.png
+prevPDF.mjs
+prevLS.mjs

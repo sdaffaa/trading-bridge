@@ -1,0 +1,13 @@
+import { chromium } from 'playwright-core';
+import { pathToFileURL } from 'url';
+import path from 'path';
+const CHROME='/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell';
+const url=pathToFileURL(path.resolve('footprint-guide.html')).href;
+const b=await chromium.launch({executablePath:CHROME,args:['--no-sandbox','--force-color-profile=srgb']});
+const p=await b.newPage();
+await p.goto(url,{waitUntil:'networkidle'});
+await p.waitForFunction(()=>window.__ready===true,{timeout:15000});
+await p.evaluate(()=>document.fonts.ready);
+await p.waitForTimeout(400);
+await p.pdf({path:'out/footprint-guide.pdf',printBackground:true,preferCSSPageSize:true});
+console.log('PDF ok'); await b.close();
