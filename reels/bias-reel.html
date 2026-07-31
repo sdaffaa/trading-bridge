@@ -1,0 +1,107 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:#000;overflow:hidden}
+  #stage{width:1080px;height:1920px;position:relative;overflow:hidden;background:#05090c}
+  .layer{position:absolute;inset:0;opacity:0;will-change:transform,opacity}
+  .bg{position:absolute;inset:-8%;background-size:cover;background-position:center;
+      filter:blur(38px) brightness(.55) saturate(1.1);will-change:transform}
+  .darkbg{filter:blur(40px) brightness(.7) saturate(1.15)}
+  .cardwrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;will-change:transform,filter,opacity}
+  .card{width:972px;height:auto;border-radius:26px;display:block;
+        box-shadow:0 40px 120px rgba(0,0,0,.55),0 8px 30px rgba(0,0,0,.4);will-change:transform}
+  .sweep{position:absolute;top:0;bottom:0;width:60%;pointer-events:none;mix-blend-mode:screen;opacity:.0;
+     background:linear-gradient(105deg,transparent 0%,rgba(120,220,255,.0) 35%,rgba(150,235,255,.55) 50%,rgba(120,220,255,.0) 65%,transparent 100%)}
+  /* global overlays */
+  #vig{position:absolute;inset:0;pointer-events:none;z-index:60;
+    background:radial-gradient(120% 78% at 50% 46%, transparent 52%, rgba(3,7,10,.55) 100%)}
+  #flash{position:absolute;inset:0;pointer-events:none;z-index:70;opacity:0;mix-blend-mode:screen;
+    background:radial-gradient(70% 50% at 50% 45%, rgba(180,240,255,.9), rgba(46,204,154,.35) 45%, transparent 75%)}
+  #grain{position:absolute;inset:-50%;pointer-events:none;z-index:65;opacity:.06;will-change:transform;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
+  #tint{position:absolute;inset:0;pointer-events:none;z-index:58;background:linear-gradient(180deg,rgba(10,30,40,.10),transparent 30%,transparent 70%,rgba(6,12,18,.18))}
+  #letter{position:absolute;left:0;right:0;height:0;z-index:59;pointer-events:none}
+</style></head>
+<body>
+<div id="stage">
+  <div id="layers"></div>
+  <div id="tint"></div>
+  <div id="vig"></div>
+  <div id="grain"></div>
+  <div id="flash"></div>
+</div>
+<script>
+const SLIDES=[
+  {src:'assets/bias/s1.png',dur:3.2,dark:true},
+  {src:'assets/bias/s2.png',dur:3.0},
+  {src:'assets/bias/s3.png',dur:3.0},
+  {src:'assets/bias/s4.png',dur:3.2},
+  {src:'assets/bias/s5.png',dur:3.6,last:true},
+];
+const OVER=0.46;      // overlap/exit window
+const TOTAL=SLIDES.reduce((a,s)=>a+s.dur,0); // last slide holds full dur
+window.__TOTAL=TOTAL;
+const starts=[]; let acc=0; for(const s of SLIDES){starts.push(acc);acc+=s.dur;}
+
+const L=document.getElementById('layers');
+const nodes=SLIDES.map((s,i)=>{
+  const lay=document.createElement('div'); lay.className='layer'; lay.style.zIndex=10+i;
+  const bg=document.createElement('div'); bg.className='bg'+(s.dark?' darkbg':''); bg.style.backgroundImage=`url('${s.src}')`;
+  const wrap=document.createElement('div'); wrap.className='cardwrap';
+  const img=document.createElement('img'); img.className='card'; img.src=s.src;
+  const sw=document.createElement('div'); sw.className='sweep';
+  wrap.appendChild(img); wrap.appendChild(sw);
+  lay.appendChild(bg); lay.appendChild(wrap);
+  L.appendChild(lay);
+  return {lay,bg,wrap,img,sw};
+});
+const flash=document.getElementById('flash'), grain=document.getElementById('grain');
+
+const eo=x=>{x=Math.max(0,Math.min(1,x));return 1-Math.pow(1-x,3);};   // ease-out cubic
+const eio=x=>{x=Math.max(0,Math.min(1,x));return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;};
+
+function setT(t){
+  t=Math.max(0,Math.min(TOTAL-0.001,t));
+  for(let i=0;i<SLIDES.length;i++){
+    const s=SLIDES[i], S=starts[i], E=S+s.dur, lt=t-S;
+    const n=nodes[i];
+    const activeEnd = s.last ? E : E+OVER;
+    if(t<S-0.02 || t>activeEnd){ n.lay.style.opacity=0; continue; }
+    // opacity fade-in
+    let op=Math.min(1, lt/0.22);
+    // base card transform
+    let sc, ty, blur;
+    if(lt<0.42){ const e=eo(lt/0.42); sc=1.10-0.10*e; ty=26*(1-e); blur=10*(1-e); }
+    else { const p=(lt-0.42)/(s.dur-0.42); sc=1.00+0.06*p; ty=-20*p; blur=0; }
+    // exit (overlap) — dramatic zoom+blur+fade as next punches in
+    if(!s.last && lt>s.dur){ const e=eio((lt-s.dur)/OVER); sc=1.06+0.12*e; blur=8*e; op=1-e; ty=-20-14*e; }
+    n.lay.style.opacity=op;
+    n.wrap.style.transform=`translateY(${ty.toFixed(2)}px) scale(${sc.toFixed(4)})`;
+    n.wrap.style.filter=blur>0.01?`blur(${blur.toFixed(2)}px)`:'none';
+    // background parallax (opposite, slow)
+    const bp=Math.min(1,Math.max(0,lt/s.dur));
+    const bsc=1.16+0.10*bp, bty=-10*bp;
+    n.bg.style.transform=`translateY(${bty.toFixed(1)}px) scale(${bsc.toFixed(3)})`;
+    // light sweep across card once
+    const sp=(lt-0.5)/1.25;
+    if(sp>=0 && sp<=1){ n.sw.style.opacity=(Math.sin(sp*Math.PI)*0.9).toFixed(3);
+      n.sw.style.transform=`translateX(${(-40+sp*180).toFixed(1)}%) skewX(-8deg)`; }
+    else n.sw.style.opacity=0;
+  }
+  // flash at each boundary (i>=1)
+  let fl=0;
+  for(let i=1;i<SLIDES.length;i++){ const d=t-starts[i]; if(d>=-0.02&&d<0.20){ fl=Math.max(fl,0.6*(1-d/0.20)); } }
+  // opening flash
+  if(t<0.5) fl=Math.max(fl,0.7*(1-t/0.5));
+  flash.style.opacity=Math.max(0,fl).toFixed(3);
+  // grain jitter (deterministic on t)
+  const gx=((t*130)%40)-20, gy=((t*97)%40)-20;
+  grain.style.transform=`translate(${gx.toFixed(1)}px,${gy.toFixed(1)}px)`;
+}
+window.__setT=setT;
+
+// signal readiness when all images decoded
+Promise.all(nodes.map(n=>n.img.decode?n.img.decode().catch(()=>{}):Promise.resolve()))
+  .then(()=>{ setT(0); window.__ready=true; });
+</script>
+</body></html>
