@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Liquidity State — الخطأ 01: تدخل قبل التأكيد</title>
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/series.css" />
+  <style> body { margin: 0; } </style>
+</head>
+<body>
+  <div class="ls-canvas-carousel ls-content">
+    <div class="sr-slide">
+      <div class="sr-counter"><span class="ls-counter">2/5</span></div>
+
+      <div class="sr-header">
+        <img class="sr-logo" src="../logo/icosahedron.svg" alt="Liquidity State" />
+        <div class="sr-wordmark">LIQUIDITY&nbsp;STATE</div>
+      </div>
+
+      <div class="sr-title">
+        <div class="sr-eyebrow"><span class="num">01</span>&nbsp;الخطأ</div>
+        <div class="sr-headline">تدخل قبل التأكيد</div>
+        <p class="sr-lead">
+          أول ما يلمس المستوى تدخل مباشرة.<br />
+          لكن السوق ما أعطاك إغلاق يؤكد الاتجاه.<br />
+          <b>النتيجة؟</b> ستوب سريع ثم الحركة تمشي بدونك.
+        </p>
+      </div>
+
+      <div class="sr-chart">
+        <svg id="chart"></svg>
+        <div class="sr-check-card" style="left:0; bottom:0; width:410px; padding:22px 26px; gap:18px;">
+          <div class="sr-check-row"><span>انتظر الإغلاق</span>
+            <span class="sr-check-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="#2E7D96" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="sr-check-row"><span>راقب مكان الشمعة</span>
+            <span class="sr-check-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="#2E7D96" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="sr-check-row"><span>ادخل بعد التأكيد</span>
+            <span class="sr-check-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="#2E7D96" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        </div>
+      </div>
+
+      <div class="sr-swipe"><span class="arrow">←</span><span>اسحب</span></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { SeriesChart } from "../css/series.js";
+    // Educational schematic (not a live instrument): deterministic OHLC, 30 candles.
+    const ohlc = [
+      {o:92.0,h:92.8,l:91.6,c:92.5},{o:92.5,h:93.6,l:92.2,c:93.3},
+      {o:93.3,h:94.0,l:92.9,c:93.1},{o:93.1,h:94.4,l:92.8,c:94.2},
+      {o:94.2,h:95.2,l:93.9,c:95.0},{o:95.0,h:96.1,l:94.7,c:95.8},
+      {o:95.8,h:96.6,l:95.3,c:96.4},{o:96.4,h:97.2,l:96.0,c:96.9},
+      {o:96.9,h:97.6,l:96.4,c:97.4},{o:97.4,h:99.9,l:97.1,c:99.5},
+      {o:99.5,h:100.2,l:99.0,c:99.0},{o:99.0,h:99.4,l:97.8,c:98.0},
+      {o:98.0,h:98.3,l:96.6,c:96.9},{o:96.9,h:97.4,l:95.9,c:96.2},
+      {o:96.2,h:96.8,l:95.4,c:96.5},{o:96.5,h:97.6,l:96.1,c:97.3},
+      {o:97.3,h:98.4,l:97.0,c:98.1},{o:98.1,h:99.0,l:97.7,c:98.8},
+      {o:98.8,h:99.7,l:98.4,c:99.5},{o:99.5,h:100.1,l:99.2,c:99.9},
+      {o:99.9,h:101.4,l:99.7,c:101.1},{o:101.1,h:101.6,l:100.4,c:100.7},
+      {o:100.7,h:102.0,l:100.5,c:101.8},{o:101.8,h:103.0,l:101.5,c:102.8},
+      {o:102.8,h:103.6,l:102.3,c:103.2},{o:103.2,h:104.4,l:102.9,c:104.1},
+      {o:104.1,h:104.8,l:103.6,c:104.0},{o:104.0,h:105.4,l:103.8,c:105.1},
+      {o:105.1,h:106.2,l:104.7,c:105.9},{o:105.9,h:107.0,l:105.5,c:106.7},
+    ];
+    const c = new SeriesChart(document.getElementById("chart"), ohlc,
+      { width: 1000, height: 470, padL: 44, padR: 44, padT: 150, padB: 40 });
+    c.render();
+    c.level(100, { label: "مستوى رئيسي", side: "start", labelX: 150, tone: "neutral" });
+    // touch of the level (wick tags 100.2 at idx10)
+    c.annot({ at:{ i:10, price:100 }, labelXY:{ x:c.x(7), y:c.y(100)-108 },
+      text:"لمس المستوى", tone:"neutral", marker:"ring", dash:false });
+    // premature entry just after the touch — wrong
+    c.annot({ at:{ i:11, price:99.4 }, labelXY:{ x:c.x(15), y:c.y(100)-108 },
+      text:"دخول مبكر (خطأ)", tone:"bear", marker:"xred" });
+    // the close that actually confirms (idx20 closes 101.1 above the level)
+    c.annot({ at:{ i:20, price:101.1 }, labelXY:{ x:c.x(25), y:c.y(101.1)-92 },
+      text:"إغلاق يؤكد الاتجاه", tone:"neutral", marker:"dot" });
+    // correct entry on the confirmed break / retest hold at the level
+    c.annot({ at:{ i:21, price:100 }, labelXY:{ x:c.x(22), y:c.y(100)+120 },
+      text:"دخول صحيح", tone:"turq", marker:"check" });
+  </script>
+</body>
+</html>

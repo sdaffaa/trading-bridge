@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Liquidity State — الخطأ 02: تطارد الشمعة</title>
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/series.css" />
+  <style>
+    body { margin: 0; }
+    .m2-stage { position: relative; height: 620px; margin-top: 8px; }
+    .m2-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .m2-pills { position: absolute; right: 0; bottom: 12px; width: 512px; }
+  </style>
+</head>
+<body>
+  <div class="ls-canvas-carousel ls-content">
+    <div class="sr-slide">
+      <div class="sr-counter"><span class="ls-counter">3/5</span></div>
+
+      <div class="sr-header">
+        <img class="sr-logo" src="../logo/icosahedron.svg" alt="Liquidity State" />
+        <div class="sr-wordmark">LIQUIDITY&nbsp;STATE</div>
+      </div>
+
+      <div class="sr-title">
+        <div class="sr-eyebrow"><span class="num">02</span>&nbsp;الخطأ</div>
+        <div class="sr-headline">تطارد الشمعة</div>
+        <p class="sr-lead">
+          تشوف شمعة قوية فتدخل في آخرها.<br />
+          لكنك دخلت بعد ما أخذ السوق أغلب الحركة.<br />
+          <b>النتيجة؟</b> دخول متأخر وستوب أقرب من اللازم.
+        </p>
+      </div>
+
+      <div class="m2-stage">
+        <svg id="chart"></svg>
+        <div class="m2-pills sr-pills">
+          <div class="sr-pill">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 5.6L20 8l-4 4 1.2 6L12 15l-5.2 3L8 12 4 8l5.6-.4L12 2z"/></svg></span>
+            <span class="divider"></span>
+            <span class="txt">لا تدخل بعد <b>الانفجار</b></span>
+          </div>
+          <div class="sr-pill">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/></svg></span>
+            <span class="divider"></span>
+            <span class="txt">انتظر <b>إعادة الاختبار</b></span>
+          </div>
+          <div class="sr-pill">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v5c0 4.4-3 8-7 10-4-2-7-5.6-7-10V6l7-3z" stroke-linejoin="round"/></svg></span>
+            <span class="divider"></span>
+            <span class="txt">فكّر <b>بالمخاطرة</b> قبل الحماس</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sr-swipe"><span class="arrow">←</span><span>اسحب</span></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { SeriesChart } from "../css/series.js";
+    // Educational schematic: 26 deterministic candles — a slow grind then one
+    // explosive candle, then a retest. Distinct shape from every other chart.
+    const ohlc = [
+      {o:44.0,h:45.2,l:43.6,c:45.0},{o:45.0,h:46.4,l:44.6,c:46.1},
+      {o:46.1,h:46.8,l:45.2,c:45.6},{o:45.6,h:47.2,l:45.2,c:47.0},
+      {o:47.0,h:48.3,l:46.6,c:48.0},{o:48.0,h:48.6,l:47.0,c:47.4},
+      {o:47.4,h:49.0,l:47.0,c:48.8},{o:48.8,h:50.1,l:48.4,c:49.8},
+      {o:49.8,h:50.6,l:49.2,c:49.5},{o:49.5,h:51.0,l:49.1,c:50.8},
+      {o:50.8,h:52.0,l:50.4,c:51.7},{o:51.7,h:52.4,l:50.9,c:51.2},
+      {o:51.2,h:52.9,l:50.9,c:52.7},{o:52.7,h:53.8,l:52.3,c:53.5},
+      {o:53.5,h:54.2,l:52.8,c:53.1},{o:53.1,h:54.6,l:52.8,c:54.4},
+      {o:54.4,h:55.6,l:54.0,c:55.3},{o:55.3,h:56.0,l:54.6,c:54.9},
+      {o:54.9,h:56.4,l:54.6,c:56.1},{o:56.1,h:57.0,l:55.6,c:56.7},
+      {o:56.7,h:73.0,l:56.4,c:72.2},                       // explosion
+      {o:72.2,h:72.8,l:66.5,c:67.3},{o:67.3,h:68.2,l:63.0,c:63.6},
+      {o:63.6,h:64.8,l:61.8,c:62.4},{o:62.4,h:66.0,l:62.0,c:65.6},
+      {o:65.6,h:68.5,l:65.2,c:68.1},
+    ];
+    const c = new SeriesChart(document.getElementById("chart"), ohlc,
+      { width: 1000, height: 620, padL: 40, padR: 560, padT: 44, padB: 150, gap: 0.34 });
+    c.render();
+    // retest zone (lower half of the explosion candle) — better entry area
+    c.box(21, 24, 66.5, 61.8, { opacity: 0.16 });
+    // wrong entry: chasing the top of the explosion candle
+    c.annot({ at:{ i:20, price:72.5 }, labelXY:{ x:470, y:c.y(72.5) },
+      text:"دخول خاطئ", sub:"دخول عند القمة", tone:"grey", marker:"xcircle", anchor:"end", subDy:32 });
+    // correct: wait for the retest into the candle body
+    c.annot({ at:{ i:23, price:63.0 }, labelXY:{ x:470, y:c.y(63.0) },
+      text:"إعادة اختبار", sub:"منطقة أفضل للدخول", tone:"turq", marker:"check", anchor:"end", subDy:32 });
+  </script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+/* ============================================================================
+   Liquidity State — "أخطاء المتداولين" carousel series UI
+   Header, counter, title block, checklist card, icon pills, swipe button.
+   Depends on tokens.css + base.css. Sharp corners (0–3px), Tajawal only.
+   ========================================================================= */
+
+.sr-slide { padding: 64px 70px 56px; display: flex; flex-direction: column; height: 100%; position: relative; }
+
+/* --- Header: centered logo + wordmark, counter pinned to the corner ----- */
+.sr-header { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.sr-logo { width: 104px; height: 104px; }
+.sr-wordmark {
+  display: inline-flex; align-items: center; gap: 18px;
+  font-weight: 700; letter-spacing: 0.26em; font-size: 30px; color: var(--ls-ink);
+}
+.sr-wordmark::before, .sr-wordmark::after {
+  content: ""; width: 60px; height: 1.5px;
+  background: linear-gradient(90deg, transparent, var(--ls-turq-light));
+}
+.sr-counter {
+  position: absolute; top: 64px; left: 70px;
+  border: 1.5px solid var(--ls-turq); border-radius: var(--ls-radius-2);
+  padding: 8px 20px; font-weight: 700; font-size: 30px; color: var(--ls-turq-dark);
+}
+.sr-counter .ls-counter { color: inherit; }
+
+/* --- Title block ------------------------------------------------------- */
+.sr-title { text-align: center; margin-top: 22px; }
+.sr-eyebrow {
+  display: inline-flex; align-items: center; gap: 22px;
+  font-weight: 900; font-size: 62px; color: var(--ls-ink); line-height: 1;
+}
+.sr-eyebrow::before, .sr-eyebrow::after {
+  content: ""; width: 74px; height: 5px; background: var(--ls-turq);
+}
+.sr-eyebrow .num { direction: ltr; unicode-bidi: isolate; font-style: italic; }
+.sr-headline { font-weight: 900; font-size: 84px; color: var(--ls-ink); line-height: 1.05; margin-top: 8px; }
+.sr-lead { text-align: center; font-weight: 500; font-size: 31px; line-height: 1.5; color: var(--ls-text-2); margin: 20px auto 0; max-width: 860px; }
+.sr-lead b { color: var(--ls-turq); font-weight: 800; }
+
+/* --- Chart region ------------------------------------------------------ */
+.sr-chart { position: relative; height: 470px; margin-top: 10px; }
+.sr-chart svg { width: 100%; height: 100%; display: block; }
+
+/* --- Checklist card (slide 1) ----------------------------------------- */
+.sr-check-card {
+  position: absolute; background: #FFFFFF; border: 1.5px solid #E3DCCF;
+  border-radius: var(--ls-radius-2); padding: 20px 26px; display: flex; flex-direction: column; gap: 16px;
+  box-shadow: 0 12px 34px rgba(15, 46, 60, 0.08);
+}
+.sr-check-row { display: flex; align-items: center; gap: 16px; justify-content: flex-end; }
+.sr-check-row span { font-weight: 700; font-size: 28px; color: var(--ls-ink); }
+.sr-check-icon {
+  width: 36px; height: 36px; flex: none; border-radius: 999px;
+  border: 2px solid var(--ls-turq); display: flex; align-items: center; justify-content: center;
+}
+.sr-check-icon svg { width: 20px; height: 20px; }
+
+/* --- Icon pills (slide 2) --------------------------------------------- */
+.sr-pills { display: flex; flex-direction: column; gap: 20px; }
+.sr-pill {
+  display: flex; align-items: center; gap: 18px; flex-direction: row-reverse;
+  background: linear-gradient(180deg, #123141, #0C2530);
+  border: 1px solid rgba(90, 166, 188, 0.25); border-radius: var(--ls-radius-2);
+  padding: 18px 24px; color: #EAF2F4;
+}
+.sr-pill .txt { font-weight: 700; font-size: 28px; flex: 1; text-align: right; }
+.sr-pill .txt b { color: var(--ls-turq-light); }
+.sr-pill .divider { width: 1.5px; height: 40px; background: rgba(90, 166, 188, 0.4); }
+.sr-pill .icon { width: 52px; height: 52px; flex: none; display: flex; align-items: center; justify-content: center; color: var(--ls-turq-light); }
+.sr-pill .icon svg { width: 34px; height: 34px; }
+
+/* --- Swipe button (pinned to the bottom, never clipped) ---------------- */
+.sr-swipe {
+  position: absolute; left: 50%; bottom: 44px; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 16px;
+  border: 1.5px solid var(--ls-turq); border-radius: var(--ls-radius-2);
+  padding: 14px 40px; font-weight: 700; font-size: 30px; color: var(--ls-turq-dark);
+}
+.sr-swipe .arrow { font-weight: 900; } /* points LEFT (←) — RTL swipe + brand rule */
