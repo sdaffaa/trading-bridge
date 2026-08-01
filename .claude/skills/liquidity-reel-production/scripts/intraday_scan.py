@@ -121,9 +121,9 @@ def detect(w, rngN, pr, pmin):
         if risk > 0 and 0.5 <= rew / risk <= 4.5: keep.append(c)
     return keep
 
-TFS = [("15min", "M15", 900, 0.0012, 0.0060, 12, 4),
-       ("30min", "M30", 1800, 0.0018, 0.0080, 18, 3),
-       ("5min",  "M5",  300,  0.0008, 0.0045, 8,  3)]
+TFS = [("15m", "M15", 900, 0.0012, 0.0060, 12, 4),
+       ("30m", "M30", 1800, 0.0018, 0.0080, 18, 3),
+       ("5m",  "M5",  300,  0.0008, 0.0045, 8,  3)]
 
 KW = dt.timezone(dt.timedelta(hours=3))
 all_cands = {}
