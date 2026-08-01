@@ -126,15 +126,18 @@ for sym, iv, sec in SRC:
     for c in allc[(sym, iv)]: kinds[c["cls"]] = kinds.get(c["cls"], 0) + 1
     print(f"{sym} {iv}: {len(cs)} candles, {sorted(kinds.items())}", file=sys.stderr)
 
-chosen = []; used_syms = set()
+chosen = []
 for cls in ("chan", "consol", "sweep"):
     pool = [c for v in allc.values() for c in v if c["cls"] == cls]
     pool.sort(key=lambda c: (c["relax"], -c["s"]))
-    pick = next((c for c in pool if c["sym"] not in used_syms), pool[0] if pool else None)
-    if pick:
-        used_syms.add(pick["sym"]); chosen.append(pick)
-    else:
-        print(f"NO CANDIDATE for {cls}", file=sys.stderr)
+    kept = []
+    for c in pool:  # dedupe overlapping windows on the same series
+        if any(k["sym"] == c["sym"] and k["tf"] == c["tf"] and abs(k["bk"] - c["bk"]) < 30 for k in kept):
+            continue
+        kept.append(c)
+        if len(kept) >= 5: break
+    if not kept: print(f"NO CANDIDATE for {cls}", file=sys.stderr)
+    chosen.extend(kept)
 
 rows = []
 for c in chosen:
