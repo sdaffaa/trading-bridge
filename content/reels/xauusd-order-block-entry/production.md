@@ -106,6 +106,21 @@ Cover result badge now shows this real value.
 > needed (the free connected data tools return closes only). Provide an OHLC export and the same
 > markup snaps to it.
 
+## Candlestick reel (animated) — DONE
+
+`gen_reel_candles.py` → `reel_frame.html` (1080×1920, cream, Japanese candlesticks).
+Bodies from REAL closes (open=prior close, close=today close); wicks illustrative (disclosed in footer).
+Animation via `render(progress)`: candles build (back-ease scaleY) → markup reveals → BOS arrow →
+OB box + long-tool zones → target hit (white flash + 5% zoom) → result + CTA.
+Rendered with `cdp_render.py` (drives headless Chromium over DevTools Protocol, pure stdlib) →
+JPEG frames → piped to the bundled ffmpeg (`image2pipe`/`mjpeg` → `libvpx`).
+
+Output: **`reel_candles.webm`** — 1080×1920, 30fps, 12.9s, VP8. Poster: `poster.png`.
+
+> Instagram note: the bundled ffmpeg has **no H.264 encoder** (VP8/WebM only). Convert to MP4/H.264
+> for upload: `ffmpeg -i reel_candles.webm -c:v libx264 -pix_fmt yuv420p -movflags +faststart reel.mp4`.
+> Add the Kuwaiti voiceover (stage 6) on the MP4.
+
 ## Remaining (stages 6–7)
 
 - [ ] Stage 6 — Voiceover: Kuwaiti, −14 LUFS, each clip within its budget (needs TTS provider).
