@@ -140,29 +140,29 @@ def sc_def():
 
 # ================= real chart (EUR/USD): zoomed on the story =================
 def sc_real_ob():
-    SUB = C[20:35]                          # 07-13..07-31 — the story window only
-    Wr, Hr = 980, 660; ymin, ymax = 1.1330, 1.1580
-    iSH, iOB, iSWP, iHH = 2, 10, 11, 14     # structure high / OB candle / sweep / HH
+    SUB = C[5:35]                           # 06-22..07-31 — 30 candles: full story with context
+    Wr, Hr = 980, 660; ymin, ymax = 1.1300, 1.1580
+    iSH, iOB, iSWP, iHH = 17, 25, 26, 29    # structure high / OB candle / sweep / HH
     BOSv = SUB[iSH]["h"]                    # 1.14820 exact
     ztop = SUB[iOB]["o"]                    # 1.13690 exact
     zbot = SUB[iSWP]["l"]                   # 1.13530 exact
-    swl  = SUB[9]["l"]                      # 1.13640 swept low (07-24)
+    swl  = SUB[24]["l"]                     # 1.13640 swept low (07-24)
     svg, x, y, slot = chart(SUB, Wr, Hr, ymin, ymax, price_axis=True, dates=True, grid=5,
-                            pt=54, pb=40, pl=12, pr=70, brk={12,13,14})
+                            pt=54, pb=40, pl=12, pr=70, brk={27,28,29})
     # OB zone projected forward — exact prices
     zx0 = x(iOB) - slot/2
     svg += (f'<rect class="obzone" x="{zx0:.2f}" y="{y(ztop):.2f}" width="{(Wr-70)-zx0:.2f}" '
             f'height="{y(zbot)-y(ztop):.2f}" fill="{TEAL}" stroke="{TEAL_D}" stroke-width="1"/>')
     svg += f'<g class="pop">{htext(Wr-70-14, y(zbot)+26, "OB", TEAL_D, 22, "end", weight=800)}</g>'
     # liquidity sweep — line stops at the sweep candle
-    svg += (f'<line class="draw lvl" x1="{x(9):.2f}" y1="{y(swl):.2f}" x2="{x(iSWP):.2f}" y2="{y(swl):.2f}" '
+    svg += (f'<line class="draw lvl" x1="{x(24):.2f}" y1="{y(swl):.2f}" x2="{x(iSWP):.2f}" y2="{y(swl):.2f}" '
             f'stroke="{RED}" stroke-width="1.8" stroke-dasharray="6 5"/>')
     svg += (f'<g class="pop"><circle cx="{x(iSWP):.2f}" cy="{y(zbot):.2f}" r="4.5" fill="{RED}" stroke="{CREAM}" stroke-width="1.5"/>'
             f'{htext(x(iSWP), y(zbot)+30, "سحب سيولة", RED, 18)}</g>')
     # last opposite candle
     svg += f'<g class="pop">{htext(x(iOB)-14, y(SUB[iOB]["h"])-14, "آخر شمعة عكسية", RED, 17, "end")}</g>'
     # BOS ray stops just past the break candle; arrow with a clear gap beside it
-    ly = y(BOSv); bi = 13
+    ly = y(BOSv); bi = 28
     svg += f'<line class="draw zz" x1="{x(iSH):.2f}" y1="{ly:.2f}" x2="{x(bi)+slot*0.78:.2f}" y2="{ly:.2f}" stroke="{INK}" stroke-width="1.8"/>'
     svg += f'<g class="bospill">{hend(x(iSH), ly, INK)}{htext(x(iSH)+12, ly-12, "BOS", INK, 21, "start", weight=800)}</g>'
     brkx = x(bi) + slot*0.55
@@ -302,7 +302,7 @@ scene("s10", 9.4, f'''{logo(110)}<div class="top">
   <div class="capt s6cap">الشروط الأربعة اكتملت — <b class="tt">والمنطقة جاهزة للاختبار</b></div>''')
 T(".realh",0.15,0.4,{"op":[0,1],"ty":[20,0],"ease":"oc"})
 T(".chartbox",0.25,0.4,{"op":[0,1],"ty":[30,0],"ease":"oc"})
-T(".cndl:not(.brk)",0.4,0.2,{"op":[0,1],"sy":[.25,1],"ease":"ob"},0.24)
+T(".cndl:not(.brk)",0.4,0.18,{"op":[0,1],"sy":[.25,1],"ease":"ob"},0.12)
 T(".lvl",3.9,0.6,{"draw":True,"ease":"oc"})
 T(".pop",4.2,0.4,{"op":[0,1],"s":[0,1],"ease":"ob"},0.24)
 T(".obzone",5.1,0.7,{"op":[0,0.16],"ease":"oc"})
@@ -381,7 +381,7 @@ function setFrame(t){{
  const fl=document.querySelector('#s10 .flash');
  if(fl){{let ft=t-BRK;let o=0;if(ft>0&&ft<0.45){{o=ft<0.12?(ft/0.12)*0.5:0.5*(1-(ft-0.12)/0.33);}}fl.style.opacity=Math.max(0,o);}}
  const cs=document.querySelector('#s10 .chartsvg');
- if(cs){{let zt=t-BRK;let z=0;if(zt>0&&zt<1.1){{z=Math.sin((zt/1.1)*Math.PI)*0.06;}}cs.style.transformOrigin='85% 42%';cs.style.transform=`scale(${{1+z}})`;}}
+ if(cs){{let zt=t-BRK;let z=0;if(zt>0&&zt<1.1){{z=Math.sin((zt/1.1)*Math.PI)*0.06;}}cs.style.transformOrigin='88% 40%';cs.style.transform=`scale(${{1+z}})`;}}
 }}
 window.__setFrame=setFrame;window.__DUR=DUR;
 bind();setFrame(0);
