@@ -65,7 +65,7 @@ def L_last(ctx, x, y, slot, new):
             f'height="{y(cs[il]["l"])-y(cs[il]["h"])+16:.2f}" fill="none" stroke="{RED}" stroke-width="2" stroke-dasharray="6 5"/>'
             f'{htext(bx, y(cs[il]["h"])-22, "آخر شمعة عكسية", RED, 19)}</g>')
 
-def L_bos(ctx, x, y, slot, new):
+def L_bos(ctx, x, y, slot, new, word=True):
     cs = ctx["cs"]; lv = ctx["lv"]; iH = ctx["iH"]; bi = ctx["bi"]; il = ctx["ilast"]
     g = cl(new, "pop"); gd = cl(new, "draw")
     s = f'<line class="{gd}" x1="{x(iH):.2f}" y1="{y(lv):.2f}" x2="{W-16:.2f}" y2="{y(lv):.2f}" stroke="{INK}" stroke-width="1.8"/>'
@@ -75,7 +75,8 @@ def L_bos(ctx, x, y, slot, new):
     ay0 = y(cs[il+1]["o"]) - 6
     s += (f'<line x1="{x(bi):.2f}" y1="{ay0:.2f}" x2="{x(bi):.2f}" y2="{y(lv):.2f}" stroke="{TEAL_D}" stroke-width="2.4"/>'
           f'<polygon points="{x(bi):.2f},{y(lv):.2f} {x(bi)-6:.2f},{y(lv)+11:.2f} {x(bi)+6:.2f},{y(lv)+11:.2f}" fill="{TEAL_D}"/>')
-    s += htext(x(bi)+10, y(cs[il+1]["c"])+4, "اندفاع", TEAL_D, 19, "start", italic=True, weight=800)
+    if word:
+        s += htext(x(bi)+10, y(cs[il+1]["c"])+4, "اندفاع", TEAL_D, 19, "start", italic=True, weight=800)
     return s + "</g>"
 
 def L_sweep(ctx, x, y, slot, new):
@@ -107,6 +108,17 @@ def L_retest(ctx, x, y, slot, new):
           f'fill="none" stroke="{TEAL_D}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>')
     s += htext(mx, y(zt)-78, "دخول عند الاختبار", TEAL_D, 19)
     return s + "</g>"
+
+def ob_chart_steps(ctx):
+    """One persistent chart; each teaching layer wrapped in .lyN for step-timed reveal."""
+    svg, x, y, slot = chart(ctx["cs"], W, H, ctx["ymin"], ctx["ymax"],
+                            grid=4, pt=48, pb=22, pl=16, pr=16, body=0.5)
+    svg += f'<g class="ly1">{L_last(ctx, x, y, slot, True)}</g>'
+    svg += f'<g class="ly2">{L_bos(ctx, x, y, slot, True, word=False)}</g>'
+    svg += f'<g class="ly3">{L_sweep(ctx, x, y, slot, True)}</g>'
+    svg += f'<g class="ly4">{L_zone(ctx, x, y, slot, True)}</g>'
+    svg += f'<g class="ly5">{L_retest(ctx, x, y, slot, True)}</g>'
+    return svg + "</svg>"
 
 def sc_def():
     return ob_chart(OBA, L_bos, L_sweep, lambda c,x,y,s,n: L_zone(c,x,y,s,n,to_edge=False), animate_last=True)
@@ -219,76 +231,48 @@ T(".a",0.15,0.45,{"op":[0,1],"ty":[20,0],"ease":"oc"})
 T(".b",0.5,0.5,{"op":[0,1],"ty":[20,0],"ease":"oc"})
 T(".d .pl",1.2,0.4,{"op":[0,1],"s":[.6,1],"ease":"ob"},0.22)
 
-# 5 CONDITION 1 — last opposite candle
-scene("s5", 5.6, f'''{logo(120)}<div class="top">
-  <div class="numrow"><span class="num">1</span><h2 class="ttl">آخر شمعة عكسية</h2></div>
-  <div class="rule redr">قبل الحركة القوية، حدد <b>آخر شمعة هابطة</b></div></div>
-  <div class="chartbox mid2">{ob_chart(OBB, L_last)}</div>
-  <div class="capt">هذي الشمعة هي بصمة دخول المؤسسات — <b>مو أي شمعة حمراء</b></div>''')
-T(".numrow",0.15,0.45,{"op":[0,1],"tx":[40,0],"ease":"oc"})
-T(".rule",0.45,0.45,{"op":[0,1],"ty":[20,0],"ease":"oc"})
-T(".chartbox",0.6,0.4,{"op":[0,1],"ty":[30,0],"ease":"oc"})
-T(".cndl",0.75,0.3,{"op":[0,1],"sy":[.2,1],"ease":"ob"},0.1)
-T(".pop",3.6,0.45,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.2)
-T(".capt",4.0,0.5,{"op":[0,1],"ty":[20,0],"ease":"oc"})
-
-# 6 CONDITION 2 — displacement + BOS
-scene("s6", 5.4, f'''{logo(120)}<div class="top">
-  <div class="numrow"><span class="num">2</span><h2 class="ttl">اندفاع يكسر الهيكل</h2></div>
-  <div class="rule bull">بعدها حركة <b>قوية</b> تغلق فوق آخر قمة (BOS)</div></div>
-  <div class="chartbox mid2">{ob_chart(OBC, L_last, L_bos)}</div>
-  <div class="capt">بدون كسر هيكل ← <b class="tr">ما تصير أوردر بلوك</b></div>''')
-T(".numrow",0.15,0.4,{"op":[0,1],"tx":[40,0],"ease":"oc"})
-T(".rule",0.4,0.4,{"op":[0,1],"ty":[20,0],"ease":"oc"})
-T(".chartbox",0.55,0.4,{"op":[0,1],"ty":[30,0],"ease":"oc"})
-T(".cndl",0.65,0.24,{"op":[0,1],"sy":[.2,1],"ease":"ob"},0.075)
-T(".draw",2.7,0.7,{"draw":True,"ease":"oc"})
-T(".pop",3.1,0.4,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.18)
-T(".capt",3.6,0.45,{"op":[0,1],"ty":[20,0],"ease":"oc"})
-
-# 7 CONDITION 3 — liquidity sweep
-scene("s7", 5.0, f'''{logo(120)}<div class="top">
-  <div class="numrow"><span class="num">3</span><h2 class="ttl">سحب سيولة قبلها</h2></div>
-  <div class="rule redr">أقوى بلوك = اللي فتيله <b>يكسح قاع</b> قبل الاندفاع</div></div>
-  <div class="chartbox mid2">{ob_chart(OBD, L_last, L_bos, L_sweep)}</div>
-  <div class="capt">المؤسسات تجمع سيولتها أول — <b>بعدين تتحرك</b></div>''')
-T(".numrow",0.15,0.4,{"op":[0,1],"tx":[40,0],"ease":"oc"})
-T(".rule",0.4,0.4,{"op":[0,1],"ty":[20,0],"ease":"oc"})
-T(".chartbox",0.55,0.4,{"op":[0,1],"ty":[30,0],"ease":"oc"})
-T(".cndl",0.65,0.22,{"op":[0,1],"sy":[.2,1],"ease":"ob"},0.065)
-T(".draw",2.4,0.6,{"draw":True,"ease":"oc"})
-T(".pop",2.8,0.4,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.18)
-T(".capt",3.3,0.45,{"op":[0,1],"ty":[20,0],"ease":"oc"})
-
-# 8 CONDITION 4 — draw the zone
-scene("s8", 5.6, f'''{logo(120)}<div class="top">
-  <div class="numrow"><span class="num">4</span><h2 class="ttl">ارسم المنطقة</h2></div>
-  <div class="rule bull">من <b>فتح</b> الشمعة العكسية إلى <b>قاع</b> السيولة — ومدّها لقدام</div></div>
-  <div class="chartbox mid2">{ob_chart(OBE, L_last, L_bos, L_sweep, L_zone)}</div>
-  <div class="capt">هذي منطقتك — <b class="tt">خلها مرسومة وانطر</b></div>''')
-T(".numrow",0.15,0.4,{"op":[0,1],"tx":[40,0],"ease":"oc"})
-T(".rule",0.4,0.4,{"op":[0,1],"ty":[20,0],"ease":"oc"})
-T(".chartbox",0.55,0.4,{"op":[0,1],"ty":[30,0],"ease":"oc"})
-T(".cndl",0.65,0.22,{"op":[0,1],"sy":[.2,1],"ease":"ob"},0.06)
-T(".obzone",2.6,0.7,{"op":[0,0.16],"ease":"oc"})
-T(".pop",3.0,0.4,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.16)
-T(".capt",3.6,0.45,{"op":[0,1],"ty":[20,0],"ease":"oc"})
-
-# 9 ENTRY — retest
-scene("s9", 5.0, f'''{logo(120)}<div class="top">
-  <div class="realh"><span class="eyeb">الدخول</span></div>
-  <h2 class="ttl">انتظر الاختبار</h2>
-  <div class="rule neutral">لا تطارد الاندفاع — <b>خل السعر يرجع للمنطقة</b></div></div>
-  <div class="chartbox mid2">{ob_chart(OBF, L_bos, L_sweep, L_zone, L_retest)}</div>
-  <div class="capt">أول لمسة للمنطقة = <b class="tt">فرصتك</b> — والستوب تحت قاعها</div>''')
-T(".realh",0.15,0.4,{"op":[0,1],"ty":[20,0],"ease":"oc"})
-T(".ttl",0.3,0.4,{"op":[0,1],"tx":[40,0],"ease":"oc"})
-T(".rule",0.55,0.4,{"op":[0,1],"ty":[20,0],"ease":"oc"})
-T(".chartbox",0.7,0.4,{"op":[0,1],"ty":[30,0],"ease":"oc"})
-T(".cndl",0.8,0.2,{"op":[0,1],"sy":[.2,1],"ease":"ob"},0.055)
-T(".obzone",2.3,0.5,{"op":[0,0.16],"ease":"oc"})
-T(".pop",2.8,0.45,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.2)
-T(".capt",3.4,0.45,{"op":[0,1],"ty":[20,0],"ease":"oc"})
+# 5..9 MERGED — one chart, marked up step by step
+scene("s5", 26.6, f"""{logo(120)}
+  <div class="stepwrap">
+    <div class="stephead sh1"><div class="numrow"><span class="num">1</span><h2 class="ttl">آخر شمعة عكسية</h2></div>
+      <div class="rule redr">قبل الحركة القوية، حدد <b>آخر شمعة هابطة</b></div></div>
+    <div class="stephead sh2"><div class="numrow"><span class="num">2</span><h2 class="ttl">اندفاع يكسر الهيكل</h2></div>
+      <div class="rule bull">حركة <b>قوية</b> تغلق فوق آخر قمة (BOS)</div></div>
+    <div class="stephead sh3"><div class="numrow"><span class="num">3</span><h2 class="ttl">سحب سيولة قبلها</h2></div>
+      <div class="rule redr">أقوى بلوك = اللي فتيله <b>يكسح قاع</b> قبل الاندفاع</div></div>
+    <div class="stephead sh4"><div class="numrow"><span class="num">4</span><h2 class="ttl">ارسم المنطقة</h2></div>
+      <div class="rule bull">من <b>فتح</b> الشمعة العكسية إلى <b>قاع</b> السيولة — ومدّها لقدام</div></div>
+    <div class="stephead sh5"><div class="numrow"><span class="num">✓</span><h2 class="ttl">انتظر الاختبار</h2></div>
+      <div class="rule neutral">لا تطارد الاندفاع — <b>خل السعر يرجع للمنطقة</b></div></div>
+  </div>
+  <div class="chartbox mid2s">{ob_chart_steps(OBF)}</div>
+  <div class="stepcap sc1">هذي الشمعة هي بصمة دخول المؤسسات — <b>مو أي شمعة حمراء</b></div>
+  <div class="stepcap sc2">بدون كسر هيكل ← <b class="tr">ما تصير أوردر بلوك</b></div>
+  <div class="stepcap sc3">المؤسسات تجمع سيولتها أول — <b>بعدين تتحرك</b></div>
+  <div class="stepcap sc4">هذي منطقتك — <b class="tt">خلها مرسومة وانطر</b></div>
+  <div class="stepcap sc5">أول لمسة للمنطقة = <b class="tt">فرصتك</b> — والستوب تحت قاعها</div>""")
+# chart builds once
+T(".chartbox",0.2,0.4,{"op":[0,1],"ty":[30,0],"ease":"oc"})
+T(".cndl",0.4,0.22,{"op":[0,1],"sy":[.2,1],"ease":"ob"},0.065)
+# step windows: 1)0-5.2  2)5.2-10.6  3)10.6-15.6  4)15.6-21.2  5)21.2-26.6
+T(".sh1",0.15,0.4,{"op":[0,1],"ty":[16,0],"ease":"oc"});  T(".sh1",4.85,0.35,{"op":[1,0],"gate":1})
+T(".sc1",2.9,0.4,{"op":[0,1],"ty":[14,0],"ease":"oc"});   T(".sc1",4.85,0.35,{"op":[1,0],"gate":1})
+T(".ly1 .pop",2.6,0.45,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.2)
+T(".sh2",5.3,0.4,{"op":[0,1],"ty":[16,0],"ease":"oc"});   T(".sh2",10.25,0.35,{"op":[1,0],"gate":1})
+T(".sc2",6.6,0.4,{"op":[0,1],"ty":[14,0],"ease":"oc"});   T(".sc2",10.25,0.35,{"op":[1,0],"gate":1})
+T(".ly2 .draw",5.7,0.7,{"draw":True,"ease":"oc"})
+T(".ly2 .pop",6.1,0.4,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.18)
+T(".sh3",10.7,0.4,{"op":[0,1],"ty":[16,0],"ease":"oc"});  T(".sh3",15.25,0.35,{"op":[1,0],"gate":1})
+T(".sc3",11.9,0.4,{"op":[0,1],"ty":[14,0],"ease":"oc"});  T(".sc3",15.25,0.35,{"op":[1,0],"gate":1})
+T(".ly3 .draw",11.1,0.6,{"draw":True,"ease":"oc"})
+T(".ly3 .pop",11.5,0.4,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.18)
+T(".sh4",15.7,0.4,{"op":[0,1],"ty":[16,0],"ease":"oc"});  T(".sh4",20.85,0.35,{"op":[1,0],"gate":1})
+T(".sc4",17.1,0.4,{"op":[0,1],"ty":[14,0],"ease":"oc"});  T(".sc4",20.85,0.35,{"op":[1,0],"gate":1})
+T(".ly4 .obzone",16.1,0.7,{"op":[0,0.16],"ease":"oc"})
+T(".ly4 .pop",16.5,0.4,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.16)
+T(".sh5",21.3,0.4,{"op":[0,1],"ty":[16,0],"ease":"oc"})
+T(".sc5",22.5,0.4,{"op":[0,1],"ty":[14,0],"ease":"oc"})
+T(".ly5 .pop",21.9,0.45,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.2)
 
 # 10 REAL (climax)
 scene("s10", 9.4, f'''{logo(110)}<div class="top">
@@ -343,7 +327,7 @@ BRK = round(REAL + 6.3, 3)
 
 STAGE = "".join(f'<div class="scene" id="{s["id"]}">{s["html"]}</div>' for s in scenes)
 
-EXTRA_CSS = '.pre{opacity:1}\n.obzone{opacity:0}\n'
+EXTRA_CSS = '.pre{opacity:1}\n.obzone{opacity:0}\n.stepwrap{position:absolute;top:250px;left:80px;right:80px;height:260px}\n.stephead{position:absolute;inset:0;display:flex;flex-direction:column;gap:22px;opacity:0}\n.mid2s{position:absolute;top:560px;left:70px;right:70px}\n.stepcap{position:absolute;bottom:250px;left:90px;right:90px;text-align:center;color:#5C6C73;font-weight:600;font-size:44px;line-height:1.5;opacity:0}\n.stepcap b{color:#0F2E3C;font-weight:900}\n'
 
 JS = f'''
 const FPS=30,DUR={DUR},BRK={BRK};
@@ -373,7 +357,7 @@ function setFrame(t){{
    el.style.opacity=op;
    const p=clamp((t-st)/(en-st),0,1);el.style.transform=`scale(${{1.008+0.02*p}})`;
  }}
- for(const w of TW){{if(!w.els)continue;w.els.forEach((el,i)=>{{const s=w.start+i*w.stag;apply(el,w.sp,E((t-s)/w.dur,w.sp.ease||'lin'));}});}}
+ for(const w of TW){{if(!w.els)continue;w.els.forEach((el,i)=>{{const s=w.start+i*w.stag;if(w.sp.gate&&t<s)return;apply(el,w.sp,E((t-s)/w.dur,w.sp.ease||'lin'));}});}}
  const fl=document.querySelector('#s10 .flash');
  if(fl){{let ft=t-BRK;let o=0;if(ft>0&&ft<0.45){{o=ft<0.12?(ft/0.12)*0.5:0.5*(1-(ft-0.12)/0.33);}}fl.style.opacity=Math.max(0,o);}}
  const cs=document.querySelector('#s10 .chartsvg');
