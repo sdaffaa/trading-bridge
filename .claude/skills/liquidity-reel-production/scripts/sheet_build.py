@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-# شيت النماذج 1 — أنواع ريتيست الأوردر بلوك الصاعد (1080×1350)
+# شيت النماذج 1 — أنواع ريتيست الأوردر بلوك الصاعد
+# SIZE: "post" = 1080×1350 · "reel" = 1080×1920 (مقاس ريل/ستوري)
 # الشموع: نوافذ حقيقية من السوق (sheet_real.json من sheet_scan.py) — الرسم التخطيطي مفهومي.
 import math, json, os
 from reel_build import (CREAM, INK, TEAL, TEAL_D, TEAL_L, BULL, BEAR, RED, MUTE, GREY,
@@ -10,6 +11,9 @@ REAL = {r["cls"]: r for r in json.load(open(os.path.join(HERE, "sheet_real.json"
 
 # 🔒 أمر دائم: التصميم المفرد (صورة واحدة) = ثيم الهوية الغامق
 DARK = True
+SIZE = "reel"
+PAGE_H = 1920 if SIZE == "reel" else 1350
+CH_H = 380 if SIZE == "reel" else 300
 DK_BG = "#08131C"; CYAN = "#43D4DC"
 DK_MAP = [("#2E8CA6", "#43D4DC"),          # bull -> cyan
           ("#122F3E", "#5E7A88"),          # bear -> steel
@@ -33,7 +37,7 @@ def cand_real(row, extras):
     iH, bk, iob, ir = row["iH"], row["bk"], row["iob"], row["ir"]
     ymin = min(c["l"] for c in w); ymax = max(c["h"] for c in w)
     pad = (ymax - ymin) * 0.07; ymin -= pad * 1.6; ymax += pad
-    svg, x, y, slot = chart(w, 560, 300, ymin, ymax, grid=4, pl=10, pr=14, pt=14, pb=10, body=0.6)
+    svg, x, y, slot = chart(w, 560, CH_H, ymin, ymax, grid=4, pl=10, pr=14, pt=14, pb=10, body=0.6)
     ztop = w[iob]["o"]; zbot = w[iob]["l"]; lv = w[iH]["h"]
     zx0 = x(iob) - slot*0.5; zx1 = x(min(ir + 3, n - 1)) + slot*0.5
     svg += (f'<rect x="{zx0:.1f}" y="{y(ztop):.1f}" width="{zx1-zx0:.1f}" height="{y(zbot)-y(ztop):.1f}" '
@@ -80,7 +84,8 @@ def ex_sweep(row, w, x, y, slot):
     return s
 
 # ---------- schematic (line sketch) side ----------
-def sk(pts, W=430, H=300, lines=(), zone=None, circle=None, arrow=None, texts=(), bos=None):
+def sk(pts, W=430, H=None, lines=(), zone=None, circle=None, arrow=None, texts=(), bos=None):
+    H = H or CH_H
     xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
     for seg in lines: xs += [q[0] for q in seg["p"]]; ys += [q[1] for q in seg["p"]]
     x0, x1 = min(xs), max(xs); y0, y1 = min(ys), max(ys)
@@ -154,9 +159,9 @@ for num, ttl, sub, sksvg, cndsvg, chp in ROWS:
 html = f'''<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>
 {FONT_CSS}
 *{{margin:0;padding:0;box-sizing:border-box}}
-body{{width:1080px;height:1350px;font-family:Tajawal;overflow:hidden;
+body{{width:1080px;height:{PAGE_H}px;font-family:Tajawal;overflow:hidden;
   background:radial-gradient(120% 90% at 50% 0%, #0C2029 0%, #08131C 55%, #04090F 100%)}}
-.sheet{{width:1080px;height:1350px;padding:44px 56px 30px;display:flex;flex-direction:column}}
+.sheet{{width:1080px;height:{PAGE_H}px;padding:{56 if SIZE=="reel" else 44}px 56px {40 if SIZE=="reel" else 30}px;display:flex;flex-direction:column}}
 .hd{{display:flex;flex-direction:column;align-items:center;gap:8px}}
 .hgem{{width:48px;height:48px}} .hgem svg{{width:100%;height:100%;filter:drop-shadow(0 0 18px rgba(67,212,220,0.45))}}
 .hwm{{display:flex;align-items:center;gap:12px;font-weight:700;font-size:15px;letter-spacing:8px;
@@ -164,12 +169,12 @@ body{{width:1080px;height:1350px;font-family:Tajawal;overflow:hidden;
 .hln{{display:block;width:70px;height:1px;background:linear-gradient(90deg,transparent,rgba(67,212,220,0.7))}}
 .eyeb{{margin:18px auto 0;display:flex;align-items:center;gap:10px;color:{CYAN};font-weight:800;font-size:16px}}
 .dsh{{display:block;width:26px;height:2px;background:{CYAN};box-shadow:0 0 8px rgba(67,212,220,0.5)}}
-h1{{text-align:center;font-size:44px;font-weight:900;margin-top:4px;
+h1{{text-align:center;font-size:{50 if SIZE=="reel" else 44}px;font-weight:900;margin-top:4px;
   background:linear-gradient(180deg,#ffffff,#C4D4DB 60%,#7F97A1);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 0 22px rgba(67,212,220,0.22))}}
 .tbar{{width:430px;height:3px;margin:10px auto 6px;
   background:linear-gradient(90deg,transparent,{CYAN},transparent);box-shadow:0 0 10px rgba(67,212,220,0.4)}}
-.row{{flex:1;display:flex;flex-direction:column;margin-top:14px;min-height:0}}
+.row{{flex:1;display:flex;flex-direction:column;margin-top:{26 if SIZE=="reel" else 14}px;min-height:0}}
 .rhead{{display:flex;align-items:flex-start;gap:12px}}
 .num{{width:34px;height:34px;border:2px solid {CYAN};color:{CYAN};font-weight:900;font-style:italic;
   font-size:20px;display:flex;align-items:center;justify-content:center;border-radius:0;flex:0 0 auto;margin-top:2px}}
@@ -181,7 +186,7 @@ h1{{text-align:center;font-size:44px;font-weight:900;margin-top:4px;
 .rcols{{flex:1;display:flex;gap:16px;margin-top:6px;min-height:0}}
 .col{{display:flex;align-items:center;justify-content:center}}
 .col.sk{{flex:0 0 430px}} .col.cn{{flex:1}}
-.col svg{{width:100%;height:100%;max-height:262px}}
+.col svg{{width:100%;height:100%;max-height:{340 if SIZE=="reel" else 262}px}}
 .ft{{display:flex;align-items:center;justify-content:space-between;color:#7F97A1;font-size:13px;
   font-weight:600;margin-top:12px;border-top:1px solid rgba(255,255,255,0.10);padding-top:10px}}
 </style></head><body><div class="sheet">
@@ -194,4 +199,4 @@ h1{{text-align:center;font-size:44px;font-weight:900;margin-top:4px;
 </div></body></html>'''
 
 open("sheet.html", "w").write(html)
-print("wrote sheet.html", len(html), "bytes |", {k: (v["sym"], v["tf"], v["date"], len(v["w"])) for k, v in REAL.items()})
+print("wrote sheet.html", SIZE, PAGE_H, len(html), "bytes |", {k: (v["sym"], v["tf"], v["date"], len(v["w"])) for k, v in REAL.items()})
