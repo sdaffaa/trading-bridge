@@ -3,11 +3,12 @@
 import json, sys, os, urllib.request, urllib.parse, datetime as dt
 
 def fetch(sym, iv):
+    rng = "1y" if iv == "1h" else "60d"
     fp = "/home/user/y_" + sym.replace("=", "_").replace("^", "_") + "_" + iv + ".json"
     if os.path.exists(fp):
         d = json.load(open(fp))
     else:
-        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(sym)}?interval={iv}&range=60d"
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(sym)}?interval={iv}&range={rng}"
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "*/*"})
         d = json.load(urllib.request.urlopen(req, timeout=45))
     r = d["chart"]["result"][0]
@@ -32,40 +33,48 @@ def swings(cs, idxs, key, cmpmax):
     return out
 
 def classify(cs, bk, r, ztop, relax):
+    """return ALL pattern classes this pullback matches"""
     pb = list(range(bk, r + 1))
     dep = cs[bk]["h"] - ztop
-    if dep <= 0: return None
+    if dep <= 0: return []
+    out = []
     sh = swings(cs, pb, "h", True); sl = swings(cs, pb, "l", False)
     # sweep: top1 then equal-or-higher top2, then decline
     tol = (0.32 if relax else 0.22) * dep
     tops = sorted(pb, key=lambda i: -cs[i]["h"])[:4]
     for i1 in sorted(tops):
+        done = False
         for i2 in sorted(tops):
             if i2 < i1 + 3: continue
             h1, h2 = cs[i1]["h"], cs[i2]["h"]
             if h1 - tol <= h2 <= h1 + tol and max(cs[k]["h"] for k in pb) <= max(h1, h2):
                 if r - i2 >= 2 and i1 - bk <= len(pb) * 0.6:
                     ipdl = min(range(i1, i2 + 1), key=lambda k: cs[k]["l"])
-                    return dict(cls="sweep", i1=i1, i2=i2, ipdl=ipdl)
+                    out.append(dict(cls="sweep", i1=i1, i2=i2, ipdl=ipdl)); done = True; break
+        if done: break
     # consolidation: flat sub-range then drop
     need = 5 if relax else 6
+    best = None
     for a in range(1, len(pb) - need):
-        for b in range(a + need - 1, len(pb) - 1):
+        for b in range(len(pb) - 2, a + need - 2, -1):
             seg = pb[a:b+1]
             rt = max(cs[k]["h"] for k in seg); rb = min(cs[k]["l"] for k in seg)
-            if (rt - rb) < (0.5 if relax else 0.42) * dep and rb > ztop + 0.25 * dep:
-                return dict(cls="consol", ca=seg[0], cb=seg[-1],
-                            rt=max(range(seg[0], seg[-1]+1), key=lambda k: cs[k]["h"]),
-                            rb=min(range(seg[0], seg[-1]+1), key=lambda k: cs[k]["l"]))
-    # channel: >=2 descending swing highs and lows, gradual decline
+            if (rt - rb) < (0.55 if relax else 0.45) * dep and rb > ztop + 0.15 * dep:
+                if best is None or len(seg) > best[1] - best[0] + 1: best = (seg[0], seg[-1])
+                break
+    if best:
+        out.append(dict(cls="consol", ca=best[0], cb=best[1],
+                        rt=max(range(best[0], best[1]+1), key=lambda k: cs[k]["h"]),
+                        rb=min(range(best[0], best[1]+1), key=lambda k: cs[k]["l"])))
+    # channel: swing highs & lows stepping down, small violations tolerated
     if len(sh) >= 2 and len(sl) >= 2 and len(pb) >= (6 if relax else 8):
-        step = (0.06 if relax else 0.1) * dep
-        dh = [i for i in sh]
-        if all(cs[dh[k+1]]["h"] < cs[dh[k]]["h"] - step for k in range(len(dh)-1)):
-            dl = [i for i in sl]
-            if all(cs[dl[k+1]]["l"] < cs[dl[k]]["l"] - step*0.5 for k in range(len(dl)-1)):
-                return dict(cls="chan", chi=[dh[0], dh[-1]], clo=[dl[0], dl[-1]])
-    return None
+        ok_h = (cs[sh[-1]]["h"] < cs[sh[0]]["h"] - 0.15 * dep and
+                all(cs[sh[k+1]]["h"] <= cs[sh[k]]["h"] + 0.08 * dep for k in range(len(sh)-1)))
+        ok_l = (cs[sl[-1]]["l"] < cs[sl[0]]["l"] - 0.10 * dep and
+                all(cs[sl[k+1]]["l"] <= cs[sl[k]]["l"] + 0.08 * dep for k in range(len(sl)-1)))
+        if ok_h and ok_l:
+            out.append(dict(cls="chan", chi=[sh[0], sh[-1]], clo=[sl[0], sl[-1]]))
+    return out
 
 def scan(cs, sym, tf, sec, relax=False):
     res = []; n = len(cs)
@@ -82,7 +91,7 @@ def scan(cs, sym, tf, sec, relax=False):
         ztop = cs[iob]["o"]; zbot = cs[iob]["l"]; zh = ztop - zbot
         if zh <= 0 or cs[bk]["c"] - ztop < 1.2 * zh: continue
         r = None
-        for k in range(bk + 4, min(bk + 26, n - 9)):
+        for k in range(bk + 4, min(bk + 30, n - 9)):
             if cs[k]["l"] <= ztop:
                 if cs[k]["c"] > zbot and cs[k]["l"] > zbot - 0.5*zh: r = k
                 break
@@ -90,18 +99,21 @@ def scan(cs, sym, tf, sec, relax=False):
         hi_after = max(cs[k]["h"] for k in range(r + 1, min(r + 10, n)))
         if hi_after < cs[bk]["h"]: continue
         if min(cs[k]["l"] for k in range(r, min(r + 10, n))) < zbot - 0.2*zh: continue
-        info = classify(cs, bk, r, ztop, relax)
-        if not info: continue
+        infos = classify(cs, bk, r, ztop, relax)
         touch = (ztop - cs[r]["l"]) / zh
         if touch > 0.7: continue
         score = (hi_after - cs[bk]["h"]) / zh - touch + min(r - bk, 14) * 0.05
-        info.update(sym=sym, tf=tf, iH=iH, bk=bk, iob=iob, ir=r, s=round(score, 3))
-        res.append(info)
+        for info in infos:
+            info = dict(info)
+            info.update(sym=sym, tf=tf, iH=iH, bk=bk, iob=iob, ir=r, s=round(score, 3))
+            res.append(info)
     return res
 
 KW = dt.timezone(dt.timedelta(hours=3))
 SRC = [("GC=F", "30m", 1800), ("YM=F", "30m", 1800), ("NQ=F", "30m", 1800),
-       ("GBPUSD=X", "15m", 900), ("USDJPY=X", "15m", 900), ("GC=F", "15m", 900)]
+       ("GBPUSD=X", "15m", 900), ("USDJPY=X", "15m", 900), ("GC=F", "15m", 900),
+       ("GC=F", "1h", 3600), ("YM=F", "1h", 3600), ("NQ=F", "1h", 3600),
+       ("GBPUSD=X", "1h", 3600), ("USDJPY=X", "1h", 3600), ("AUDUSD=X", "1h", 3600)]
 allc = {}; series = {}
 for sym, iv, sec in SRC:
     cs = fetch(sym, iv)
