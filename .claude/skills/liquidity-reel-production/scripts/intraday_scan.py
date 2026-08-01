@@ -4,9 +4,14 @@ PIP = 1e-4
 def r5(v): return round(v, 5)
 
 def fetch(iv):
-    url = f"https://query1.finance.yahoo.com/v8/finance/chart/EURUSD=X?interval={iv}&range=60d"
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    d = json.load(urllib.request.urlopen(req, timeout=45))
+    import os
+    fp = f"/home/user/y_{iv}.json"
+    if os.path.exists(fp):
+        d = json.load(open(fp))
+    else:
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/EURUSD=X?interval={iv}&range=60d"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "*/*"})
+        d = json.load(urllib.request.urlopen(req, timeout=45))
     r = d["chart"]["result"][0]
     ts = r["timestamp"]; q = r["indicators"]["quote"][0]
     out = []; last = 0
