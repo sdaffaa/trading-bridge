@@ -7,6 +7,22 @@ from reel_build import (CREAM, INK, TEAL, TEAL_D, TEAL_L, BULL, BEAR, RED, MUTE,
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REAL = {r["cls"]: r for r in json.load(open(os.path.join(HERE, "sheet_real.json")))}
+
+# 🔒 أمر دائم: التصميم المفرد (صورة واحدة) = ثيم الهوية الغامق
+DARK = True
+DK_BG = "#08131C"; CYAN = "#43D4DC"
+DK_MAP = [("#2E8CA6", "#43D4DC"),          # bull -> cyan
+          ("#122F3E", "#5E7A88"),          # bear -> steel
+          ("#0F2E3C", "#D8E5EB"),          # ink lines/labels -> light
+          ("#F2EEE7", DK_BG),              # text halo + handle fill -> dark bg
+          ("#1E627A", "#3AAFC0"),          # teal-dark accents -> bright teal
+          ("#D24B4B", "#E05656"),          # red slightly brighter
+          ("#5C6C73", "#8FA6AF"),          # muted text
+          ("rgba(15,46,60,0.06)", "rgba(255,255,255,0.06)")]
+def dk(svg):
+    if not DARK: return svg
+    for a, b in DK_MAP: svg = svg.replace(a, b)
+    return svg
 SYMAR = {"GC=F": "الذهب", "YM=F": "الداو جونز", "NQ=F": "الناسداك",
          "GBPUSD=X": "GBP/USD", "USDJPY=X": "USD/JPY", "AUDUSD=X": "AUD/USD"}
 TFAR = {"5m": "5 دقائق", "15m": "15 دقيقة", "30m": "30 دقيقة", "1h": "فريم الساعة"}
@@ -121,11 +137,11 @@ def chip(row):
 
 ROWS = [
     ("1", "نموذج الاستمرار — قناة تصحيحية", "رجعة منظمة بقمم وقيعان هابطة توصل السعر للزون",
-     SK1, cand_real(REAL["chan"], ex_chan), chip(REAL["chan"])),
+     dk(SK1), dk(cand_real(REAL["chan"], ex_chan)), chip(REAL["chan"])),
     ("2", "التجميع الجانبي", "رينج ضيق يجمع سيولة ثم ينزل يختبر الزون",
-     SK2, cand_real(REAL["consol"], ex_consol), chip(REAL["consol"])),
+     dk(SK2), dk(cand_real(REAL["consol"], ex_consol)), chip(REAL["consol"])),
     ("3", "سحب سيولة القمم", "قمتين متساويتين فوقهم سيولة — يسحبها وينزل للزون",
-     SK3, cand_real(REAL["sweep"], ex_sweep), chip(REAL["sweep"])),
+     dk(SK3), dk(cand_real(REAL["sweep"], ex_sweep)), chip(REAL["sweep"])),
 ]
 
 rows_html = ""
@@ -139,31 +155,35 @@ html = f'''<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
 {FONT_CSS}
 *{{margin:0;padding:0;box-sizing:border-box}}
 body{{width:1080px;height:1350px;font-family:Tajawal;overflow:hidden;
-  background:radial-gradient(120% 90% at 50% 0%, #F7F3EC 0%, #F2EEE7 55%, #ECE6DB 100%)}}
+  background:radial-gradient(120% 90% at 50% 0%, #0C2029 0%, #08131C 55%, #04090F 100%)}}
 .sheet{{width:1080px;height:1350px;padding:44px 56px 30px;display:flex;flex-direction:column}}
 .hd{{display:flex;flex-direction:column;align-items:center;gap:8px}}
-.hgem{{width:46px;height:46px}} .hgem svg{{width:100%;height:100%}}
-.hwm{{display:flex;align-items:center;gap:12px;color:#5C6C73;font-weight:700;font-size:15px;letter-spacing:7px}}
-.hln{{display:block;width:70px;height:1px;background:linear-gradient(90deg,transparent,#9AA9AF)}}
-.eyeb{{margin:18px auto 0;display:flex;align-items:center;gap:10px;color:{TEAL_D};font-weight:800;font-size:16px}}
-.dsh{{display:block;width:26px;height:2px;background:{TEAL_D}}}
-h1{{text-align:center;color:{INK};font-size:44px;font-weight:900;margin-top:4px}}
-.tbar{{width:430px;height:4px;background:{INK};margin:10px auto 6px}}
+.hgem{{width:48px;height:48px}} .hgem svg{{width:100%;height:100%;filter:drop-shadow(0 0 18px rgba(67,212,220,0.45))}}
+.hwm{{display:flex;align-items:center;gap:12px;font-weight:700;font-size:15px;letter-spacing:8px;
+  background:linear-gradient(180deg,#ffffff,#C4D4DB 55%,#8FA6AF);-webkit-background-clip:text;background-clip:text;color:transparent}}
+.hln{{display:block;width:70px;height:1px;background:linear-gradient(90deg,transparent,rgba(67,212,220,0.7))}}
+.eyeb{{margin:18px auto 0;display:flex;align-items:center;gap:10px;color:{CYAN};font-weight:800;font-size:16px}}
+.dsh{{display:block;width:26px;height:2px;background:{CYAN};box-shadow:0 0 8px rgba(67,212,220,0.5)}}
+h1{{text-align:center;font-size:44px;font-weight:900;margin-top:4px;
+  background:linear-gradient(180deg,#ffffff,#C4D4DB 60%,#7F97A1);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 22px rgba(67,212,220,0.22))}}
+.tbar{{width:430px;height:3px;margin:10px auto 6px;
+  background:linear-gradient(90deg,transparent,{CYAN},transparent);box-shadow:0 0 10px rgba(67,212,220,0.4)}}
 .row{{flex:1;display:flex;flex-direction:column;margin-top:14px;min-height:0}}
 .rhead{{display:flex;align-items:flex-start;gap:12px}}
-.num{{width:34px;height:34px;border:2px solid {TEAL_D};color:{TEAL_D};font-weight:900;font-style:italic;
+.num{{width:34px;height:34px;border:2px solid {CYAN};color:{CYAN};font-weight:900;font-style:italic;
   font-size:20px;display:flex;align-items:center;justify-content:center;border-radius:0;flex:0 0 auto;margin-top:2px}}
 .rtt{{flex:1;min-width:0}}
-.rhead h2{{color:{INK};font-size:23px;font-weight:800;line-height:1.15}}
-.rhead p{{color:#5C6C73;font-size:15px;font-weight:500;margin-top:1px}}
-.tick{{border:1.5px solid {TEAL_D};color:{TEAL_D};font-weight:800;font-size:14px;padding:5px 12px;
+.rhead h2{{color:#ECF3F6;font-size:23px;font-weight:800;line-height:1.15}}
+.rhead p{{color:#8FA6AF;font-size:15px;font-weight:500;margin-top:1px}}
+.tick{{border:1.5px solid rgba(67,212,220,0.65);color:{CYAN};font-weight:800;font-size:14px;padding:5px 12px;
   white-space:nowrap;margin-top:4px;border-radius:0}}
 .rcols{{flex:1;display:flex;gap:16px;margin-top:6px;min-height:0}}
 .col{{display:flex;align-items:center;justify-content:center}}
 .col.sk{{flex:0 0 430px}} .col.cn{{flex:1}}
 .col svg{{width:100%;height:100%;max-height:262px}}
-.ft{{display:flex;align-items:center;justify-content:space-between;color:#93A2A8;font-size:13px;
-  font-weight:600;margin-top:12px;border-top:1px solid rgba(15,46,60,0.10);padding-top:10px}}
+.ft{{display:flex;align-items:center;justify-content:space-between;color:#7F97A1;font-size:13px;
+  font-weight:600;margin-top:12px;border-top:1px solid rgba(255,255,255,0.10);padding-top:10px}}
 </style></head><body><div class="sheet">
 <div class="hd"><div class="hgem">{GEM}</div><div class="hwm"><span class="hln"></span>LIQUIDITY STATE<span class="hln" style="transform:scaleX(-1)"></span></div></div>
 <div class="eyeb"><span class="dsh"></span>شيتات النماذج<span class="dsh"></span></div>
