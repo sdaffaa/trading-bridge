@@ -1,0 +1,141 @@
+/* ============================================================================
+   Liquidity State — Base styles
+   Typography, RTL, content/cover surfaces, shapes, step badges,
+   counters, arrows, wordmark. Depends on tokens.css.
+   ========================================================================= */
+
+/* Self-hosted Tajawal (Arabic + Latin subsets, weights 400/500/700/800/900).
+   Offline & CSP-safe. For a network build you may swap this for the Google
+   Fonts @import, but self-hosting is the default so renders never fall back. */
+@import url("../fonts/tajawal.local.css");
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--ls-font);
+  color: var(--ls-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Arabic content is RTL by default; Latin digits/counters opt back to LTR. */
+[dir="rtl"], .ls-rtl { direction: rtl; unicode-bidi: plaintext; }
+
+/* --- Surfaces --------------------------------------------------------- */
+.ls-content { background: var(--ls-bg-content); color: var(--ls-ink); }
+.ls-cover   { background: var(--ls-bg-cover);   color: #FFFFFF; }
+
+.ls-canvas-reel     { width: var(--ls-reel-w);     height: var(--ls-reel-h);     position: relative; overflow: hidden; }
+.ls-canvas-carousel { width: var(--ls-carousel-w); height: var(--ls-carousel-h); position: relative; overflow: hidden; }
+
+/* --- Type scale ------------------------------------------------------- */
+.ls-h1 { font-weight: var(--ls-w-black);     font-size: 88px; line-height: 1.08; letter-spacing: -0.5px; color: var(--ls-ink); }
+.ls-h2 { font-weight: var(--ls-w-extrabold); font-size: 60px; line-height: 1.14; color: var(--ls-ink); }
+.ls-h3 { font-weight: var(--ls-w-bold);      font-size: 42px; line-height: 1.2;  color: var(--ls-ink); }
+.ls-body   { font-weight: var(--ls-w-medium);  font-size: 34px; line-height: 1.5; color: var(--ls-ink); }
+.ls-body-2 { font-weight: var(--ls-w-regular); font-size: 30px; line-height: 1.5; color: var(--ls-text-2); }
+.ls-caption{ font-weight: var(--ls-w-medium);  font-size: 24px; line-height: 1.4; color: var(--ls-text-2); }
+
+.ls-turq-text { color: var(--ls-turq); }
+.ls-red-text  { color: var(--ls-red); }   /* bearish concepts ONLY */
+
+/* --- Cover poster title (metallic) + glowing cyan diamonds ------------- */
+.ls-cover-title {
+  font-weight: var(--ls-w-black);
+  font-size: 104px;
+  line-height: 1.06;
+  background: var(--ls-title-metal);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+.ls-wordmark {
+  font-weight: var(--ls-w-bold);
+  font-size: 28px;
+  letter-spacing: 0.42em;   /* wide tracking */
+  color: var(--ls-wordmark);
+  text-transform: uppercase;
+}
+.ls-cyan-diamond {
+  width: 14px; height: 14px;
+  background: var(--ls-cyan-glow);
+  transform: rotate(45deg);   /* معيّن — diamond */
+  box-shadow: 0 0 14px 2px var(--ls-cyan-glow);
+}
+.ls-cyan-rule {
+  display: inline-flex; align-items: center; gap: 14px;
+}
+.ls-cyan-rule::before,
+.ls-cyan-rule::after {
+  content: ""; height: 1.5px; width: 90px;
+  background: linear-gradient(90deg, transparent, var(--ls-cyan-glow));
+  box-shadow: 0 0 8px var(--ls-cyan-glow);
+}
+
+/* --- Shapes: sharp formal rectangles ---------------------------------- */
+.ls-card {
+  background: #FFFFFF;
+  border: var(--ls-border-thin) solid var(--ls-turq-dark);
+  border-radius: var(--ls-radius-2);   /* never > 3px */
+}
+.ls-box-range {                          /* range / order-block box */
+  background: var(--ls-box-fill);
+  border: 1px solid var(--ls-box-border);
+  border-radius: var(--ls-radius-0);
+}
+
+/* --- Step badge: zero-radius square, italic Latin 900 numerals -------- */
+.ls-step {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 64px; height: 64px;
+  background: var(--ls-ink);
+  color: #FFFFFF;
+  border-radius: var(--ls-radius-0);     /* zero corners */
+  font-weight: 900;
+  font-style: italic;                    /* 1 2 3 italic — never ١ ٢ ٣ */
+  font-size: 38px;
+  line-height: 1;
+}
+.ls-step--turq { background: var(--ls-turq); }
+
+/* --- Counter n/20 : Latin digits, LTR island inside RTL line ---------- */
+.ls-counter {
+  display: inline-block;
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-weight: var(--ls-w-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--ls-text-2);
+}
+
+/* --- Arrows inside Arabic sentences point LEFT (reading direction) ----- */
+/* Use the "←" glyph in markup (سبب ← نتيجة). Never "→". This helper keeps
+   the arrow visually detached and correctly turquoise for causal chains. */
+.ls-arrow { color: var(--ls-turq); font-weight: var(--ls-w-bold); padding: 0 6px; }
+
+/* --- ManyChat keyword pill (comment-to-DM hook) ----------------------- */
+.ls-keyword {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 10px 20px;
+  background: var(--ls-ink);
+  color: #FFFFFF;
+  border-radius: var(--ls-radius-2);
+  font-weight: var(--ls-w-bold);
+  font-size: 28px;
+}
+
+/* --- "لغرض تعليمي" disclosure tag (required on real-data content) ------ */
+.ls-edu-tag {
+  display: inline-block;
+  padding: 6px 16px;
+  border: 1px solid var(--ls-axis);
+  border-radius: var(--ls-radius-2);
+  color: var(--ls-text-2);
+  font-weight: var(--ls-w-medium);
+  font-size: 22px;
+}

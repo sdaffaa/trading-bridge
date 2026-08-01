@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Liquidity State — Cover Poster</title>
+  <!-- Cover = dark surface. Used ONLY for the first scene/page. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/base.css" />
+  <style>
+    body { margin: 0; }
+    .stage {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 48px; text-align: center; padding: 120px 90px;
+    }
+    .logo { width: 300px; height: 300px; }
+    .title-wrap { display: flex; flex-direction: column; gap: 10px; }
+    .kicker {
+      font-weight: var(--ls-w-medium); font-size: 30px; letter-spacing: 0.12em;
+      color: var(--ls-cyan-glow); opacity: 0.85;
+    }
+    .footer { position: absolute; bottom: 96px; left: 0; right: 0; display: flex; justify-content: center; }
+  </style>
+</head>
+<body>
+  <div class="ls-canvas-reel ls-cover" style="display:flex">
+    <div class="stage" style="flex:1">
+      <img class="logo" src="../logo/icosahedron-dark.svg" alt="Liquidity State" />
+      <div class="ls-cyan-rule"><span class="ls-cyan-diamond"></span></div>
+      <div class="title-wrap">
+        <div class="kicker">درس اليوم</div>
+        <h1 class="ls-cover-title">هيكل<br />السيولة</h1>
+      </div>
+      <div class="ls-cyan-rule"><span class="ls-cyan-diamond"></span></div>
+    </div>
+    <div class="footer">
+      <div class="ls-wordmark">LIQUIDITY&nbsp;STATE</div>
+    </div>
+  </div>
+</body>
+</html>

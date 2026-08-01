@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Liquidity State icosahedron">
+<defs>
+<radialGradient id="lsSpec" cx="38%" cy="30%" r="80%"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.35"/><stop offset="55%" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>
+<filter id="lsGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<g filter="url(#lsGlow)">
+<polygon points="376.75,147.10 424.69,147.90 239.50,40.96" fill="#516A78" stroke="#0B3C46" stroke-width="1.4" stroke-linejoin="round"/>
+<polygon points="376.75,147.10 451.39,336.92 424.69,147.90" fill="#1E2E3A" stroke="#0B3C46" stroke-width="1.4" stroke-linejoin="round"/>
+<polygon points="151.75,163.90 239.50,40.96 60.61,175.08" fill="#A0C5CB" stroke="#0B3C46" stroke-width="1.4" stroke-linejoin="round"/>
+<polygon points="60.61,175.08 87.31,364.10 151.75,163.90" fill="#7B9AA5" stroke="#0B3C46" stroke-width="1.4" stroke-linejoin="round"/>
+<polygon points="451.39,336.92 282.70,346.81 272.50,471.04" fill="#1E2E3A" stroke="#0B3C46" stroke-width="1.4" stroke-linejoin="round"/>
+<polygon points="87.31,364.10 272.50,471.04 282.70,346.81" fill="#1E2E3A" stroke="#0B3C46" stroke-width="1.4" stroke-linejoin="round"/>
+<polygon points="376.75,147.10 239.50,40.96 151.75,163.90" fill="#AFD6DB" stroke="#0B3C46" stroke-width="1.4" stroke-linejoin="round"/>
+<polygon points="376.75,147.10 282.70,346.81 451.39,336.92" fill="#374B58" stroke="#0B3C46" stroke-width="1.4" stroke-linejoin="round"/>
+<polygon points="282.70,346.81 151.75,163.90 87.31,364.10" fill="#74929D" stroke="#0B3C46" stroke-width="1.4" stroke-linejoin="round"/>
+<polygon points="376.75,147.10 151.75,163.90 282.70,346.81" fill="#94B7BF" stroke="#0B3C46" stroke-width="1.4" stroke-linejoin="round"/>
+<circle cx="256.0" cy="256.0" r="235.5" fill="url(#lsSpec)"/>
+</g>
+</svg>

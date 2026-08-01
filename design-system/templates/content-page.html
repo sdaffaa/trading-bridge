@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Liquidity State — Content Page</title>
+  <!-- Content = cream surface. All scenes/pages except the cover. -->
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/chart.css" />
+  <style>
+    body { margin: 0; }
+    .page { display: flex; flex-direction: column; padding: 90px 80px 80px; gap: 40px; height: 100%; }
+    .top { display: flex; align-items: center; justify-content: space-between; }
+    .brandline { display: flex; align-items: center; gap: 18px; }
+    .brandline img { width: 64px; height: 64px; }
+    .brandline .wm { font-weight: 700; letter-spacing: 0.28em; font-size: 20px; color: var(--ls-text-2); }
+    .steps { display: flex; gap: 22px; align-items: flex-start; }
+    .step-row { display: flex; gap: 20px; align-items: center; }
+    .chart-wrap { height: 1150px; }
+    .chart-wrap svg { width: 100%; height: 100%; display: block; }
+    .foot { display: flex; align-items: center; justify-content: space-between; }
+  </style>
+</head>
+<body>
+  <div class="ls-canvas-reel ls-content">
+    <div class="page">
+      <div class="top">
+        <div>
+          <h2 class="ls-h2">حدد القمم والقيعان</h2>
+          <p class="ls-body-2">لين يبين معاك الهيكل قبل أي دخول</p>
+        </div>
+        <span class="ls-counter" style="font-size:30px">3/20</span>
+      </div>
+
+      <div class="chart-wrap ls-card" style="padding:18px">
+        <svg id="chart"></svg>
+      </div>
+
+      <div class="steps">
+        <div class="step-row"><span class="ls-step ls-step--turq">1</span>
+          <span class="ls-body">قمة أعلى <span class="ls-arrow">←</span> استمرار صاعد</span></div>
+      </div>
+      <div class="steps">
+        <div class="step-row"><span class="ls-step">2</span>
+          <span class="ls-body">كسر القاع <span class="ls-arrow">←</span> تغيّر نمط</span></div>
+      </div>
+
+      <div class="foot">
+        <div class="brandline">
+          <img src="../logo/icosahedron.svg" alt="" />
+          <span class="wm">LIQUIDITY STATE</span>
+        </div>
+        <span class="ls-edu-tag">لغرض تعليمي</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { LSChart } from "../css/chart.js";
+    // NOTE: sample OHLC for the TEMPLATE only. Production must inject
+    // verified OHLC from a trusted source for any "real market" scene.
+    const ohlc = [
+      {o:2318,h:2324,l:2315,c:2322},{o:2322,h:2329,l:2320,c:2327},
+      {o:2327,h:2331,l:2323,c:2325},{o:2325,h:2333,l:2324,c:2332},
+      {o:2332,h:2338,l:2330,c:2336},{o:2336,h:2340,l:2331,c:2333},
+      {o:2333,h:2335,l:2326,c:2328},{o:2328,h:2330,l:2319,c:2321},
+      {o:2321,h:2324,l:2314,c:2316},{o:2316,h:2318,l:2309,c:2311},
+      {o:2311,h:2315,l:2308,c:2314},{o:2314,h:2322,l:2313,c:2320},
+      {o:2320,h:2327,l:2318,c:2325},{o:2325,h:2334,l:2324,c:2333},
+      {o:2333,h:2341,l:2332,c:2339},{o:2339,h:2345,l:2336,c:2338},
+      {o:2338,h:2342,l:2331,c:2334},{o:2334,h:2337,l:2328,c:2330},
+      {o:2330,h:2333,l:2323,c:2325},{o:2325,h:2340,l:2324,c:2338},
+      {o:2338,h:2348,l:2337,c:2346},{o:2346,h:2352,l:2343,c:2345},
+      {o:2345,h:2349,l:2339,c:2341},{o:2341,h:2344,l:2335,c:2343},
+      {o:2343,h:2351,l:2342,c:2350},{o:2350,h:2356,l:2348,c:2354},
+      {o:2354,h:2358,l:2349,c:2351},{o:2351,h:2354,l:2345,c:2347},
+      {o:2347,h:2350,l:2340,c:2342},{o:2342,h:2361,l:2341,c:2359},
+    ];
+    const c = new LSChart(document.getElementById("chart"), ohlc,
+      { width: 880, height: 1120, padRight: 122, padTop: 40, padBottom: 40 });
+    c.render();
+    // swing high of candle idx 14 (h=2341) — BOS level, break at idx 20
+    c.hline(2341, { tone: "bull", label: "BOS", labelAt: 1, dy: -18 });
+    // sell-side liquidity at wick low of idx 9 (l=2309)
+    c.hline(2309, { tone: "neutral", label: "SSL", labelAt: 1, dy: 26 });
+    // order block box: idx 16–19 between swing 2342 and 2323
+    c.box(16, 19, 2342, 2323, { label: "OB", tone: "bull" });
+    // break arrow head touching BOS at breakout candle idx 20 (h=2348)
+    c.breakArrow(20, 2341, { tone: "bull", dir: -1 });
+    c.tag(21, 2341, "كسر صاعد", { tone: "bull", dy: -128, anchor: "start" });
+  </script>
+</body>
+</html>

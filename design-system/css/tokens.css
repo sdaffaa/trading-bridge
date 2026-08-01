@@ -1,0 +1,83 @@
+/* ============================================================================
+   Liquidity State — Design Tokens
+   Single source of truth for color, type, spacing, radius, motion.
+   Every design (reel / carousel / poster / PDF / chart) pulls from here.
+   ========================================================================= */
+
+:root {
+  /* --- Content surface (all pages/scenes except the cover) --------------- */
+  --ls-cream-1: #F7F3EC;   /* radial center */
+  --ls-cream-2: #F2EEE7;   /* radial mid    */
+  --ls-cream-3: #ECE6DB;   /* radial edge   */
+  --ls-bg-content: radial-gradient(120% 120% at 50% 42%,
+                     var(--ls-cream-1) 0%,
+                     var(--ls-cream-2) 55%,
+                     var(--ls-cream-3) 100%);
+
+  /* --- Ink / text ------------------------------------------------------- */
+  --ls-ink: #0F2E3C;        /* headlines + primary text (navy) */
+  --ls-text-2: #5C6C73;     /* secondary text */
+  --ls-axis: #93A2A8;       /* chart axes / faint rules */
+
+  /* --- Turquoise scale -------------------------------------------------- */
+  --ls-turq: #2E7D96;       /* primary */
+  --ls-turq-dark: #1E627A;  /* deep    */
+  --ls-turq-light: #5AA6BC; /* light   */
+
+  /* --- Candles ---------------------------------------------------------- */
+  --ls-candle-up: #2E8CA6;   /* bullish — turquoise */
+  --ls-candle-down: #122F3E; /* bearish — navy      */
+
+  /* --- Bearish-only red (LL / LH / CHoCH / liquidity sweep) -------------- */
+  --ls-red: #D24B4B;
+
+  /* --- Boxes (range / order block) -------------------------------------- */
+  --ls-box-fill: rgba(46, 125, 150, 0.16);  /* turquoise 14–18% */
+  --ls-box-border: #1E627A;                  /* deep turquoise 1px */
+
+  /* --- Cover poster (dark, first scene/page ONLY) ----------------------- */
+  --ls-cover-1: #0C2029;
+  --ls-cover-2: #08131C;
+  --ls-cover-3: #04090F;
+  --ls-bg-cover: radial-gradient(130% 110% at 50% 40%,
+                   var(--ls-cover-1) 0%,
+                   var(--ls-cover-2) 55%,
+                   var(--ls-cover-3) 100%);
+  --ls-cyan-glow: #43D4DC;
+  /* metallic title gradient white -> silver */
+  --ls-title-metal: linear-gradient(180deg, #FFFFFF 0%, #C4D4DB 55%, #7F97A1 100%);
+  --ls-wordmark: #C4D4DB;   /* silver wordmark */
+
+  /* --- Logo edge -------------------------------------------------------- */
+  --ls-logo-edge: #54687A;
+
+  /* --- Typography (Tajawal only) ---------------------------------------- */
+  --ls-font: "Tajawal", system-ui, "Segoe UI", sans-serif;
+  --ls-w-black: 900;
+  --ls-w-extrabold: 800;
+  --ls-w-bold: 700;
+  --ls-w-medium: 500;
+  --ls-w-regular: 400;
+
+  /* --- Radius (sharp, formal: 0–3px only) ------------------------------- */
+  --ls-radius-0: 0px;
+  --ls-radius-1: 1.5px;
+  --ls-radius-2: 3px;      /* hard ceiling — never exceed 3px */
+  --ls-border-thin: 1.5px;
+
+  /* --- Chart line system ------------------------------------------------ */
+  --ls-hline-w: 1.7px;     /* 1.6–1.8px horizontal levels */
+  --ls-handle-r: 4px;      /* TradingView-style round handle ends */
+  --ls-label-halo: 6px;    /* cream stroke halo (paint-order:stroke) */
+
+  /* --- Motion (reels) --------------------------------------------------- */
+  --ls-crossfade: 0.45s;
+  --ls-ease-back: cubic-bezier(0.34, 1.56, 0.64, 1); /* back-ease for candles */
+  --ls-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- Canvas presets --------------------------------------------------- */
+:root {
+  --ls-reel-w: 1080px;   --ls-reel-h: 1920px;   /* 9:16 reel */
+  --ls-carousel-w: 1080px; --ls-carousel-h: 1350px; /* 4:5 carousel / PDF */
+}

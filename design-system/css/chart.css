@@ -1,0 +1,62 @@
+/* ============================================================================
+   Liquidity State — Chart styling (STRICT)
+   Applies to SVG charts produced by chart.js. Encodes the chart rules:
+   frameless haloed labels, thin round-handle levels, turquoise boxes,
+   navy/turquoise/red color semantics. Depends on tokens.css.
+   ========================================================================= */
+
+/* --- Candles ---------------------------------------------------------- */
+.ls-candle-up   { fill: var(--ls-candle-up);   stroke: var(--ls-candle-up); }
+.ls-candle-down { fill: var(--ls-candle-down); stroke: var(--ls-candle-down); }
+.ls-wick-up     { stroke: var(--ls-candle-up);   stroke-width: 1.6px; }
+.ls-wick-down   { stroke: var(--ls-candle-down); stroke-width: 1.6px; }
+
+/* --- Axes (faint) ----------------------------------------------------- */
+.ls-axis-line { stroke: var(--ls-axis); stroke-width: 1px; }
+.ls-axis-text {
+  fill: var(--ls-axis);
+  font-family: var(--ls-font);
+  font-weight: var(--ls-w-medium);
+  font-size: 20px;
+}
+
+/* --- Horizontal levels: thin, round handle ends (TradingView style) ---- */
+.ls-hline {
+  stroke-width: var(--ls-hline-w);     /* 1.6–1.8px */
+  fill: none;
+  stroke-linecap: round;               /* round cap; paired handle dots below */
+}
+.ls-hline--neutral { stroke: var(--ls-ink); }        /* navy  = neutral level */
+.ls-hline--bull    { stroke: var(--ls-turq); }        /* turq  = bullish/break-up */
+.ls-hline--bear    { stroke: var(--ls-red); }         /* red   = bearish/reversal */
+.ls-handle { r: var(--ls-handle-r); }                 /* round grip on both ends */
+.ls-handle--neutral { fill: var(--ls-ink); }
+.ls-handle--bull    { fill: var(--ls-turq); }
+.ls-handle--bear    { fill: var(--ls-red); }
+
+/* --- Boxes (range / order block): turquoise fill + 1px deep border ----- */
+.ls-box {
+  fill: var(--ls-box-fill);            /* 14–18% turquoise, never grey */
+  stroke: var(--ls-box-border);
+  stroke-width: 1px;
+}
+
+/* --- Break arrows: head must touch the level exactly ------------------- */
+.ls-break-bull { stroke: var(--ls-turq); fill: var(--ls-turq); stroke-width: 2.2px; }
+.ls-break-bear { stroke: var(--ls-red);  fill: var(--ls-red);  stroke-width: 2.2px; }
+
+/* --- Frameless labels with cream halo (NO boxes on the chart) ---------- */
+/* paint-order:stroke draws the ~6px cream stroke BEHIND the fill, giving a
+   halo that lifts text off candles without any rectangle. */
+.ls-tag {
+  font-family: var(--ls-font);
+  font-weight: var(--ls-w-bold);
+  font-size: 26px;
+  paint-order: stroke;
+  stroke: var(--ls-cream-2);
+  stroke-width: var(--ls-label-halo);
+  stroke-linejoin: round;
+}
+.ls-tag--neutral { fill: var(--ls-ink); }
+.ls-tag--bull    { fill: var(--ls-turq-dark); }
+.ls-tag--bear    { fill: var(--ls-red); }
