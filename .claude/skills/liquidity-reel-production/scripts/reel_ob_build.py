@@ -138,37 +138,39 @@ def ob_chart_steps(ctx):
 def sc_def():
     return ob_chart(OBA, L_bos, L_sweep, lambda c,x,y,s,n: L_zone(c,x,y,s,n,to_edge=False), animate_last=True)
 
-# ================= real chart (EUR/USD): the actual OB =================
+# ================= real chart (EUR/USD): zoomed on the story =================
 def sc_real_ob():
-    Wr, Hr = 980, 660; ymin, ymax = 1.1268, 1.1665
-    iSH, iOB, iSWP, iHH = 22, 30, 31, 34
-    BOSv = C[iSH]["h"]                      # 1.14820
-    ztop = C[iOB]["o"]                      # 1.13690 (open of 07-27 bearish candle)
-    zbot = C[iSWP]["l"]                     # 1.13530 (liquidity-sweep low 07-28)
-    swl  = C[29]["l"]                       # 1.13640 swept low (07-24)
-    svg, x, y, slot = chart(C, Wr, Hr, ymin, ymax, price_axis=True, dates=True, grid=5,
-                            pt=54, pb=40, pl=12, pr=70, brk={32,33,34})
-    # OB zone: from the OB candle, projected forward — exact prices
+    SUB = C[20:35]                          # 07-13..07-31 — the story window only
+    Wr, Hr = 980, 660; ymin, ymax = 1.1330, 1.1580
+    iSH, iOB, iSWP, iHH = 2, 10, 11, 14     # structure high / OB candle / sweep / HH
+    BOSv = SUB[iSH]["h"]                    # 1.14820 exact
+    ztop = SUB[iOB]["o"]                    # 1.13690 exact
+    zbot = SUB[iSWP]["l"]                   # 1.13530 exact
+    swl  = SUB[9]["l"]                      # 1.13640 swept low (07-24)
+    svg, x, y, slot = chart(SUB, Wr, Hr, ymin, ymax, price_axis=True, dates=True, grid=5,
+                            pt=54, pb=40, pl=12, pr=70, brk={12,13,14})
+    # OB zone projected forward — exact prices
     zx0 = x(iOB) - slot/2
     svg += (f'<rect class="obzone" x="{zx0:.2f}" y="{y(ztop):.2f}" width="{(Wr-70)-zx0:.2f}" '
             f'height="{y(zbot)-y(ztop):.2f}" fill="{TEAL}" stroke="{TEAL_D}" stroke-width="1"/>')
-    svg += f'<g class="pop">{htext(Wr-70-14, (y(ztop)+y(zbot))/2+6, "OB", TEAL_D, 20, "end", weight=800)}</g>'
-    # liquidity sweep
-    svg += (f'<line class="draw lvl" x1="{x(29):.2f}" y1="{y(swl):.2f}" x2="{x(31):.2f}" y2="{y(swl):.2f}" '
-            f'stroke="{RED}" stroke-width="1.7" stroke-dasharray="6 5"/>')
+    svg += f'<g class="pop">{htext(Wr-70-14, y(zbot)+26, "OB", TEAL_D, 22, "end", weight=800)}</g>'
+    # liquidity sweep — line stops at the sweep candle
+    svg += (f'<line class="draw lvl" x1="{x(9):.2f}" y1="{y(swl):.2f}" x2="{x(iSWP):.2f}" y2="{y(swl):.2f}" '
+            f'stroke="{RED}" stroke-width="1.8" stroke-dasharray="6 5"/>')
     svg += (f'<g class="pop"><circle cx="{x(iSWP):.2f}" cy="{y(zbot):.2f}" r="4.5" fill="{RED}" stroke="{CREAM}" stroke-width="1.5"/>'
-            f'{htext(x(iSWP)-6, y(zbot)+30, "سحب سيولة", RED, 17)}</g>')
-    # last opposite candle marker
-    svg += f'<g class="pop">{htext(x(iOB)-10, y(C[iOB]["h"])-12, "آخر شمعة عكسية", RED, 15, "end")}</g>'
-    # BOS ray + breakout
-    ly = y(BOSv)
-    svg += f'<line class="draw zz" x1="{x(iSH):.2f}" y1="{ly:.2f}" x2="{x(33)+slot*0.78:.2f}" y2="{ly:.2f}" stroke="{INK}" stroke-width="1.8"/>'
-    svg += f'<g class="bospill">{hend(x(iSH), ly, INK)}{htext(x(iSH)+12, ly-12, "BOS", INK, 20, "start", weight=800)}</g>'
-    brkx = x(33) + slot*0.55
-    svg += (f'<g class="brkfx"><line x1="{brkx:.2f}" y1="{y(C[33]["l"])+26:.2f}" x2="{brkx:.2f}" y2="{ly+3:.2f}" stroke="{TEAL_D}" stroke-width="2.6"/>'
+            f'{htext(x(iSWP), y(zbot)+30, "سحب سيولة", RED, 18)}</g>')
+    # last opposite candle
+    svg += f'<g class="pop">{htext(x(iOB)-14, y(SUB[iOB]["h"])-14, "آخر شمعة عكسية", RED, 17, "end")}</g>'
+    # BOS ray stops just past the break candle; arrow with a clear gap beside it
+    ly = y(BOSv); bi = 13
+    svg += f'<line class="draw zz" x1="{x(iSH):.2f}" y1="{ly:.2f}" x2="{x(bi)+slot*0.78:.2f}" y2="{ly:.2f}" stroke="{INK}" stroke-width="1.8"/>'
+    svg += f'<g class="bospill">{hend(x(iSH), ly, INK)}{htext(x(iSH)+12, ly-12, "BOS", INK, 21, "start", weight=800)}</g>'
+    brkx = x(bi) + slot*0.55
+    svg += (f'<g class="brkfx"><line x1="{brkx:.2f}" y1="{y(SUB[bi]["l"])+26:.2f}" x2="{brkx:.2f}" y2="{ly+3:.2f}" stroke="{TEAL_D}" stroke-width="2.6"/>'
             f'<polygon points="{brkx:.2f},{ly+3:.2f} {brkx-6:.2f},{ly+14:.2f} {brkx+6:.2f},{ly+14:.2f}" fill="{TEAL_D}"/>'
-            f'{htext(x(29), y(1.14620), "اندفاع", TEAL_D, 18, italic=True, weight=800)}</g>')
-    svg += f'<g class="hhpop"><circle cx="{x(iHH):.2f}" cy="{y(C[iHH]["h"]):.2f}" r="4.5" fill="{TEAL_D}" stroke="{CREAM}" stroke-width="1.5"/>{htext(x(iHH)-22, y(C[iHH]["h"])-15, "HH", TEAL_D, 20)}</g>'
+            f'{htext(x(bi)-slot*0.5, y(1.14980), "اندفاع", TEAL_D, 18, "end", italic=True, weight=800)}</g>')
+    svg += (f'<g class="hhpop"><circle cx="{x(iHH):.2f}" cy="{y(SUB[iHH]["h"]):.2f}" r="4.5" fill="{TEAL_D}" stroke="{CREAM}" stroke-width="1.5"/>'
+            f'{htext(x(iHH)-24, y(SUB[iHH]["h"])-15, "HH", TEAL_D, 20)}</g>')
     svg += f'<rect class="flash" x="0" y="0" width="{Wr}" height="{Hr}" fill="#ffffff" opacity="0"/>'
     return svg + "</svg>"
 
@@ -300,7 +302,7 @@ scene("s10", 9.4, f'''{logo(110)}<div class="top">
   <div class="capt s6cap">الشروط الأربعة اكتملت — <b class="tt">والمنطقة جاهزة للاختبار</b></div>''')
 T(".realh",0.15,0.4,{"op":[0,1],"ty":[20,0],"ease":"oc"})
 T(".chartbox",0.25,0.4,{"op":[0,1],"ty":[30,0],"ease":"oc"})
-T(".cndl:not(.brk)",0.4,0.16,{"op":[0,1],"sy":[.25,1],"ease":"ob"},0.098)
+T(".cndl:not(.brk)",0.4,0.2,{"op":[0,1],"sy":[.25,1],"ease":"ob"},0.24)
 T(".lvl",3.9,0.6,{"draw":True,"ease":"oc"})
 T(".pop",4.2,0.4,{"op":[0,1],"s":[0,1],"ease":"ob"},0.24)
 T(".obzone",5.1,0.7,{"op":[0,0.16],"ease":"oc"})
@@ -345,7 +347,7 @@ BRK = round(REAL + 6.3, 3)
 
 STAGE = "".join(f'<div class="scene" id="{s["id"]}">{s["html"]}</div>' for s in scenes)
 
-EXTRA_CSS = '.pre{opacity:1}\n.obzone{opacity:0}\n.stepwrap{position:absolute;top:250px;left:80px;right:80px;height:260px}\n.stephead{position:absolute;inset:0;display:flex;flex-direction:column;gap:22px;opacity:0}\n.mid2s{position:absolute;top:560px;left:70px;right:70px}\n.stepcap{position:absolute;bottom:250px;left:90px;right:90px;text-align:center;color:#5C6C73;font-weight:600;font-size:44px;line-height:1.5;opacity:0}\n.stepcap b{color:#0F2E3C;font-weight:900}\n'
+EXTRA_CSS = '.pre{opacity:1}\n.obzone{opacity:0}\n.stepwrap{position:absolute;top:250px;left:80px;right:80px;height:260px}\n.stephead{position:absolute;inset:0;display:flex;flex-direction:column;gap:22px;opacity:0}\n.mid2s{position:absolute;top:560px;left:70px;right:70px}\n.stepcap{position:absolute;bottom:250px;left:90px;right:90px;text-align:center;color:#5C6C73;font-weight:600;font-size:44px;line-height:1.5;opacity:0}\n.stepcap b{color:#0F2E3C;font-weight:900}\n#s10 .flowbox{bottom:428px}\n#s10 .s6cap{bottom:268px;font-size:40px}\n'
 
 JS = f'''
 const FPS=30,DUR={DUR},BRK={BRK};
@@ -379,7 +381,7 @@ function setFrame(t){{
  const fl=document.querySelector('#s10 .flash');
  if(fl){{let ft=t-BRK;let o=0;if(ft>0&&ft<0.45){{o=ft<0.12?(ft/0.12)*0.5:0.5*(1-(ft-0.12)/0.33);}}fl.style.opacity=Math.max(0,o);}}
  const cs=document.querySelector('#s10 .chartsvg');
- if(cs){{let zt=t-BRK;let z=0;if(zt>0&&zt<1.1){{z=Math.sin((zt/1.1)*Math.PI)*0.06;}}cs.style.transformOrigin='78% 62%';cs.style.transform=`scale(${{1+z}})`;}}
+ if(cs){{let zt=t-BRK;let z=0;if(zt>0&&zt<1.1){{z=Math.sin((zt/1.1)*Math.PI)*0.06;}}cs.style.transformOrigin='85% 42%';cs.style.transform=`scale(${{1+z}})`;}}
 }}
 window.__setFrame=setFrame;window.__DUR=DUR;
 bind();setFrame(0);
