@@ -68,13 +68,15 @@ def L_last(ctx, x, y, slot, new):
 def L_bos(ctx, x, y, slot, new, word=True):
     cs = ctx["cs"]; lv = ctx["lv"]; iH = ctx["iH"]; bi = ctx["bi"]; il = ctx["ilast"]
     g = cl(new, "pop"); gd = cl(new, "draw")
-    s = f'<line class="{gd}" x1="{x(iH):.2f}" y1="{y(lv):.2f}" x2="{x(bi):.2f}" y2="{y(lv):.2f}" stroke="{INK}" stroke-width="1.8"/>'
+    lx1 = x(bi) + slot*0.78
+    s = f'<line class="{gd}" x1="{x(iH):.2f}" y1="{y(lv):.2f}" x2="{lx1:.2f}" y2="{y(lv):.2f}" stroke="{INK}" stroke-width="1.8"/>'
     s += f'<g class="{g}">{hend(x(iH), y(lv), INK)}'
     s += htext(x(iH)-14, y(lv)-14, "آخر قمة", TEAL_D, 17, "end")
     s += htext(x(iH+3), y(lv)-16, "BOS", INK, 21, weight=800)
+    ax = x(bi) + slot*0.55   # clear gap beside the break candle
     ay0 = y(cs[bi]["l"]) + 30
-    s += (f'<line x1="{x(bi):.2f}" y1="{ay0:.2f}" x2="{x(bi):.2f}" y2="{y(lv)+3:.2f}" stroke="{TEAL_D}" stroke-width="2.4"/>'
-          f'<polygon points="{x(bi):.2f},{y(lv)+3:.2f} {x(bi)-6:.2f},{y(lv)+14:.2f} {x(bi)+6:.2f},{y(lv)+14:.2f}" fill="{TEAL_D}"/>')
+    s += (f'<line x1="{ax:.2f}" y1="{ay0:.2f}" x2="{ax:.2f}" y2="{y(lv)+3:.2f}" stroke="{TEAL_D}" stroke-width="2.4"/>'
+          f'<polygon points="{ax:.2f},{y(lv)+3:.2f} {ax-6:.2f},{y(lv)+14:.2f} {ax+6:.2f},{y(lv)+14:.2f}" fill="{TEAL_D}"/>')
     if word:
         s += htext(x(bi)+10, y(cs[il+1]["c"])+4, "اندفاع", TEAL_D, 19, "start", italic=True, weight=800)
     return s + "</g>"
@@ -155,9 +157,9 @@ def sc_real_ob():
     svg += f'<g class="pop">{htext(x(iOB)-10, y(C[iOB]["h"])-12, "آخر شمعة عكسية", RED, 15, "end")}</g>'
     # BOS ray + breakout
     ly = y(BOSv)
-    svg += f'<line class="draw zz" x1="{x(iSH):.2f}" y1="{ly:.2f}" x2="{x(33):.2f}" y2="{ly:.2f}" stroke="{INK}" stroke-width="1.8"/>'
+    svg += f'<line class="draw zz" x1="{x(iSH):.2f}" y1="{ly:.2f}" x2="{x(33)+slot*0.78:.2f}" y2="{ly:.2f}" stroke="{INK}" stroke-width="1.8"/>'
     svg += f'<g class="bospill">{hend(x(iSH), ly, INK)}{htext(x(iSH)+12, ly-12, "BOS", INK, 20, "start", weight=800)}</g>'
-    brkx = x(33)
+    brkx = x(33) + slot*0.55
     svg += (f'<g class="brkfx"><line x1="{brkx:.2f}" y1="{y(C[33]["l"])+26:.2f}" x2="{brkx:.2f}" y2="{ly+3:.2f}" stroke="{TEAL_D}" stroke-width="2.6"/>'
             f'<polygon points="{brkx:.2f},{ly+3:.2f} {brkx-6:.2f},{ly+14:.2f} {brkx+6:.2f},{ly+14:.2f}" fill="{TEAL_D}"/>'
             f'{htext(x(29), y(1.14620), "اندفاع", TEAL_D, 18, italic=True, weight=800)}</g>')
