@@ -24,17 +24,22 @@ META = {
            cond="كسر فوق القيمة يفشل ويرجع داخلها ← بيع نحو VAL"),
 }
 
+TFAR = {"M5": "5 دقائق", "M15": "15 دقيقة", "M30": "30 دقيقة"}
+
 def trade_chart(tr):
     w = [dict(c) for c in tr["w"]]
-    year = w[0]["d"][:4]
-    for c in w: c["d"] = c["d"][5:]
+    if "tf" in tr:  # intraday: labels are already HH:MM, chip shows TF + date
+        year = f'{TFAR[tr["tf"]]} · {tr["date"]}'
+    else:
+        year = f'يومي · {w[0]["d"][:4]}'
+        for c in w: c["d"] = c["d"][5:]
     rngN = tr["rngN"]; jr = tr["jr"]; bk = tr.get("bk")
     prof = profile(w[:rngN])
     Wr, Hr = 980, 540
     ymin = min(c["l"] for c in w); ymax = max(c["h"] for c in w)
     pad = (ymax - ymin) * 0.06; ymin -= pad; ymax += pad*1.6
     svg, x, y, slot = chart(w, Wr, Hr, ymin, ymax, price_axis=True, dates=True, grid=5,
-                            pt=46, pb=38, pl=12, pr=74)
+                            pt=46, pb=38, pl=12, pr=74, pstep="auto")
     plotL = 12; rend = x(rngN-1) + slot*0.5
     vah, val, pocp = prof["vah"], prof["val"], prof["pocp"]
     # value band + bars over the profiled region
@@ -66,8 +71,8 @@ def trade_chart(tr):
         elif tr["t"] == "B":
             svg += (f'<line x1="{ax:.2f}" y1="{y0:.2f}" x2="{ax:.2f}" y2="{y(lvl)-3:.2f}" stroke="{RED}" stroke-width="2.4"/>'
                     f'<polygon points="{ax:.2f},{y(lvl)-3:.2f} {ax-6:.2f},{y(lvl)-13:.2f} {ax+6:.2f},{y(lvl)-13:.2f}" fill="{RED}"/>')
-        else:  # F: failed breakout marker
-            svg += htext(x(bk)-10, y(w[bk]["h"])-40, "كسر فاشل", RED, 16, "end")
+        else:  # F: failed breakout marker — keep clear of the stop dashes
+            svg += htext(x(bk)-10, min(y(w[bk]["h"])-40, y(tr["stop"])-18), "كسر فاشل", RED, 16, "end")
     # entry / stop / target
     e_col = TEAL_D if META[tr["t"]]["side"]=="شراء" else RED
     svg += (f'<circle cx="{x(jr):.2f}" cy="{y(tr["entry"]):.2f}" r="9" fill="none" stroke="{e_col}" stroke-width="2.4"/>'
@@ -80,7 +85,16 @@ def trade_chart(tr):
     svg += (f'<line x1="{x(jr):.2f}" y1="{y(tr["tgt"]):.2f}" x2="{x(29)+slot*0.5:.2f}" y2="{y(tr["tgt"]):.2f}" '
             f'stroke="{TEAL_D}" stroke-width="1.8" stroke-dasharray="6 5"/>')
     svg += hend(x(29)+slot*0.5, y(tr["tgt"]), TEAL_D)
-    svg += htext(x(25), y(tr["tgt"])-13, f'الهدف  +{tr["pips"]} نقطة', TEAL_D, 18, weight=800)
+    # target label: search the cleanest spot along the line (both sides, several anchors)
+    def _occl(xc, yc):
+        return sum(1 for i in range(max(0, xc-3), min(30, xc+4))
+                   if y(w[i]["h"])-3 < yc+5 and y(w[i]["l"])+3 > yc-13)
+    cand = [(_occl(xc, y(tr["tgt"])+dy), -pref, -xc, y(tr["tgt"])+dy)
+            for pref, dy in ((1, -13), (0, 26))
+            for xc in (25, 23, 21, 19)]
+    _, _, nxc, tty = min(cand)
+    txc = -nxc
+    svg += htext(x(txc), tty, f'الهدف  +{tr["pips"]} نقطة', TEAL_D, 18, weight=800)
     return svg + "</svg>", year
 
 # ---------- page scaffolding (guide-style) ----------
@@ -110,8 +124,8 @@ page(f'''{pcount(1, True)}<div class="ptag">الدليل العملي</div>
   <h1 class="ptitle">10 صفقات<br>فوليوم بروفايل</h1>
   <div class="pdivg"><span></span><i></i><span></span></div>
   <div class="peyeb">مجموع النتائج: +{TOT:,} نقطة</div>
-  <div class="psub">صفقات حقيقية موثقة من EUR/USD — بستة أنماط مختلفة من منطقة القيمة، خطوة بخطوة</div>
-  <div class="ppill">10 صفقات · 6 أنماط · بيانات حقيقية</div>
+  <div class="psub">صفقات حقيقية موثقة من EUR/USD على فريمات 5 و15 و30 دقيقة — بستة أنماط مختلفة من منطقة القيمة، خطوة بخطوة</div>
+  <div class="ppill">10 صفقات · 6 أنماط · 3 فريمات</div>
   <div class="prow">
     <div class="pi"><div class="pic">{IPRO}</div><span>قيمة</span></div><div class="pv"></div>
     <div class="pi"><div class="pic">{IUP}</div><span>كسر</span></div><div class="pv"></div>
@@ -128,7 +142,7 @@ page(f'''<div class="body">
   <div class="stp"><span class="num">V</span><p><b>VAH / VAL</b> — قمة وقاع منطقة القيمة (70% من التداول). حدود القرار.</p></div>
   <div class="stp"><span class="num">✓</span><p><b>الدائرة</b> = الدخول · <span class="tr">الأحمر المتقطع</span> = الستوب · <b class="tt">التركواز المتقطع</b> = الهدف.</p></div>
 </div>
-<p class="capt">كل صفقة على <b>30 شمعة حقيقية</b> — الأسعار والنتائج كما حصلت بالضبط. لا تنسخ الصفقات — <b>افهم النمط</b>.</p>
+<p class="capt">كل صفقة على <b>30 شمعة حقيقية</b> من الفريمات الصغيرة (5 / 15 / 30 دقيقة) والأوقات <b>بتوقيت الكويت</b> — الأسعار والنتائج كما حصلت بالضبط. لا تنسخ الصفقات — <b>افهم النمط</b>.</p>
 </div>''', tag="لغرض تعليمي")
 
 # P3..P12 trades
@@ -139,7 +153,7 @@ for n, tr in enumerate(TRADES, 1):
     side_cls = "tt" if m["side"]=="شراء" else "tr"
     page(f'''<div class="body">
 <div class="realh"><div class="numrow"><span class="num">{n}</span><h2 class="ttl2">{m["title"]}</h2></div>
-<span class="tick">EUR/USD يومي · {year}</span></div>
+<span class="tick">EUR/USD {year}</span></div>
 <p class="rule">{m["cond"]}</p>
 <div class="chartw">{svgc}</div>
 <div class="statrow">

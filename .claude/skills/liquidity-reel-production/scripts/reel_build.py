@@ -50,7 +50,7 @@ RAW="""06-15 1.15720 1.16220 1.15660 1.15900
 07-31 1.15270 1.15460 1.14530 1.15270"""
 C=[dict(d=p[0],o=float(p[1]),h=float(p[2]),l=float(p[3]),c=float(p[4])) for p in (l.split() for l in RAW.strip().splitlines())]
 
-def chart(cands,W,H,ymin,ymax,*,price_axis=False,dates=False,grid=4,pl=14,pr=64,pt=40,pb=34,brk=None,body=0.56):
+def chart(cands,W,H,ymin,ymax,*,price_axis=False,dates=False,grid=4,pl=14,pr=64,pt=40,pb=34,brk=None,body=0.56,pstep=None):
     plotL=pl;plotR=W-pr;plotT=pt;plotB=H-pb;pw=plotR-plotL;ph=plotB-plotT;n=len(cands);slot=pw/n;bw=slot*body
     def x(i):return plotL+slot*i+slot/2
     def y(p):return plotT+(ymax-p)/(ymax-ymin)*ph
@@ -59,9 +59,13 @@ def chart(cands,W,H,ymin,ymax,*,price_axis=False,dates=False,grid=4,pl=14,pr=64,
     for k in range(grid+1):
         gy=y(ymin+gs*k); s.append(f'<line x1="{plotL}" y1="{gy:.1f}" x2="{plotR}" y2="{gy:.1f}" stroke="rgba(15,46,60,0.06)" stroke-width="1"/>')
     if price_axis:
-        gg=math.ceil(ymin/0.005)*0.005
+        if pstep is None: pstep=0.005
+        elif pstep=="auto":
+            pstep=next(st for st in (0.0005,0.001,0.002,0.0025,0.005,0.01,0.02,0.05) if (ymax-ymin)/st<=6.5)
+        dec=5 if pstep<0.001 else 4
+        gg=math.ceil(ymin/pstep)*pstep
         while gg<=ymax+1e-9:
-            gy=y(gg); s.append(f'<text x="{plotR+14}" y="{gy+4:.1f}" fill="{MUTE}" font-size="12" font-family="Tajawal" font-weight="500">{gg:.4f}</text>'); gg+=0.005
+            gy=y(gg); s.append(f'<text x="{plotR+14}" y="{gy+4:.1f}" fill="{MUTE}" font-size="12" font-family="Tajawal" font-weight="500">{gg:.{dec}f}</text>'); gg+=pstep
     if dates:
         st=max(1,n//7)
         for i in range(0,n,st): s.append(f'<text x="{x(i):.1f}" y="{plotB+22:.1f}" fill="{MUTE}" font-size="11" font-family="Tajawal" text-anchor="middle">{cands[i]["d"]}</text>')

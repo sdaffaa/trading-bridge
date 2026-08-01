@@ -702,6 +702,86 @@
    "end": "2020-03-30",
    "label": "trade 10 type D +492p",
    "video": "vp-10-trades-pdf"
+  },
+  {
+   "symbol": "EURUSD",
+   "timeframe": "M15",
+   "start": "2026-07-30T06:30",
+   "end": "2026-07-30T13:45",
+   "label": "type A 2026-07-30 +41p",
+   "video": "vp-10-trades-pdf-intraday"
+  },
+  {
+   "symbol": "EURUSD",
+   "timeframe": "M15",
+   "start": "2026-07-31T08:45",
+   "end": "2026-07-31T16:00",
+   "label": "type E 2026-07-31 +33p",
+   "video": "vp-10-trades-pdf-intraday"
+  },
+  {
+   "symbol": "EURUSD",
+   "timeframe": "M15",
+   "start": "2026-05-21T05:45",
+   "end": "2026-05-21T13:00",
+   "label": "type F 2026-05-21 +29p",
+   "video": "vp-10-trades-pdf-intraday"
+  },
+  {
+   "symbol": "EURUSD",
+   "timeframe": "M15",
+   "start": "2026-06-19T01:45",
+   "end": "2026-06-19T09:00",
+   "label": "type C 2026-06-19 +29p",
+   "video": "vp-10-trades-pdf-intraday"
+  },
+  {
+   "symbol": "EURUSD",
+   "timeframe": "M30",
+   "start": "2026-07-13T03:00",
+   "end": "2026-07-13T17:30",
+   "label": "type D 2026-07-13 +34p",
+   "video": "vp-10-trades-pdf-intraday"
+  },
+  {
+   "symbol": "EURUSD",
+   "timeframe": "M30",
+   "start": "2026-05-14T19:00",
+   "end": "2026-05-15T09:30",
+   "label": "type B 2026-05-15 +27p",
+   "video": "vp-10-trades-pdf-intraday"
+  },
+  {
+   "symbol": "EURUSD",
+   "timeframe": "M30",
+   "start": "2026-05-21T06:00",
+   "end": "2026-05-21T20:30",
+   "label": "type C 2026-05-21 +36p",
+   "video": "vp-10-trades-pdf-intraday"
+  },
+  {
+   "symbol": "EURUSD",
+   "timeframe": "M5",
+   "start": "2026-07-01T11:20",
+   "end": "2026-07-01T13:45",
+   "label": "type E 2026-07-01 +25p",
+   "video": "vp-10-trades-pdf-intraday"
+  },
+  {
+   "symbol": "EURUSD",
+   "timeframe": "M5",
+   "start": "2026-06-08T09:30",
+   "end": "2026-06-08T11:55",
+   "label": "type A 2026-06-08 +18p",
+   "video": "vp-10-trades-pdf-intraday"
+  },
+  {
+   "symbol": "EURUSD",
+   "timeframe": "M5",
+   "start": "2026-06-18T06:35",
+   "end": "2026-06-18T09:05",
+   "label": "type B 2026-06-18 +18p",
+   "video": "vp-10-trades-pdf-intraday"
   }
  ]
 }
