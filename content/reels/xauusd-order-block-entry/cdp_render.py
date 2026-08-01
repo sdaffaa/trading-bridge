@@ -9,7 +9,8 @@ FRAMES=int(sys.argv[1]) if len(sys.argv)>1 else 360
 SECONDS=float(sys.argv[2]) if len(sys.argv)>2 else 12.0
 CHROME="/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
 PORT=9333
-URL="file://"+os.path.join(HERE,"reel_frame.html")
+HTMLF=sys.argv[3] if len(sys.argv)>3 else "reel_frame.html"
+URL="file://"+os.path.join(HERE,HTMLF)
 FR=os.path.join(HERE,"frames"); os.makedirs(FR,exist_ok=True)
 for f in os.listdir(FR):
     if f.endswith((".png",".jpg")): os.remove(os.path.join(FR,f))

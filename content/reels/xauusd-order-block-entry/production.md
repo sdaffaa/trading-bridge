@@ -121,6 +121,19 @@ Output: **`reel_candles.webm`** — 1080×1920, 30fps, 12.9s, VP8. Poster: `post
 > for upload: `ffmpeg -i reel_candles.webm -c:v libx264 -pix_fmt yuv420p -movflags +faststart reel.mp4`.
 > Add the Kuwaiti voiceover (stage 6) on the MP4.
 
+## H1 (1-hour) candlestick reel — DONE (illustrative model)
+
+Intraday XAUUSD OHLC is **not available** from the connected free tools (FMP intraday = paid,
+Alpha Vantage FX_INTRADAY = premium, gold history = daily closes only). So `gen_reel_h1.py`
+builds an **educational MODEL** (clearly disclosed in the footer: "أسعار توضيحية ليست بيانات سوق حقيقية")
+with realistic gold levels and a proper **wick-based liquidity sweep** (candle low 4041 pierces the
+4050 liquidity then closes back above). Setup: sweep → BOS above 4075 → OB retest → entry 4060 /
+SL 4038 / TP 4118. +$58, RR 1:2.6. Output: **`reel_h1.webm`** (1080×1920, 30fps, 12.9s), poster `poster_h1.png`.
+
+> To make it 100% real: paste an H1 or M15 OHLC export (TradingView/MT5) into `OHLC[]` — the same
+> markup and animation snap to it exactly.
+> `cdp_render.py` now takes an HTML filename arg 3 (renders any `reel_frame*.html`).
+
 ## Remaining (stages 6–7)
 
 - [ ] Stage 6 — Voiceover: Kuwaiti, −14 LUFS, each clip within its budget (needs TTS provider).
