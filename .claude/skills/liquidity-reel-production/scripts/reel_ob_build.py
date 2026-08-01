@@ -68,13 +68,13 @@ def L_last(ctx, x, y, slot, new):
 def L_bos(ctx, x, y, slot, new, word=True):
     cs = ctx["cs"]; lv = ctx["lv"]; iH = ctx["iH"]; bi = ctx["bi"]; il = ctx["ilast"]
     g = cl(new, "pop"); gd = cl(new, "draw")
-    s = f'<line class="{gd}" x1="{x(iH):.2f}" y1="{y(lv):.2f}" x2="{W-16:.2f}" y2="{y(lv):.2f}" stroke="{INK}" stroke-width="1.8"/>'
-    s += f'<g class="{g}">{hend(x(iH), y(lv), INK)}{hend(W-16, y(lv), INK)}'
+    s = f'<line class="{gd}" x1="{x(iH):.2f}" y1="{y(lv):.2f}" x2="{x(bi):.2f}" y2="{y(lv):.2f}" stroke="{INK}" stroke-width="1.8"/>'
+    s += f'<g class="{g}">{hend(x(iH), y(lv), INK)}'
     s += htext(x(iH)-14, y(lv)-14, "آخر قمة", TEAL_D, 17, "end")
     s += htext(x(iH+3), y(lv)-16, "BOS", INK, 21, weight=800)
-    ay0 = y(cs[il+1]["o"]) - 6
-    s += (f'<line x1="{x(bi):.2f}" y1="{ay0:.2f}" x2="{x(bi):.2f}" y2="{y(lv):.2f}" stroke="{TEAL_D}" stroke-width="2.4"/>'
-          f'<polygon points="{x(bi):.2f},{y(lv):.2f} {x(bi)-6:.2f},{y(lv)+11:.2f} {x(bi)+6:.2f},{y(lv)+11:.2f}" fill="{TEAL_D}"/>')
+    ay0 = y(cs[bi]["l"]) + 30
+    s += (f'<line x1="{x(bi):.2f}" y1="{ay0:.2f}" x2="{x(bi):.2f}" y2="{y(lv)+3:.2f}" stroke="{TEAL_D}" stroke-width="2.4"/>'
+          f'<polygon points="{x(bi):.2f},{y(lv)+3:.2f} {x(bi)-6:.2f},{y(lv)+14:.2f} {x(bi)+6:.2f},{y(lv)+14:.2f}" fill="{TEAL_D}"/>')
     if word:
         s += htext(x(bi)+10, y(cs[il+1]["c"])+4, "اندفاع", TEAL_D, 19, "start", italic=True, weight=800)
     return s + "</g>"
@@ -82,7 +82,7 @@ def L_bos(ctx, x, y, slot, new, word=True):
 def L_sweep(ctx, x, y, slot, new):
     cs = ctx["cs"]; il = ctx["ilast"]; iswl = ctx["iswl"]; swl = ctx["swl"]
     g = cl(new, "pop"); gd = cl(new, "draw")
-    s = f'<line class="{gd}" x1="{x(iswl):.2f}" y1="{y(swl):.2f}" x2="{x(il)+slot*0.6:.2f}" y2="{y(swl):.2f}" stroke="{RED}" stroke-width="1.8" stroke-dasharray="6 5"/>'
+    s = f'<line class="{gd}" x1="{x(iswl):.2f}" y1="{y(swl):.2f}" x2="{x(il):.2f}" y2="{y(swl):.2f}" stroke="{RED}" stroke-width="1.8" stroke-dasharray="6 5"/>'
     s += f'<g class="{g}">{hend(x(iswl), y(swl), RED)}'
     s += f'<circle cx="{x(il):.2f}" cy="{y(cs[il]["l"]):.2f}" r="4.5" fill="{RED}" stroke="{CREAM}" stroke-width="1.5"/>'
     s += htext(x(il), y(cs[il]["l"])+30, "سحب سيولة", RED, 19)
@@ -110,9 +110,17 @@ def L_retest(ctx, x, y, slot, new):
     return s + "</g>"
 
 def ob_chart_steps(ctx):
-    """One persistent chart; each teaching layer wrapped in .lyN for step-timed reveal."""
+    """One persistent chart; candles phased (cp1..cp4) + layers .lyN for step-timed reveal."""
     svg, x, y, slot = chart(ctx["cs"], W, H, ctx["ymin"], ctx["ymax"],
                             grid=4, pt=48, pb=22, pl=16, pr=16, body=0.5)
+    parts = svg.split('<g class="cndl">')
+    svg = parts[0]
+    for i, p in enumerate(parts[1:]):
+        if i <= ctx["ilast"]: ph = "cp1"        # decline into the OB candle
+        elif i <= ctx["bi"]: ph = "cp2"          # displacement + break
+        elif i <= (ctx["iret"] or 99): ph = "cp3"  # pullback into the zone
+        else: ph = "cp4"                          # payoff rally
+        svg += f'<g class="cndl {ph}">' + p
     svg += f'<g class="ly1">{L_last(ctx, x, y, slot, True)}</g>'
     svg += f'<g class="ly2">{L_bos(ctx, x, y, slot, True, word=False)}</g>'
     svg += f'<g class="ly3">{L_sweep(ctx, x, y, slot, True)}</g>'
@@ -139,7 +147,7 @@ def sc_real_ob():
             f'height="{y(zbot)-y(ztop):.2f}" fill="{TEAL}" stroke="{TEAL_D}" stroke-width="1"/>')
     svg += f'<g class="pop">{htext(Wr-70-14, (y(ztop)+y(zbot))/2+6, "OB", TEAL_D, 20, "end", weight=800)}</g>'
     # liquidity sweep
-    svg += (f'<line class="draw lvl" x1="{x(29):.2f}" y1="{y(swl):.2f}" x2="{x(31)+slot*0.6:.2f}" y2="{y(swl):.2f}" '
+    svg += (f'<line class="draw lvl" x1="{x(29):.2f}" y1="{y(swl):.2f}" x2="{x(31):.2f}" y2="{y(swl):.2f}" '
             f'stroke="{RED}" stroke-width="1.7" stroke-dasharray="6 5"/>')
     svg += (f'<g class="pop"><circle cx="{x(iSWP):.2f}" cy="{y(zbot):.2f}" r="4.5" fill="{RED}" stroke="{CREAM}" stroke-width="1.5"/>'
             f'{htext(x(iSWP)-6, y(zbot)+30, "سحب سيولة", RED, 17)}</g>')
@@ -147,11 +155,11 @@ def sc_real_ob():
     svg += f'<g class="pop">{htext(x(iOB)-10, y(C[iOB]["h"])-12, "آخر شمعة عكسية", RED, 15, "end")}</g>'
     # BOS ray + breakout
     ly = y(BOSv)
-    svg += f'<line class="draw zz" x1="{x(iSH):.2f}" y1="{ly:.2f}" x2="{Wr-70:.2f}" y2="{ly:.2f}" stroke="{INK}" stroke-width="1.8"/>'
-    svg += f'<g class="bospill">{hend(x(iSH), ly, INK)}{hend(Wr-70, ly, INK)}{htext(x(iSH)+12, ly-12, "BOS", INK, 20, "start", weight=800)}</g>'
+    svg += f'<line class="draw zz" x1="{x(iSH):.2f}" y1="{ly:.2f}" x2="{x(33):.2f}" y2="{ly:.2f}" stroke="{INK}" stroke-width="1.8"/>'
+    svg += f'<g class="bospill">{hend(x(iSH), ly, INK)}{htext(x(iSH)+12, ly-12, "BOS", INK, 20, "start", weight=800)}</g>'
     brkx = x(33)
-    svg += (f'<g class="brkfx"><line x1="{brkx:.2f}" y1="{y(1.14350):.2f}" x2="{brkx:.2f}" y2="{ly:.2f}" stroke="{TEAL_D}" stroke-width="2.6"/>'
-            f'<polygon points="{brkx:.2f},{ly:.2f} {brkx-6:.2f},{ly+11:.2f} {brkx+6:.2f},{ly+11:.2f}" fill="{TEAL_D}"/>'
+    svg += (f'<g class="brkfx"><line x1="{brkx:.2f}" y1="{y(C[33]["l"])+26:.2f}" x2="{brkx:.2f}" y2="{ly+3:.2f}" stroke="{TEAL_D}" stroke-width="2.6"/>'
+            f'<polygon points="{brkx:.2f},{ly+3:.2f} {brkx-6:.2f},{ly+14:.2f} {brkx+6:.2f},{ly+14:.2f}" fill="{TEAL_D}"/>'
             f'{htext(x(29), y(1.14620), "اندفاع", TEAL_D, 18, italic=True, weight=800)}</g>')
     svg += f'<g class="hhpop"><circle cx="{x(iHH):.2f}" cy="{y(C[iHH]["h"]):.2f}" r="4.5" fill="{TEAL_D}" stroke="{CREAM}" stroke-width="1.5"/>{htext(x(iHH)-22, y(C[iHH]["h"])-15, "HH", TEAL_D, 20)}</g>'
     svg += f'<rect class="flash" x="0" y="0" width="{Wr}" height="{Hr}" fill="#ffffff" opacity="0"/>'
@@ -251,17 +259,20 @@ scene("s5", 26.6, f"""{logo(120)}
   <div class="stepcap sc3">المؤسسات تجمع سيولتها أول — <b>بعدين تتحرك</b></div>
   <div class="stepcap sc4">هذي منطقتك — <b class="tt">خلها مرسومة وانطر</b></div>
   <div class="stepcap sc5">أول لمسة للمنطقة = <b class="tt">فرصتك</b> — والستوب تحت قاعها</div>""")
-# chart builds once
+# chart shell in; candles unfold phase by phase with the story
 T(".chartbox",0.2,0.4,{"op":[0,1],"ty":[30,0],"ease":"oc"})
-T(".cndl",0.4,0.22,{"op":[0,1],"sy":[.2,1],"ease":"ob"},0.065)
+T(".cp1",0.4,0.22,{"op":[0,1],"sy":[.2,1],"ease":"ob"},0.1)
+T(".cp2",5.5,0.26,{"op":[0,1],"sy":[.2,1],"ease":"ob"},0.22)
+T(".cp3",21.5,0.26,{"op":[0,1],"sy":[.2,1],"ease":"ob"},0.28)
+T(".cp4",23.9,0.2,{"op":[0,1],"sy":[.2,1],"ease":"ob"},0.13)
 # step windows: 1)0-5.2  2)5.2-10.6  3)10.6-15.6  4)15.6-21.2  5)21.2-26.6
 T(".sh1",0.15,0.4,{"op":[0,1],"ty":[16,0],"ease":"oc"});  T(".sh1",4.85,0.35,{"op":[1,0],"gate":1})
 T(".sc1",2.9,0.4,{"op":[0,1],"ty":[14,0],"ease":"oc"});   T(".sc1",4.85,0.35,{"op":[1,0],"gate":1})
 T(".ly1 .pop",2.6,0.45,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.2)
 T(".sh2",5.3,0.4,{"op":[0,1],"ty":[16,0],"ease":"oc"});   T(".sh2",10.25,0.35,{"op":[1,0],"gate":1})
-T(".sc2",6.6,0.4,{"op":[0,1],"ty":[14,0],"ease":"oc"});   T(".sc2",10.25,0.35,{"op":[1,0],"gate":1})
-T(".ly2 .draw",5.7,0.7,{"draw":True,"ease":"oc"})
-T(".ly2 .pop",6.1,0.4,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.18)
+T(".sc2",7.8,0.4,{"op":[0,1],"ty":[14,0],"ease":"oc"});   T(".sc2",10.25,0.35,{"op":[1,0],"gate":1})
+T(".ly2 .draw",6.7,0.7,{"draw":True,"ease":"oc"})
+T(".ly2 .pop",7.3,0.4,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.18)
 T(".sh3",10.7,0.4,{"op":[0,1],"ty":[16,0],"ease":"oc"});  T(".sh3",15.25,0.35,{"op":[1,0],"gate":1})
 T(".sc3",11.9,0.4,{"op":[0,1],"ty":[14,0],"ease":"oc"});  T(".sc3",15.25,0.35,{"op":[1,0],"gate":1})
 T(".ly3 .draw",11.1,0.6,{"draw":True,"ease":"oc"})
@@ -271,8 +282,8 @@ T(".sc4",17.1,0.4,{"op":[0,1],"ty":[14,0],"ease":"oc"});  T(".sc4",20.85,0.35,{"
 T(".ly4 .obzone",16.1,0.7,{"op":[0,0.16],"ease":"oc"})
 T(".ly4 .pop",16.5,0.4,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.16)
 T(".sh5",21.3,0.4,{"op":[0,1],"ty":[16,0],"ease":"oc"})
-T(".sc5",22.5,0.4,{"op":[0,1],"ty":[14,0],"ease":"oc"})
-T(".ly5 .pop",21.9,0.45,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.2)
+T(".sc5",23.6,0.4,{"op":[0,1],"ty":[14,0],"ease":"oc"})
+T(".ly5 .pop",23.1,0.45,{"op":[0,1],"s":[.2,1],"ease":"ob"},0.2)
 
 # 10 REAL (climax)
 scene("s10", 9.4, f'''{logo(110)}<div class="top">
