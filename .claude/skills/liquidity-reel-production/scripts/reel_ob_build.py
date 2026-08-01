@@ -13,7 +13,12 @@ def make_ob(seed, anchors, swings, iH, iswl, ilast, iret=None):
     cs = gen(anchors, 30, seed, swings=swings)
     o = cs[ilast-1]["c"]
     cs[ilast]["o"] = o; cs[ilast]["c"] = o - 1.0; cs[ilast]["h"] = o + 0.35
-    cs[ilast]["l"] = min(cs[iswl]["l"] - 0.5, cs[ilast]["c"] - 0.4)
+    zb = min(cs[iswl]["l"] - 0.5, cs[ilast]["c"] - 0.4)
+    if o - zb > 1.9:                     # cap zone height to keep the OB realistic
+        zb = o - 1.9
+        if zb > cs[iswl]["l"] - 0.15:    # sweep must still undercut the swept low
+            cs[iswl]["l"] = zb + 0.35
+    cs[ilast]["l"] = zb
     nxt = ilast + 1
     cs[nxt]["o"] = cs[ilast]["c"]; cs[nxt]["c"] = cs[ilast]["c"] + 2.2
     cs[nxt]["h"] = cs[nxt]["c"] + 0.3; cs[nxt]["l"] = cs[nxt]["o"] - 0.25

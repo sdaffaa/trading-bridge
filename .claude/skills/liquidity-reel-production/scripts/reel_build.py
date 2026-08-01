@@ -83,10 +83,22 @@ def gen(anchors,n,seed,wick=0.9,bn=0.5,swings=None):
             if xs[k]<=i<=xs[k+1]:
                 t=(i-xs[k])/(xs[k+1]-xs[k]); return ys[k]+(ys[k+1]-ys[k])*t
         return ys[-1]
-    cs=[]; prev=line(0)
+    cs=[]; prev=line(0); vol=1.0
     for i in range(n):
-        lv=line(i); o=prev; c=lv+_rnd.uniform(-bn,bn)
-        hi=max(o,c)+_rnd.uniform(0.15,wick); lo=min(o,c)-_rnd.uniform(0.15,wick)
+        lv=line(i); o=prev
+        # volatility clustering: quiet stretches vs active stretches
+        vol=max(0.4,min(2.0,vol*_rnd.uniform(0.78,1.28)))
+        dev=_rnd.uniform(-bn,bn)*vol
+        r=_rnd.random()
+        if r<0.16:      # doji / tiny body
+            c=o+max(-0.13,min(0.13,(lv+dev)-o))
+        elif r>0.90:    # impulse candle
+            c=lv+dev+(1 if lv>=o else -1)*_rnd.uniform(0.7,1.2)*bn*vol
+        else:           # regular body
+            c=lv+dev
+        # wicks: squared randomness -> mostly short, occasionally long pin bars
+        hi=max(o,c)+0.05+wick*vol*(_rnd.random()**2.2)*1.7
+        lo=min(o,c)-0.05-wick*vol*(_rnd.random()**2.2)*1.7
         cs.append(dict(o=o,h=hi,l=lo,c=c)); prev=c
     for idx,typ in (swings or []):
         w=range(max(0,idx-2),min(n,idx+3))
