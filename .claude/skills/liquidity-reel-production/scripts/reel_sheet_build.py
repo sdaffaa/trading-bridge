@@ -88,7 +88,7 @@ story = [(13, 2.45), (14, 3.1), (15, 3.5), (16, 3.9), (17, 5.4), (18, 5.8),
 tt = 11.5
 for i in range(22, IR):
     story.append((i, round(tt, 2))); tt += 0.35
-story += [(IR, 13.3), (27, 17.3), (28, 17.7), (29, 18.1), (30, 18.5)]
+story += [(IR, 13.3), (27, 17.9), (28, 18.25), (29, 18.6), (30, 18.95)]
 XHIT_T = 13.55
 
 TXT = [
@@ -99,8 +99,8 @@ TXT = [
     ("t5", 8.75, 11.3, "السوق يسحب السيولة أول", 56, INK),
     ("t6", 11.45, 13.4, "بعدين يرد للزون", 58, INK),
     ("t7", 13.55, 14.6, "انطق الستوب", 58, RED),
-    ("t7b", 14.70, 16.95, "ونفس الشمعة… الدخلة الصح", 52, INK),
-    ("t8", 17.20, 19.15, "الدخلة المستعجلة<br>اهي اللي تطق ستوبك", 54, INK),
+    ("t7b", 15.30, 17.55, "ونفس الشمعة… الدخلة الصح", 52, INK),
+    ("t8", 17.85, 19.80, "الدخلة المستعجلة<br>اهي اللي تطق ستوبك", 54, INK),
 ]
 texts = "".join(
     f'<div class="hl" id="{i}" style="font-size:{fs}px;color:{col}">{t}</div>'
@@ -153,7 +153,7 @@ const MARKS = [
   ["sweepline", 8.90, 9.60, "draw"], ["sweeplbl", 9.60, 9.90, "pop"],
   ["pdlline", 10.10, 10.50, "draw"], ["pdllbl", 10.45, 10.70, "pop"],
   ["xhit", {XHIT_T}, {XHIT_T} + 0.3, "pop"],
-  ["circ", 14.75, 15.05, "pop"], ["entlbl", 15.05, 15.35, "pop"],
+  ["circ", 15.35, 15.65, "pop"], ["entlbl", 15.65, 15.95, "pop"],
 ];
 // elements hidden during the story replay, visible in the opening + ending
 const FULLSET = ["zone","boslbl","nentry","nstoplbl","xhit","sweeplbl","pdllbl","circ","entlbl"];
@@ -216,17 +216,17 @@ window.__setFrame = function(t) {{
   // chips / result / CTA
   $("chip").style.opacity = Math.min(oc(seg(t, 0.8, 1.2)), 1);
   const r1 = oc(seg(t, 1.25, 1.6)) * (1 - seg(t, 1.9, 2.2));
-  const r2 = oc(seg(t, 18.55, 18.95));
+  const r2 = oc(seg(t, 19.5, 19.9));
   $("res").style.opacity = Math.max(r1, r2);
-  const ck = oc(seg(t, 19.3, 19.75));
+  const ck = oc(seg(t, 20.2, 20.65));
   $("cta").style.opacity = ck;
   $("cta").style.transform = `translateY(${{(1-ck)*30}}px)`;
   // flashes + zoom punch
-  const f1 = seg(t, 17.3, 17.52), f2 = seg(t, 17.52, 18.15);
+  const f1 = seg(t, 17.9, 18.12), f2 = seg(t, 18.12, 18.75);
   $("flash").style.opacity = f1 > 0 && f2 < 1 ? 0.45 * (f1 < 1 ? f1 : (1-f2)) : 0;
   const rf = seg(t, {XHIT_T-0.05}, {XHIT_T+0.1}), rf2 = seg(t, {XHIT_T+0.1}, {XHIT_T+0.6});
   $("rflash").style.opacity = rf > 0 && rf2 < 1 ? 0.16 * (rf < 1 ? rf : (1-rf2)) : 0;
-  const punch = Math.sin(Math.PI * seg(t, 17.3, 18.6)) * 0.055;
+  const punch = Math.sin(Math.PI * seg(t, 17.9, 19.2)) * 0.055;
   const kb = 1.008 + 0.02 * (t / 22.2);
   const wrap = $("chartwrap");
   wrap.style.transform = `scale(${{kb + punch}})`;
