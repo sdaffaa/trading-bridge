@@ -84,6 +84,28 @@ Frame-0 law ✅ (moving candles + anchor noun "البلوك" visible in frame 0)
 
 ---
 
+## Documented trade — REAL data (educational)
+
+Source: Alpha Vantage `GOLD_SILVER_HISTORY` (XAU), **daily spot closes** (not OHLC), Jun–Jul 2026.
+Markup snapped exactly to real close values. Because only closes are available (no wicks),
+this is rendered as a close LINE and labelled "لغرض تعليمي — إغلاقات يومية حقيقية" (honest, no invented candles).
+
+| Level | Real value | Date |
+|---|---|---|
+| سيولة سابقة (prior low) | 4009.99 | 2026-06-25 |
+| سحب السيولة (sweep of the low) | 4008.93 | 2026-07-01 |
+| الدخول (reversal confirmation) | 4042.63 | 2026-07-02 |
+| تغيّر النمط / BOS (broke 4089.29) | close 4130.37 | 2026-07-03 |
+| الستوب (below the sweep) | 4005.00 | — |
+| الهدف (reached) | 4176.39 | 2026-07-06 ✅ |
+
+**Result:** +$133.76 · **RR ≈ 1:3.5** (risk $37.63 / reward $133.76). Rendered in `trade.png` (`gen_trade.py`).
+Cover result badge now shows this real value.
+
+> Note: for a true candlestick version with a wick-based liquidity sweep, real XAUUSD **OHLC** is
+> needed (the free connected data tools return closes only). Provide an OHLC export and the same
+> markup snaps to it.
+
 ## Remaining (stages 6–7)
 
 - [ ] Stage 6 — Voiceover: Kuwaiti, −14 LUFS, each clip within its budget (needs TTS provider).

@@ -203,7 +203,7 @@ body {{ display:flex; justify-content:center; align-items:center; min-height:100
 
   <div class="result">
     <div class="l1"><span class="tick">✓</span><span class="txt">الصفقة وصلت الهدف</span></div>
-    <span class="num">+___ نقطة</span>
+    <span class="num">+$133.76 · RR 1:3.5</span>
   </div>
   <div class="edu">صفقة موثقة — لغرض تعليمي</div>
 
