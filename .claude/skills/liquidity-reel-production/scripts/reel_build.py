@@ -61,7 +61,7 @@ def chart(cands,W,H,ymin,ymax,*,price_axis=False,dates=False,grid=4,pl=14,pr=64,
     if price_axis:
         gg=math.ceil(ymin/0.005)*0.005
         while gg<=ymax+1e-9:
-            gy=y(gg); s.append(f'<text x="{plotR+8}" y="{gy+4:.1f}" fill="{MUTE}" font-size="12" font-family="Tajawal" font-weight="500">{gg:.4f}</text>'); gg+=0.005
+            gy=y(gg); s.append(f'<text x="{plotR+14}" y="{gy+4:.1f}" fill="{MUTE}" font-size="12" font-family="Tajawal" font-weight="500">{gg:.4f}</text>'); gg+=0.005
     if dates:
         st=max(1,n//7)
         for i in range(0,n,st): s.append(f'<text x="{x(i):.1f}" y="{plotB+22:.1f}" fill="{MUTE}" font-size="11" font-family="Tajawal" text-anchor="middle">{cands[i]["d"]}</text>')
@@ -122,6 +122,16 @@ def zzline(x,y,pts,col,w=3,op=0.8,dash=None,cls="draw"):
 
 # ---- schematics ----
 def _zpts(cs,z): return [(i,cs[i]["h"] if t=='h' else cs[i]["l"]) for i,t in z]
+# distinct dataset for the definition scene (no chart repeats across scenes)
+UPD=gen([(0,13),(4,16.8),(9,14.5),(15,19.5),(20,17),(28,22.5)],30,55,swings=[(4,'H'),(9,'L'),(15,'H'),(20,'L'),(28,'H')])
+UPDz=[(0,'l'),(4,'h'),(9,'l'),(15,'h'),(20,'l'),(28,'h')]
+def sc_def_up():
+    cs=UPD; W,H=980,460; ymin=min(c["l"] for c in cs)-1.5;ymax=max(c["h"] for c in cs)+2.8
+    svg,x,y,_=chart(cs,W,H,ymin,ymax,grid=4,pt=48,pb=22,pl=16,pr=16,body=0.5)
+    svg+=zzline(x,y,_zpts(cs,UPDz),TEAL_D,w=2.2,op=.5)
+    svg+=lbl(x(15),y(cs[15]["h"]),"قمة",TEAL_D,True)
+    svg+=lbl(x(20),y(cs[20]["l"]),"قاع",INK,False)
+    return svg+"</svg>"
 def sc_up():
     cs=UP; W,H=980,460; ymin=min(c["l"] for c in cs)-1.5;ymax=max(c["h"] for c in cs)+2.8
     svg,x,y,_=chart(cs,W,H,ymin,ymax,grid=4,pt=48,pb=22,pl=16,pr=16,body=0.5)
@@ -145,8 +155,8 @@ def sc_ch():
     svg+=lbl(x(5),y(cs[5]["h"]),"HH",TEAL_D,True)+lbl(x(14),y(cs[14]["h"]),"HH",TEAL_D,True)
     svg+=lbl(x(9),y(cs[9]["l"]),"HL",INK,False)+lbl(x(19),y(cs[19]["l"]),"HL",INK,False)
     svg+=lbl(x(29),y(cs[29]["l"]),"LL",RED,False)
-    svg+=(f'<g class="pop2">{htext(x(bi),y(hl)-36,"CHoCH",RED,22)}'
-          f'<line x1="{x(bi):.1f}" y1="{y(hl)-26:.1f}" x2="{x(bi):.1f}" y2="{y(hl)+4:.1f}" stroke="{RED}" stroke-width="2.6"/>'
+    svg+=(f'<g class="pop2">{htext(x(bi)-8,y(hl)-54,"CHoCH",RED,22)}'
+          f'<line x1="{x(bi):.1f}" y1="{y(hl)-42:.1f}" x2="{x(bi):.1f}" y2="{y(hl)+4:.1f}" stroke="{RED}" stroke-width="2.6"/>'
           f'<polygon points="{x(bi):.1f},{y(hl)+4:.1f} {x(bi)-6:.1f},{y(hl)-8:.1f} {x(bi)+6:.1f},{y(hl)-8:.1f}" fill="{RED}"/></g>')
     return svg+"</svg>"
 def sc_swing():
@@ -196,17 +206,17 @@ def sc_real():
     svg+=f'<line class="draw hray" x1="{sx0:.2f}" y1="{sy:.2f}" x2="{sx1:.2f}" y2="{sy:.2f}" stroke="{INK}" stroke-width="1.6" stroke-dasharray="6 5"/>'
     svg+=f'<g class="pop">{hend(sx0,sy,INK)}{hend(sx1,sy,INK)}{htext(sx1+18,sy+6,"SSL",INK,18,"start",weight=800)}</g>'
     # structure markers snapped to exact wick tips (frameless)
-    def marker(i,txt,col,low,cls="pop"):
+    def marker(i,txt,col,low,cls="pop",tdx=0):
         mx=x(i); my=y(C[i]["l"] if low else C[i]["h"]); ty=my+26 if low else my-15
         return (f'<g class="{cls}"><circle cx="{mx:.2f}" cy="{my:.2f}" r="4.5" fill="{col}" stroke="{CREAM}" stroke-width="1.5"/>'
-                f'{htext(mx,ty,txt,col,20)}</g>')
+                f'{htext(mx+tdx,ty,txt,col,20)}</g>')
     svg+=marker(iLL,"LL",INK,True)+marker(iHL,"HL",TEAL_D,True)
     # breakout arrow (teal) — starts inside range, tip lands exactly on the BOS line at the breakout candle
     brkx=x(33)
     svg+=(f'<g class="brkfx"><line x1="{brkx:.2f}" y1="{y(1.14350):.2f}" x2="{brkx:.2f}" y2="{ly:.2f}" stroke="{TEAL_D}" stroke-width="2.4"/>'
           f'<polygon points="{brkx:.2f},{ly:.2f} {brkx-6:.2f},{ly+11:.2f} {brkx+6:.2f},{ly+11:.2f}" fill="{TEAL_D}"/>'
           f'{htext(x(29),y(1.14150),"Breakout",TEAL_D,19,italic=True,weight=800)}</g>')
-    svg+=marker(iHH,"HH",TEAL_D,False,cls="hhpop")
+    svg+=marker(iHH,"HH",TEAL_D,False,cls="hhpop",tdx=-22)
     svg+=f'<g class="pop">{htext(x(4),y(1.1632),"هابط ↓",INK,17,weight=800)}</g>'
     svg+=f'<g class="hhpop">{htext(x(19),y(1.1300),"صاعد ↑",TEAL_D,17,weight=800)}</g>'
     svg+=f'<rect class="flash" x="0" y="0" width="{W}" height="{H}" fill="#ffffff" opacity="0"/>'
@@ -310,7 +320,7 @@ scene("s3",5.4,f'''{logo(150)}<div class="mid">
   <div class="a eyeb">الحل</div>
   <div class="b titan">الماركت<br>ستركجر</div>
   <div class="c hooksub">تسلسل القمم والقيعان اللي يكشف الاتجاه</div>
-  <div class="d chartbox">{sc_up()}</div></div>''')
+  <div class="d chartbox">{sc_def_up()}</div></div>''')
 T(".a",0.2,0.4,{"op":[0,1],"ty":[20,0],"ease":"oc"})
 T(".b",0.5,0.6,{"op":[0,1],"s":[.75,1],"ease":"ob"})
 T(".c",1.2,0.5,{"op":[0,1],"ty":[20,0],"ease":"oc"})
