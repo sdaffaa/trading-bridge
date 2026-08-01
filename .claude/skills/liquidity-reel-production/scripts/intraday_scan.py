@@ -145,7 +145,7 @@ for iv, tf, sec, wmin, wmax, pmin, need in TFS:
             f3 = sum(c["c"] for c in w[:3]) / 3; l3 = sum(c["c"] for c in w[rngN - 3:rngN]) / 3
             if abs(l3 - f3) > 0.9 * wd: continue
             for c in detect(w, rngN, pr, pmin):
-                c.update(s=s, rngN=rngN, tf=tf)
+                c.update(s=s, rngN=rngN, tf=tf, ts0=w[0]["ts"], ts1=w[-1]["ts"])
                 cands.append(c)
     all_cands[tf] = (cs, cands)
     n = {}
@@ -154,19 +154,23 @@ for iv, tf, sec, wmin, wmax, pmin, need in TFS:
 
 used_types = {}
 chosen = []
+global_picked = []
 for iv, tf, sec, wmin, wmax, pmin, need in TFS:
     cs, cands = all_cands[tf]
     cands.sort(key=lambda c: -c["pips"])
     picked = []
     def ok(c):
-        return all(abs(c["s"] - p["s"]) >= 30 for p in picked)
+        if not all(abs(c["s"] - p["s"]) >= 30 for p in picked): return False
+        # same pattern type on overlapping clock time across TFs reads as a repeated chart
+        return all(not (c["t"] == g["t"] and c["ts0"] < g["ts1"] and c["ts1"] > g["ts0"])
+                   for g in global_picked)
     for want_new in (True, False):
         for c in cands:
             if len(picked) >= need: break
             if not ok(c): continue
             if want_new and used_types.get(c["t"], 0) > 0: continue
             if used_types.get(c["t"], 0) >= 2: continue
-            picked.append(c); used_types[c["t"]] = used_types.get(c["t"], 0) + 1
+            picked.append(c); global_picked.append(c); used_types[c["t"]] = used_types.get(c["t"], 0) + 1
     for c in picked:
         w = cs[c["s"]:c["s"] + 30]
         wj = []
