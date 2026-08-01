@@ -1,0 +1,29 @@
+name: vo-bridge
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'audio file url'
+        required: true
+      md5:
+        description: 'expected md5'
+        required: true
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: fetch and verify
+        run: |
+          mkdir -p assets/vo
+          curl -fL "${{ github.event.inputs.url }}" -o assets/vo/vo_master.m4a
+          echo "${{ github.event.inputs.md5 }}  assets/vo/vo_master.m4a" | md5sum -c -
+      - name: commit
+        run: |
+          git config user.name "vo-bridge"
+          git config user.email "vo-bridge@users.noreply.github.com"
+          git add assets/vo/vo_master.m4a
+          git commit -m "Add VO master (bridged)"
+          git push
