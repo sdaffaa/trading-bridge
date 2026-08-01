@@ -41,45 +41,48 @@
         </div>
       </div>
 
+      <div class="ls-edu-tag" style="position:absolute; right:70px; bottom:52px;">XAUUSD · يومي · لغرض تعليمي</div>
       <div class="sr-swipe"><span class="arrow">←</span><span>اسحب</span></div>
     </div>
   </div>
 
   <script type="module">
     import { SeriesChart } from "../css/series.js";
-    // Educational schematic (not a live instrument): deterministic OHLC, 30 candles.
+    // REAL data — XAUUSD (gold) daily, 2025-02-10 → 2025-03-18 (source: FMP). 27 candles.
+    // Resistance 2956 poked repeatedly in Feb (highs 2964–2974, closing back below →
+    // trap → drop to 2844), then a decisive confirmed close at 2991 on 03-13.
     const ohlc = [
-      {o:92.0,h:92.8,l:91.6,c:92.5},{o:92.5,h:93.6,l:92.2,c:93.3},
-      {o:93.3,h:94.0,l:92.9,c:93.1},{o:93.1,h:94.4,l:92.8,c:94.2},
-      {o:94.2,h:95.2,l:93.9,c:95.0},{o:95.0,h:96.1,l:94.7,c:95.8},
-      {o:95.8,h:96.6,l:95.3,c:96.4},{o:96.4,h:97.2,l:96.0,c:96.9},
-      {o:96.9,h:97.6,l:96.4,c:97.4},{o:97.4,h:99.9,l:97.1,c:99.5},
-      {o:99.5,h:100.2,l:99.0,c:99.0},{o:99.0,h:99.4,l:97.8,c:98.0},
-      {o:98.0,h:98.3,l:96.6,c:96.9},{o:96.9,h:97.4,l:95.9,c:96.2},
-      {o:96.2,h:96.8,l:95.4,c:96.5},{o:96.5,h:97.6,l:96.1,c:97.3},
-      {o:97.3,h:98.4,l:97.0,c:98.1},{o:98.1,h:99.0,l:97.7,c:98.8},
-      {o:98.8,h:99.7,l:98.4,c:99.5},{o:99.5,h:100.1,l:99.2,c:99.9},
-      {o:99.9,h:101.4,l:99.7,c:101.1},{o:101.1,h:101.6,l:100.4,c:100.7},
-      {o:100.7,h:102.0,l:100.5,c:101.8},{o:101.8,h:103.0,l:101.5,c:102.8},
-      {o:102.8,h:103.6,l:102.3,c:103.2},{o:103.2,h:104.4,l:102.9,c:104.1},
-      {o:104.1,h:104.8,l:103.6,c:104.0},{o:104.0,h:105.4,l:103.8,c:105.1},
-      {o:105.1,h:106.2,l:104.7,c:105.9},{o:105.9,h:107.0,l:105.5,c:106.7},
+      {o:2884.8,h:2938.1,l:2879.9,c:2934.4},{o:2937.0,h:2968.5,l:2907.0,c:2932.6},
+      {o:2927.0,h:2936.5,l:2886.5,c:2928.7},{o:2928.8,h:2958.8,l:2925.8,c:2945.4},
+      {o:2957.3,h:2964.1,l:2889.9,c:2900.7},{o:2895.1,h:2956.5,l:2887.6,c:2949.0},
+      {o:2879.2,h:2936.4,l:2873.8,c:2931.6},{o:2954.1,h:2964.4,l:2933.7,c:2936.1},
+      {o:2949.5,h:2973.4,l:2939.3,c:2956.1},{o:2955.7,h:2964.7,l:2930.1,c:2953.2},
+      {o:2950.4,h:2974.0,l:2936.8,c:2963.2},{o:2968.5,h:2970.4,l:2897.0,c:2918.8},
+      {o:2929.0,h:2942.0,l:2903.3,c:2930.6},{o:2931.4,h:2935.8,l:2879.0,c:2895.9},
+      {o:2889.0,h:2896.1,l:2844.1,c:2848.5},{o:2872.0,h:2906.4,l:2866.3,c:2901.1},
+      {o:2904.2,h:2939.8,l:2892.5,c:2920.6},{o:2929.0,h:2941.3,l:2903.4,c:2926.0},
+      {o:2929.5,h:2935.9,l:2897.6,c:2926.6},{o:2919.2,h:2938.8,l:2905.3,c:2914.1},
+      {o:2919.6,h:2926.4,l:2885.2,c:2899.4},{o:2893.2,h:2929.0,l:2882.5,c:2920.9},
+      {o:2922.3,h:2948.9,l:2911.0,c:2946.8},{o:2943.3,h:3001.5,l:2942.2,c:2991.3},
+      {o:3001.4,h:3017.1,l:2988.6,c:3001.1},{o:2994.8,h:3010.9,l:2991.4,c:3006.1},
+      {o:3009.4,h:3047.5,l:3008.2,c:3040.8},
     ];
+    const R = 2956;
     const c = new SeriesChart(document.getElementById("chart"), ohlc,
       { width: 1000, height: 470, padL: 44, padR: 44, padT: 150, padB: 40 });
     c.render();
-    c.level(100, { label: "مستوى رئيسي", side: "start", labelX: 150, tone: "neutral" });
-    // touch of the level (wick tags 100.2 at idx10)
-    c.annot({ at:{ i:10, price:100 }, labelXY:{ x:c.x(7), y:c.y(100)-108 },
+    c.level(R, { label: "مستوى رئيسي", side: "start", labelX: 150, tone: "neutral" });
+    // real touch of the level (02-17 wick tags 2956.5)
+    c.annot({ at:{ i:5, price:R }, labelXY:{ x:c.x(3), y:c.y(R)-108 },
       text:"لمس المستوى", tone:"neutral", marker:"ring", dash:false });
-    // premature entry just after the touch — wrong
-    c.annot({ at:{ i:11, price:99.4 }, labelXY:{ x:c.x(15), y:c.y(100)-108 },
+    // premature entry on a poke that closed back below (02-20 high 2973 → trapped)
+    c.annot({ at:{ i:8, price:2966 }, labelXY:{ x:c.x(12), y:c.y(R)-108 },
       text:"دخول مبكر (خطأ)", tone:"bear", marker:"xred" });
-    // the close that actually confirms (idx20 closes 101.1 above the level)
-    c.annot({ at:{ i:20, price:101.1 }, labelXY:{ x:c.x(25), y:c.y(101.1)-92 },
+    // the close that actually confirms the break (03-13 closes 2991.3)
+    c.annot({ at:{ i:23, price:2991.3 }, labelXY:{ x:c.x(24), y:c.y(2991.3)-86 },
       text:"إغلاق يؤكد الاتجاه", tone:"neutral", marker:"dot" });
-    // correct entry on the confirmed break / retest hold at the level
-    c.annot({ at:{ i:21, price:100 }, labelXY:{ x:c.x(22), y:c.y(100)+120 },
+    // valid entry once the break holds above the level (03-14)
+    c.annot({ at:{ i:24, price:R+8 }, labelXY:{ x:c.x(23), y:c.y(R)+118 },
       text:"دخول صحيح", tone:"turq", marker:"check" });
   </script>
 </body>

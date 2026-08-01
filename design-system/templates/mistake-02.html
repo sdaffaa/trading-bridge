@@ -55,40 +55,41 @@
         </div>
       </div>
 
+      <div class="ls-edu-tag" style="position:absolute; left:70px; bottom:52px;">EURUSD · يومي · لغرض تعليمي</div>
       <div class="sr-swipe"><span class="arrow">←</span><span>اسحب</span></div>
     </div>
   </div>
 
   <script type="module">
     import { SeriesChart } from "../css/series.js";
-    // Educational schematic: 26 deterministic candles — a slow grind then one
-    // explosive candle, then a retest. Distinct shape from every other chart.
+    // REAL data — EURUSD daily, 2025-03-11 → 2025-04-10 (source: FMP). 23 candles.
+    // Calm March, then a standout 04-03 impulse (341 pips ≈ 3× the average range),
+    // a retest into its origin at 1.0878 (04-07/08), then the 04-10 continuation.
     const ohlc = [
-      {o:44.0,h:45.2,l:43.6,c:45.0},{o:45.0,h:46.4,l:44.6,c:46.1},
-      {o:46.1,h:46.8,l:45.2,c:45.6},{o:45.6,h:47.2,l:45.2,c:47.0},
-      {o:47.0,h:48.3,l:46.6,c:48.0},{o:48.0,h:48.6,l:47.0,c:47.4},
-      {o:47.4,h:49.0,l:47.0,c:48.8},{o:48.8,h:50.1,l:48.4,c:49.8},
-      {o:49.8,h:50.6,l:49.2,c:49.5},{o:49.5,h:51.0,l:49.1,c:50.8},
-      {o:50.8,h:52.0,l:50.4,c:51.7},{o:51.7,h:52.4,l:50.9,c:51.2},
-      {o:51.2,h:52.9,l:50.9,c:52.7},{o:52.7,h:53.8,l:52.3,c:53.5},
-      {o:53.5,h:54.2,l:52.8,c:53.1},{o:53.1,h:54.6,l:52.8,c:54.4},
-      {o:54.4,h:55.6,l:54.0,c:55.3},{o:55.3,h:56.0,l:54.6,c:54.9},
-      {o:54.9,h:56.4,l:54.6,c:56.1},{o:56.1,h:57.0,l:55.6,c:56.7},
-      {o:56.7,h:73.0,l:56.4,c:72.2},                       // explosion
-      {o:72.2,h:72.8,l:66.5,c:67.3},{o:67.3,h:68.2,l:63.0,c:63.6},
-      {o:63.6,h:64.8,l:61.8,c:62.4},{o:62.4,h:66.0,l:62.0,c:65.6},
-      {o:65.6,h:68.5,l:65.2,c:68.1},
+      {o:1.09181,h:1.09469,l:1.08284,c:1.09181},{o:1.09181,h:1.09306,l:1.08752,c:1.08873},
+      {o:1.08873,h:1.08968,l:1.08221,c:1.08507},{o:1.08507,h:1.09121,l:1.08302,c:1.08751},
+      {o:1.08753,h:1.09294,l:1.08682,c:1.09217},{o:1.09217,h:1.09544,l:1.08921,c:1.09439},
+      {o:1.09439,h:1.09457,l:1.08601,c:1.09009},{o:1.09009,h:1.09169,l:1.08144,c:1.08473},
+      {o:1.08473,h:1.08611,l:1.07958,c:1.08115},{o:1.08122,h:1.08578,l:1.07812,c:1.08003},
+      {o:1.08003,h:1.08299,l:1.07765,c:1.07902},{o:1.07902,h:1.08025,l:1.07436,c:1.07528},
+      {o:1.07528,h:1.08209,l:1.07324,c:1.08006},{o:1.08006,h:1.08444,l:1.07634,c:1.08217},
+      {o:1.08175,h:1.08490,l:1.07836,c:1.08147},{o:1.08147,h:1.08297,l:1.07779,c:1.07925},
+      {o:1.07925,h:1.09241,l:1.07799,c:1.08489},{o:1.08489,h:1.11450,l:1.08045,c:1.10513},
+      {o:1.10513,h:1.11074,l:1.09236,c:1.09625},{o:1.08878,h:1.10497,l:1.08778,c:1.09055},
+      {o:1.09055,h:1.09916,l:1.08877,c:1.09533},{o:1.09533,h:1.10948,l:1.09126,c:1.09449},
+      {o:1.09449,h:1.12414,l:1.09426,c:1.11982},
     ];
     const c = new SeriesChart(document.getElementById("chart"), ohlc,
       { width: 1000, height: 620, padL: 40, padR: 560, padT: 44, padB: 150, gap: 0.34 });
     c.render();
-    // retest zone (lower half of the explosion candle) — better entry area
-    c.box(21, 24, 66.5, 61.8, { opacity: 0.16 });
-    // wrong entry: chasing the top of the explosion candle
-    c.annot({ at:{ i:20, price:72.5 }, labelXY:{ x:470, y:c.y(72.5) },
+    // retest zone — pullback into the impulse's origin (04-04..04-09), the better entry
+    c.box(18, 21, 1.0965, 1.0878, { opacity: 0.16 });
+    // wrong entry: chasing the top of the impulse candle (04-03 high 1.1145)
+    c.annot({ at:{ i:17, price:1.1145 }, labelXY:{ x:470, y:c.y(1.1145) },
       text:"دخول خاطئ", sub:"دخول عند القمة", tone:"grey", marker:"xcircle", anchor:"end", subDy:32 });
-    // correct: wait for the retest into the candle body
-    c.annot({ at:{ i:23, price:63.0 }, labelXY:{ x:470, y:c.y(63.0) },
+    // better entry: the retest into the origin (04-07 low 1.0878) — label lifted
+    // above the pills with a connector down to the marker on the real price
+    c.annot({ at:{ i:19, price:1.0888 }, labelXY:{ x:486, y:c.y(1.0888)-104 },
       text:"إعادة اختبار", sub:"منطقة أفضل للدخول", tone:"turq", marker:"check", anchor:"end", subDy:32 });
   </script>
 </body>
