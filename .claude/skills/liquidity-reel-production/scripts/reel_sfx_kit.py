@@ -2,7 +2,7 @@
 # قالب ريل المؤثرات (§12 — بدون كلام): جارت حقيقي واحد بريبلاي حي + بيتات نصية + ذروة فلاش/زوم
 # مشتق من reel_sheet_build.py وصار بارامتري: build_reel(cfg) يكتب HTML جاهز للرندر.
 import json, math, os
-from reel_build import INK, TEAL, TEAL_D, RED, BULL, BEAR, FONT_CSS, htext, hend
+from reel_build import INK, TEAL, TEAL_D, RED, BULL, BEAR, FONT_CSS, htext, hend, GEM
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CW, CH = 1000, 820
@@ -129,6 +129,9 @@ def build_reel(cfg, out_html):
   padding:14px 44px;border-radius:0}}
 #cta .s{{margin-top:16px;font-weight:700;font-size:34px;color:{SUBC}}}
 #edu{{position:absolute;bottom:46px;left:0;right:0;text-align:center;font-size:22px;color:{EDUC};font-weight:600}}
+#endlogo{{position:absolute;bottom:96px;left:0;right:0;text-align:center;opacity:0}}
+#endlogo .eg{{width:74px;margin:0 auto}} #endlogo .eg svg{{width:74px;height:auto}}
+#endlogo .ew{{margin-top:8px;font-size:23px;font-weight:800;letter-spacing:9px;color:{SUBC}}}
 #flash{{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}}
 #rflash{{position:absolute;inset:0;background:{RED};opacity:0;pointer-events:none}}
 #camrot{{width:100%;height:100%;transform-origin:500px 410px}}
@@ -146,6 +149,7 @@ def build_reel(cfg, out_html):
 <div id="res">{cfg["res"]}</div>
 <div id="cta"><span class="k">{cfg["cta_k"]}</span><div class="s">{cfg["cta_s"]}</div></div>
 <div id="edu">{cfg.get("edu", "لغرض تعليمي — بيانات حقيقية")}</div>
+<div id="endlogo"><div class="eg">{GEM}</div><div class="ew">LIQUIDITY STATE</div></div>
 <div id="flash"></div><div id="rflash"></div>
 {GRAIN}
 </div>
@@ -278,6 +282,7 @@ window.__setFrame = function(t) {{
   $("res").style.opacity = Math.max(r1, r2);
   const ck = oc(seg(t, {cfg["cta_t"]}, {cfg["cta_t"]}+0.45));
   $("cta").style.opacity = ck;
+  $("endlogo").style.opacity = oc(seg(t, {cfg["cta_t"]}+0.7, {cfg["cta_t"]}+1.3));
   $("cta").style.transform = `translateY(${{(1-ck)*30}}px)`;
   const f1 = seg(t, {fl_a}, {fl_a}+0.22), f2 = seg(t, {fl_a}+0.22, {fl_b});
   $("flash").style.opacity = f1 > 0 && f2 < 1 ? 0.45 * (f1 < 1 ? f1 : (1-f2)) : 0;
