@@ -391,6 +391,14 @@
    "cat": "نفسية",
    "done": false,
    "source": "اقتراحات 2026-08-03 وفق V2"
+  },
+  {
+   "id": 47,
+   "title": "الأخبار كعامل تسريع للوصول إلى الهدف",
+   "cat": "تنفيذ",
+   "done": true,
+   "run": "run13-news-accel",
+   "date": "2026-08-03"
   }
  ],
  "covered_before_backlog": [
