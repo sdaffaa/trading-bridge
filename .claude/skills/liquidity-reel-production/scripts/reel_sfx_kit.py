@@ -75,7 +75,7 @@ def build_reel(cfg, out_html):
   background:radial-gradient(120% 90% at 50% 0%, #F7F3EC 0%, #F2EEE7 55%, #ECE6DB 100%)}}
 .hl{{position:absolute;top:150px;left:40px;right:40px;text-align:center;font-weight:900;
   line-height:1.22;color:{INK};opacity:0}}
-#chartwrap{{position:absolute;top:430px;left:40px;width:1000px;height:820px}}
+#chartwrap{{position:absolute;top:430px;left:40px;width:1000px;height:820px;transform-origin:0 0}}
 .cnd{{transform-box:fill-box;transform-origin:50% 100%}}
 #chip{{position:absolute;top:372px;right:40px;border:2px solid {TEAL_D};color:{TEAL_D};
   font-weight:800;font-size:26px;padding:8px 18px;opacity:0;border-radius:0}}
@@ -175,13 +175,28 @@ window.__setFrame = function(t) {{
   $("flash").style.opacity = f1 > 0 && f2 < 1 ? 0.45 * (f1 < 1 ? f1 : (1-f2)) : 0;
   {rflash_js}
   const punch = Math.sin(Math.PI * seg(t, {pu_a}, {pu_b})) * {pu_s};
-  const kb = 1.008 + 0.02 * (t / {cfg["dur"]});
-  const drift = 13 - 26 * clamp(t / {cfg["dur"]}, 0, 1);
   const shp = seg(t, {fl_a}, {fl_a} + 0.42);
   const shake = shp > 0 && shp < 1 ? Math.sin(shp * 42) * (1 - shp) * 5.5 : 0;
+  // كاميرا كيفريمات: [t, scale, fx, fy] — fx/fy نقطة التركيز بنسب الجارت
+  const CAM = {json.dumps(cfg.get("cam", [[0, 1.03, 0.5, 0.5]]))};
+  const ss = u => u * u * (3 - 2 * u);          // smoothstep
+  let s0 = CAM[0], s1 = CAM[CAM.length - 1];
+  for (let i = 0; i < CAM.length - 1; i++)
+    if (t >= CAM[i][0] && t <= CAM[i + 1][0]) {{ s0 = CAM[i]; s1 = CAM[i + 1]; break; }}
+  if (t <= CAM[0][0]) s1 = s0 = CAM[0];
+  if (t >= CAM[CAM.length - 1][0]) s0 = s1 = CAM[CAM.length - 1];
+  const u = s1[0] > s0[0] ? ss(seg(t, s0[0], s1[0])) : 0;
+  const cs = (s0[1] + (s1[1] - s0[1]) * u) + punch;
+  let fx = s0[2] + (s1[2] - s0[2]) * u;
+  let fy = s0[3] + (s1[3] - s0[3]) * u;
+  const lim = cs > 1 ? (cs - 1) / (2 * cs) : 0;    // ما نطلع برا حدود الجارت
+  fx = clamp(fx, 0.5 - lim, 0.5 + lim) * 0 + Math.max(0.5 - lim, Math.min(0.5 + lim, fx));
+  fy = Math.max(0.5 - lim, Math.min(0.5 + lim, fy));
+  const CWp = 1000, CHp = 820;
+  const tx = CWp / 2 - cs * fx * CWp + shake;
+  const ty = CHp / 2 - cs * fy * CHp + shake * 0.6;
   const wrap = $("chartwrap");
-  wrap.style.transform = `translate(${{(drift + shake).toFixed(2)}}px, ${{(shake * 0.6).toFixed(2)}}px) scale(${{kb + punch}})`;
-  wrap.style.transformOrigin = punch > 0 ? "{cfg.get('punch_origin','65% 40%')}" : "50% 46%";
+  wrap.style.transform = `translate(${{tx.toFixed(1)}}px, ${{ty.toFixed(1)}}px) scale(${{cs.toFixed(4)}})`;
   if (t > {cfg["cta_t"]} + 0.6) {{
     const pulse = 1 + 0.028 * Math.sin(2 * Math.PI * (t - {cfg["cta_t"]}) * 0.8);
     $("cta").style.transform = `translateY(0px) scale(${{pulse.toFixed(4)}})`;
