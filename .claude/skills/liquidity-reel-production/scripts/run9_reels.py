@@ -12,7 +12,10 @@ SH = 1.3          # إزاحة المحتوى بعد الافتتاحية الد
 def shift_cfg(cfg, sh=SH, cta_extra=0.4, tail=5.0):
     """يدفع كل التوقيتات بعد الافتتاحية ويطيل الذيل ليحقق مدة V2 المعيارية."""
     cfg["story"] = [(i, round(t + sh, 2)) for i, t in cfg["story"]]
-    cfg["marks"] = [[m[0], round(m[1] + sh, 2), round(m[2] + sh, 2), m[3]] for m in cfg["marks"]]
+    # يحافظ على زمن الاختفاء الاختياري m[4] (يُزاح) ومدته m[5] (لا تُزاح)
+    cfg["marks"] = [[m[0], round(m[1] + sh, 2), round(m[2] + sh, 2), m[3]]
+                    + ([round(m[4] + sh, 2)] + list(m[5:]) if len(m) > 4 else [])
+                    for m in cfg["marks"]]
     cfg["txt"] = [(i, round(a + sh, 2), round(b + sh, 2), t, fs, c) for i, a, b, t, fs, c in cfg["txt"]]
     cfg["flash"] = (round(cfg["flash"][0] + sh, 2), round(cfg["flash"][1] + sh, 2))
     cfg["punch"] = (round(cfg["punch"][0] + sh, 2), round(cfg["punch"][1] + sh, 2), cfg["punch"][2])

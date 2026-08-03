@@ -399,6 +399,14 @@
    "done": true,
    "run": "run13-news-accel",
    "date": "2026-08-03"
+  },
+  {
+   "id": 48,
+   "title": "سيولة الوقف: لماذا تتجمع الأوامر فوق القمم المتساوية",
+   "cat": "SMC",
+   "done": true,
+   "run": "run14-stop-liquidity",
+   "date": "2026-08-03"
   }
  ],
  "covered_before_backlog": [

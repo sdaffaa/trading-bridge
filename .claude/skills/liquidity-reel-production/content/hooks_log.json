@@ -168,6 +168,11 @@
    "run": "run13-news-accel",
    "date": "2026-08-03",
    "text": "هدفك يحتاج ساعات… والخبر دقائق"
+  },
+  {
+   "run": "run14-stop-liquidity",
+   "date": "2026-08-03",
+   "text": "وقفك يرسل عنوانك للسوق"
   }
  ],
  "quotes": [
@@ -363,6 +368,11 @@
    "run": "run13-news-accel",
    "keyword": "خبر",
    "promise": "دليل التعامل مع الأخبار"
+  },
+  {
+   "run": "run14-stop-liquidity",
+   "keyword": "سيولة",
+   "promise": "نموذج وضع الوقف خلف السيولة"
   }
  ]
 }

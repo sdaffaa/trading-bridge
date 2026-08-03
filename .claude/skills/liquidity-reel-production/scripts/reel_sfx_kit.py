@@ -340,6 +340,11 @@ window.__setFrame = function(t) {{
     }} else {{
       el.style.opacity = oc(k);
     }}
+    // إزالة المنتهي (قاعدة V2): mark[4] = زمن بدء الاختفاء، mark[5] = مدته
+    if (m.length > 4 && m[4]) {{
+      const ko = seg(t, m[4], m[4] + (m[5] || 0.4));
+      if (ko > 0) el.style.opacity = (parseFloat(el.style.opacity) || 0) * (1 - ko);
+    }}
   }}
   for (const id of DRAWSET) {{
     const el = $(id);
