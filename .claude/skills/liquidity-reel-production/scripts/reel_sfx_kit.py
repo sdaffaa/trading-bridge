@@ -125,6 +125,49 @@ def build_reel(cfg, out_html):
     if rf:
         rflash_js = (f'const rf=seg(t,{rf-0.05},{rf+0.1}), rf2=seg(t,{rf+0.1},{rf+0.6});'
                      f'$("rflash").style.opacity = rf>0&&rf2<1 ? 0.16*(rf<1?rf:(1-rf2)) : 0;')
+    # افتتاحية داكنة V2 (نظام الهويتين): غلاف داكن 0→t ثم Light Sweep يكشف المحتوى الأوف وايت
+    intro = cfg.get("intro")
+    INTRO_CSS = INTRO_HTML = INTRO_JS = ""
+    if intro:
+        ti = intro.get("t", 2.5)
+        INTRO_CSS = (
+            '#intro{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;'
+            'align-items:center;justify-content:center;gap:24px;'
+            'background:radial-gradient(120% 90% at 50% 0%, #0C2029 0%, #08131C 55%, #04090F 100%)}'
+            '#intro .ig{width:118px} #intro .ig svg{width:118px;height:auto}'
+            '#intro .iwm{font-size:25px;font-weight:800;letter-spacing:10px;color:#B8C8CC}'
+            '#intro .ieyeb{margin-top:26px;font-size:30px;font-weight:700;color:#43D4DC}'
+            '#intro .ihook{font-size:74px;font-weight:900;color:#EDF4F5;text-align:center;'
+            'line-height:1.28;padding:0 56px;opacity:0}'
+            '#intro .ibar{width:320px;height:3px;'
+            'background:linear-gradient(90deg,transparent,#43D4DC,transparent)}'
+            '#intro .isub{font-size:33px;font-weight:700;color:#B8C8CC;opacity:0;padding:0 60px;text-align:center}'
+            '#isweep{position:absolute;top:0;bottom:0;left:0;width:340px;z-index:6;opacity:0;'
+            'pointer-events:none;background:linear-gradient(100deg,transparent 0%,'
+            'rgba(255,255,255,0.85) 45%,rgba(67,212,220,0.3) 55%,transparent 100%);'
+            'transform:skewX(-12deg)}')
+        INTRO_HTML = ('<div id="intro"><div class="ig">' + GEM + '</div>'
+                      '<div class="iwm">LIQUIDITY STATE</div>'
+                      '<div class="ieyeb">' + intro.get("eyeb", "") + '</div>'
+                      '<div class="ihook" id="ihook">' + intro["hook"] + '</div>'
+                      '<div class="ibar"></div>'
+                      '<div class="isub" id="isub">' + intro.get("sub", "") + '</div></div>'
+                      '<div id="isweep"></div>')
+        INTRO_JS = (
+            'const IT=%.2f;'
+            'const iw = seg(t, IT, IT+0.55);'
+            'const introEl = $("intro");'
+            'if (iw >= 1) introEl.style.display="none";'
+            'else { introEl.style.display=""; introEl.style.clipPath = `inset(0 0 0 ${(iw*100).toFixed(2)}%%)`; }'
+            'const ihk = oc(seg(t, 0.2, 0.75));'
+            '$("ihook").style.opacity = ihk;'
+            '$("ihook").style.transform = `translateY(${((1-ihk)*28).toFixed(1)}px)`;'
+            '$("isub").style.opacity = oc(seg(t, 0.65, 1.1));'
+            'const iswk = seg(t, IT-0.05, IT+0.62);'
+            'const isw = $("isweep");'
+            'if (iswk>0 && iswk<1) { isw.style.opacity = 0.7*Math.sin(Math.PI*iswk);'
+            'isw.style.transform = `translateX(${(-360+1560*iswk).toFixed(0)}px) skewX(-12deg)`; }'
+            'else isw.style.opacity=0;') % ti
     html = f'''<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>
 {FONT_CSS}
 *{{margin:0;padding:0;box-sizing:border-box}}
@@ -161,6 +204,7 @@ def build_reel(cfg, out_html):
 #sweep{{position:absolute;top:380px;left:0;width:260px;height:920px;pointer-events:none;opacity:0;
   background:linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.75) 45%, rgba(67,212,220,0.25) 55%, transparent 100%);
   transform:skewX(-14deg)}}
+{INTRO_CSS}
 </style></head><body><div id="stage">
 {texts}
 <div id="chip">{cfg["chip"]}</div>
@@ -172,6 +216,7 @@ def build_reel(cfg, out_html):
 <div id="edu">{cfg.get("edu", "لغرض تعليمي — بيانات حقيقية")}</div>
 <div id="endlogo"><div class="eg">{GEM}</div><div class="ew">LIQUIDITY STATE</div></div>
 <div id="flash"></div><div id="rflash"></div>
+{INTRO_HTML}
 {GRAIN}
 </div>
 <script>
@@ -378,6 +423,7 @@ window.__setFrame = function(t) {{
     const pulse = 1 + 0.028 * Math.sin(2 * Math.PI * (t - {cfg["cta_t"]}) * 0.8);
     $("cta").style.transform = `translateY(0px) scale(${{pulse.toFixed(4)}})`;
   }}
+  {INTRO_JS}
 }};
 window.__setFrame(0);
 </script></body></html>'''
