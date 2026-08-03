@@ -212,12 +212,12 @@ body{{background:#cfcabf;font-family:'Tajawal',sans-serif}}
 .dchart svg{{width:78%;height:auto;display:block;margin:0 auto}}
 '''
 
-def build_carousel(slides, title, out_path):
+def build_carousel(slides, title, out_path, extra_css=""):
     html = f'''<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
 <title>{title}</title>
 <meta name="hz:slide-selector" content=".slide">
 <meta name="hz:canvas-width" content="1080"><meta name="hz:canvas-height" content="1350">
-<style>{FONT_CSS}\n{CSS}</style></head><body>
+<style>{FONT_CSS}\n{CSS}\n{extra_css}</style></head><body>
 {''.join(slides)}
 </body></html>'''
     with open(out_path, "w", encoding="utf-8") as f:

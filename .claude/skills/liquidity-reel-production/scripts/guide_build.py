@@ -22,6 +22,7 @@ def _page(cfg, i, pg, total):
     svg = f'<div class="chartwrap">{pg["svg"]}</div>' if pg.get("svg") else ""
     note = f'<div class="note">{pg["note"]}</div>' if pg.get("note") else ""
     lead = f'<p class="lead">{pg["lead"]}</p>' if pg.get("lead") else ""
+    lead += "".join(f'<p class="lead2">{t}</p>' for t in pg.get("paras", []))
     tick = f'<div class="realhead"><span></span><span class="ticker">{pg["ticker"]}</span></div>' if pg.get("ticker") else ""
     extra = pg.get("html", "")
     return f'''<div class="slide" {CW}>
@@ -46,6 +47,8 @@ def _outro(cfg, total):
 </div>'''
 
 GCSS = f'''
+.lead2{{font-size:27px;line-height:1.78;color:{GREY};font-weight:600;margin:16px 0 0;text-align:right}}
+.lead2 b{{color:{INK};font-weight:900}}
 .gfoot{{position:absolute;bottom:54px;left:0;right:0;text-align:center;color:{MUTE};font-size:22px;font-weight:600}}
 .gfoot.dk{{color:#7F97A1}}
 .tblx{{width:100%;border-collapse:collapse;background:#FBF9F5;border:1px solid #DED8CC}}
