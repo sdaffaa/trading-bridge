@@ -1,36 +1,276 @@
 {
-  "_readme": "بنك مواضيع مصنع المحتوى اليومي. كل تشغيلة تسحب 5 مواضيع بالترتيب (status=queued)، تنتجها، وتحول حالتها إلى done مع التاريخ. ممنوع إنتاج موضوع status=done (قاعدة 8c). عند انخفاض المتبقي عن 10: ولّد 15 موضوعًا جديدًا غير مكرر وأضفها هنا.",
+  "_readme": "بنك مواضيع مصنع المحتوى اليومي. كل تشغيلة تسحب 5 مواضيع queued بالتوزيع الإلزامي: 2 فنية + 1 نفسية + 1 أساسية + 1 مالية (حقل cat)، وتحولها done مع التاريخ. ممنوع إنتاج موضوع done (قاعدة 8c). عند التجديد: ولّد مواضيع جديدة غير مكررة بحيث يبقى بكل فئة 5+ مواضيع queued على الأقل.",
   "topics": [
-    {"id": 1,  "pillar": "السيولة",        "topic": "أنواع تجمعات السيولة: قمم متساوية، قيعان متساوية، ترند لاين", "keyword": "سيولة",   "format": "carousel", "status": "queued"},
-    {"id": 2,  "pillar": "هيكل السوق",     "topic": "الكسر الحقيقي vs الكسر الوهمي: الجسم مو الفتيل",              "keyword": "كسر",     "format": "reel",     "status": "queued"},
-    {"id": 3,  "pillar": "SMC",            "topic": "الإنداكشن: الاستدراج اللي قبل الحركة الحقيقية",               "keyword": "استدراج", "format": "carousel", "status": "queued"},
-    {"id": 4,  "pillar": "SMC",            "topic": "البريميوم والديسكاونت: ليش نص المدى يحدد صفقتك",              "keyword": "نص",      "format": "carousel", "status": "queued"},
-    {"id": 5,  "pillar": "هيكل السوق",     "topic": "التشوك بالفريم الصغير: مفتاح الدخول المبكر",                  "keyword": "تشوك",    "format": "reel",     "status": "queued"},
-    {"id": 6,  "pillar": "الفريمات",       "topic": "التحليل متعدد الفريمات: من اليومي للربع ساعة",                "keyword": "فريمات",  "format": "carousel", "status": "queued"},
-    {"id": 7,  "pillar": "التوقيت",        "topic": "الكيل زونز بتوقيت الكويت: لندن ونيويورك",                     "keyword": "توقيت",   "format": "carousel", "status": "queued"},
-    {"id": 8,  "pillar": "إدارة المخاطر",  "topic": "الستوب لوز: وين يتحط صح ووين يتحط غلط",                       "keyword": "ستوب",    "format": "reel",     "status": "queued"},
-    {"id": 9,  "pillar": "إدارة المخاطر",  "topic": "الريسك ريوورد: شلون تربح وانت خسران نص صفقاتك",               "keyword": "ريسك",    "format": "carousel", "status": "queued"},
-    {"id": 10, "pillar": "إدارة المخاطر",  "topic": "حجم العقد: حسبة الـ1% اللي تحمي حسابك",                       "keyword": "لوت",     "format": "carousel", "status": "queued"},
-    {"id": 11, "pillar": "علم النفس",      "topic": "الأوفر تريدنق: چم صفقة باليوم تكفي؟",                          "keyword": "هدوء",    "format": "carousel", "status": "queued"},
-    {"id": 12, "pillar": "علم النفس",      "topic": "صفقة الانتقام: شلون توقفها قبل ما تبدأ",                       "keyword": "انتقام",  "format": "reel",     "status": "queued"},
-    {"id": 13, "pillar": "الانضباط",       "topic": "يوميات التداول: السجل اللي يوريك غلطك المتكرر",               "keyword": "يوميات",  "format": "carousel", "status": "queued"},
-    {"id": 14, "pillar": "الانضباط",       "topic": "الباك تست الصح: مو مجرد تقليب جارت",                          "keyword": "باكتست",  "format": "carousel", "status": "queued"},
-    {"id": 15, "pillar": "برايس أكشن",     "topic": "البن بار: متى يصدق ومتى يكذب عليك",                           "keyword": "بنبار",   "format": "reel",     "status": "queued"},
-    {"id": 16, "pillar": "برايس أكشن",     "topic": "الدوجي: شمعة الحيرة عند مناطق القرار",                        "keyword": "دوجي",    "format": "carousel", "status": "queued"},
-    {"id": 17, "pillar": "برايس أكشن",     "topic": "الشمعة الابتلاعية: السياق اللي يخليها إشارة",                 "keyword": "ابتلاع",  "format": "carousel", "status": "queued"},
-    {"id": 18, "pillar": "فوليوم بروفايل", "topic": "الفاليو إريا: وين السوق يتقبل السعر ووين يرفضه",              "keyword": "فاليو",   "format": "carousel", "status": "queued"},
-    {"id": 19, "pillar": "فوت برنت",       "topic": "الدلتا: شلون تقرأ ضغط الشراء والبيع داخل الشمعة",             "keyword": "دلتا",    "format": "carousel", "status": "queued"},
-    {"id": 20, "pillar": "فوت برنت",       "topic": "الامتصاص: البيع اللي ما ينزّل السعر",                          "keyword": "امتصاص",  "format": "reel",     "status": "queued"},
-    {"id": 21, "pillar": "التوقيت",        "topic": "رينج الجلسة الآسيوية: الصندوق اللي يحدد يومك",                "keyword": "آسيا",    "format": "carousel", "status": "queued"},
-    {"id": 22, "pillar": "التوقيت",        "topic": "الأخبار الحمراء: تتداولها ولا تنسحب؟",                        "keyword": "أخبار",   "format": "carousel", "status": "queued"},
-    {"id": 23, "pillar": "علم النفس",      "topic": "الفومو: لحقت الشمعة؟ خلاص راحت عليك",                         "keyword": "فومو",    "format": "reel",     "status": "queued"},
-    {"id": 24, "pillar": "إدارة المخاطر",  "topic": "البريك إيفن: متى تحرك ستوبك ومتى تخليه",                      "keyword": "تعادل",   "format": "carousel", "status": "queued"},
-    {"id": 25, "pillar": "التنفيذ",        "topic": "السبريد والعمولة: التكلفة الخفية على السكالبر",               "keyword": "سبريد",   "format": "carousel", "status": "queued"},
-    {"id": 26, "pillar": "علم النفس",      "topic": "الثبات قبل المضاعفة: ليش الحساب الصغير مدرسة",                "keyword": "ثبات",    "format": "carousel", "status": "queued"},
-    {"id": 27, "pillar": "الانضباط",       "topic": "خطة التداول المكتوبة: قراراتك قبل ما يفتح السوق",             "keyword": "خطة",     "format": "carousel", "status": "queued"},
-    {"id": 28, "pillar": "برايس أكشن",     "topic": "الترند لاين الصح: من الفتائل ولا الأجسام؟",                   "keyword": "ترند",    "format": "reel",     "status": "queued"},
-    {"id": 29, "pillar": "SMC",            "topic": "الزون المحروق: المنطقة اللي انلمست مرتين",                    "keyword": "محروق",   "format": "carousel", "status": "queued"},
-    {"id": 30, "pillar": "الفريمات",       "topic": "فريم التنفيذ vs فريم القرار: لا تخلطهم",                      "keyword": "تنفيذ",   "format": "carousel", "status": "queued"}
+    {
+      "id": 1,
+      "pillar": "السيولة",
+      "topic": "أنواع تجمعات السيولة: قمم متساوية، قيعان متساوية، ترند لاين",
+      "keyword": "سيولة",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 2,
+      "pillar": "هيكل السوق",
+      "topic": "الكسر الحقيقي vs الكسر الوهمي: الجسم مو الفتيل",
+      "keyword": "كسر",
+      "format": "reel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 3,
+      "pillar": "SMC",
+      "topic": "الإنداكشن: الاستدراج اللي قبل الحركة الحقيقية",
+      "keyword": "استدراج",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 4,
+      "pillar": "SMC",
+      "topic": "البريميوم والديسكاونت: ليش نص المدى يحدد صفقتك",
+      "keyword": "نص",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 5,
+      "pillar": "هيكل السوق",
+      "topic": "التشوك بالفريم الصغير: مفتاح الدخول المبكر",
+      "keyword": "تشوك",
+      "format": "reel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 6,
+      "pillar": "الفريمات",
+      "topic": "التحليل متعدد الفريمات: من اليومي للربع ساعة",
+      "keyword": "فريمات",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 7,
+      "pillar": "التوقيت",
+      "topic": "الكيل زونز بتوقيت الكويت: لندن ونيويورك",
+      "keyword": "توقيت",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "أساسية"
+    },
+    {
+      "id": 8,
+      "pillar": "إدارة المخاطر",
+      "topic": "الستوب لوز: وين يتحط صح ووين يتحط غلط",
+      "keyword": "ستوب",
+      "format": "reel",
+      "status": "queued",
+      "cat": "مالية"
+    },
+    {
+      "id": 9,
+      "pillar": "إدارة المخاطر",
+      "topic": "الريسك ريوورد: شلون تربح وانت خسران نص صفقاتك",
+      "keyword": "ريسك",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "مالية"
+    },
+    {
+      "id": 10,
+      "pillar": "إدارة المخاطر",
+      "topic": "حجم العقد: حسبة الـ1% اللي تحمي حسابك",
+      "keyword": "لوت",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "مالية"
+    },
+    {
+      "id": 11,
+      "pillar": "علم النفس",
+      "topic": "الأوفر تريدنق: چم صفقة باليوم تكفي؟",
+      "keyword": "هدوء",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "نفسية"
+    },
+    {
+      "id": 12,
+      "pillar": "علم النفس",
+      "topic": "صفقة الانتقام: شلون توقفها قبل ما تبدأ",
+      "keyword": "انتقام",
+      "format": "reel",
+      "status": "queued",
+      "cat": "نفسية"
+    },
+    {
+      "id": 13,
+      "pillar": "الانضباط",
+      "topic": "يوميات التداول: السجل اللي يوريك غلطك المتكرر",
+      "keyword": "يوميات",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "أساسية"
+    },
+    {
+      "id": 14,
+      "pillar": "الانضباط",
+      "topic": "الباك تست الصح: مو مجرد تقليب جارت",
+      "keyword": "باكتست",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "أساسية"
+    },
+    {
+      "id": 15,
+      "pillar": "برايس أكشن",
+      "topic": "البن بار: متى يصدق ومتى يكذب عليك",
+      "keyword": "بنبار",
+      "format": "reel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 16,
+      "pillar": "برايس أكشن",
+      "topic": "الدوجي: شمعة الحيرة عند مناطق القرار",
+      "keyword": "دوجي",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 17,
+      "pillar": "برايس أكشن",
+      "topic": "الشمعة الابتلاعية: السياق اللي يخليها إشارة",
+      "keyword": "ابتلاع",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 18,
+      "pillar": "فوليوم بروفايل",
+      "topic": "الفاليو إريا: وين السوق يتقبل السعر ووين يرفضه",
+      "keyword": "فاليو",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 19,
+      "pillar": "فوت برنت",
+      "topic": "الدلتا: شلون تقرأ ضغط الشراء والبيع داخل الشمعة",
+      "keyword": "دلتا",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 20,
+      "pillar": "فوت برنت",
+      "topic": "الامتصاص: البيع اللي ما ينزّل السعر",
+      "keyword": "امتصاص",
+      "format": "reel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 21,
+      "pillar": "التوقيت",
+      "topic": "رينج الجلسة الآسيوية: الصندوق اللي يحدد يومك",
+      "keyword": "آسيا",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "أساسية"
+    },
+    {
+      "id": 22,
+      "pillar": "التوقيت",
+      "topic": "الأخبار الحمراء: تتداولها ولا تنسحب؟",
+      "keyword": "أخبار",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "أساسية"
+    },
+    {
+      "id": 23,
+      "pillar": "علم النفس",
+      "topic": "الفومو: لحقت الشمعة؟ خلاص راحت عليك",
+      "keyword": "فومو",
+      "format": "reel",
+      "status": "queued",
+      "cat": "نفسية"
+    },
+    {
+      "id": 24,
+      "pillar": "إدارة المخاطر",
+      "topic": "البريك إيفن: متى تحرك ستوبك ومتى تخليه",
+      "keyword": "تعادل",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "مالية"
+    },
+    {
+      "id": 25,
+      "pillar": "التنفيذ",
+      "topic": "السبريد والعمولة: التكلفة الخفية على السكالبر",
+      "keyword": "سبريد",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "مالية"
+    },
+    {
+      "id": 26,
+      "pillar": "علم النفس",
+      "topic": "الثبات قبل المضاعفة: ليش الحساب الصغير مدرسة",
+      "keyword": "ثبات",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "نفسية"
+    },
+    {
+      "id": 27,
+      "pillar": "الانضباط",
+      "topic": "خطة التداول المكتوبة: قراراتك قبل ما يفتح السوق",
+      "keyword": "خطة",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "أساسية"
+    },
+    {
+      "id": 28,
+      "pillar": "برايس أكشن",
+      "topic": "الترند لاين الصح: من الفتائل ولا الأجسام؟",
+      "keyword": "ترند",
+      "format": "reel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 29,
+      "pillar": "SMC",
+      "topic": "الزون المحروق: المنطقة اللي انلمست مرتين",
+      "keyword": "محروق",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "فنية"
+    },
+    {
+      "id": 30,
+      "pillar": "الفريمات",
+      "topic": "فريم التنفيذ vs فريم القرار: لا تخلطهم",
+      "keyword": "تنفيذ",
+      "format": "carousel",
+      "status": "queued",
+      "cat": "فنية"
+    }
   ],
   "covered_before_backlog": [
     "الماركت ستركجر (كاروسيل + ريل)",
@@ -40,7 +280,15 @@
     "الفجوة السعرية FVG (كاروسيل — كلمة: فجوة)"
   ],
   "pdf_debts": [
-    {"keyword": "فجوة",   "for": "كاروسيل FVG 2026-08-02", "status": "queued"},
-    {"keyword": "ريتيست", "for": "ريل + شيت الريتيست",     "status": "queued"}
+    {
+      "keyword": "فجوة",
+      "for": "كاروسيل FVG 2026-08-02",
+      "status": "queued"
+    },
+    {
+      "keyword": "ريتيست",
+      "for": "ريل + شيت الريتيست",
+      "status": "queued"
+    }
   ]
 }
