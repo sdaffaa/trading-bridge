@@ -86,7 +86,7 @@ def cover():
     <h1 class="dbig">كتاب الألفَين</h1>
     <div class="tbar"></div>
     <p class="dtag">1000 فكرة في <b>التحليل الفني</b><br>و1000 فكرة في <b>نفسية المتداول</b></p>
-    <div class="dstats"><div><b>2000</b><span>فكرة مرقمة</span></div><div><b>8</b><span>أقسام</span></div><div><b>0</b><span>حشو أو تكرار</span></div></div>
+    <div class="dstats"><div><b>2000</b><span>فكرة مرقمة</span></div><div><b>8</b><span>أقسام</span></div><div><b>250</b><span>فكرة لكل قسم</span></div></div>
   </div>
   <div class="gfoot dk">ملف «الألفين» · <span dir="ltr">@liquidity.state</span></div>
 </div>'''
@@ -121,9 +121,9 @@ BCSS = f'''
 .th1{{font-size:22px;font-weight:900;color:#fff;background:{TEAL_D};padding:6px 18px;border-radius:2px}}
 .th1.psy{{background:{INK}}}
 .th2{{font-size:23px;font-weight:800;color:{GREY}}}
-.tipcols{{flex:1;column-count:2;column-gap:34px;column-fill:auto}}
-.tip{{display:flex;gap:12px;align-items:flex-start;break-inside:avoid;margin-bottom:15px}}
-.tip p{{font-size:22.5px;line-height:1.5;color:{INK};font-weight:600;text-align:right}}
+.tipcols{{height:968px;column-count:2;column-gap:36px;column-fill:auto}}
+.tip{{display:flex;gap:11px;align-items:flex-start;break-inside:avoid;margin-bottom:13px}}
+.tip p{{font-size:21px;line-height:1.44;color:{INK};font-weight:600;text-align:right}}
 .tn{{flex:none;min-width:46px;text-align:center;font-size:17px;font-weight:900;color:{TEAL_D};
   border:1.5px solid {CARDBD};background:#FBF9F5;padding:3px 6px;margin-top:2px;border-radius:2px}}
 .secdiv{{position:absolute;top:0;bottom:0;left:0;right:0;display:flex;flex-direction:column;
