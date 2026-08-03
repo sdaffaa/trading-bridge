@@ -94,7 +94,7 @@ def build_reel(cfg, out_html):
 <div id="chartwrap">{CHART}</div>
 <div id="res">{cfg["res"]}</div>
 <div id="cta"><span class="k">{cfg["cta_k"]}</span><div class="s">{cfg["cta_s"]}</div></div>
-<div id="edu">لغرض تعليمي — بيانات حقيقية</div>
+<div id="edu">{cfg.get("edu", "لغرض تعليمي — بيانات حقيقية")}</div>
 <div id="flash"></div><div id="rflash"></div>
 </div>
 <script>
