@@ -298,14 +298,21 @@
    "id": 33,
    "title": "السيولة الداخلية والخارجية: أي هدف يقصده السعر الآن؟",
    "cat": "SMC",
-   "done": false,
-   "source": "اقتراحات 2026-08-03 وفق V2"
+   "done": true,
+   "source": "اقتراحات 2026-08-03 وفق V2",
+   "status": "done",
+   "date": "2026-08-03",
+   "run": "day2-internal-external",
+   "keyword": "داخلية"
   },
   {
    "id": 34,
    "title": "البريكر بلوك (Breaker): المنطقة التي خانت أصحابها",
    "cat": "SMC",
-   "done": false,
+   "done": true,
+   "keyword": "بريكر",
+   "run": "day2-breaker",
+   "date": "2026-08-03",
    "source": "اقتراحات 2026-08-03 وفق V2"
   },
   {
@@ -340,8 +347,13 @@
    "id": 39,
    "title": "ما هو «التأكيد» فعلياً؟ ثلاث إشارات داخل المنطقة قبل التنفيذ",
    "cat": "تنفيذ",
-   "done": false,
-   "source": "اقتراحات 2026-08-03 وفق V2"
+   "done": true,
+   "source": "اقتراحات 2026-08-03 وفق V2",
+   "status": "done",
+   "keyword": "تأكيد",
+   "run": "day2-confirm",
+   "date": "2026-08-03",
+   "done_date": "2026-08-03"
   },
   {
    "id": 40,
