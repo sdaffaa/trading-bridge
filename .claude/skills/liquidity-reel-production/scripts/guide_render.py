@@ -1,0 +1,34 @@
+# -*- coding: utf-8 -*-
+# رندر دليل HTML → PDF (سكرينشوت كل صفحة بدقة 2x ثم دمج PIL)
+# python3 guide_render.py guide_x.html out.pdf
+import os, sys, glob
+from playwright.sync_api import sync_playwright
+from PIL import Image
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+CHROME = glob.glob("/opt/pw-browsers/chromium-*/chrome-linux/chrome")[0]
+
+def render(html_path, pdf_path, scale=2):
+    tmpdir = pdf_path + ".pages"
+    os.makedirs(tmpdir, exist_ok=True)
+    for f in glob.glob(os.path.join(tmpdir, "*.png")): os.remove(f)
+    with sync_playwright() as p:
+        b = p.chromium.launch(executable_path=CHROME, args=["--no-sandbox", "--force-color-profile=srgb"])
+        pg = b.new_page(viewport={"width": 1080, "height": 1350}, device_scale_factor=scale)
+        pg.goto("file://" + os.path.abspath(html_path))
+        pg.wait_for_timeout(700)
+        slides = pg.query_selector_all(".slide")
+        paths = []
+        for i, s in enumerate(slides):
+            out = os.path.join(tmpdir, f"p{i:02d}.png")
+            s.screenshot(path=out); paths.append(out)
+        b.close()
+    imgs = [Image.open(x).convert("RGB") for x in paths]
+    imgs[0].save(pdf_path, save_all=True, append_images=imgs[1:], resolution=180)
+    for x in paths: os.remove(x)
+    os.rmdir(tmpdir)
+    return len(imgs)
+
+if __name__ == "__main__":
+    n = render(sys.argv[1], sys.argv[2])
+    print("pdf pages:", n, "->", sys.argv[2])

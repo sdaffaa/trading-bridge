@@ -1,0 +1,5 @@
+scripts/out_*/
+scripts/*.html
+scripts/*.pdf
+scripts/*.zip
+scripts/__pycache__/

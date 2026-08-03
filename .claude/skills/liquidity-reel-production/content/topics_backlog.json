@@ -61,8 +61,10 @@
       "topic": "الكيل زونز بتوقيت الكويت: لندن ونيويورك",
       "keyword": "توقيت",
       "format": "carousel",
-      "status": "queued",
-      "cat": "أساسية"
+      "status": "done",
+      "cat": "أساسية",
+      "done_date": "2026-08-03",
+      "run": 1
     },
     {
       "id": 8,
@@ -79,8 +81,10 @@
       "topic": "الريسك ريوورد: شلون تربح وانت خسران نص صفقاتك",
       "keyword": "ريسك",
       "format": "carousel",
-      "status": "queued",
-      "cat": "مالية"
+      "status": "done",
+      "cat": "مالية",
+      "done_date": "2026-08-03",
+      "run": 1
     },
     {
       "id": 10,
@@ -97,8 +101,10 @@
       "topic": "الأوفر تريدنق: چم صفقة باليوم تكفي؟",
       "keyword": "هدوء",
       "format": "carousel",
-      "status": "queued",
-      "cat": "نفسية"
+      "status": "done",
+      "cat": "نفسية",
+      "done_date": "2026-08-03",
+      "run": 1
     },
     {
       "id": 12,
@@ -283,12 +289,14 @@
     {
       "keyword": "فجوة",
       "for": "كاروسيل FVG 2026-08-02",
-      "status": "queued"
+      "status": "done",
+      "done_date": "2026-08-03"
     },
     {
       "keyword": "ريتيست",
       "for": "ريل + شيت الريتيست",
-      "status": "queued"
+      "status": "done",
+      "done_date": "2026-08-03"
     }
   ]
 }
