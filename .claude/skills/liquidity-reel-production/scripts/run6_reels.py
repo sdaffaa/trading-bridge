@@ -2,7 +2,7 @@
 # تشغيلة 6 — تحويل وحدات اليوم الثلاث (فومو/باكتست/لوت) إلى ريلز (طلب فهد الصريح 2026-08-03)
 import os
 from reel_build import INK, TEAL, TEAL_D, RED, htext, hend, gen
-from reel_sfx_kit import build_reel, geom, line_el, xmark, checkmark
+from reel_sfx_kit import build_reel, geom, line_el, xmark, checkmark, zone_el, ring
 import chart_registry
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -34,11 +34,8 @@ sl_ch = W_[ISTP]["l"]
 ex.append(line_el(x(XC)-slot*0.6, y(sl_ch), x(ISTP)+slot*0.8, y(sl_ch), RED, 1.9, dash="7 5", id="chstop"))
 ex.append(f'<g id="chstoplbl" opacity="0">{htext(x(ISTP)+slot*0.5, y(sl_ch)+30, "طق ستوب اللاحقين", RED, 22)}</g>')
 zx0 = x(IZ0)-slot*0.5; zx1 = x(min(IE+3, 37))+slot*0.5
-ex.append(f'<g id="zone" opacity="0"><rect x="{zx0:.1f}" y="{y(ZT):.1f}" width="{zx1-zx0:.1f}" height="{y(ZB)-y(ZT):.1f}" fill="{TEAL}" style="opacity:0.16"/>'
-          f'<rect x="{zx0:.1f}" y="{y(ZT):.1f}" width="{zx1-zx0:.1f}" height="{y(ZB)-y(ZT):.1f}" fill="none" stroke="{TEAL_D}" stroke-width="1.6"/>'
-          + htext((zx0+zx1)/2, (y(ZT)+y(ZB))/2+8, "زون الانطلاق", TEAL_D, 23) + '</g>')
-ex.append(f'<g id="circ" opacity="0"><circle cx="{x(IE):.1f}" cy="{y(W_[IE]["l"]):.1f}" r="16" fill="none" stroke="{TEAL_D}" stroke-width="3.2"/>'
-          + htext(x(IE), y(W_[IE]["l"])+38, "الدخلة الصح", TEAL_D, 24) + '</g>')
+ex.append(zone_el("zone", zx0, y(ZT), zx1, y(ZB), htext((zx0+zx1)/2, (y(ZT)+y(ZB))/2+8, "زون الانطلاق", TEAL_D, 23)))
+ex.append(ring("circ", x(IE), y(W_[IE]["l"]), 16, TEAL_D, htext(x(IE), y(W_[IE]["l"])+38, "الدخلة الصح", TEAL_D, 24)))
 ex.append(checkmark(x(RB)-slot*0.2, y(W_[RB]["c"])-30, id="ck"))
 ex.append(f'<g id="reslbl" opacity="0">{htext(x(33), y(max(c["h"] for c in W_[33:]))-20, "+150 نقطة", TEAL_D, 28)}</g>')
 
@@ -49,10 +46,10 @@ story += [(27, 11.5)] + [(i, round(13.5 + (i-28)*0.28, 2)) for i in range(28, 38
 cfg = dict(
   w=W_, base=14, openmax=36, open_t=[[37, 0.35]], story=story,
   extra_svg="".join(ex),
-  marks=[["xc", 2.6, 2.95, "pop"], ["xclbl", 2.95, 3.2, "pop"],
+  marks=[["xc", 2.6, 3.05, "drawx"], ["xclbl", 3.05, 3.3, "pop"],
          ["chstop", 4.8, 5.3, "draw"], ["chstoplbl", 5.3, 5.55, "pop"],
-         ["zone", 7.6, 8.1, "fade"],
-         ["circ", 11.6, 11.95, "pop"],
+         ["zone", 7.6, 8.5, "zone"],
+         ["circ", 11.6, 12.0, "ring"],
          ["ck", 15.4, 15.7, "pop"], ["reslbl", 15.7, 16.0, "pop"]],
   fullset=["xc", "xclbl", "chstoplbl", "zone", "circ", "ck", "reslbl"], drawset=["chstop"],
   txt=[("t1", 0.35, 2.2, "فاتتك شمعة الاندفاع؟<br>وقف… لا تلحقها", 54, INK),
@@ -86,11 +83,12 @@ W2 = gen(ANCH2, 44, SEED2, wick=0.8)
 x2, y2, slot2 = geom(W2)
 T_IDX = [7, 13, 21, 31]     # مواقع الصفقات الأربع على الجارت
 ex2 = []
-ex2.append(f'<g id="m1" opacity="0"><circle cx="{x2(7):.1f}" cy="{y2(W2[7]["l"]):.1f}" r="13" fill="none" stroke="{TEAL_D}" stroke-width="2.8"/>{htext(x2(7), y2(W2[7]["l"])+34, "+2R", TEAL_D, 24)}</g>')
-ex2.append(f'<g id="m2" opacity="0">{xmark(x2(13), y2(W2[13]["h"]))}{htext(x2(13), y2(W2[13]["h"])-22, "−1R", RED, 24)}</g>'.replace('class="mk"', ''))
+ex2.append(ring("m1", x2(7), y2(W2[7]["l"]), 13, TEAL_D, htext(x2(7), y2(W2[7]["l"])+34, "+2R", TEAL_D, 24)))
+ex2.append(xmark(x2(13), y2(W2[13]["h"]), id="m2"))
+ex2.append(f'<g id="m2l" opacity="0">{htext(x2(13), y2(W2[13]["h"])-26, "−1R", RED, 24)}</g>')
 ex2.append(f'<g id="m3" opacity="0">{htext(x2(22), y2(max(c["h"] for c in W2[20:25]))-24, "3 خسارات ورا بعض −3R", RED, 23)}'
            f'<rect x="{x2(20)-slot2*0.6:.1f}" y="{y2(max(c["h"] for c in W2[20:25])):.1f}" width="{slot2*4.5:.1f}" height="{y2(min(c["l"] for c in W2[20:25]))-y2(max(c["h"] for c in W2[20:25])):.1f}" fill="{RED}" opacity="0.08"/></g>')
-ex2.append(f'<g id="m4" opacity="0"><circle cx="{x2(31):.1f}" cy="{y2(W2[31]["l"]):.1f}" r="13" fill="none" stroke="{TEAL_D}" stroke-width="2.8"/>{htext(x2(31), y2(W2[31]["l"])+34, "+4R", TEAL_D, 24)}</g>')
+ex2.append(ring("m4", x2(31), y2(W2[31]["l"]), 13, TEAL_D, htext(x2(31), y2(W2[31]["l"])+34, "+4R", TEAL_D, 24)))
 tb_x, tb_y = x2(28), y2(max(c["h"] for c in W2))
 ex2.append(chip(x2(30)-slot2*8, tb_y-6, slot2*17, "إصابة 45% · RR 1:2 · أطول سلسلة 5", TEAL_D, "tbl", fs=20))
 ex2.append(f'<g id="reslbl2" opacity="0">{htext(x2(37), y2(W2[43]["h"])-26, "+35R لكل 100 صفقة", TEAL_D, 26)}</g>')
@@ -104,10 +102,10 @@ story2 += [(i, round(14.6 + (i-34)*0.28, 2)) for i in range(34, 44)]
 cfg2 = dict(
   w=W2, base=9, openmax=42, open_t=[[43, 0.35]], story=story2,
   extra_svg="".join(ex2),
-  marks=[["m1", 3.0, 3.35, "pop"], ["m2", 5.6, 5.95, "pop"],
-         ["m3", 9.0, 9.4, "fade"], ["m4", 12.6, 12.95, "pop"],
+  marks=[["m1", 3.0, 3.4, "ring"], ["m2", 5.6, 6.0, "drawx"], ["m2l", 6.0, 6.25, "pop"],
+         ["m3", 9.0, 9.4, "fade"], ["m4", 12.6, 13.0, "ring"],
          ["tbl", 15.2, 15.55, "pop"], ["reslbl2", 16.1, 16.4, "pop"]],
-  fullset=["m1", "m2", "m3", "m4", "tbl", "reslbl2"], drawset=[],
+  fullset=["m1", "m2", "m2l", "m3", "m4", "tbl", "reslbl2"], drawset=[],
   txt=[("t1", 0.35, 2.2, "نظامك ربحان ولا خسران…<br>عندك دليل؟", 52, INK),
        ("t2", 2.45, 4.6, "أول صفقة ربحت…<br>لا تحكم — سجّلها وكمّل", 48, INK),
        ("t3", 4.9, 7.3, "ثاني وحدة خسرت…<br>لا تعدل القواعد بنص الاختبار", 46, INK),
@@ -145,7 +143,9 @@ SLB = W3[IBB]["l"] - rng3*0.13                   # ستوب 100 نقطة
 ex3 = []
 for id_, I, SLv, lbl in (("ea", IA, SLA, "ستوب 20 نقطة"), ("eb", IBB, SLB, "ستوب 100 نقطة")):
     bxx = x3(I) + slot3*1.7
-    ex3.append(f'<g id="{id_}" opacity="0"><circle cx="{x3(I):.1f}" cy="{y3(W3[I]["l"]):.1f}" r="14" fill="none" stroke="{TEAL_D}" stroke-width="3"/>'
+    ex3.append(f'<g id="{id_}" opacity="0">'
+               f'<circle class="r0" cx="{x3(I):.1f}" cy="{y3(W3[I]["l"]):.1f}" r="14" fill="none" stroke="{TEAL_D}" stroke-width="3"/>'
+               f'<circle class="rp" data-r="14" cx="{x3(I):.1f}" cy="{y3(W3[I]["l"]):.1f}" r="14" fill="none" stroke="{TEAL_D}" stroke-width="2" opacity="0"/>'
                f'<line x1="{x3(I)-slot3*1.4:.1f}" y1="{y3(SLv):.1f}" x2="{bxx+6:.1f}" y2="{y3(SLv):.1f}" stroke="{RED}" stroke-width="1.7" stroke-dasharray="6 5"/>'
                f'<line x1="{bxx:.1f}" y1="{y3(W3[I]["l"]):.1f}" x2="{bxx:.1f}" y2="{y3(SLv):.1f}" stroke="{INK}" stroke-width="1.8"/>'
                + htext(bxx+12, (y3(W3[I]["l"])+y3(SLv))/2+7, lbl, INK, 21, anchor="start") + '</g>')
@@ -161,8 +161,8 @@ story3 += [(i, round(13.4 + (i-27)*0.3, 2)) for i in range(27, 40)]
 cfg3 = dict(
   w=W3, base=11, openmax=38, open_t=[[39, 0.35]], story=story3,
   extra_svg="".join(ex3),
-  marks=[["ea", 3.0, 3.35, "pop"], ["ca", 4.4, 4.75, "pop"],
-         ["eb", 7.6, 7.95, "pop"], ["cb", 9.0, 9.35, "pop"],
+  marks=[["ea", 3.0, 3.4, "ring"], ["ca", 4.4, 4.75, "pop"],
+         ["eb", 7.6, 8.0, "ring"], ["cb", 9.0, 9.35, "pop"],
          ["warn", 11.6, 11.95, "pop"],
          ["reslbl3", 16.0, 16.3, "pop"]],
   fullset=["ea", "ca", "eb", "cb", "warn", "reslbl3"], drawset=[],

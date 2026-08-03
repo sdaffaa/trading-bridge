@@ -2,7 +2,7 @@
 # ريل «خطة الألف نقطة» — سكربت فهد الشخصي (2026-08-03)، 8 خطوات على جارت واحد حي
 import os
 from reel_build import INK, TEAL, TEAL_D, RED, htext, hend, gen
-from reel_sfx_kit import build_reel, geom, line_el, xmark, checkmark
+from reel_sfx_kit import build_reel, geom, line_el, xmark, checkmark, zone_el, ring
 import chart_registry
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -35,9 +35,7 @@ ex.append(line_el(x(IPV)-slot*0.4, y(BOSv), x(IB)+slot*0.75, y(BOSv), INK, 2.0, 
 ex.append(f'<g id="boslbl" opacity="0">{htext(x((IPV+IB)/2), y(BOSv)-18, "الستركجر انقلب صاعد", INK, 24)}</g>')
 # منطقة الاهتمام
 zx0 = x(IZ0)-slot*0.5; zx1 = x(min(IE+3, N-1))+slot*0.5
-ex.append(f'<g id="zone" opacity="0"><rect x="{zx0:.1f}" y="{y(ZT):.1f}" width="{zx1-zx0:.1f}" height="{y(ZB)-y(ZT):.1f}" fill="{TEAL}" style="opacity:0.16"/>'
-          f'<rect x="{zx0:.1f}" y="{y(ZT):.1f}" width="{zx1-zx0:.1f}" height="{y(ZB)-y(ZT):.1f}" fill="none" stroke="{TEAL_D}" stroke-width="1.6"/>'
-          + htext((zx0+zx1)/2, (y(ZT)+y(ZB))/2+8, "منطقة الاهتمام", TEAL_D, 23) + '</g>')
+ex.append(zone_el("zone", zx0, y(ZT), zx1, y(ZB), htext((zx0+zx1)/2, (y(ZT)+y(ZB))/2+8, "منطقة الاهتمام", TEAL_D, 23)))
 # الستوب والأهداف
 ex.append(line_el(x(IE)-slot*2.2, y(SL), x(IE)+slot*2.2, y(SL), RED, 2.0, dash="8 6", id="stop"))
 ex.append(f'<g id="stoplbl" opacity="0">{htext(x(IE)-slot*4.6, y(SL)+30, "الستوب", RED, 22)}</g>')
@@ -50,8 +48,7 @@ fx0 = x(IE)-slot*2.6; fy0 = y(SL)+44
 ex.append(f'<g id="fp" opacity="0"><rect x="{fx0:.1f}" y="{fy0:.1f}" width="{slot*5.2:.1f}" height="40" fill="#F2EEE7" stroke="{TEAL_D}" stroke-width="1.3"/>'
           + htext(fx0+slot*2.6, fy0+28, "الفوت برنت: امتصاص بيع ✓", TEAL_D, 21) + '</g>')
 # الدخلة + التأمين + النهاية
-ex.append(f'<g id="circ" opacity="0"><circle cx="{x(IE):.1f}" cy="{y(W_[IE]["l"]):.1f}" r="16" fill="none" stroke="{TEAL_D}" stroke-width="3.2"/>'
-          + htext(x(IE)+slot*3.2, y(W_[IE]["l"])+34, "الدخلة", TEAL_D, 24) + '</g>')
+ex.append(ring("circ", x(IE), y(W_[IE]["l"]), 16, TEAL_D, htext(x(IE)+slot*3.2, y(W_[IE]["l"])+34, "الدخلة", TEAL_D, 24)))
 ex.append(f'<g id="sec" opacity="0">{line_el(x(ISEC)-slot*1.6, y(W_[IE]["l"]), x(ISEC)+slot*1.6, y(W_[IE]["l"]), INK, 2.0)}'
           + htext(x(ISEC), y(W_[IE]["l"])+30, "أمّن — الستوب صار هني", INK, 22) + '</g>')
 ex.append(checkmark(x(RB)-slot*0.2, y(W_[RB]["c"])-34, id="ck"))
@@ -82,12 +79,12 @@ cfg = dict(
   w=W_, base=12, openmax=38, open_t=[[39, 0.35]], story=story,
   extra_svg="".join(ex),
   marks=[["bos", 2.7, 3.3, "draw"], ["boslbl", 3.3, 3.6, "pop"],
-         ["zone", 5.0, 5.5, "fade"],
+         ["zone", 5.0, 5.9, "zone"],
          ["stop", 7.3, 7.8, "draw"], ["stoplbl", 7.8, 8.05, "pop"],
          ["t1", 8.0, 8.5, "draw"], ["t1lbl", 8.5, 8.75, "pop"],
          ["t2", 16.1, 16.6, "draw"], ["t2lbl", 16.6, 16.85, "pop"],
          ["fp", 9.6, 9.95, "pop"],
-         ["circ", 12.0, 12.35, "pop"],
+         ["circ", 12.0, 12.4, "ring"],
          ["sec", 13.8, 14.15, "pop"],
          ["ck", 17.35, 17.65, "pop"], ["reslbl", 17.65, 17.95, "pop"]],
   fullset=["boslbl", "zone", "stoplbl", "t1lbl", "t2lbl", "fp", "circ", "sec", "ck", "reslbl"],
