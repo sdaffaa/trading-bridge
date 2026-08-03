@@ -29,9 +29,10 @@ def mux(video_in, events, video_out, dur=None, lufs=-16, sfx_dir=None):
         fparts.append(f"[{i+1}:a]adelay={d}|{d},volume={10**(gain/20):.4f}[s{i}]")
         labels.append(f"[s{i}]")
     n = len(events)
-    trim = f",atrim=0:{dur}" if dur else ""
+    # apad محدودة المدة صراحةً — apad بلا حد + atrim علّقت ffmpeg مع بعض المدخلات
+    pad = f"apad=whole_dur={dur},atrim=0:{dur}," if dur else ""
     fc = (";".join(fparts) + ";" + "".join(labels) +
-          f"amix=inputs={n}:normalize=0,apad{trim},"
+          f"amix=inputs={n}:normalize=0,{pad}"
           f"loudnorm=I={lufs}:TP=-1.5:LRA=11[aout]")
     cmd = [ff, "-y", "-v", "error", "-i", video_in] + ins + [
         "-filter_complex", fc, "-map", "0:v", "-map", "[aout]",

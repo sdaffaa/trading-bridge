@@ -65,13 +65,13 @@ cfg = dict(
   punch_origin="62% 55%", rflash=6.2)
 fxn = lambda i: x(i)/1000; fyn = lambda p: y(p)/820
 cfg["cam"] = [
-  [0.0, 1.03, .5, .5], [2.3, 1.05, .5, .5],
-  [2.8, 1.85, fxn(XC), fyn(W_[XC]["h"])],
-  [5.0, 1.9, fxn(ISTP), fyn(sl_ch)],
-  [7.7, 1.75, fxn((IZ0+IE)/2), fyn((ZT+ZB)/2)],
-  [11.5, 1.95, fxn(IE), fyn(W_[IE]["l"])],
-  [13.9, 1.6, fxn(31), fyn(W_[31]["c"])],
-  [16.1, 1.15, .5, .48], [18.1, 1.02, .5, .5], [21.6, 1.03, .5, .5]]
+  [0.0, 1.03, .5, .5], [2.3, 1.05, .5, .5, "creep"],
+  [2.8, 1.85, fxn(XC), fyn(W_[XC]["h"]), "anticip"],
+  [5.0, 1.9, fxn(ISTP), fyn(sl_ch), "ramp"],
+  [7.7, 1.75, fxn((IZ0+IE)/2), fyn((ZT+ZB)/2), "creep"],
+  [11.5, 1.95, fxn(IE), fyn(W_[IE]["l"]), "anticip"],
+  [13.9, 1.6, fxn(31), fyn(W_[31]["c"]), "whip", -1.2],
+  [16.1, 1.15, .5, .48, "creep", 0], [18.1, 1.02, .5, .5, "creep"], [21.6, 1.03, .5, .5, "creep"]]
 print("fomo html:", build_reel(cfg, "reel_fomo.html"), "| XC", XC)
 REG = [(SEED, ANCH, "ريل فومو run6")]
 
@@ -120,13 +120,13 @@ cfg2 = dict(
 cfg2.pop("rflash")
 fxn2 = lambda i: x2(i)/1000; fyn2 = lambda p: y2(p)/820
 cfg2["cam"] = [
-  [0.0, 1.03, .5, .5], [2.3, 1.05, .5, .5],
-  [2.8, 1.8, fxn2(7), fyn2(W2[7]["l"])],
-  [5.3, 1.85, fxn2(13), fyn2(W2[13]["h"])],
-  [8.6, 1.7, fxn2(22), fyn2(W2[22]["c"])],
-  [12.3, 1.85, fxn2(31), fyn2(W2[31]["l"])],
-  [15.1, 1.45, fxn2(33), fyn2(W2[33]["h"])],
-  [16.9, 1.12, .5, .48], [18.5, 1.02, .5, .5], [21.8, 1.03, .5, .5]]
+  [0.0, 1.03, .5, .5], [2.3, 1.05, .5, .5, "creep"],
+  [2.8, 1.8, fxn2(7), fyn2(W2[7]["l"]), "anticip"],
+  [5.3, 1.85, fxn2(13), fyn2(W2[13]["h"]), "ramp"],
+  [8.6, 1.7, fxn2(22), fyn2(W2[22]["c"]), "creep"],
+  [12.3, 1.85, fxn2(31), fyn2(W2[31]["l"]), "anticip"],
+  [15.1, 1.45, fxn2(33), fyn2(W2[33]["h"]), "whip", 1.1],
+  [16.9, 1.12, .5, .48, "creep", 0], [18.5, 1.02, .5, .5, "creep"], [21.8, 1.03, .5, .5, "creep"]]
 print("backtest html:", build_reel(cfg2, "reel_backtest.html"))
 REG.append((SEED2, ANCH2, "ريل باكتست run6"))
 
@@ -179,12 +179,12 @@ cfg3 = dict(
 cfg3.pop("rflash")
 fxn3 = lambda i: x3(i)/1000; fyn3 = lambda p: y3(p)/820
 cfg3["cam"] = [
-  [0.0, 1.03, .5, .5], [2.3, 1.05, .5, .5],
-  [2.8, 1.9, fxn3(IA), fyn3(SLA)],
-  [6.4, 1.9, fxn3(IBB), fyn3(SLB)],
-  [11.3, 1.55, fxn3(20), fyn3(W3[20]["h"])],
-  [13.6, 1.7, fxn3(30), fyn3(W3[30]["c"])],
-  [16.5, 1.12, .5, .48], [18.2, 1.02, .5, .5], [21.2, 1.03, .5, .5]]
+  [0.0, 1.03, .5, .5], [2.3, 1.05, .5, .5, "creep"],
+  [2.8, 1.9, fxn3(IA), fyn3(SLA), "anticip"],
+  [6.4, 1.9, fxn3(IBB), fyn3(SLB), "ramp"],
+  [11.3, 1.55, fxn3(20), fyn3(W3[20]["h"]), "whip", -1.1],
+  [13.6, 1.7, fxn3(30), fyn3(W3[30]["c"]), "anticip", 0],
+  [16.5, 1.12, .5, .48, "creep"], [18.2, 1.02, .5, .5, "creep"], [21.2, 1.03, .5, .5, "creep"]]
 print("lot html:", build_reel(cfg3, "reel_lot.html"))
 REG.append((SEED3, ANCH3, "ريل لوت run6"))
 

@@ -115,10 +115,18 @@ def build_reel(cfg, out_html):
 #edu{{position:absolute;bottom:46px;left:0;right:0;text-align:center;font-size:22px;color:#93A2A8;font-weight:600}}
 #flash{{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}}
 #rflash{{position:absolute;inset:0;background:{RED};opacity:0;pointer-events:none}}
+#camrot{{width:100%;height:100%;transform-origin:500px 410px}}
+#vig{{position:absolute;top:400px;left:20px;width:1040px;height:880px;pointer-events:none;opacity:0;
+  background:radial-gradient(78% 68% at 50% 48%, transparent 52%, rgba(8,19,28,0.34) 100%)}}
+#sweep{{position:absolute;top:380px;left:0;width:260px;height:920px;pointer-events:none;opacity:0;
+  background:linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.75) 45%, rgba(67,212,220,0.25) 55%, transparent 100%);
+  transform:skewX(-14deg)}}
 </style></head><body><div id="stage">
 {texts}
 <div id="chip">{cfg["chip"]}</div>
-<div id="chartwrap">{CHART}</div>
+<div id="chartwrap"><div id="camrot">{CHART}</div></div>
+<div id="vig"></div>
+<div id="sweep"></div>
 <div id="res">{cfg["res"]}</div>
 <div id="cta"><span class="k">{cfg["cta_k"]}</span><div class="s">{cfg["cta_s"]}</div></div>
 <div id="edu">{cfg.get("edu", "لغرض تعليمي — بيانات حقيقية")}</div>
@@ -259,26 +267,57 @@ window.__setFrame = function(t) {{
   const punch = Math.sin(Math.PI * seg(t, {pu_a}, {pu_b})) * {pu_s};
   const shp = seg(t, {fl_a}, {fl_a} + 0.42);
   const shake = shp > 0 && shp < 1 ? Math.sin(shp * 42) * (1 - shp) * 5.5 : 0;
-  // كاميرا كيفريمات: [t, scale, fx, fy] — fx/fy نقطة التركيز بنسب الجارت
+  // كاميرا سينمائية: [t, scale, fx, fy, ease?, rot?] — ease: ss|whip|ramp|anticip|creep
   const CAM = {json.dumps(cfg.get("cam", [[0, 1.03, 0.5, 0.5]]))};
-  const ss = u => u * u * (3 - 2 * u);          // smoothstep
-  let s0 = CAM[0], s1 = CAM[CAM.length - 1];
-  for (let i = 0; i < CAM.length - 1; i++)
-    if (t >= CAM[i][0] && t <= CAM[i + 1][0]) {{ s0 = CAM[i]; s1 = CAM[i + 1]; break; }}
-  if (t <= CAM[0][0]) s1 = s0 = CAM[0];
-  if (t >= CAM[CAM.length - 1][0]) s0 = s1 = CAM[CAM.length - 1];
-  const u = s1[0] > s0[0] ? ss(seg(t, s0[0], s1[0])) : 0;
-  const cs = (s0[1] + (s1[1] - s0[1]) * u) + punch;
-  let fx = s0[2] + (s1[2] - s0[2]) * u;
-  let fy = s0[3] + (s1[3] - s0[3]) * u;
+  const EASE = {{
+    ss: u => u * u * (3 - 2 * u),
+    creep: u => -(Math.cos(Math.PI * u) - 1) / 2,
+    whip: u => u >= 1 ? 1 : 1 - Math.pow(2, -10 * u),
+    ramp: u => u < 0.5 ? 16 * Math.pow(u, 5) : 1 - Math.pow(-2 * u + 2, 5) / 2,
+    anticip: u => {{ const c = 1.70158 * 1.1, c2 = c * 1.525;
+      return u < 0.5 ? (Math.pow(2*u, 2) * ((c2 + 1) * 2 * u - c2)) / 2
+                     : (Math.pow(2*u - 2, 2) * ((c2 + 1) * (u * 2 - 2) + c2) + 2) / 2; }}
+  }};
+  function camPose(tt) {{
+    let s0 = CAM[0], s1 = CAM[CAM.length - 1];
+    for (let i = 0; i < CAM.length - 1; i++)
+      if (tt >= CAM[i][0] && tt <= CAM[i + 1][0]) {{ s0 = CAM[i]; s1 = CAM[i + 1]; break; }}
+    if (tt <= CAM[0][0]) s1 = s0 = CAM[0];
+    if (tt >= CAM[CAM.length - 1][0]) s0 = s1 = CAM[CAM.length - 1];
+    const ez = EASE[s1[4] || "ss"] || EASE.ss;
+    const u = s1[0] > s0[0] ? ez(seg(tt, s0[0], s1[0])) : 0;
+    return {{ cs: s0[1] + (s1[1] - s0[1]) * u,
+             fx: s0[2] + (s1[2] - s0[2]) * u,
+             fy: s0[3] + (s1[3] - s0[3]) * u,
+             rz: (s0[5] || 0) + ((s1[5] || 0) - (s0[5] || 0)) * u }};
+  }}
+  const pNow = camPose(t), pPrev = camPose(Math.max(0, t - 0.033));
+  // اهتزاز هاند-هيلد ميكروسكوبي مستمر (حياة سينمائية بالثبات)
+  let cs = pNow.cs * (1 + 0.0028 * Math.sin(t * 0.62)) + punch;
+  let fx = pNow.fx + 0.0021 * Math.sin(t * 0.9 + 1.3) + 0.0011 * Math.sin(t * 2.3);
+  let fy = pNow.fy + 0.0017 * Math.cos(t * 0.8) + 0.0009 * Math.sin(t * 1.7 + 0.5);
   const lim = cs > 1 ? (cs - 1) / (2 * cs) : 0;    // ما نطلع برا حدود الجارت
-  fx = clamp(fx, 0.5 - lim, 0.5 + lim) * 0 + Math.max(0.5 - lim, Math.min(0.5 + lim, fx));
+  fx = Math.max(0.5 - lim, Math.min(0.5 + lim, fx));
   fy = Math.max(0.5 - lim, Math.min(0.5 + lim, fy));
   const CWp = 1000, CHp = 820;
   const tx = CWp / 2 - cs * fx * CWp + shake;
   const ty = CHp / 2 - cs * fy * CHp + shake * 0.6;
   const wrap = $("chartwrap");
   wrap.style.transform = `translate(${{tx.toFixed(1)}}px, ${{ty.toFixed(1)}}px) scale(${{cs.toFixed(4)}})`;
+  // دوران دَتش + موشن بلير يتبع سرعة الكاميرا
+  const camSpeed = Math.abs(pNow.cs - pPrev.cs) * 130 + (Math.abs(pNow.fx - pPrev.fx) + Math.abs(pNow.fy - pPrev.fy)) * 380;
+  const mblur = clamp(camSpeed - 0.22, 0, 3.0);
+  const rot = $("camrot");
+  rot.style.transform = pNow.rz ? `rotate(${{pNow.rz.toFixed(3)}}deg)` : "";
+  rot.style.filter = mblur > 0.25 ? `blur(${{mblur.toFixed(2)}}px)` : "";
+  // فينيت يتنفس مع الزوم + ضربة ضوء تكنس الشاشة بالذروة
+  $("vig").style.opacity = clamp(0.10 + (cs - 1) * 0.17 + (shp > 0 && shp < 1 ? 0.08 : 0), 0, 0.36);
+  const swk = seg(t, {fl_a} - 0.08, {fl_a} + 0.5);
+  const sw = $("sweep");
+  if (swk > 0 && swk < 1) {{
+    sw.style.opacity = 0.55 * Math.sin(Math.PI * swk);
+    sw.style.transform = `translateX(${{(-320 + 1500 * swk).toFixed(0)}}px) skewX(-14deg)`;
+  }} else sw.style.opacity = 0;
   if (t > {cfg["cta_t"]} + 0.6) {{
     const pulse = 1 + 0.028 * Math.sin(2 * Math.PI * (t - {cfg["cta_t"]}) * 0.8);
     $("cta").style.transform = `translateY(0px) scale(${{pulse.toFixed(4)}})`;
