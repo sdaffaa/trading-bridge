@@ -23,7 +23,9 @@ IZ0, IZ1 = 11, 13                                          # قاعدة الان
 ZT = max(max(c["o"], c["c"]) for c in W_[IZ0:IZ1+1])
 ZB = min(c["l"] for c in W_[IZ0:IZ1+1])
 IE = 22                                                    # شمعة الدخلة (رجعة للزون)
-SL = ZB - (max(c["h"] for c in W_) - min(c["l"] for c in W_)) * 0.035   # الستوب تحت الزون
+RNG_ = max(c["h"] for c in W_) - min(c["l"] for c in W_)
+SL = min(c["l"] for c in W_[19:31]) - RNG_ * 0.03   # الستوب تحت أدنى فتيل بمدى البوكس — ما في شمعة تلمسه
+assert all(c["l"] > SL for c in W_[19:31]), "شمعة لامست الستوب!"
 ISEC = 26                                                  # التأمين بعد أول دفعة
 T1 = W_[IB]["h"] + (BOSv - ZB) * 0.9                       # هدف 1
 RB = 39                                                    # نهاية الحركة (الأهداف الكبيرة)
@@ -48,7 +50,7 @@ ex.append(f'<g id="fp" opacity="0"><rect x="{fx0:.1f}" y="{fy0:.1f}" width="{slo
 # الدخلة + التأمين + النهاية
 ex.append(ring("circ", x(IE), y(W_[IE]["l"]), 16, TEAL_D, htext(x(IE)+slot*3.2, y(W_[IE]["l"])+34, "الدخلة", TEAL_D, 24)))
 ex.append(f'<g id="sec" opacity="0">{line_el(x(ISEC)-slot*1.6, y(W_[IE]["l"]), x(ISEC)+slot*1.6, y(W_[IE]["l"]), INK, 2.0)}'
-          + htext(x(ISEC), y(W_[IE]["l"])+30, "أمّن — الستوب صار هني", INK, 22) + '</g>')
+          + htext(x(ISEC), y(W_[IE]["l"])+30, "انقل الستوب هني — صفر مخاطرة", INK, 22) + '</g>')
 ex.append(checkmark(x(RB)-slot*0.2, y(W_[RB]["c"])-34, id="ck"))
 ex.append(f'<g id="reslbl" opacity="0">{htext(x(35), y(max(c["h"] for c in W_[36:]))-20, "+1000 نقطة", TEAL_D, 30)}</g>')
 
@@ -66,7 +68,7 @@ TXT = [
  ("t4", 7.15, 9.2, "3 — حدد الستوب والأهداف<br>قبل أي شي", 50, INK),
  ("t5", 9.45, 11.6, "4 — تابع الفوت برنت<br>بنماذجك الخاصة", 50, INK),
  ("t6", 11.85, 13.3, "5 — ادخل الصفقة", 54, INK),
- ("t7", 13.55, 15.7, "6 — أمّن بعد ربح معين…<br>خلاص ما تخسر", 48, INK),
+ ("t7", 13.55, 15.7, "6 — انقل الستوب على دخلتك…<br>خلاص ما تخسر", 48, INK),
  ("t8", 15.95, 17.9, "7 — خلها تروح حق أهدافك<br>بالفريمات الكبيرة", 48, INK),
 ]
 
