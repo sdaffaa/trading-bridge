@@ -25,9 +25,10 @@ def _page(cfg, i, pg, total):
     lead += "".join(f'<p class="lead2">{t}</p>' for t in pg.get("paras", []))
     tick = f'<div class="realhead"><span></span><span class="ticker">{pg["ticker"]}</span></div>' if pg.get("ticker") else ""
     extra = pg.get("html", "")
+    dense = " dense" if (pg.get("svg") or pg.get("html")) and pg.get("paras") else ""
     return f'''<div class="slide" {CW}>
   {brandbar(True)}
-  <div class="cont">
+  <div class="cont{dense}">
     <div class="numrow"><span class="num">{i}</span><h2 class="ttl">{pg["title"]}</h2></div>
     {lead}{tick}{rows}{svg}{extra}{note}
   </div>
@@ -49,6 +50,10 @@ def _outro(cfg, total):
 GCSS = f'''
 .lead2{{font-size:27px;line-height:1.78;color:{GREY};font-weight:600;margin:16px 0 0;text-align:right}}
 .lead2 b{{color:{INK};font-weight:900}}
+.cont.dense{{gap:14px;justify-content:flex-start;top:220px}}
+.cont.dense .lead2{{font-size:23px;line-height:1.62;margin-top:8px}}
+.cont.dense .ttl{{font-size:44px}}
+.cont.dense .chartwrap{{padding:10px 14px;margin-top:6px}}
 .gfoot{{position:absolute;bottom:54px;left:0;right:0;text-align:center;color:{MUTE};font-size:22px;font-weight:600}}
 .gfoot.dk{{color:#7F97A1}}
 .tblx{{width:100%;border-collapse:collapse;background:#FBF9F5;border:1px solid #DED8CC}}

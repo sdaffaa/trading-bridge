@@ -24,8 +24,8 @@ def _story(kind, v):
              (20, 14.4 - v*0.3), (23, 15.2), (29, 21.5 + v*0.9)]
         return a, dict(xe=14, stop=20, cont=29)
     if kind == "retest":         # اندفاع ← رجعة للزون ← دخلة صح ← هدف
-        a = [(0, 10.0), (5, 9.4 + v*0.4), (9, 10.1), (14, 16.8 + v*0.6), (17, 15.4),
-             (21, 12.9 - v*0.4), (23, 13.3), (29, 19.8 + v*1.0)]
+        a = [(0, 10.0), (5, 9.4 + v*0.4), (9, 10.1), (14, 16.8 + v*0.6), (17, 14.6),
+             (21, 10.7 + v*0.2), (23, 11.6), (29, 19.8 + v*1.0)]
         return a, dict(iz=8, xe=14, ie=21, tgt=29)
     if kind == "skip":           # اندفاع ما رجع — الصح إنك ما تلحقه
         a = [(0, 10.0), (6, 10.6), (10, 11.0 - v*0.3), (16, 16.2), (21, 17.8), (29, 22.6 + v*0.7)]
@@ -36,9 +36,11 @@ def _story(kind, v):
     raise ValueError(kind)
 
 def _zone_from(w, i):
-    return w[i]["o"], w[i]["l"]
+    """نطاق الزون من شموع القاعدة (i-1..i+1) — سميك وواضح، مثبت على OHLC فعلي."""
+    seg = w[max(0, i-1):i+2]
+    return max(max(c["o"], c["c"]) for c in seg), min(c["l"] for c in seg)
 
-def trade_chart(kind, seed, outcome, ok, v=0, extra=None, Wd=920, H=470):
+def trade_chart(kind, seed, outcome, ok, v=0, extra=None, Wd=920, H=430):
     anchors, ix = _story(kind, v)
     chart_registry.assert_fresh_synthetic(seed, anchors, label=f"run4-{kind}")
     w = gen(anchors, N, seed, wick=0.85)
@@ -93,22 +95,30 @@ def trade_chart(kind, seed, outcome, ok, v=0, extra=None, Wd=920, H=470):
         sl = min(c["l"] for c in w[IE:BK])
         svg += f'<line x1="{x(IE)-slot*0.6:.1f}" y1="{y(w[BK]["h"]):.1f}" x2="{x(BK)+slot*0.7:.1f}" y2="{y(w[BK]["h"]):.1f}" stroke="{RED}" stroke-width="1.8" stroke-dasharray="7 5"/>'
         svg += htext(x(BK), y(w[BK]["h"]) - 16, "الستوب — خروج نظيف", RED, 18)
-    # شارة النتيجة
-    col = TEAL_D if ok else RED
-    svg += (f'<g><rect x="{Wd-268}" y="16" width="252" height="46" fill="{"#EAF3F5" if ok else "#F8ECEC"}" stroke="{col}" stroke-width="1.4"/>'
-            + htext(Wd-142, 47, outcome, col, 21) + '</g>')
+    # شارة النتيجة (اختيارية) — عرضها يتبع طول النص
+    if outcome:
+        col = TEAL_D if ok else RED
+        bw = min(Wd - 40, 44 + int(len(outcome) * 12.5))
+        svg += (f'<g><rect x="{Wd-16-bw}" y="16" width="{bw}" height="46" fill="{"#EAF3F5" if ok else "#F8ECEC"}" stroke="{col}" stroke-width="1.4"/>'
+                + htext(Wd - 16 - bw/2, 47, outcome, col, 21) + '</g>')
     return svg + "</svg>", (seed, anchors)
 
+# جدول الحكم (باكتست — الصفقة 5): أرقام عينة الايجنت
+BT4_TABLE = '''<table class="tblx" style="border-collapse:collapse;width:100%;background:#FBF9F5;border:1px solid #DED8CC">
+<tr><th style="background:#1E627A;color:#fff;font-size:26px;font-weight:800;padding:13px">العينة</th><th style="background:#1E627A;color:#fff;font-size:26px;font-weight:800;padding:13px">الإصابة</th><th style="background:#1E627A;color:#fff;font-size:26px;font-weight:800;padding:13px">متوسط RR</th><th style="background:#1E627A;color:#fff;font-size:26px;font-weight:800;padding:13px">أطول سلسلة</th><th style="background:#1E627A;color:#fff;font-size:26px;font-weight:800;padding:13px">المحصلة</th></tr>
+<tr><td style="font-size:27px;padding:14px;text-align:center;border-top:1px solid #EDE7DB;color:#0F2E3C;font-weight:800">50 صفقة</td><td style="font-size:27px;padding:14px;text-align:center;border-top:1px solid #EDE7DB;color:#1E627A;font-weight:800">45%</td><td style="font-size:27px;padding:14px;text-align:center;border-top:1px solid #EDE7DB;color:#1E627A;font-weight:800">1 : 2</td><td style="font-size:27px;padding:14px;text-align:center;border-top:1px solid #EDE7DB;color:#D24B4B;font-weight:800">5 ورا بعض</td><td style="font-size:27px;padding:14px;text-align:center;border-top:1px solid #EDE7DB;color:#1E627A;font-weight:900">+35R / 100</td></tr>
+</table>'''
+
 # ================= سلايد الصفقة =================
-def trade_slide(idx, total, n, t, chart_svg, strip_html=""):
+def trade_slide(idx, total, n, t, chart_svg, inner_html=None):
+    body = f'<div class="chartwrap">{chart_svg}</div>' if chart_svg else (inner_html or "")
     return f'''<div class="slide" {CW}>
   {counter(idx, total)}
   {brandbar(True)}
   <div class="cont">
     <div class="numrow"><span class="num">{n}</span><h2 class="ttl">{t["title"]}</h2></div>
     <div class="tlabel">{t["label"]}</div>
-    <div class="chartwrap">{chart_svg}</div>
-    {strip_html}
+    {body}
     <div class="rulerow"><span class="rn x">✗</span><p>{t["bait"]}</p></div>
     <div class="rulerow"><span class="rn">✓</span><p>{t["right"]}</p></div>
     <div class="note">{t["because"]}</div>
@@ -142,18 +152,19 @@ def strip(txt):
 
 # ================= بناء الكاروسيلات الثلاثة =================
 # خطة المرئيات: (kind, seed, ok, variant, extra) لكل صفقة — بذور جديدة كلياً (4100+)
+# «table» = جدول بدل الجارت (سلايد الحكم بالباكتست)
 PLANS = {
  "fomo":     [("chase", 4101, False, 0, None), ("retest", 4102, True, 0, None),
               ("skip", 4103, True, 0, None),   ("chase", 4104, False, 1, None),
-              ("retest", 4105, True, 1, {"stop_pts": "ستوب قريب", "stop_frac": 0.05})],
- "backtest": [("retest", 4111, True, 0, None), ("chase", 4112, False, 0, None),
-              ("loss", 4113, False, 0, None),  ("retest", 4114, True, 1, None),
-              ("skip", 4115, True, 1, None)],
- "lot":      [("retest", 4121, True, 0, {"stop_pts": "30 نقطة", "stop_frac": 0.045}),
-              ("retest", 4122, True, 1, {"stop_pts": "90 نقطة", "stop_frac": 0.115}),
-              ("retest", 4123, True, 0, {"stop_pts": "50 نقطة", "stop_frac": 0.07}),
+              ("retest", 4105, True, 1, {"stop_pts": "20 نقطة", "stop_frac": 0.045})],
+ "backtest": [("retest", 4111, True, 0, None), ("loss", 4112, False, 0, None),
+              ("loss", 4113, False, 1, None),  ("retest", 4114, True, 1, None),
+              ("table", 0, True, 0, None)],
+ "lot":      [("retest", 4121, True, 0, {"stop_pts": "20 نقطة", "stop_frac": 0.04}),
+              ("retest", 4122, True, 1, {"stop_pts": "100 نقطة", "stop_frac": 0.13}),
+              ("retest", 4123, True, 0, {"stop_pts": "50 نقطة", "stop_frac": 0.075}),
               ("loss", 4124, False, 0, None),
-              ("retest", 4125, True, 1, {"stop_pts": "60 نقطة", "stop_frac": 0.08})],
+              ("retest", 4125, True, 1, {"stop_pts": "40 نقطة", "stop_frac": 0.06})],
 }
 KW = {"fomo": "فومو", "backtest": "باكتست", "lot": "لوت"}
 TOTAL = 7
@@ -162,16 +173,18 @@ registered = []
 def build_car5(key):
     cc = CP[key]["car5"]
     plan = PLANS[key]
-    hero_svg, _ = trade_chart(plan[1][0], plan[1][1] + 900, cc["trades"][1]["outcome"], plan[1][2], plan[1][3], plan[1][4], Wd=700, H=330)
+    hero_svg, _ = trade_chart(plan[0][0], plan[0][1] + 900, None, plan[0][2], plan[0][3], plan[0][4], Wd=700, H=330)
     SL = [cover_slide(cc["cover_eyebrow"], cc["cover_title"], cc["cover_tag"], dkmap(hero_svg), total=TOTAL)]
     for i, (t, pl) in enumerate(zip(cc["trades"], plan)):
         kind, seed, ok, v, extra = pl
-        svg, reg = trade_chart(kind, seed, t["outcome"], ok, v, extra)
-        registered.append(reg + (f'run4-{key}-t{i+1}',))
-        sh = ""
-        if key == "lot" and t.get("calc"): sh = strip(t["calc"])
-        if key == "backtest" and t.get("tally"): sh = strip(t["tally"])
-        SL.append(trade_slide(2 + i, TOTAL, str(i + 1), t, svg, sh))
+        if kind == "table":
+            svg = None
+            inner = BT4_TABLE
+        else:
+            svg, reg = trade_chart(kind, seed, t["outcome"], ok, v, extra)
+            registered.append(reg + (f'run4-{key}-t{i+1}',))
+            inner = None
+        SL.append(trade_slide(2 + i, TOTAL, str(i + 1), t, svg, inner_html=inner))
     SL.append(quote_cta_slide(TOTAL, TOTAL, cc, KW[key]))
     build_carousel(SL, f'{KW[key]} — Liquidity State', os.path.join(HERE, f"car4_{key}.html"), extra_css=X4CSS)
     print(f"car4_{key}.html: {len(SL)} slides")
@@ -187,8 +200,17 @@ TITLES = {"istidraj": ("دليل — SMC", "الاستدراج<br>قبل الح�
           "lot": ("دليل — إدارة المخاطر", "حجم العقد<br>وحسبة الـ1%", "لوت")}
 
 # مرئيات صفحات الصفقات بالأدلة: نفس مولد الصفقات (بذور جديدة لكل دليل)
+# «real» = الجارت الحقيقي (الذهب/الداو)، «table» = جدول الحكم
 GSEED = {"istidraj": 4200, "nus": 4230, "fomo": 4260, "backtest": 4290, "lot": 4320}
-GKINDS = ["retest", "chase", "skip", "loss", "retest"]
+GPLANS = {
+ "istidraj": [("real",), ("chase", False, 0, None), ("loss", False, 0, None), ("retest", True, 0, None), ("skip", True, 0, None)],
+ "nus":      [("real",), ("chase", False, 1, None), ("loss", False, 1, None), ("retest", True, 1, None), ("skip", True, 1, None)],
+ "fomo":     [("chase", False, 0, None), ("retest", True, 0, None), ("skip", True, 0, None), ("chase", False, 1, None), ("retest", True, 1, {"stop_pts": "20 نقطة", "stop_frac": 0.045})],
+ "backtest": [("retest", True, 0, None), ("loss", False, 0, None), ("loss", False, 1, None), ("retest", True, 1, None), ("table",)],
+ "lot":      [("retest", True, 0, {"stop_pts": "20 نقطة", "stop_frac": 0.04}), ("retest", True, 1, {"stop_pts": "100 نقطة", "stop_frac": 0.13}),
+              ("retest", True, 0, {"stop_pts": "50 نقطة", "stop_frac": 0.075}), ("loss", False, 0, None),
+              ("retest", True, 1, {"stop_pts": "40 نقطة", "stop_frac": 0.06})],
+}
 
 from run3_build import istidraj_static, nus_static, fomo_chase, BT_TABLE, LOT_CARD
 
@@ -207,18 +229,19 @@ for key, (eyeb, ttl, kw) in TITLES.items():
         if pg.get("paras"): p["paras"] = pg["paras"]
         if pg.get("rules"): p["rules"] = [dict(t=r["t"], bad=bool(r.get("bad"))) for r in pg["rules"]]
         if pg.get("note"): p["note"] = pg["note"]
-        # صفحات الصفقات (يحددها الايجنت بحقل trade=true) تاخذ جارت
-        if pg.get("trade") and tk < 5:
-            kind = GKINDS[tk]
-            seed = tseed + tk
-            # قصتا الذهب والداو الحقيقيتان: الصفقة الأولى بجارتهما الحقيقي
-            if key == "istidraj" and tk == 0:
-                p["svg"] = istidraj_static(880, 380); p["ticker"] = "الذهب · 15 دقيقة · 2026-05-29"
-            elif key == "nus" and tk == 0:
-                p["svg"] = nus_static(880, 380); p["ticker"] = "الداو جونز · فريم الساعة · 2025-10-29"
+        # صفحات الصفقات (عناوينها تبدأ بـ«الصفقة») تاخذ جارت حسب خطة الدليل
+        if pg["title"].strip().startswith("الصفقة") and tk < 5:
+            pl = GPLANS[key][tk]
+            if pl[0] == "real":
+                if key == "istidraj":
+                    p["svg"] = istidraj_static(880, 300); p["ticker"] = "الذهب · 15 دقيقة · 2026-05-29"
+                else:
+                    p["svg"] = nus_static(880, 300); p["ticker"] = "الداو جونز · فريم الساعة · 2025-10-29"
+            elif pl[0] == "table":
+                p["html"] = BT4_TABLE
             else:
-                ok = kind in ("retest", "skip")
-                svg, reg = trade_chart(kind, seed, pg.get("outcome", "—"), ok, tk % 2, None, Wd=880, H=380)
+                kind, ok, v, extra = pl
+                svg, reg = trade_chart(kind, tseed + tk, None, ok, v, extra, Wd=880, H=270)
                 registered.append(reg + (f'run4-guide-{key}-t{tk+1}',))
                 p["svg"] = svg
             tk += 1
