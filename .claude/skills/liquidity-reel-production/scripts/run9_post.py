@@ -44,11 +44,20 @@ JOBS = [
    ("tick", 17.4, -2), ("pop", 17.9, -3), ("success", 18.65, 0), ("pop", 21.4, -3)]),
 ]
 
-for key, mus, dur, ti, tc, events in JOBS:
-    raw = os.path.join(HERE, f"reel9_{key}_raw.mp4")
-    render(os.path.join(HERE, f"reel9_{key}.html"), raw)
-    bpath = bed(mus, os.path.join(HERE, f"bed9_{key}.wav"), dur, ti, tc)
-    mux(raw, events + [(bpath, 0.0, -7)], os.path.join(HERE, f"reel9_{key}_final.mp4"),
-        dur=dur, lufs=-14, sfx_dir=G)
-    print(key, "FINAL OK")
-print("ALL DONE")
+def run_job(key):
+    for k, mus, dur, ti, tc, events in JOBS:
+        if k != key:
+            continue
+        raw = os.path.join(HERE, f"reel9_{k}_raw.mp4")
+        render(os.path.join(HERE, f"reel9_{k}.html"), raw)
+        bpath = bed(mus, os.path.join(HERE, f"bed9_{k}.wav"), dur, ti, tc)
+        mux(raw, events + [(bpath, 0.0, -7)], os.path.join(HERE, f"reel9_{k}_final.mp4"),
+            dur=dur, lufs=-14, sfx_dir=G)
+        print(k, "FINAL OK")
+
+if __name__ == "__main__":
+    import sys
+    keys = sys.argv[1:] or [j[0] for j in JOBS]
+    for k in keys:
+        run_job(k)
+    print("ALL DONE")
