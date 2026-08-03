@@ -1,1 +1,6 @@
 .env
+
+# نواتج بناء الريلز (تُرسل للمستخدم ولا تُرفع للريبو)
+.claude/skills/*/scripts/*.mp4
+.claude/skills/*/scripts/*.wav
+.claude/skills/*/scripts/qa*.png
