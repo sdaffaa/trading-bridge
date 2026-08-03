@@ -22,13 +22,14 @@ XP = max(range(IS0, IS1+1), key=lambda j: W_[j]["h"])       # أعلى شمعة 
 
 ex = []
 ex.append(line_el(x(I1)-slot*0.5, y(EQ), x(IS1)+slot*0.55, y(EQ), RED, 2.4, id="baitline"))
-ex.append(f'<g id="baitlbl" opacity="0">{htext(x((I1+IS0)/2), y(max(EQ, W_[XP]["h"]))-22, "الطعم — قمم جاهزة", RED, 25)}</g>')
+ex.append(f'<g id="baitlbl" opacity="0">{htext(x((I1+IS0)/2), y(max(EQ, W_[XP]["h"]))-22, "هني أغروك تدخل", RED, 25)}</g>')
 ex.append(xmark(x(XP), y(W_[XP]["h"]), id="xp"))
 zx0 = x(IOB)-slot*0.5; zx1 = x(min(IR+3, N-1))+slot*0.5
 ex.append(f'<g id="zone" opacity="0"><rect x="{zx0:.1f}" y="{y(ZT):.1f}" width="{zx1-zx0:.1f}" height="{y(ZB)-y(ZT):.1f}" fill="{TEAL}" style="opacity:0.16"/>'
           f'<rect x="{zx0:.1f}" y="{y(ZT):.1f}" width="{zx1-zx0:.1f}" height="{y(ZB)-y(ZT):.1f}" fill="none" stroke="{TEAL_D}" stroke-width="1.6"/>'
           + htext((zx0+zx1)/2, y(ZB)+30, "المنطقة الحقيقية", TEAL_D, 24) + '</g>')
-ex.append(f'<g id="circ" opacity="0"><circle cx="{x(IR):.1f}" cy="{y(W_[IR]["l"]):.1f}" r="16" fill="none" stroke="{RED}" stroke-width="3.2"/></g>')
+ex.append(f'<g id="circ" opacity="0"><circle cx="{x(IR):.1f}" cy="{y(W_[IR]["l"]):.1f}" r="16" fill="none" stroke="{TEAL_D}" stroke-width="3.2"/>'
+          + htext(x(IR)-slot*0.5, y(W_[IR]["l"])+40, "الدخلة الصح — من هني", TEAL_D, 24) + '</g>')
 ex.append(checkmark(x(RB)+slot*1.05, y(W_[RB]["c"]), id="ck"))
 ex.append(f'<g id="reallbl" opacity="0">{htext(x(RB)-slot*0.6, y(max(c["h"] for c in W_[RB:]))-16, "الحركة الحقيقية", TEAL_D, 25)}</g>')
 
@@ -68,7 +69,8 @@ zx0 = x(IOB)-slot*0.5; zx1 = x(min(IR+2, N-1))+slot*0.5
 ex.append(f'<g id="zone" opacity="0"><rect x="{zx0:.1f}" y="{y(ZT):.1f}" width="{zx1-zx0:.1f}" height="{y(ZB)-y(ZT):.1f}" fill="{TEAL}" style="opacity:0.16"/>'
           f'<rect x="{zx0:.1f}" y="{y(ZT):.1f}" width="{zx1-zx0:.1f}" height="{y(ZB)-y(ZT):.1f}" fill="none" stroke="{TEAL_D}" stroke-width="1.6"/>'
           + htext((zx0+zx1)/2, y(ZB)+30, "زون الطلب", TEAL_D, 24) + '</g>')
-ex.append(f'<g id="circ" opacity="0"><circle cx="{x(IR):.1f}" cy="{y(W_[IR]["l"]):.1f}" r="16" fill="none" stroke="{RED}" stroke-width="3.2"/></g>')
+ex.append(f'<g id="circ" opacity="0"><circle cx="{x(IR):.1f}" cy="{y(W_[IR]["l"]):.1f}" r="16" fill="none" stroke="{TEAL_D}" stroke-width="3.2"/>'
+          + htext(x(IR)-slot*2.0, y(W_[IR]["l"])+42, "الدخول الصح — هني بالرخيص", TEAL_D, 23) + '</g>')
 ex.append(checkmark(x(41)+slot*0.9, y(W_[41]["c"]), id="ck"))
 
 story = [(i, round(5.9 + (i-27)*0.3, 2)) for i in range(27, 39)]      # النزول 27..38
