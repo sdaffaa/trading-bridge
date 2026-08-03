@@ -6,16 +6,22 @@
       "pillar": "السيولة",
       "topic": "أنواع تجمعات السيولة: قمم متساوية، قيعان متساوية، ترند لاين",
       "keyword": "سيولة",
-      "status": "queued",
-      "cat": "فنية"
+      "status": "done",
+      "cat": "فنية",
+      "done_date": "2026-08-03",
+      "run": 2,
+      "media": "reel"
     },
     {
       "id": 2,
       "pillar": "هيكل السوق",
       "topic": "الكسر الحقيقي vs الكسر الوهمي: الجسم مو الفتيل",
       "keyword": "كسر",
-      "status": "queued",
-      "cat": "فنية"
+      "status": "done",
+      "cat": "فنية",
+      "done_date": "2026-08-03",
+      "run": 2,
+      "media": "reel"
     },
     {
       "id": 3,
@@ -64,8 +70,11 @@
       "pillar": "إدارة المخاطر",
       "topic": "الستوب لوز: وين يتحط صح ووين يتحط غلط",
       "keyword": "ستوب",
-      "status": "queued",
-      "cat": "مالية"
+      "status": "done",
+      "cat": "مالية",
+      "done_date": "2026-08-03",
+      "run": 2,
+      "media": "carousel"
     },
     {
       "id": 9,
@@ -100,16 +109,22 @@
       "pillar": "علم النفس",
       "topic": "صفقة الانتقام: شلون توقفها قبل ما تبدأ",
       "keyword": "انتقام",
-      "status": "queued",
-      "cat": "نفسية"
+      "status": "done",
+      "cat": "نفسية",
+      "done_date": "2026-08-03",
+      "run": 2,
+      "media": "carousel"
     },
     {
       "id": 13,
       "pillar": "الانضباط",
       "topic": "يوميات التداول: السجل اللي يوريك غلطك المتكرر",
       "keyword": "يوميات",
-      "status": "queued",
-      "cat": "أساسية"
+      "status": "done",
+      "cat": "أساسية",
+      "done_date": "2026-08-03",
+      "run": 2,
+      "media": "carousel"
     },
     {
       "id": 14,
