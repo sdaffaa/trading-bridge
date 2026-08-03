@@ -14,14 +14,14 @@ def _ff():
     import imageio_ffmpeg
     return imageio_ffmpeg.get_ffmpeg_exe()
 
-def mux(video_in, events, video_out, dur=None, lufs=-16):
+def mux(video_in, events, video_out, dur=None, lufs=-16, sfx_dir=None):
     """يبني طبقة صوت من المؤثرات على أزمانها، يعمل ماستر loudnorm، ويدمجها مع الفيديو (نسخ الفيديو)."""
     ff = _ff()
     ins, fparts, labels = [], [], []
     for i, ev in enumerate(events):
         name, t = ev[0], ev[1]
         gain = ev[2] if len(ev) > 2 else 0.0
-        path = os.path.join(SFX, name + ".wav")
+        path = os.path.join(sfx_dir or SFX, name + ".wav")
         if not os.path.isfile(path):
             raise FileNotFoundError(path)
         ins += ["-i", path]
