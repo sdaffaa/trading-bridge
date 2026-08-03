@@ -971,6 +971,22 @@
    "end": "2026-06-18T13:30:00+00:00",
    "label": "reel-suyula",
    "video": "reel-suyula"
+  },
+  {
+   "symbol": "GC=F",
+   "timeframe": "15m",
+   "start": "2026-05-29T06:30:00+00:00",
+   "end": "2026-05-29T14:15:00+00:00",
+   "label": "reel-istidraj",
+   "video": "reel-istidraj"
+  },
+  {
+   "symbol": "YM=F",
+   "timeframe": "1h",
+   "start": "2025-10-27T15:00:00+00:00",
+   "end": "2025-10-29T10:00:00+00:00",
+   "label": "reel-nus",
+   "video": "reel-nus"
   }
  ]
 }

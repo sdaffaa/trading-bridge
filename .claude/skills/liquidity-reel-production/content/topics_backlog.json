@@ -28,16 +28,22 @@
       "pillar": "SMC",
       "topic": "الإنداكشن: الاستدراج اللي قبل الحركة الحقيقية",
       "keyword": "استدراج",
-      "status": "queued",
-      "cat": "فنية"
+      "status": "done",
+      "cat": "فنية",
+      "done_date": "2026-08-03",
+      "run": 3,
+      "media": "reel"
     },
     {
       "id": 4,
       "pillar": "SMC",
       "topic": "البريميوم والديسكاونت: ليش نص المدى يحدد صفقتك",
       "keyword": "نص",
-      "status": "queued",
-      "cat": "فنية"
+      "status": "done",
+      "cat": "فنية",
+      "done_date": "2026-08-03",
+      "run": 3,
+      "media": "reel"
     },
     {
       "id": 5,
@@ -91,8 +97,11 @@
       "pillar": "إدارة المخاطر",
       "topic": "حجم العقد: حسبة الـ1% اللي تحمي حسابك",
       "keyword": "لوت",
-      "status": "queued",
-      "cat": "مالية"
+      "status": "done",
+      "cat": "مالية",
+      "done_date": "2026-08-03",
+      "run": 3,
+      "media": "carousel"
     },
     {
       "id": 11,
@@ -131,8 +140,11 @@
       "pillar": "الانضباط",
       "topic": "الباك تست الصح: مو مجرد تقليب جارت",
       "keyword": "باكتست",
-      "status": "queued",
-      "cat": "أساسية"
+      "status": "done",
+      "cat": "أساسية",
+      "done_date": "2026-08-03",
+      "run": 3,
+      "media": "carousel"
     },
     {
       "id": 15,
@@ -203,8 +215,11 @@
       "pillar": "علم النفس",
       "topic": "الفومو: لحقت الشمعة؟ خلاص راحت عليك",
       "keyword": "فومو",
-      "status": "queued",
-      "cat": "نفسية"
+      "status": "done",
+      "cat": "نفسية",
+      "done_date": "2026-08-03",
+      "run": 3,
+      "media": "carousel"
     },
     {
       "id": 24,

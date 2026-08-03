@@ -27,9 +27,9 @@ def fomo_chase(Wd=880, H=400):
     s.append(f'<circle cx="{mx(3.4):.1f}" cy="{my(12.6):.1f}" r="13" fill="none" stroke="{RED}" stroke-width="2.6"/>')
     s.append(htext(mx(3.3), my(13.9), "دخلة اللحاق — رأس الاندفاع", RED, 19))
     s.append(f'<line x1="{mx(3.4):.1f}" y1="{my(12.2):.1f}" x2="{mx(3.4):.1f}" y2="{my(7.9):.1f}" stroke="{RED}" stroke-width="2" stroke-dasharray="6 5"/>')
-    s.append(htext(mx(4.55), my(6.1), "نزل عليك وانت شايل الخسارة", RED, 17))
+    s.append(htext(mx(2.75), my(5.75), "نزل عليك وانت شايل الخسارة", RED, 17))
     s.append(f'<circle cx="{mx(5.8):.1f}" cy="{my(7.6):.1f}" r="13" fill="none" stroke="{TEAL_D}" stroke-width="2.6"/>')
-    s.append(htext(mx(6.3), my(5.0), "دخلة الانتظار — من الزون", TEAL_D, 19))
+    s.append(htext(mx(6.55), my(4.55), "دخلة الانتظار — من الزون", TEAL_D, 19))
     return "".join(s)+"</svg>"
 
 BT_TABLE = '''<table class="tblx" style="border-collapse:collapse;width:100%;background:#FBF9F5;border:1px solid #DED8CC">
@@ -40,7 +40,7 @@ BT_TABLE = '''<table class="tblx" style="border-collapse:collapse;width:100%;bac
 LOT_CARD = '''<div style="background:#FBF9F5;border:1px solid #DED8CC;border-radius:3px;padding:30px;text-align:center">
 <div style="font-size:34px;font-weight:900;color:#0F2E3C">اللوت = مبلغ المخاطرة ÷ (مسافة الستوب × قيمة النقطة)</div>
 <div style="margin-top:22px;font-size:29px;font-weight:700;color:#5C6C73">حساب <b style="color:#0F2E3C">$1000</b> · مخاطرة 1% = <b style="color:#0F2E3C">$10</b> · ستوب <b style="color:#0F2E3C">50 نقطة</b></div>
-<div style="margin-top:14px;font-size:33px;font-weight:900;color:#1E627A">‎10 ÷ (50 × 10$) = 0.02 لوت</div>
+<div dir="ltr" style="margin-top:14px;font-size:33px;font-weight:900;color:#1E627A">$10 ÷ (50 × $10) = <span style="font-size:37px">0.02</span> لوت</div>
 </div>'''
 
 def _base(w, Wd, H):
