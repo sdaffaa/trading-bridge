@@ -72,6 +72,7 @@ def build_reel(cfg, out_html):
     """
     W_ = cfg["w"]; N = len(W_)
     x, y, slot = geom(W_)
+    dark = bool(cfg.get("dark"))
     svg = [f'<svg viewBox="0 0 {CW} {CH}" width="{CW}" height="{CH}" xmlns="http://www.w3.org/2000/svg">']
     for k in range(5):
         gy = 26 + (CH - 46) * k / 4
@@ -84,7 +85,20 @@ def build_reel(cfg, out_html):
     svg.append(cfg["extra_svg"])
     svg.append('</svg>')
     CHART = "".join(svg)
-    texts = "".join(f'<div class="hl" id="{i}" style="font-size:{fs}px;color:{col}">{t}</div>'
+    if dark:   # خريطة الثيم الغامق (المرجع §3–4): إعادة تلوين كل عناصر الجارت
+        for a, b in [("#F2EEE7", "#08131C"), ("#0F2E3C", "#D8E5EB"), ("#1E627A", "#3AAFC0"),
+                     ("#2E7D96", "#43D4DC"), ("#D24B4B", "#E05656"), ("#2E8CA6", "#43D4DC"),
+                     ("#122F3E", "#5E7A88"), ("rgba(15,46,60,0.06)", "rgba(255,255,255,0.055)")]:
+            CHART = CHART.replace(a, b)
+    TXTC = "#ECF3F6" if dark else INK
+    SUBC = "#8FA6AF" if dark else "#5C6C73"
+    ACC = "#3AAFC0" if dark else TEAL_D
+    RESC = "#43D4DC" if dark else TEAL_D
+    EDUC = "#7F97A1" if dark else "#93A2A8"
+    BGCSS = ("radial-gradient(120% 90% at 50% 0%, #0C2029 0%, #08131C 55%, #04090F 100%)" if dark
+             else "radial-gradient(120% 90% at 50% 0%, #F7F3EC 0%, #F2EEE7 55%, #ECE6DB 100%)")
+    GRAIN = ('<div id="grain"></div>' if dark else '')
+    texts = "".join(f'<div class="hl" id="{i}" style="font-size:{fs}px;color:{(TXTC if (dark and col == INK) else col)}">{t}</div>'
                     for i, a, b, t, fs, col in cfg["txt"])
     fl_a, fl_b = cfg["flash"]; pu_a, pu_b, pu_s = cfg["punch"]
     rf = cfg.get("rflash")
@@ -96,23 +110,25 @@ def build_reel(cfg, out_html):
 {FONT_CSS}
 *{{margin:0;padding:0;box-sizing:border-box}}
 #stage{{width:1080px;height:1920px;position:relative;overflow:hidden;font-family:Tajawal;
-  background:radial-gradient(120% 90% at 50% 0%, #F7F3EC 0%, #F2EEE7 55%, #ECE6DB 100%)}}
+  background:{BGCSS}}}
+#grain{{position:absolute;inset:0;pointer-events:none;opacity:0.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}}
 .hl{{position:absolute;top:150px;left:40px;right:40px;text-align:center;font-weight:900;
-  line-height:1.22;color:{INK};opacity:0}}
+  line-height:1.22;color:{TXTC};opacity:0}}
 #chartwrap{{position:absolute;top:430px;left:40px;width:1000px;height:820px;transform-origin:0 0}}
 .cnd .cw{{transform-box:fill-box;transform-origin:50% 50%}}
 .cnd .cb{{transform-box:fill-box}}
 .cnd .cb.up{{transform-origin:50% 100%}}
 .cnd .cb.dn{{transform-origin:50% 0%}}
-#chip{{position:absolute;top:372px;right:40px;border:2px solid {TEAL_D};color:{TEAL_D};
+#chip{{position:absolute;top:372px;right:40px;border:2px solid {ACC};color:{ACC};
   font-weight:800;font-size:26px;padding:8px 18px;opacity:0;border-radius:0}}
 #res{{position:absolute;top:1290px;left:0;right:0;text-align:center;font-weight:900;
-  font-size:52px;color:{TEAL_D};opacity:0}}
+  font-size:52px;color:{RESC};opacity:0}}
 #cta{{position:absolute;top:1430px;left:70px;right:70px;text-align:center;opacity:0}}
-#cta .k{{display:inline-block;border:2.5px solid {INK};color:{INK};font-weight:900;font-size:56px;
+#cta .k{{display:inline-block;border:2.5px solid {TXTC};color:{TXTC};font-weight:900;font-size:56px;
   padding:14px 44px;border-radius:0}}
-#cta .s{{margin-top:16px;font-weight:700;font-size:34px;color:#5C6C73}}
-#edu{{position:absolute;bottom:46px;left:0;right:0;text-align:center;font-size:22px;color:#93A2A8;font-weight:600}}
+#cta .s{{margin-top:16px;font-weight:700;font-size:34px;color:{SUBC}}}
+#edu{{position:absolute;bottom:46px;left:0;right:0;text-align:center;font-size:22px;color:{EDUC};font-weight:600}}
 #flash{{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}}
 #rflash{{position:absolute;inset:0;background:{RED};opacity:0;pointer-events:none}}
 #camrot{{width:100%;height:100%;transform-origin:500px 410px}}
@@ -131,6 +147,7 @@ def build_reel(cfg, out_html):
 <div id="cta"><span class="k">{cfg["cta_k"]}</span><div class="s">{cfg["cta_s"]}</div></div>
 <div id="edu">{cfg.get("edu", "لغرض تعليمي — بيانات حقيقية")}</div>
 <div id="flash"></div><div id="rflash"></div>
+{GRAIN}
 </div>
 <script>
 window.__DUR = {cfg["dur"]};
@@ -148,6 +165,7 @@ const FULLSET = {json.dumps(cfg["fullset"])};
 const DRAWSET = {json.dumps(cfg["drawset"])};
 const OPENMAX = {cfg.get("openmax", "BASE")};
 const YO = {json.dumps([round(y(c["o"]), 1) for c in W_])};
+const CDUR = {json.dumps([round(0.4 + 0.18*((i*37)%10)/10, 3) for i in range(N)])};
 const YC = {json.dumps([round(y(c["c"]), 1) for c in W_])};
 function setLine(el, k){{
   const len = +el.dataset.len || 300;
@@ -167,7 +185,7 @@ function candleK(i, k, fade) {{
   c.g.style.opacity = fade !== undefined ? fade : 1;
   const kw = Math.min(k / 0.45, 1), kb = clamp((k - 0.25) / 0.75, 0, 1);
   c.w.style.transform = `scaleY(${{(0.1 + 0.9*oc(kw)).toFixed(4)}})`;
-  c.b.style.transform = `scaleY(${{(kb >= 1 ? 1 : 0.1 + 0.9*ob(kb)).toFixed(4)}})`;
+  c.b.style.transform = `scaleY(${{(kb >= 1 ? 1 : 0.1 + 0.9*oc(kb)).toFixed(4)}})`;
   c.g.style.filter = k < 1 ? `brightness(${{(1 + 0.42*(1-k)).toFixed(3)}})` : "";
 }}
 window.__setFrame = function(t) {{
@@ -180,13 +198,13 @@ window.__setFrame = function(t) {{
     else if (P0 || t < 2.35) {{
       const o = OPEN.find(p => p[0] === i);
       if (i <= OPENMAX) k = 1;
-      else if (o) k = seg(t, o[1], o[1]+0.5);
+      else if (o) k = seg(t, o[1], o[1]+CDUR[i]);
       candleK(i, clamp(k, 0, 1), (i <= BASE) ? 1 : (k > 0 ? 1 - TR : 0));
       if (k > 0 && i > li) {{ li = i; lk = k; }}
       continue;
     }} else {{
       const s = STORY.find(p => p[0] === i);
-      if (s) k = seg(t, s[1], s[1]+0.5);
+      if (s) k = seg(t, s[1], s[1]+CDUR[i]);
       if (k > 0 && i > li) {{ li = i; lk = k; }}
     }}
     candleK(i, k);

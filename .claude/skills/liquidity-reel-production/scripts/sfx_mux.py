@@ -14,7 +14,7 @@ def _ff():
     import imageio_ffmpeg
     return imageio_ffmpeg.get_ffmpeg_exe()
 
-def mux(video_in, events, video_out, dur=None, lufs=-16, sfx_dir=None):
+def mux(video_in, events, video_out, dur=None, lufs=-14, sfx_dir=None):
     """يبني طبقة صوت من المؤثرات على أزمانها، يعمل ماستر loudnorm، ويدمجها مع الفيديو (نسخ الفيديو)."""
     ff = _ff()
     ins, fparts, labels = [], [], []
