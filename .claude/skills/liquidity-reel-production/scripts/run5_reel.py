@@ -2,7 +2,7 @@
 # ريل «خطة الألف نقطة» — سكربت فهد الشخصي (2026-08-03)، 8 خطوات على جارت واحد حي
 import os
 from reel_build import INK, TEAL, TEAL_D, RED, htext, hend, gen
-from reel_sfx_kit import build_reel, geom, line_el, xmark, checkmark, zone_el, ring
+from reel_sfx_kit import build_reel, geom, line_el, xmark, checkmark, zone_el, ring, pos_box
 import chart_registry
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -36,11 +36,9 @@ ex.append(f'<g id="boslbl" opacity="0">{htext(x((IPV+IB)/2), y(BOSv)-18, "الس
 # منطقة الاهتمام
 zx0 = x(IZ0)-slot*0.5; zx1 = x(min(IE+3, N-1))+slot*0.5
 ex.append(zone_el("zone", zx0, y(ZT), zx1, y(ZB), htext((zx0+zx1)/2, (y(ZT)+y(ZB))/2+8, "منطقة الاهتمام", TEAL_D, 23)))
-# الستوب والأهداف
-ex.append(line_el(x(IE)-slot*2.2, y(SL), x(IE)+slot*2.2, y(SL), RED, 2.0, dash="8 6", id="stop"))
-ex.append(f'<g id="stoplbl" opacity="0">{htext(x(IE)-slot*4.6, y(SL)+30, "الستوب", RED, 22)}</g>')
-ex.append(line_el(x(IE)-slot*0.5, y(T1), x(31)+slot*0.5, y(T1), TEAL_D, 1.8, dash="2 6", id="t1"))
-ex.append(f'<g id="t1lbl" opacity="0">{htext(x(29), y(T1)-12, "هدف 1", TEAL_D, 22)}</g>')
+# بوكس الصفقة (هدف/ستوب) بستايل TradingView — أمر فهد 2026-08-03
+ex.append(pos_box("pbox", x(IE)-slot*0.9, x(30)+slot*0.5, y(W_[IE]["l"]), y(SL), y(T1),
+                  lbl_e="الدخول", lbl_s="الستوب", lbl_t="الهدف 1"))
 ex.append(line_el(x(IE)-slot*0.5, y(T2), x(38)+slot*0.6, y(T2), TEAL_D, 1.8, dash="2 6", id="t2"))
 ex.append(f'<g id="t2lbl" opacity="0">{htext(x(32), y(T2)+30, "هدف 2 — الفريم الكبير", TEAL_D, 22)}</g>')
 # شريحة الفوت برنت عند الدخلة
@@ -80,15 +78,14 @@ cfg = dict(
   extra_svg="".join(ex),
   marks=[["bos", 2.7, 3.3, "draw"], ["boslbl", 3.3, 3.6, "pop"],
          ["zone", 5.0, 5.9, "zone"],
-         ["stop", 7.3, 7.8, "draw"], ["stoplbl", 7.8, 8.05, "pop"],
-         ["t1", 8.0, 8.5, "draw"], ["t1lbl", 8.5, 8.75, "pop"],
+         ["pbox", 7.3, 8.75, "posbox"],
          ["t2", 16.1, 16.6, "draw"], ["t2lbl", 16.6, 16.85, "pop"],
          ["fp", 9.6, 9.95, "pop"],
          ["circ", 12.0, 12.4, "ring"],
          ["sec", 13.8, 14.15, "pop"],
          ["ck", 17.35, 17.65, "pop"], ["reslbl", 17.65, 17.95, "pop"]],
-  fullset=["boslbl", "zone", "stoplbl", "t1lbl", "t2lbl", "fp", "circ", "sec", "ck", "reslbl"],
-  drawset=["bos", "stop", "t1", "t2"],
+  fullset=["boslbl", "zone", "pbox", "t2lbl", "fp", "circ", "sec", "ck", "reslbl"],
+  drawset=["bos", "t2"],
   txt=TXT, chip="خطتي الأسبوعية · لغرض تعليمي",
   res="مبروك عليك… 1000 نقطة بالأسبوع",
   cta_k="اكتب «1000»", cta_s="ويوصلك دليل الخطوات الثمان كامل على الخاص",

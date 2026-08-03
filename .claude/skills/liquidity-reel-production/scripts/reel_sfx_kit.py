@@ -45,6 +45,25 @@ def ring(id, cx, cy, r=15, col=TEAL_D, label_html=""):
             f'fill="none" stroke="{col}" stroke-width="2" opacity="0"/>'
             f'{label_html}</g>')
 
+
+def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", lbl_t="الهدف",
+            col_t=TEAL_D, col_s=RED, col_e="#ECF3F6"):
+    """بوكس هدف/ستوب بستايل TradingView: خط دخول يترسم ← الستوب يتمدد لتحت ← الهدف يتمدد لفوق."""
+    w = x1 - x0
+    ln = w
+    return (f'<g id="{id}" opacity="0">'
+            f'<rect class="pt" x="{x0:.1f}" y="{yt:.1f}" width="{w:.1f}" height="{ye-yt:.1f}" '
+            f'fill="{col_t}" fill-opacity="0.13" stroke="{col_t}" stroke-width="1.4" stroke-opacity="0.85"/>'
+            f'<rect class="ps" x="{x0:.1f}" y="{ye:.1f}" width="{w:.1f}" height="{ys-ye:.1f}" '
+            f'fill="{col_s}" fill-opacity="0.12" stroke="{col_s}" stroke-width="1.4" stroke-opacity="0.8"/>'
+            f'<line class="pe" data-len="{ln:.0f}" x1="{x0:.1f}" y1="{ye:.1f}" x2="{x1:.1f}" y2="{ye:.1f}" '
+            f'stroke="{col_e}" stroke-width="2.2"/>'
+            f'<g class="pl" opacity="0">'
+            + htext((x0+x1)/2, yt + 30, lbl_t, col_t, 22)
+            + htext((x0+x1)/2, ys - 14, lbl_s, col_s, 22)
+            + htext(x1 - 12, ye - 12, lbl_e, col_e, 21, anchor="end")
+            + '</g></g>')
+
 def checkmark(cx, cy, col=TEAL_D, id="ck1"):
     return (f'<g id="{id}" opacity="0"><circle cx="{cx}" cy="{cy}" r="19" fill="none" stroke="{col}" stroke-width="4"/>'
             f'<polyline points="{cx-9},{cy} {cx-2},{cy+8} {cx+11},{cy-8}" fill="none" stroke="{col}" stroke-width="4.5" '
@@ -120,6 +139,8 @@ def build_reel(cfg, out_html):
 .cnd .cb{{transform-box:fill-box}}
 .cnd .cb.up{{transform-origin:50% 100%}}
 .cnd .cb.dn{{transform-origin:50% 0%}}
+.pt{{transform-box:fill-box;transform-origin:50% 100%}}
+.ps{{transform-box:fill-box;transform-origin:50% 0%}}
 #chip{{position:absolute;top:372px;right:40px;border:2px solid {ACC};color:{ACC};
   font-weight:800;font-size:26px;padding:8px 18px;opacity:0;border-radius:0}}
 #res{{position:absolute;top:1290px;left:0;right:0;text-align:center;font-weight:900;
@@ -229,6 +250,12 @@ window.__setFrame = function(t) {{
         const zl = el.querySelector(".zl"); if (zl) zl.style.opacity = 1;
       }}
       if (m && m[3] === "drawx") el.querySelectorAll("line").forEach(l => setLine(l, 1));
+      if (m && m[3] === "posbox") {{
+        setLine(el.querySelector(".pe"), 1);
+        el.querySelector(".ps").style.transform = "scaleY(1)";
+        el.querySelector(".pt").style.transform = "scaleY(1)";
+        el.querySelector(".pl").style.opacity = 1;
+      }}
       if (m && m[3] === "ring") {{ const rp = el.querySelector(".rp"); if (rp) rp.style.opacity = 0; }}
       continue;
     }}
@@ -255,6 +282,12 @@ window.__setFrame = function(t) {{
           rp.style.opacity = (1 - ph) * 0.55;
         }} else rp.style.opacity = 0;
       }}
+    }} else if (m[3] === "posbox") {{
+      el.style.opacity = k > 0 ? 1 : 0;
+      setLine(el.querySelector(".pe"), Math.min(k / 0.3, 1));
+      el.querySelector(".ps").style.transform = `scaleY(${{oc(clamp((k - 0.26) / 0.38, 0, 1)).toFixed(4)}})`;
+      el.querySelector(".pt").style.transform = `scaleY(${{oc(clamp((k - 0.48) / 0.52, 0, 1)).toFixed(4)}})`;
+      el.querySelector(".pl").style.opacity = clamp((k - 0.78) / 0.22, 0, 1);
     }} else if (m[3] === "drawx") {{
       el.style.opacity = k > 0 ? 1 : 0;
       const ls = el.querySelectorAll("line");
