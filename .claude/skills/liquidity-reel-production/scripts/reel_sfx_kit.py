@@ -176,9 +176,16 @@ window.__setFrame = function(t) {{
   {rflash_js}
   const punch = Math.sin(Math.PI * seg(t, {pu_a}, {pu_b})) * {pu_s};
   const kb = 1.008 + 0.02 * (t / {cfg["dur"]});
+  const drift = 13 - 26 * clamp(t / {cfg["dur"]}, 0, 1);
+  const shp = seg(t, {fl_a}, {fl_a} + 0.42);
+  const shake = shp > 0 && shp < 1 ? Math.sin(shp * 42) * (1 - shp) * 5.5 : 0;
   const wrap = $("chartwrap");
-  wrap.style.transform = `scale(${{kb + punch}})`;
+  wrap.style.transform = `translate(${{(drift + shake).toFixed(2)}}px, ${{(shake * 0.6).toFixed(2)}}px) scale(${{kb + punch}})`;
   wrap.style.transformOrigin = punch > 0 ? "{cfg.get('punch_origin','65% 40%')}" : "50% 46%";
+  if (t > {cfg["cta_t"]} + 0.6) {{
+    const pulse = 1 + 0.028 * Math.sin(2 * Math.PI * (t - {cfg["cta_t"]}) * 0.8);
+    $("cta").style.transform = `translateY(0px) scale(${{pulse.toFixed(4)}})`;
+  }}
 }};
 window.__setFrame(0);
 </script></body></html>'''
