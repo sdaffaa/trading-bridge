@@ -241,6 +241,7 @@ const TXTS = {json.dumps([[i, a, b] for i, a, b, _, __, ___ in cfg["txt"]])};
 const MARKS = {json.dumps(cfg["marks"])};
 const FULLSET = {json.dumps(cfg["fullset"])};
 const DRAWSET = {json.dumps(cfg["drawset"])};
+const DOM_MARKS = {json.dumps(cfg.get("dom_marks", []))};
 const OPENMAX = {cfg.get("openmax", "BASE")};
 const YO = {json.dumps([round(y(c["o"]), 1) for c in W_])};
 const CDUR = {json.dumps([round(0.4 + 0.18*((i*37)%10)/10, 3) for i in range(N)])};
@@ -368,6 +369,14 @@ window.__setFrame = function(t) {{
     el.style.transform = `translateY(${{(1-ki)*24}}px)`;
   }}
   $("chip").style.opacity = Math.min(oc(seg(t, 0.8, 1.2)), 1);
+  // عناصر واجهة خارج الشارت (لافتات المراحل مثلاً): [id, ظهور، اكتمال، اختفاء، مدته]
+  for (const m of DOM_MARKS) {{
+    const el = $(m[0]); if (!el) continue;
+    const ki = oc(seg(t, m[1], m[2]));
+    const ko = (m.length > 3 && m[3]) ? seg(t, m[3], m[3] + (m[4] || 0.3)) : 0;
+    el.style.opacity = (ki * (1 - ko)).toFixed(3);
+    el.style.transform = `translateY(${{((1 - ki) * 10).toFixed(1)}}px)`;
+  }}
   const r1 = {"oc(seg(t, 1.25, 1.6)) * (1 - seg(t, 1.9, 2.2))" if cfg.get("res_tease", True) else "0"};
   const r2 = oc(seg(t, {cfg["res_t"]}, {cfg["res_t"]}+0.4));
   $("res").style.opacity = Math.max(r1, r2);
