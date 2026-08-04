@@ -12,7 +12,7 @@ H = os.path.join(ROOT, "assets", "sfx_packs", "h_institutional")
 MUSIC = os.path.join(ROOT, "assets", "music")
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 
-DUR, T_HIT, T_CTA = 12.4, 6.55, 10.0
+DUR, T_HIT, T_CTA = 12.4, 6.60, 10.0
 
 def bed(src, out, dur, ti, tc):
     af = (f"atrim=0:{dur},"
@@ -27,18 +27,18 @@ if __name__ == "__main__":
     raw = os.path.join(HERE, "reel_be_fast_raw.mp4")
     b = bed("bed_institutional_tense", os.path.join(HERE, "bed16_be.wav"), DUR, T_HIT, T_CTA)
     EV = [
-        ("impact_soft",   0.02, -3),    # م1: الصدمة الافتتاحية
-        ("granular_air",  0.30, -12),
-        ("reverse_swell", 0.88, -5),    # م2: الرجوع البصري
-        ("ui_scan",       1.52, -8),    # ووش الرجوع
-        ("ui_tick",       1.95, -10),   # م3: خط الدخول
-        ("ui_click",      3.28, -4),    # م4: قفل الوقف على التعادل
-        ("riser_short",   5.62, -6),    # م5: بناء التوتر داخل التصحيح
-        ("impact_clean",  6.55,  0),    # م6: ضرب الوقف — أقوى لحظة
-        ("granular_metal", 6.62, -11),
-        ("impact_deep",   7.28, -5),    # الانطلاق
-        ("ui_confirm",    7.85, -7),    # علامة الصح
-        ("perc_filtered", 8.20, -9),    # م7: الخلاصة
+        ("granular_air",  0.00, -12),   # م1: نَفَس الاقتراب
+        ("impact_soft",   0.30, -4),    # لمس خط التعادل + ظهور X
+        ("ui_scan",       0.56, -9),    # سناب باتجاه الانطلاق
+        ("reverse_swell", 1.26, -5),    # م2: الرجوع البصري
+        ("ui_tick",       2.16, -10),   # م3: خط الدخول
+        ("ui_click",      3.48, -4),    # م4: قفل الوقف على التعادل
+        ("riser_short",   5.70, -6),    # م5: بناء التوتر داخل التصحيح
+        ("impact_clean",  6.60,  0),    # م6: ضرب الوقف — أقوى لحظة
+        ("granular_metal", 6.68, -11),
+        ("impact_deep",   7.32, -5),    # الانطلاق
+        ("ui_confirm",    7.90, -7),    # علامة الصح
+        ("perc_filtered", 8.30, -9),    # م7: الخلاصة
         ("ui_click",     10.05, -5),    # م8: CTA
         ("logo_sting",   10.85, -3),
         (b, 0.0, -9),

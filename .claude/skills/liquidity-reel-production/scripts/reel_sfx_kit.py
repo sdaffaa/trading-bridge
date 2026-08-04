@@ -7,6 +7,12 @@ from reel_build import INK, TEAL, TEAL_D, RED, BULL, BEAR, FONT_CSS, htext, hend
 HERE = os.path.dirname(os.path.abspath(__file__))
 CW, CH = 1000, 820
 
+def set_canvas(w, h):
+    """يغيّر مساحة رسم الجارت (viewBox) قبل geom/build_reel — لتوزيع شاشة مختلف.
+    ليس تشويهاً للشموع: الشموع تُرسم أصلاً داخل المساحة الجديدة من نفس OHLC."""
+    global CW, CH
+    CW, CH = w, h
+
 def geom(W_):
     N = len(W_)
     ymin = min(c["l"] for c in W_); ymax = max(c["h"] for c in W_)
@@ -177,7 +183,7 @@ def build_reel(cfg, out_html):
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}}
 .hl{{position:absolute;top:150px;left:40px;right:40px;text-align:center;font-weight:900;
   line-height:1.22;color:{TXTC};opacity:0}}
-#chartwrap{{position:absolute;top:430px;left:40px;width:1000px;height:820px;transform-origin:0 0}}
+#chartwrap{{position:absolute;top:430px;left:40px;width:{CW}px;height:{CH}px;transform-origin:0 0}}
 .cnd .cw{{transform-box:fill-box;transform-origin:50% 50%}}
 .cnd .cb{{transform-box:fill-box}}
 .cnd .cb.up{{transform-origin:50% 100%}}
@@ -205,7 +211,9 @@ def build_reel(cfg, out_html):
   background:linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.75) 45%, rgba(67,212,220,0.25) 55%, transparent 100%);
   transform:skewX(-14deg)}}
 {INTRO_CSS}
+{cfg.get('extra_css','')}
 </style></head><body><div id="stage">
+{cfg.get('extra_html','')}
 {texts}
 <div id="chip">{cfg["chip"]}</div>
 <div id="chartwrap"><div id="camrot">{CHART}</div></div>
@@ -368,7 +376,7 @@ window.__setFrame = function(t) {{
   $("endlogo").style.opacity = oc(seg(t, {cfg["cta_t"]}+0.7, {cfg["cta_t"]}+1.3));
   $("cta").style.transform = `translateY(${{(1-ck)*30}}px)`;
   const f1 = seg(t, {fl_a}, {fl_a}+0.22), f2 = seg(t, {fl_a}+0.22, {fl_b});
-  $("flash").style.opacity = f1 > 0 && f2 < 1 ? 0.45 * (f1 < 1 ? f1 : (1-f2)) : 0;
+  $("flash").style.opacity = f1 > 0 && f2 < 1 ? {cfg.get("flash_op", 0.45)} * (f1 < 1 ? f1 : (1-f2)) : 0;
   {rflash_js}
   const punch = Math.sin(Math.PI * seg(t, {pu_a}, {pu_b})) * {pu_s};
   const shp = seg(t, {fl_a}, {fl_a} + 0.42);
@@ -405,7 +413,7 @@ window.__setFrame = function(t) {{
   const lim = cs > 1 ? (cs - 1) / (2 * cs) : 0;    // ما نطلع برا حدود الجارت
   fx = Math.max(0.5 - lim, Math.min(0.5 + lim, fx));
   fy = Math.max(0.5 - lim, Math.min(0.5 + lim, fy));
-  const CWp = 1000, CHp = 820;
+  const CWp = {CW}, CHp = {CH};
   const tx = CWp / 2 - cs * fx * CWp + shake;
   const ty = CHp / 2 - cs * fy * CHp + shake * 0.6;
   const wrap = $("chartwrap");

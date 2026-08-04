@@ -6,7 +6,12 @@
 """
 import os
 from reel_build import INK, TEAL, TEAL_D, RED, GREY, htext, gen
-from reel_sfx_kit import build_reel, geom, line_el, xmark, checkmark, zone_el
+from reel_sfx_kit import build_reel, geom, line_el, xmark, checkmark, zone_el, set_canvas
+from car_common import GEM
+
+# مساحة رسم أطول: الجارت يشغل ~68% من الشاشة بدل 43% (الفراغ السفلي كان يقتل الافتتاحية)
+CVW, CVH = 1080, 1300
+set_canvas(CVW, CVH)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -37,8 +42,10 @@ def be_data():
         prev = W[j]["c"]
     return W, ENT, LOW2, rng
 
-# ── النصوص (فصحى — دستور V2) ──
-L = ["خرجت عند التعادل… ثم انطلق السعر.",
+# ── النصوص ──
+# الهوك بنص فهد الحرفي (كويتي، مُعتمد في البريف للغلاف والافتتاحية معاً)
+HOOK = 'تأمينك للصفقة<br><span style="color:#43D4DC">أخرجك</span> بدري.'
+L = [HOOK,
      "لنعد إلى البداية.",
      "دخلت، وتحرك السعر لصالحك.",
      "فنقلت الوقف إلى التعادل.",
@@ -85,67 +92,94 @@ def build(out="reel_be_fast.html"):
     fx = lambda i: x(i) / 1000
     fy = lambda p: y(p) / 820
     HITX, HITY = fx(IDIP), fy(ENT)
+    # مركز اللقطة الافتتاحية = منتصف الشموع الظاهرة فعلاً عند الفريم صفر،
+    # لا سعر الوقف — وإلا وقع الكادر تحت الشموع وترك النصف السفلي فارغاً
+    def pose(j, cs, back=14, margin=0.055):
+        """تأطير «شارت حيّ»: أحدث شمعة مكشوفة قرب الحافة اليمنى، والكادر ممتلئ
+        بالشموع المرسومة فعلاً — بلا فراغ يمين ولا فراغ أسفل."""
+        lim = (cs - 1) / (2 * cs)
+        cx = min(max(x(j) / CVW - lim + margin, 0.5 - lim), 0.5 + lim)
+        lo_i = max(0, j - back)
+        hi = max(W[k]["h"] for k in range(lo_i, j + 1))
+        lo = min(W[k]["l"] for k in range(lo_i, j + 1))
+        # الكادر يميل نحو أعلى نطاق السعر: أسفل النافذة أسعار لا شموع فيها
+        cy = min(max(fy(lo + (hi - lo) * 0.70), 0.5 - lim), 0.5 + lim)
+        return [round(cx, 4), round(cy, 4)]
+
+    EXTRA_CSS = f"""
+.hl{{top:132px;left:56px;right:56px;line-height:1.20}}
+#chartwrap{{top:300px;left:0}}
+#chip{{top:214px;right:44px;font-size:22px;padding:6px 14px;border-width:1.6px}}
+#res{{top:1500px;font-size:46px}}
+#cta{{top:1676px}}
+#cta .k{{font-size:50px;padding:12px 38px}}
+#cta .s{{margin-top:12px;font-size:30px}}
+#edu{{bottom:38px;font-size:20px;opacity:.62}}
+#endlogo{{display:none}}   /* الشعار الدائم أعلى الشاشة يغني عنه */
+#brand{{position:absolute;top:52px;left:0;right:0;text-align:center;z-index:7;opacity:.82}}
+#brand .g{{width:34px;margin:0 auto}} #brand .g svg{{width:34px;height:auto}}
+#brand .w{{margin-top:5px;font-size:15px;font-weight:800;letter-spacing:6px;color:#7F97A1}}
+"""
+    EXTRA_HTML = f'<div id="brand"><div class="g">{GEM}</div><div class="w">LIQUIDITY STATE</div></div>'
 
     cfg = dict(
-        w=W, dark=True,
-        base=N, openmax=N, open_t=[], story=[],      # الشارت كامل من الفريم صفر
+        w=W, dark=True, extra_css=EXTRA_CSS, extra_html=EXTRA_HTML,
+        # الحدث يقع أمام العين: 0..17 ظاهرة عند البداية (السعر يقترب من خط التعادل)،
+        # ثم 18–19 اقتراب، 20 تلمس الخط، 21–33 الانطلاق — كله ينتهي عند 0.80ث
+        base=IDIP - 3, openmax=N, open_t=[[N - 1, 0.30]],
+        story=([(18, 0.05), (19, 0.17), (20, 0.29)] +
+               [(j, round(0.44 + (j - 21) * 0.030, 3)) for j in range(21, N)]),
         extra_svg="".join(ex),
         marks=[
-            # م1 — الصدمة
-            # قيم سالبة متعمّدة: الهوك والوسم مكتملان في الفريم صفر بلا أي ظهور تدريجي
-            ["be0",  -0.20, -0.05, "pop",  1.28, 0.22],
-            ["hit0", -0.20,  0.10, "drawx", 1.02, 0.20],
-            ["run0",  0.52,  0.70, "pop",  1.02, 0.20],
-            # م3 — الدخول (يبدأ الخط أثناء الرجوع حتى لا تبقى لقطة خالية)
-            ["ent",   1.50, 1.90, "draw"],
-            ["entlbl", 1.95, 2.15, "pop", 4.30, 0.30],
+            # م1 — خط التعادل موجود من الفريم صفر، والعلامة تُرسم لحظة اللمس
+            ["be0",  -0.20, -0.05, "pop",  1.45, 0.22],
+            ["hit0",  0.31,  0.46, "drawx", 1.30, 0.20],
+            ["run0",  0.62,  0.76, "pop",  1.30, 0.20],
+            # م3 — الدخول
+            ["ent",   1.75, 2.10, "draw"],
+            ["entlbl", 2.15, 2.35, "pop", 4.50, 0.30],
             # م4 — القرار
-            ["be",    3.25, 3.50, "pop"],
+            ["be",    3.45, 3.70, "pop"],
             # م5 — السبب
-            ["cz",    4.70, 5.05, "zone", 8.15, 0.35],
-            # م6 — الضربة والانطلاق
-            ["hit",   6.55, 6.80, "drawx"],
-            ["hitlbl", 6.85, 7.05, "pop", 8.15, 0.35],
-            ["trail", 7.25, 7.60, "pop"],
-            ["ck",    7.80, 8.00, "pop"],
+            ["cz",    4.85, 5.20, "zone", 8.25, 0.35],
+            # م6 — الضربة والانطلاق (إعادة اللقطة مع الشرح كاملاً)
+            ["hit",   6.60, 6.85, "drawx"],
+            ["hitlbl", 6.90, 7.10, "pop", 8.25, 0.35],
+            ["trail", 7.30, 7.65, "pop"],
+            ["ck",    7.85, 8.05, "pop"],
         ],
         fullset=["be0", "hit0", "run0", "entlbl", "be", "cz", "hit", "hitlbl", "trail", "ck"],
         drawset=["ent"],
         preview_a=0.0, preview_b=0.0,   # نافذة معاينة الفريم-0 (لريلات 22ث) مُعطّلة هنا
         res_tease=False,          # تمهيد الخلاصة عند الثانية 1.3 مصمَّم لريل 22ث — يُطفأ هنا
-        sweep_op=0.20,            # كنسة الضوء خافتة حتى لا تغطي الشموع
+        sweep_op=0.09, flash_op=0.11,   # الوميض والكنسة خافتان جداً: ممنوع تغطية الشموع
         txt=[(f"t{i+1}", a, b, L[i], fs, INK) for i, (a, b, fs) in enumerate(
-            [(-0.25, 0.90, 52), (0.95, 1.65, 50), (1.75, 3.05, 48),
-             (3.15, 4.45, 48), (4.55, 6.25, 46), (6.40, 8.05, 50)])],
+            [(-0.25, 1.22, 44), (1.28, 1.92, 44), (2.00, 3.30, 42),
+             (3.40, 4.70, 42), (4.80, 6.45, 40), (6.55, 8.15, 44)])],
         chip="التعادل · لغرض تعليمي",
         res=RES, cta_k="اكتب «تعادل»", cta_s=CTA_S,
         edu="لغرض تعليمي — مثال تخطيطي",
-        dur=12.4, res_t=8.15, cta_t=10.0,
-        flash=(6.55, 6.95), punch=(6.50, 7.30, 0.055), punch_origin="55% 50%",
-        rflash=6.60,
+        dur=12.4, res_t=8.25, cta_t=10.0,
+        flash=(6.60, 7.00), punch=(6.55, 7.35, 0.055), punch_origin="55% 50%",
+        # الكاميرا مقيَّدة بحدود الجارت (lim=(cs-1)/2cs)، فمركز كل لقطة يُختار
+        # بحيث يقع الحدث داخل الكادر لا خارجه
         cam=[
-            # م1: تكبير حاد على لحظة ضرب الوقف ثم تجميد قصير
-            # ملاحظة: الكاميرا مقيَّدة بحدود الجارت (lim=(cs-1)/2cs)، فمركز اللقطة
-            # يُختار بحيث تقع الضربة داخل الكادر لا خارجه
-            [0.00, 1.95, fx(24), HITY],
-            [0.55, 1.99, fx(26), fy(W[26]["c"]), "creep"],
-            [0.88, 1.97, fx(26), fy(W[26]["c"]), "ss"],
-            # م2: رجوع بصري سريع إلى الدخول
-            [1.60, 1.85, fx(12), HITY, "whip", 0.8],
-            # م3: زوم دقيق على الدخول
-            [3.00, 1.62, fx(15), HITY, "creep"],
-            # م4: توسيع بسيط ليظهر امتداد خط التعادل
-            [4.45, 1.45, fx(18), HITY, "ramp"],
-            # م5: اقتراب تدريجي مع اقتراب السعر من الوقف
-            [6.35, 1.92, HITX, HITY, "anticip"],
-            # م6: تتبع الانطلاق
-            [6.95, 1.86, HITX, HITY, "ss"],
-            [8.05, 1.42, fx(28), fy(W[28]["c"]), "whip", -0.9],
-            # م7: خلاصة
-            [9.90, 1.12, .5, .48, "creep"],
-            # م8: CTA ثم عودة نحو لقطة البداية لإغلاق الحلقة
-            [11.30, 1.20, fx(24), HITY, "creep"],
-            [12.40, 1.95, HITX, HITY, "creep"],
+            # مقاييس مرتفعة عمداً: كلما زاد التكبير اتسع حدّ التمركز lim=(cs-1)/2cs،
+            # فيصير بالإمكان إنزال الكادر إلى منطقة الوقف بدل ترك فراغ أسفلها
+            [0.00, 2.20] + pose(17, 2.20),                           # اقتراب
+            [0.26, 2.24] + pose(20, 2.24) + ["ramp"],                # زوم على منطقة الوقف
+            [0.52, 2.18] + pose(25, 2.18) + ["ss"],                  # اللمس ثم أول الانطلاق
+            [0.82, 1.95] + pose(33, 1.95) + ["whip", -0.7],          # سناب مع الانطلاق
+            [1.22, 1.93] + pose(33, 1.93) + ["ss"],                  # تجميد على النتيجة
+            [1.90, 1.98, fx(12), HITY, "whip", 0.8],                 # رجوع إلى الدخول
+            [3.25, 1.82, fx(15), HITY, "creep"],
+            [4.70, 1.70, fx(18), HITY, "ramp"],
+            [6.45, 2.14, HITX, HITY, "anticip"],
+            [7.00, 2.08, HITX, HITY, "ss"],
+            [8.15, 1.66, fx(28), fy(W[28]["c"]), "whip", -0.9],
+            [9.95, 1.34, .5, .54, "creep"],
+            [11.35, 1.46, fx(23), HITY, "creep"],
+            [12.40, 2.10, fx(21), HITY, "creep"],
         ],
     )
     n = build_reel(cfg, os.path.join(HERE, out))
