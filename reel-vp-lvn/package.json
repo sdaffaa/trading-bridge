@@ -1,0 +1,15 @@
+{
+  "name": "reel-vp-lvn",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "render": "remotion render VPReel out/reel-vp-lvn.mp4 --concurrency=2"
+  },
+  "dependencies": {
+    "@fontsource/tajawal": "^5.0.13",
+    "@remotion/cli": "^4.0.290",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.290"
+  }
+}
