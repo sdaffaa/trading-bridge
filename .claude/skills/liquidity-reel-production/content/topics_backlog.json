@@ -311,9 +311,12 @@
    "cat": "SMC",
    "done": true,
    "keyword": "بريكر",
-   "run": "day2-breaker",
+   "run": "day2-2026-08-04",
    "date": "2026-08-03",
-   "source": "اقتراحات 2026-08-03 وفق V2"
+   "source": "اقتراحات 2026-08-03 وفق V2",
+   "status": "done",
+   "done_date": "2026-08-04",
+   "media": "كاروسيل + ريل + PDF"
   },
   {
    "id": 35,
@@ -419,6 +422,17 @@
    "done": true,
    "run": "run14-stop-liquidity",
    "date": "2026-08-03"
+  },
+  {
+   "id": 49,
+   "pillar": "تنفيذ",
+   "topic": "ما هو التأكيد فعلياً؟ ثلاث إشارات قبل التنفيذ",
+   "keyword": "تأكيد",
+   "status": "done",
+   "cat": "أساسية",
+   "done_date": "2026-08-04",
+   "run": "day2-2026-08-04",
+   "media": "كاروسيل + ريل + PDF"
   }
  ],
  "covered_before_backlog": [
