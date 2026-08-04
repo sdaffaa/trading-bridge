@@ -20,88 +20,193 @@ def cell_xy(i):
     r, c = divmod(i, COLS)
     return MX + c * (CW_ + GAP_X), TOP + r * (CH_ + GAP_Y)
 
-# ───────── رسومات مصغّرة داخل الخانات ─────────
-def cnd(cx, o, c, h, l, w=26, col=None):
-    up = c <= o                      # إحداثيات الشاشة: y الأصغر = سعر أعلى
-    color = col or (BULL if up else BEAR)
-    top, bot = min(o, c), max(o, c)
-    return (f'<line x1="{cx}" y1="{h}" x2="{cx}" y2="{l}" stroke="{color}" stroke-width="2.4"/>'
-            f'<rect x="{cx-w/2}" y="{top}" width="{w}" height="{max(bot-top,3)}" fill="{color}" rx="1"/>')
+# ───────── محرك الجارت المصغّر داخل الخانة ─────────
+from reel_build import gen as _gen
+
+def _proj(X, Y, W, pl=44, pr=44, pt=64, pb=42):
+    """يسقط الشموع داخل صندوق الخانة ويرجع دوال الإحداثيات."""
+    x0, x1 = X + pl, X + CW_ - pr
+    y0, y1 = Y + pt, Y + CH_ - pb
+    lo = min(c["l"] for c in W); hi = max(c["h"] for c in W); rng = hi - lo
+    lo -= rng * 0.07; hi += rng * 0.07
+    n = len(W); slot = (x1 - x0) / n
+    fx = lambda i: x0 + slot * i + slot / 2
+    fy = lambda p: y0 + (hi - p) / (hi - lo) * (y1 - y0)
+    return fx, fy, slot, (x0, x1, y0, y1)
+
+def _candles(W, fx, fy, slot):
+    bw = slot * 0.58
+    out = []
+    for i, c in enumerate(W):
+        up = c["c"] >= c["o"]; col = BULL if up else BEAR
+        cx = fx(i); yh, yl = fy(c["h"]), fy(c["l"]); yo, yc = fy(c["o"]), fy(c["c"])
+        top, bot = min(yo, yc), max(yo, yc)
+        out.append(f'<line x1="{cx:.1f}" y1="{yh:.1f}" x2="{cx:.1f}" y2="{yl:.1f}" stroke="{col}" stroke-width="1.9"/>')
+        out.append(f'<rect x="{cx-bw/2:.1f}" y="{top:.1f}" width="{bw:.1f}" height="{max(bot-top,2.6):.1f}" fill="{col}" rx="0.8"/>')
+    return "".join(out)
 
 def band(x0, y0, x1, y1, col=TEAL, stroke=TEAL_D, op=0.16, dash=None):
     d = f' stroke-dasharray="{dash}"' if dash else ''
-    return (f'<rect x="{x0}" y="{y0}" width="{x1-x0}" height="{y1-y0}" fill="{col}" opacity="{op}"/>'
-            f'<rect x="{x0}" y="{y0}" width="{x1-x0}" height="{y1-y0}" fill="none" stroke="{stroke}" '
-            f'stroke-width="1.4"{d}/>')
+    return (f'<rect x="{x0:.1f}" y="{min(y0,y1):.1f}" width="{x1-x0:.1f}" height="{abs(y1-y0):.1f}" fill="{col}" opacity="{op}"/>'
+            f'<rect x="{x0:.1f}" y="{min(y0,y1):.1f}" width="{x1-x0:.1f}" height="{abs(y1-y0):.1f}" fill="none" '
+            f'stroke="{stroke}" stroke-width="1.5"{d}/>')
 
 def hline(x0, x1, y, col=INK, w=1.8, dash=None):
     d = f' stroke-dasharray="{dash}"' if dash else ''
-    return f'<line x1="{x0}" y1="{y}" x2="{x1}" y2="{y}" stroke="{col}" stroke-width="{w}"{d}/>'
+    return f'<line x1="{x0:.1f}" y1="{y:.1f}" x2="{x1:.1f}" y2="{y:.1f}" stroke="{col}" stroke-width="{w}"{d}/>'
 
-def arrow(x0, y0, x1, y1, col, w=3.4):
+def arrow(x0, y0, x1, y1, col, w=3.2):
     import math
     ang = math.atan2(y1 - y0, x1 - x0)
-    a1 = (x1 - 15 * math.cos(ang - 0.42), y1 - 15 * math.sin(ang - 0.42))
-    a2 = (x1 - 15 * math.cos(ang + 0.42), y1 - 15 * math.sin(ang + 0.42))
+    a1 = (x1 - 14 * math.cos(ang - 0.42), y1 - 14 * math.sin(ang - 0.42))
+    a2 = (x1 - 14 * math.cos(ang + 0.42), y1 - 14 * math.sin(ang + 0.42))
     return (f'<line x1="{x0:.0f}" y1="{y0:.0f}" x2="{x1:.0f}" y2="{y1:.0f}" stroke="{col}" '
             f'stroke-width="{w}" stroke-linecap="round"/>'
             f'<polygon points="{x1:.0f},{y1:.0f} {a1[0]:.0f},{a1[1]:.0f} {a2[0]:.0f},{a2[1]:.0f}" fill="{col}"/>')
 
-# كل خانة: (المفتاح، العنوان، دالة الرسم، الحكم، لون الحكم، دالة سهم الحكم)
+SEEDS = []
+
+def _mk(seed, anch, N, label, wick=0.75):
+    SEEDS.append((seed, anch, label))
+    return _gen(anch, N, seed, wick=wick)
+
+# ── 1) الفجوة السعرية: شمعة اندفاع تترك فراغاً بين ذيل ما قبلها وذيل ما بعدها
 def art_fvg(X, Y):
-    s = [band(X + 52, Y + 148, X + 254, Y + 196)]
-    s.append(cnd(X + 96, Y + 168, Y + 214, Y + 150, Y + 232, w=30))
-    s.append(cnd(X + 156, Y + 214, Y + 108, Y + 96, Y + 224, w=30))
-    s.append(cnd(X + 216, Y + 100, Y + 132, Y + 88, Y + 146, w=30))
-    s.append(htext(X + 74, Y + 178, "FVG", TEAL_D, 20))
-    return "".join(s)
+    N, K = 15, 7
+    W = _mk(7101, [(0, 11.6), (4, 11.0), (7, 13.6), (10, 13.2), (14, 14.6)], N, "خانة الفجوة")
+    rng = max(c["h"] for c in W) - min(c["l"] for c in W)
+    o = W[K-1]["c"]; step = rng * 0.34
+    W[K].update(o=o, c=o + step, h=o + step + rng * 0.03, l=o - rng * 0.02)
+    lo = o + step * 0.30; hi = o + step * 0.66
+    p, nx = W[K-1], W[K+1]
+    for k in ("h", "o", "c"): p[k] = min(p[k], lo)
+    p["l"] = min(p["l"], p["c"] - rng * 0.03)
+    for k in ("l", "o", "c"): nx[k] = max(nx[k], hi)
+    nx["h"] = max(nx["h"], nx["c"] + rng * 0.03)
+    for j in range(K+2, N):                       # يعود إلى الفجوة ثم يواصل
+        W[j]["l"] = max(W[j]["l"], lo + (hi-lo)*0.2 if j in (10, 11) else hi + rng*0.01)
+        W[j]["o"] = max(W[j]["o"], W[j]["l"]); W[j]["c"] = max(W[j]["c"], W[j]["l"])
+        W[j]["h"] = max(W[j]["h"], max(W[j]["o"], W[j]["c"]) + rng*0.01)
+    fx, fy, slot, (x0, x1, y0, y1) = _proj(X, Y, W)
+    s = _candles(W, fx, fy, slot)
+    s += band(fx(K)-slot*2.2, fy(hi), x1, fy(lo))
+    s += htext(fx(K)-slot*2.9, fy((hi+lo)/2)+6, "FVG", TEAL_D, 18)
+    return s
 
+# ── 2) أوردر بلوك: آخر شمعة معاكسة قبل الاندفاع
 def art_ob(X, Y):
-    s = [cnd(X + 72, Y + 150, Y + 186, Y + 138, Y + 200, col=BEAR)]
-    s.append(band(X + 56, Y + 148, X + 250, Y + 188, dash="4 4"))
-    for k, (cx, o, c) in enumerate(((142, 148, 108), (192, 108, 78), (238, 78, 60))):
-        s.append(cnd(X + cx, Y + o, Y + c, Y + c - 12, Y + o + 12))
-    return "".join(s)
+    N, K = 15, 6
+    W = _mk(7102, [(0, 13.2), (3, 12.2), (6, 11.6), (9, 13.8), (12, 13.0), (14, 14.6)], N, "خانة الأوردر بلوك")
+    rng = max(c["h"] for c in W) - min(c["l"] for c in W)
+    o = W[K-1]["c"]; body = rng * 0.13
+    W[K].update(o=o, c=o - body, h=o + body*0.2, l=o - body*1.35)
+    ZT, ZB = W[K]["o"], W[K]["c"]
+    prev = W[K]["c"]
+    for j in range(K+1, K+4):
+        st = rng * 0.15
+        W[j].update(o=prev, c=prev+st, h=prev+st+rng*0.025, l=prev-rng*0.015); prev = W[j]["c"]
+    for j in range(K+4, N):
+        floor = ZB + (ZT-ZB)*0.25 if j in (11, 12) else ZT + rng*0.01
+        W[j]["l"] = max(W[j]["l"], floor)
+        W[j]["o"] = max(W[j]["o"], W[j]["l"]); W[j]["c"] = max(W[j]["c"], W[j]["l"])
+        W[j]["h"] = max(W[j]["h"], max(W[j]["o"], W[j]["c"]) + rng*0.015)
+    fx, fy, slot, (x0, x1, y0, y1) = _proj(X, Y, W)
+    s = _candles(W, fx, fy, slot)
+    s += band(fx(K)-slot*0.7, fy(ZT), x1, fy(ZB))
+    s += htext(fx(K)-slot*1.9, fy((ZT+ZB)/2)+6, "OB", TEAL_D, 18)
+    return s
 
+# ── 3) بريكر بلوك: بلوك فشل واخترقه السعر ثم انقلب مقاومة
 def art_breaker(X, Y):
-    s = [band(X + 56, Y + 96, X + 250, Y + 136, col=RED, stroke=RED, op=0.13)]
-    s.append(cnd(X + 78, Y + 100, Y + 134, Y + 92, Y + 146, col=BEAR))
-    for k, (cx, o, c) in enumerate(((132, 134, 176), (176, 176, 206), (220, 206, 232))):
-        s.append(cnd(X + cx, Y + o, Y + c, Y + o - 8, Y + c + 10, col=BEAR))
-    s.append(htext(X + 200, Y + 122, "انقلبت", RED, 17))
-    return "".join(s)
+    N, K = 16, 5
+    W = _mk(7103, [(0, 14.6), (3, 13.8), (5, 13.4), (8, 14.0), (11, 12.2), (16, 11.0)], N, "خانة البريكر")
+    rng = max(c["h"] for c in W) - min(c["l"] for c in W)
+    o = W[K-1]["c"]; body = rng * 0.12
+    W[K].update(o=o, c=o - body, h=o + body*0.22, l=o - body*1.3)
+    ZT, ZB = W[K]["o"], W[K]["c"]
+    prev = W[K]["c"]
+    for j in range(K+1, K+3):                       # صعود فاشل
+        st = rng * 0.07
+        W[j].update(o=prev, c=prev+st, h=prev+st+rng*0.02, l=prev-rng*0.015); prev = W[j]["c"]
+    for j in range(K+3, K+6):                       # اختراق هابط
+        st = rng * 0.13
+        W[j].update(o=prev, c=prev-st, h=prev+rng*0.015, l=prev-st-rng*0.025); prev = W[j]["c"]
+    for i, j in enumerate(range(K+6, K+9)):         # عودة تختبر البلوك من الأسفل
+        tgt = ZB + (ZT-ZB)*(0.3+0.3*i)
+        W[j].update(o=prev, c=tgt, h=tgt+rng*0.02, l=prev-rng*0.012); prev = tgt
+    for i, j in enumerate(range(K+9, N)):           # رفض وهبوط
+        st = rng * 0.11
+        W[j].update(o=prev, c=prev-st, h=prev+rng*0.012, l=prev-st-rng*0.02); prev = W[j]["c"]
+    fx, fy, slot, (x0, x1, y0, y1) = _proj(X, Y, W)
+    s = _candles(W, fx, fy, slot)
+    s += band(fx(K)-slot*0.7, fy(ZT), x1, fy(ZB), col=RED, stroke=RED, op=0.13)
+    s += htext(x1-52, fy((ZT+ZB)/2)+6, "انقلبت", RED, 17)
+    return s
 
+# ── 4) قمم متساوية: مستوى واحد تلمسه ثلاث قمم وأوامر الوقف فوقه
 def art_eqh(X, Y):
-    s = [hline(X + 46, X + 258, Y + 138, INK, 2.2)]
-    for cx, o, c in ((92, 208, 162), (152, 200, 158), (216, 212, 166)):
-        s.append(cnd(X + cx, Y + o, Y + c, Y + 138, Y + o + 22, w=30))
+    N = 15
+    W = _mk(7104, [(0, 11.6), (3, 13.4), (6, 12.2), (9, 13.4), (12, 12.4), (14, 13.4)], N, "خانة القمم المتساوية")
+    rng = max(c["h"] for c in W) - min(c["l"] for c in W)
+    HI = [3, 8, 13]
+    HL = max(W[i]["h"] for i in HI)
+    for i in HI:
+        W[i]["h"] = HL; W[i]["c"] = min(W[i]["c"], HL - rng*0.05)
+    for j in range(N):
+        if j not in HI:
+            cap = HL - rng*0.04
+            W[j]["h"] = min(W[j]["h"], cap)
+            W[j]["o"] = min(W[j]["o"], cap); W[j]["c"] = min(W[j]["c"], cap)
+    fx, fy, slot, (x0, x1, y0, y1) = _proj(X, Y, W)
+    s = _candles(W, fx, fy, slot)
+    s += hline(x0, x1, fy(HL), INK, 2.0)
     for k in range(3):
-        yy = Y + 126 - k * 11
-        s.append(f'<line x1="{X+56}" y1="{yy}" x2="{X+250}" y2="{yy}" stroke="{RED}" '
-                 f'stroke-width="3" stroke-dasharray="10 8" opacity="{0.9-k*0.2:.2f}"/>')
-    s.append(htext(X + 152, Y + 240, "أوامر وقف فوقها", RED, 18))
-    return "".join(s)
+        yy = fy(HL) - 8 - k*8
+        s += f'<line x1="{x0+8:.1f}" y1="{yy:.1f}" x2="{x1-8:.1f}" y2="{yy:.1f}" stroke="{RED}" stroke-width="2.6" stroke-dasharray="9 7" opacity="{0.9-k*0.2:.2f}"/>'
+    s += htext((x0+x1)/2, y1+2, "أوامر الوقف فوق المستوى", RED, 17)
+    return s
 
+# ── 5) منتصف المدى: نطاق واضح وخط 50% والسعر يشتري من الرخيص
 def art_eq(X, Y):
-    s = [band(X + 46, Y + 152, X + 258, Y + 240, op=0.13)]
-    s.append(hline(X + 46, X + 258, Y + 64, INK, 2.2))
-    s.append(hline(X + 46, X + 258, Y + 240, INK, 2.2))
-    s.append(hline(X + 46, X + 258, Y + 152, TEAL_D, 2.4, dash="7 6"))
-    for cx, o, c in ((92, 210, 176), (146, 176, 128), (206, 128, 96)):
-        s.append(cnd(X + cx, Y + o, Y + c, Y + c - 14, Y + o + 14, w=26))
-    s.append(htext(X + 84, Y + 142, "50%", TEAL_D, 19))
-    s.append(htext(X + 92, Y + 232, "الرخيص", TEAL_D, 18))
-    s.append(htext(X + 92, Y + 84, "الغالي", GREY, 18))
-    return "".join(s)
+    N = 16
+    W = _mk(7105, [(0, 11.2), (4, 14.4), (8, 12.0), (11, 12.6), (13, 11.9), (15, 14.2)], N, "خانة منتصف المدى")
+    rng = max(c["h"] for c in W) - min(c["l"] for c in W)
+    HIv = max(c["h"] for c in W[:6]); LOv = min(c["l"] for c in W[:3])
+    MIDv = (HIv + LOv) / 2
+    for j in range(6, 14):                          # الرجعة تبقى تحت النصف
+        cap = MIDv - rng*0.02
+        W[j]["h"] = min(W[j]["h"], cap)
+        W[j]["o"] = min(W[j]["o"], cap); W[j]["c"] = min(W[j]["c"], cap)
+    fx, fy, slot, (x0, x1, y0, y1) = _proj(X, Y, W)
+    s = band(x0, fy(MIDv), x1, fy(LOv), op=0.12)
+    s += _candles(W, fx, fy, slot)
+    s += hline(x0, x1, fy(HIv), INK, 1.9)
+    s += hline(x0, x1, fy(LOv), INK, 1.9)
+    s += hline(x0, x1, fy(MIDv), TEAL_D, 2.2, dash="7 6")
+    s += htext(x0+34, fy(MIDv)-12, "50%", TEAL_D, 18)
+    s += htext(x0+46, fy((MIDv+LOv)/2)+6, "الرخيص", TEAL_D, 17)
+    return s
 
+# ── 6) سحب السيولة: فتيل يخترق القاع ثم إغلاق فوقه وانطلاق
 def art_sweep(X, Y):
-    s = [hline(X + 46, X + 258, Y + 196, INK, 2.2, dash="6 5")]
-    for cx, o, c in ((84, 118, 156), (134, 156, 182)):
-        s.append(cnd(X + cx, Y + o, Y + c, Y + o - 12, Y + c + 14, col=BEAR, w=28))
-    s.append(cnd(X + 184, Y + 182, Y + 146, Y + 138, Y + 242, col=BULL, w=28))
-    s.append(cnd(X + 232, Y + 146, Y + 92, Y + 82, Y + 154, col=BULL, w=28))
-    s.append(htext(X + 96, Y + 236, "سحب تحت القاع", RED, 18))
-    return "".join(s)
+    N, K = 15, 8
+    W = _mk(7106, [(0, 13.6), (3, 12.4), (6, 12.8), (8, 12.2), (11, 13.6), (14, 14.8)], N, "خانة سحب السيولة")
+    rng = max(c["h"] for c in W) - min(c["l"] for c in W)
+    LOW = min(W[j]["l"] for j in range(2, 6))
+    for j in range(6, K):
+        W[j]["l"] = max(W[j]["l"], LOW + rng*0.03)
+        W[j]["o"] = max(W[j]["o"], W[j]["l"]); W[j]["c"] = max(W[j]["c"], W[j]["l"])
+    W[K].update(o=W[K-1]["c"], l=LOW - rng*0.06, c=LOW + rng*0.06,
+                h=max(W[K-1]["c"], LOW + rng*0.06) + rng*0.02)
+    prev = W[K]["c"]
+    for i, j in enumerate(range(K+1, N)):
+        st = rng * (0.13 if i < 4 else 0.05)
+        W[j].update(o=prev, c=prev+st, h=prev+st+rng*0.02, l=prev-rng*0.015); prev = W[j]["c"]
+    fx, fy, slot, (x0, x1, y0, y1) = _proj(X, Y, W)
+    s = _candles(W, fx, fy, slot)
+    s += hline(x0, x1, fy(LOW), INK, 1.9, dash="6 5")
+    s += htext(x0+70, fy(LOW)+30, "سحب تحت القاع", RED, 17)
+    return s
 
 CELLS = [
     ("fvg",     "الفجوة السعرية (FVG)", art_fvg,     "انتظر العودة", TEAL_D,
