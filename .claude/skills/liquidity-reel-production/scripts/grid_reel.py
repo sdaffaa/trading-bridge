@@ -163,7 +163,8 @@ def art_eqh(X, Y):
     for k in range(3):
         yy = fy(HL) - 8 - k*8
         s += f'<line x1="{x0+8:.1f}" y1="{yy:.1f}" x2="{x1-8:.1f}" y2="{yy:.1f}" stroke="{RED}" stroke-width="2.6" stroke-dasharray="9 7" opacity="{0.9-k*0.2:.2f}"/>'
-    s += htext((x0+x1)/2, y1+2, "أوامر الوقف فوق المستوى", RED, 17)
+    # الوسم فوق الخطوط المتقطعة مباشرة: مكان الأوامر نفسه لا أسفل الشموع
+    s += htext(x1 - 80, fy(HL) - 40, "أوامر الوقف فوق المستوى", RED, 17)
     return s
 
 # ── 5) منتصف المدى: نطاق واضح وخط 50% والسعر يشتري من الرخيص
@@ -184,7 +185,7 @@ def art_eq(X, Y):
     s += hline(x0, x1, fy(LOv), INK, 1.9)
     s += hline(x0, x1, fy(MIDv), TEAL_D, 2.2, dash="7 6")
     s += htext(x0+34, fy(MIDv)-12, "50%", TEAL_D, 18)
-    s += htext(x0+46, fy((MIDv+LOv)/2)+6, "الرخيص", TEAL_D, 17)
+    s += htext(x0+52, fy(LOv)+26, "النصف الرخيص", TEAL_D, 17)   # تحت حدّ المدى: منطقة فارغة بلا تصادم
     return s
 
 # ── 6) سحب السيولة: فتيل يخترق القاع ثم إغلاق فوقه وانطلاق

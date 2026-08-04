@@ -15,11 +15,17 @@ FIT_JS = """() => {
     const avail = c.clientHeight;
     if (h > avail + 2) {
       const k = Math.max(0.60, (avail - 4) / h);
+      const px = v => parseFloat(v) || 0;
+      let w0 = c.getBoundingClientRect().width;
+      if (st.boxSizing !== 'border-box')
+        w0 -= px(st.paddingLeft) + px(st.paddingRight) + px(st.borderLeftWidth) + px(st.borderRightWidth);
       c.style.justifyContent = 'flex-start';
       c.style.transformOrigin = 'top center';
       c.style.transform = 'scale(' + k.toFixed(4) + ')';
-      c.style.width = (100 / k) + '%';
-      c.style.marginLeft = (-(100 / k - 100) / 2) + '%';
+      // بالبكسل مع إلغاء right: في RTL تُهمل left عند تحديد left+right+width فينزاح المحتوى خارج الصفحة
+      c.style.right = 'auto';
+      c.style.width = (w0 / k) + 'px';
+      c.style.marginLeft = (-(w0 / k - w0) / 2) + 'px';
     }
   });
   return true;

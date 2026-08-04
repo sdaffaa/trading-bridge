@@ -48,7 +48,7 @@ if __name__ == "__main__":
             p["rules"] = [dict(t=r["t"], bad=bool(r.get("bad"))) for r in pg["rules"]]
         if pg.get("note"):
             p["note"] = pg["note"]
-        if pg["title"].strip().startswith("المنطقة") and k < 6:
+        if pg.get("chart") and k < 6:
             p["svg"] = page_chart(ARTS[k]); k += 1
         pages.append(p)
     cfg = dict(eyebrow="دليل — خريطة الجارت", title="ست مناطق<br>على الجارت",
