@@ -5,6 +5,27 @@ from playwright.sync_api import sync_playwright
 
 CHROME = glob.glob("/opt/pw-browsers/chromium-*/chrome-linux/chrome")[0]
 
+FIT_JS = """() => {
+  document.querySelectorAll('.slide .cont').forEach(c => {
+    const st = getComputedStyle(c);
+    const gap = parseFloat(st.rowGap || st.gap || 0) || 0;
+    let h = 0, n = 0;
+    c.querySelectorAll(':scope > *').forEach(e => { h += e.getBoundingClientRect().height; n++; });
+    h += gap * Math.max(0, n - 1);
+    const avail = c.clientHeight;
+    if (h > avail + 2) {
+      const k = Math.max(0.60, (avail - 4) / h);
+      c.style.justifyContent = 'flex-start';
+      c.style.transformOrigin = 'top center';
+      c.style.transform = 'scale(' + k.toFixed(4) + ')';
+      c.style.width = (100 / k) + '%';
+      c.style.marginLeft = (-(100 / k - 100) / 2) + '%';
+    }
+  });
+  return true;
+}"""
+
+
 def render(html_path, outdir, names=None):
     os.makedirs(outdir, exist_ok=True)
     for f in glob.glob(os.path.join(outdir, "*.png")): os.remove(f)
@@ -13,6 +34,7 @@ def render(html_path, outdir, names=None):
         pg = b.new_page(viewport={"width": 1080, "height": 1350}, device_scale_factor=2)
         pg.goto("file://" + os.path.abspath(html_path))
         pg.wait_for_timeout(700)
+        pg.evaluate(FIT_JS)   # مُلائمة تلقائية: لا صفحة تتجاوز حدودها
         slides = pg.query_selector_all(".slide")
         outs = []
         for i, s in enumerate(slides):

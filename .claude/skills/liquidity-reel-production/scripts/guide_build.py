@@ -25,7 +25,12 @@ def _page(cfg, i, pg, total):
     lead += "".join(f'<p class="lead2">{t}</p>' for t in pg.get("paras", []))
     tick = f'<div class="realhead"><span></span><span class="ticker">{pg["ticker"]}</span></div>' if pg.get("ticker") else ""
     extra = pg.get("html", "")
-    dense = " dense" if (pg.get("svg") or pg.get("html")) and pg.get("paras") else ""
+    chars = (len(pg.get("lead", "")) + sum(len(t) for t in pg.get("paras", []))
+             + sum(len(r["t"]) for r in pg.get("rules", [])) + len(pg.get("note", "")))
+    if (pg.get("svg") or pg.get("html")) and pg.get("paras"):
+        dense = " dense xs" if chars > 900 else " dense"
+    else:
+        dense = " dense xs" if chars > 1250 else (" dense" if chars > 780 else "")
     return f'''<div class="slide" {CW}>
   {brandbar(True)}
   <div class="cont{dense}">
@@ -54,6 +59,14 @@ GCSS = f'''
 .cont.dense .lead2{{font-size:23px;line-height:1.62;margin-top:8px}}
 .cont.dense .ttl{{font-size:44px}}
 .cont.dense .chartwrap{{padding:10px 14px;margin-top:6px}}
+.cont.dense.xs{{top:210px;gap:11px}}
+.cont.dense.xs .ttl{{font-size:38px;line-height:1.2}}
+.cont.dense.xs .num{{width:52px;height:52px;font-size:26px}}
+.cont.dense.xs .lead2{{font-size:21px;line-height:1.56;margin-top:6px}}
+.cont.dense.xs .rulerow p{{font-size:22px;line-height:1.42}}
+.cont.dense.xs .rulerow{{padding:10px 14px}}
+.cont.dense.xs .note{{font-size:22px;padding:14px 18px}}
+.cont.dense.xs .chartwrap{{padding:8px 12px}}
 .gfoot{{position:absolute;bottom:54px;left:0;right:0;text-align:center;color:{MUTE};font-size:22px;font-weight:600}}
 .gfoot.dk{{color:#7F97A1}}
 .tblx{{width:100%;border-collapse:collapse;background:#FBF9F5;border:1px solid #DED8CC}}
