@@ -1,4 +1,5 @@
 scripts/out_*/
+scripts/out15_*/
 scripts/*.html
 scripts/*.pdf
 scripts/*.zip
@@ -6,3 +7,4 @@ scripts/__pycache__/
 scripts/frames_any/
 scripts/frames/
 scripts/qa_*.png
+scripts/qa15_*.html

@@ -50,8 +50,11 @@
    "pillar": "هيكل السوق",
    "topic": "التشوك بالفريم الصغير: مفتاح الدخول المبكر",
    "keyword": "تشوك",
-   "status": "queued",
-   "cat": "فنية"
+   "status": "done",
+   "cat": "فنية",
+   "done_date": "2026-08-04",
+   "run": 15,
+   "media": "carousel"
   },
   {
    "id": 6,
@@ -199,8 +202,11 @@
    "pillar": "التوقيت",
    "topic": "رينج الجلسة الآسيوية: الصندوق اللي يحدد يومك",
    "keyword": "آسيا",
-   "status": "queued",
-   "cat": "أساسية"
+   "status": "done",
+   "cat": "أساسية",
+   "done_date": "2026-08-04",
+   "run": 15,
+   "media": "carousel"
   },
   {
    "id": 22,
@@ -236,8 +242,11 @@
    "pillar": "التنفيذ",
    "topic": "السبريد والعمولة: التكلفة الخفية على السكالبر",
    "keyword": "سبريد",
-   "status": "queued",
-   "cat": "مالية"
+   "status": "done",
+   "cat": "مالية",
+   "done_date": "2026-08-04",
+   "run": 15,
+   "media": "carousel"
   },
   {
    "id": 26,
@@ -271,8 +280,11 @@
    "pillar": "SMC",
    "topic": "الزون المحروق: المنطقة اللي انلمست مرتين",
    "keyword": "محروق",
-   "status": "queued",
-   "cat": "فنية"
+   "status": "done",
+   "cat": "فنية",
+   "done_date": "2026-08-04",
+   "run": 15,
+   "media": "carousel"
   },
   {
    "id": 30,
@@ -438,6 +450,17 @@
    "done_date": "2026-08-04",
    "run": "day2-2026-08-04",
    "media": "كاروسيل + ريل + PDF"
+  },
+  {
+   "id": 50,
+   "pillar": "علم النفس",
+   "topic": "الثقة الزائدة بعد سلسلة أرباح: متى يتحوّل الانضباط إلى غرور",
+   "keyword": "غرور",
+   "status": "done",
+   "cat": "نفسية",
+   "done_date": "2026-08-04",
+   "run": 15,
+   "media": "carousel"
   }
  ],
  "covered_before_backlog": [
