@@ -272,8 +272,11 @@
    "pillar": "برايس أكشن",
    "topic": "الترند لاين الصح: من الفتائل ولا الأجسام؟",
    "keyword": "ترند",
-   "status": "queued",
-   "cat": "فنية"
+   "status": "done",
+   "cat": "فنية",
+   "done_date": "2026-08-04",
+   "run": 19,
+   "media": "carousel"
   },
   {
    "id": 29,
