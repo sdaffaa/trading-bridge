@@ -259,13 +259,13 @@ function candleK(i, k, fade) {{
   c.g.style.filter = k < 1 ? `brightness(${{(1 + 0.42*(1-k)).toFixed(3)}})` : "";
 }}
 window.__setFrame = function(t) {{
-  const P0 = t < 2.05;
-  const TR = seg(t, 1.9, 2.35);
+  const P0 = t < {cfg.get("preview_a", 2.05)};
+  const TR = seg(t, {cfg.get("preview_a", 2.05) - 0.15}, {cfg.get("preview_b", 2.35)});
   let li = BASE, lk = 1;                       // آخر شمعة مكشوفة (لخط السعر الحي)
   for (let i = 0; i < {N}; i++) {{
     let k = 0;
     if (i <= BASE) k = 1;
-    else if (P0 || t < 2.35) {{
+    else if (P0 || t < {cfg.get("preview_b", 2.35)}) {{
       const o = OPEN.find(p => p[0] === i);
       if (i <= OPENMAX) k = 1;
       else if (o) k = seg(t, o[1], o[1]+CDUR[i]);
@@ -287,7 +287,7 @@ window.__setFrame = function(t) {{
   for (const id of FULLSET) {{
     const el = $(id);
     const m = MARKS.find(m => m[0] === id);
-    if (P0 || t < 2.35) {{
+    if (P0 || t < {cfg.get("preview_b", 2.35)}) {{
       el.style.opacity = 1 - TR;
       if (m && m[3] === "zone") {{
         setLine(el.querySelector(".zb"), 1);
@@ -348,7 +348,7 @@ window.__setFrame = function(t) {{
   }}
   for (const id of DRAWSET) {{
     const el = $(id);
-    if (P0 || t < 2.35) {{ setLine(el, 1); el.style.opacity = 1 - TR; continue; }}
+    if (P0 || t < {cfg.get("preview_b", 2.35)}) {{ setLine(el, 1); el.style.opacity = 1 - TR; continue; }}
     const m = MARKS.find(m => m[0] === id);
     setLine(el, m ? seg(t, m[1], m[2]) : 0);
   }}
@@ -360,7 +360,7 @@ window.__setFrame = function(t) {{
     el.style.transform = `translateY(${{(1-ki)*24}}px)`;
   }}
   $("chip").style.opacity = Math.min(oc(seg(t, 0.8, 1.2)), 1);
-  const r1 = oc(seg(t, 1.25, 1.6)) * (1 - seg(t, 1.9, 2.2));
+  const r1 = {"oc(seg(t, 1.25, 1.6)) * (1 - seg(t, 1.9, 2.2))" if cfg.get("res_tease", True) else "0"};
   const r2 = oc(seg(t, {cfg["res_t"]}, {cfg["res_t"]}+0.4));
   $("res").style.opacity = Math.max(r1, r2);
   const ck = oc(seg(t, {cfg["cta_t"]}, {cfg["cta_t"]}+0.45));
@@ -421,7 +421,7 @@ window.__setFrame = function(t) {{
   const swk = seg(t, {fl_a} - 0.08, {fl_a} + 0.5);
   const sw = $("sweep");
   if (swk > 0 && swk < 1) {{
-    sw.style.opacity = 0.55 * Math.sin(Math.PI * swk);
+    sw.style.opacity = {cfg.get("sweep_op", 0.55)} * Math.sin(Math.PI * swk);
     sw.style.transform = `translateX(${{(-320 + 1500 * swk).toFixed(0)}}px) skewX(-14deg)`;
   }} else sw.style.opacity = 0;
   if (t > {cfg["cta_t"]} + 0.6) {{
