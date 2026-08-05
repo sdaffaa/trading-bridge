@@ -13,11 +13,27 @@ def set_canvas(w, h):
     global CW, CH
     CW, CH = w, h
 
+PAD = (16, 20, 26, 20)          # يسار · يمين · أعلى · أسفل
+
+def set_pad(pl, pr, pt, pb):
+    """يفرّغ حزاماً حول منطقة الشموع — محور السعر يميناً ومحور الوقت أسفل كما في المنصات."""
+    global PAD
+    PAD = (pl, pr, pt, pb)
+
+def plot_box():
+    pl, pr, pt, pb = PAD
+    return pl, pr, pt, pb, CW - pl - pr, CH - pt - pb
+
+def price_scale(W_):
+    """المدى السعري نفسه الذي تستعمله geom — ليتطابق محور السعر مع الشموع."""
+    ymin = min(c["l"] for c in W_); ymax = max(c["h"] for c in W_)
+    pad = (ymax - ymin) * 0.08
+    return ymin - pad * 1.7, ymax + pad
+
 def geom(W_):
     N = len(W_)
-    ymin = min(c["l"] for c in W_); ymax = max(c["h"] for c in W_)
-    pad = (ymax - ymin) * 0.08; ymin -= pad * 1.7; ymax += pad
-    pl, pr, pt, pb = 16, 20, 26, 20
+    ymin, ymax = price_scale(W_)
+    pl, pr, pt, pb = PAD
     pw = CW - pl - pr; ph = CH - pt - pb; slot = pw / N
     return (lambda i: pl + slot * i + slot / 2), (lambda p: pt + (ymax - p) / (ymax - ymin) * ph), slot
 
@@ -53,7 +69,7 @@ def ring(id, cx, cy, r=15, col=TEAL_D, label_html=""):
 
 
 def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", lbl_t="الهدف",
-            col_t=TEAL_D, col_s=RED, col_e="#ECF3F6"):
+            col_t=TEAL_D, col_s=RED, col_e="#ECF3F6", anchor_e="end"):
     """بوكس هدف/ستوب بستايل TradingView: خط دخول يترسم ← الستوب يتمدد لتحت ← الهدف يتمدد لفوق."""
     w = x1 - x0
     ln = w
@@ -66,8 +82,8 @@ def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", 
             f'stroke="{col_e}" stroke-width="2.2"/>'
             f'<g class="pl" opacity="0">'
             + htext((x0+x1)/2, yt + 30, lbl_t, col_t, 22)
-            + htext((x0+x1)/2, ys - 14, lbl_s, col_s, 22)
-            + htext(x1 - 12, ye - 12, lbl_e, col_e, 21, anchor="end")
+            + htext((x0+x1)/2, ys - 22, lbl_s, col_s, 22)
+            + htext(x1 - 12, ye - 12, lbl_e, col_e, 21, anchor=anchor_e)
             + '</g></g>')
 
 def checkmark(cx, cy, col=TEAL_D, id="ck1"):
@@ -97,16 +113,24 @@ def build_reel(cfg, out_html):
     """
     W_ = cfg["w"]; N = len(W_)
     x, y, slot = geom(W_)
+    _ymin, _ymax = price_scale(W_)
+    _pl, _pr, _pt, _pb, _pw, _ph = plot_box()
     dark = bool(cfg.get("dark"))
     svg = [f'<svg viewBox="0 0 {CW} {CH}" width="{CW}" height="{CH}" xmlns="http://www.w3.org/2000/svg">']
-    for k in range(5):
-        gy = 26 + (CH - 46) * k / 4
-        svg.append(f'<line x1="16" y1="{gy:.0f}" x2="{CW-20}" y2="{gy:.0f}" stroke="rgba(15,46,60,0.06)" stroke-width="1.5"/>')
+    if cfg.get("grid", True):
+        for k in range(5):
+            gy = 26 + (CH - 46) * k / 4
+            svg.append(f'<line x1="16" y1="{gy:.0f}" x2="{CW-20}" y2="{gy:.0f}" stroke="rgba(15,46,60,0.06)" stroke-width="1.5"/>')
+    svg.append(cfg.get("pre_svg", ""))       # أثاث المنصة يسبق الشموع فلا يغطيها
     svg.append(candles_svg(W_, x, y, slot))
     # خط السعر الحي (ستايل TradingView) — يتبع إغلاق آخر شمعة مكشوفة
     svg.append(f'<g id="lp" opacity="0"><line id="lpl" x1="16" y1="0" x2="{CW-20}" y2="0" '
                f'stroke="{INK}" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.4"/>'
-               f'<circle id="lpd" cx="{CW-20}" cy="0" r="4.5" fill="{INK}"/></g>')
+               f'<circle id="lpd" cx="{CW-20}" cy="0" r="4.5" fill="{INK}"/>'
+               + (f'<rect id="lpp" x="{CW-_pr+3}" y="0" width="{_pr-7}" height="30" rx="3" fill="{cfg.get("lp_col", INK)}"/>'
+                  f'<text id="lpv" x="{CW-_pr+9}" y="0" fill="{cfg.get("lp_txt", "#08131C")}" '
+                  f'font-size="19" font-weight="800" font-family="system-ui,sans-serif">0</text>'
+                  if cfg.get("lp_pill") else '') + '</g>')
     svg.append(cfg["extra_svg"])
     svg.append('</svg>')
     CHART = "".join(svg)
@@ -242,6 +266,9 @@ const MARKS = {json.dumps(cfg["marks"])};
 const FULLSET = {json.dumps(cfg["fullset"])};
 const DRAWSET = {json.dumps(cfg["drawset"])};
 const DOM_MARKS = {json.dumps(cfg.get("dom_marks", []))};
+const LPP = {json.dumps(bool(cfg.get("lp_pill")))};
+const LPD = {cfg.get("lp_dec", 2)};
+const YMIN = {_ymin}, YMAX = {_ymax}, PT = {_pt}, PH = {_ph};
 const OPENMAX = {cfg.get("openmax", "BASE")};
 const YO = {json.dumps([round(y(c["o"]), 1) for c in W_])};
 const CDUR = {json.dumps([round(0.4 + 0.18*((i*37)%10)/10, 3) for i in range(N)])};
@@ -293,6 +320,12 @@ window.__setFrame = function(t) {{
   $("lp").style.opacity = (P0 ? 0.9 : (t < 2.35 ? (1 - TR) * 0.9 : 0.9));
   $("lpl").setAttribute("y1", ly); $("lpl").setAttribute("y2", ly);
   $("lpd").setAttribute("cy", ly);
+  if (LPP) {{
+    const pv = YMAX - (ly - PT) / PH * (YMAX - YMIN);
+    $("lpp").setAttribute("y", ly - 15);
+    $("lpv").setAttribute("y", ly + 6);
+    $("lpv").textContent = pv.toFixed(LPD);
+  }}
   for (const id of FULLSET) {{
     const el = $(id);
     const m = MARKS.find(m => m[0] === id);
