@@ -397,7 +397,12 @@
    "title": "أمر Limit أم Market؟ طريقة التنفيذ عند المناطق",
    "cat": "تنفيذ",
    "done": false,
-   "source": "اقتراحات 2026-08-03 وفق V2"
+   "source": "اقتراحات 2026-08-03 وفق V2",
+   "status": "done",
+   "keyword": "ليمت",
+   "done_date": "2026-08-05",
+   "run": "run23",
+   "media": "carousel"
   },
   {
    "id": 41,
