@@ -207,7 +207,8 @@ def build_reel(cfg, out_html):
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}}
 .hl{{position:absolute;top:150px;left:40px;right:40px;text-align:center;font-weight:900;
   line-height:1.22;color:{TXTC};opacity:0}}
-#chartwrap{{position:absolute;top:430px;left:40px;width:{CW}px;height:{CH}px;transform-origin:0 0}}
+#chartclip{{position:absolute;top:430px;left:40px;width:{CW}px;height:{CH}px;overflow:hidden}}
+#chartwrap{{position:absolute;top:0;left:0;width:{CW}px;height:{CH}px;transform-origin:0 0}}
 .cnd .cw{{transform-box:fill-box;transform-origin:50% 50%}}
 .cnd .cb{{transform-box:fill-box}}
 .cnd .cb.up{{transform-origin:50% 100%}}
@@ -240,7 +241,7 @@ def build_reel(cfg, out_html):
 {cfg.get('extra_html','')}
 {texts}
 <div id="chip">{cfg["chip"]}</div>
-<div id="chartwrap"><div id="camrot">{CHART}</div></div>
+<div id="chartclip"><div id="chartwrap"><div id="camrot">{CHART}</div></div></div>
 <div id="vig"></div>
 <div id="sweep"></div>
 <div id="res">{cfg["res"]}</div>

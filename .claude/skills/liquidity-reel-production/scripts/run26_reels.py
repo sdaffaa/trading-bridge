@@ -31,12 +31,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CVW, CVH = 1080, 1400              # ٧٢٫٩٪ من ارتفاع الريل
 set_canvas(CVW, CVH)
 set_pad(18, 122, 92, 66)           # حزام محور السعر يميناً ومحور الوقت أسفل
-DUR = 19.4
-REVEAL = (3.0, 11.5)               # نافذة تكشّف الشموع
+DUR = 24.0                         # أمر فهد: مُدّت لسرد الخطوات الست كاملة
+PACE = 1.89                        # كلمة/ثانية — مقيسة على توليد عربي فعلي
+GAP = 0.35                         # فاصل تنفّس بين سطرين منطوقين
+
+def need(txt):
+    """زمن نطق السطر بالفصحى. التوقيت يُشتقّ منه لا العكس."""
+    return len(" ".join(re.sub(r"<[^>]+>", " ", txt).split()).split()) / PACE
 
 BASE_CSS = """
 .hl{top:120px;left:56px;right:56px;line-height:1.22}
-#chartwrap{top:360px;left:0}
+#chartclip{top:360px;left:0}
 #chip{display:none} #endlogo{display:none} #res{display:none}
 #cta{top:1786px}
 #cta .k{font-size:44px;padding:9px 30px}
@@ -110,23 +115,51 @@ def conf_html(S):
                    for r in top)
 
 
-def times(S, base):
-    """زمن ظهور كل شمعة — الماركب يتبع الشمعة التي تسبّبت فيه لا العكس."""
-    N = len(S["w"])
-    idx = list(range(base + 1, N))
-    a, b = REVEAL
-    st = (b - a) / max(1, len(idx) - 1)
-    return {j: round(a + i * st, 2) for i, j in enumerate(idx)}
+def schedule(S, D):
+    """يشتقّ التوقيت كله من طول السرد: الشمعة التي تُطلق كل خطوة تظهر
+    حين يحتاجها الصوت، لا في موعد ثابت يُحشر النص فيه.
+
+    يعيد (T أزمان الشموع، base، أزمان الخطوات الست، END).
+    """
+    N = len(S["w"]); fill = D["sig_i"]
+    vo = [need(D["hook"])] + [need(t) for t, _ in D["steps"]]
+    # ١) الإشارة (الخطوة ٢) تبدأ بعد فراغ الهوك والخطوة ١ من النطق
+    t_sig = round(0.10 + vo[0] + GAP + vo[1] + GAP, 2)
+    # ٢) الشموع: الشمعة المُطلِقة تقع نحو ثلث التكشّف، فلا يبدأ الريل جامداً
+    #    ولا ينتهي الكشف بعد رسم الصندوق بكثير.
+    tgt, a0, bend = t_sig - 0.20, 2.6, DUR - 7.0
+    ratio = (bend - a0) / max(0.6, tgt - a0)
+    # الشمعة التي تُعرِّف المستوى — وكل ما قبل الإشارة — يجب أن تتكشّف أمام
+    # المشاهد. لولا هذا القيد لبدأ ريل الكسر والكسرُ واقعٌ سلفاً.
+    cap = min(fill - 2, D["lvl_i"] - 1)
+    base = max(1, min(cap, round((N - 2 - ratio * (fill - 1)) / (1 - ratio))))
+    n, i = N - base - 1, fill - base - 1
+    step = (tgt - a0) / max(1, i)
+    T = {j: round(a0 + (j - base - 1) * step, 2) for j in range(base + 1, N)}
+    # ٣) الخطوات ٣–٦ تُوزَّع بنسبة ما يحتاجه كل سطر من نطق
+    END = DUR - 1.45
+    t_box = round(t_sig + vo[2] + GAP, 2)
+    w = vo[3:]
+    tot = sum(w) + 3 * GAP
+    free = END - t_box
+    ST = [round(0.10 + vo[0] + GAP, 2), t_sig, t_box]
+    acc = t_box
+    for q in range(3):
+        acc += (w[q] + GAP) / tot * free
+        ST.append(round(acc, 2))
+    for q in range(6):
+        nxt = ST[q + 1] if q < 5 else END
+        assert nxt - ST[q] >= vo[q + 1] + 0.15, \
+            f"الخطوة {q+1} أضيق من نطقها: {nxt - ST[q]:.2f} < {vo[q+1]:.2f}"
+    assert ST[0] - 0.10 >= vo[0], "الهوك أضيق من نطقه"
+    return T, base, ST, END
 
 
 # ═════════ النموذج ١ — كنس وإغلاق · الذهب ١٥ دقيقة ═════════
 def m_sweep():
-    S = SETUPS["sweep"]; W = S["w"]; i = S["i"]
-    T = times(S, 8)
-    t_lvl = round(T[i - 2] + 0.25, 2)          # بعد اكتمال الشموع التي صنعت القاع
-    t_sig = round(T[i] + 0.20, 2)              # بعد إغلاق شمعة الكنس
+    S = SETUPS["sweep"]; i = S["i"]
     U = S["ENT"] - S["STP"]
-    return dict(S=S, base=8, T=T, t_lvl=t_lvl, t_sig=t_sig,
+    return dict(S=S, lvl_i=i - 2, sig_i=i,
                 hook="كسر القاع ليس بيعاً.<br>تعرف لماذا؟",
                 steps=[
                  ("قاعٌ محميٌّ تحته أوامر إيقاف", "سيولةٌ متراكمة، لا حاجز"),
@@ -150,11 +183,8 @@ def sweep_svg(D, x, y, slot):
 # ═════════ النموذج ٢ — منتصف الفجوة · الذهب ساعة ═════════
 def m_fvg():
     S = SETUPS["fvg"]; k, tap = S["k"], S["tap"]
-    T = times(S, 18)
     U = S["ENT"] - S["STP"]
-    return dict(S=S, base=18, T=T,
-                t_lvl=round(T[k + 1] + 0.25, 2),    # الفجوة تكتمل بظهور الشمعة اللاحقة
-                t_sig=round(T[tap] + 0.20, 2),      # بعد الشمعة التي لمست المنتصف
+    return dict(S=S, lvl_i=k + 1, sig_i=tap,
                 hook="الفجوة ليست منطقة دخول.<br>أين الخطأ؟",
                 steps=[
                  ("اندفاعٌ يترك فجوةً بين ذيلين", "سعرٌ لم يُتداول عليه"),
@@ -178,13 +208,9 @@ def fvg_svg(D, x, y, slot):
 
 # ═════════ النموذج ٣ — كسر وعودة · الذهب ٥ دقائق ═════════
 def m_bos():
-    S = SETUPS["bos"]; p, brk, fill = S["p"], S["brk"], S["fill"]
-    T = times(S, 8)
+    S = SETUPS["bos"]; p, fill = S["p"], S["fill"]
     U = S["ENT"] - S["STP"]
-    return dict(S=S, base=8, T=T,
-                t_lvl=round(T[p] + 0.25, 2),        # بعد ظهور القمة نفسها
-                t_sig=round(T[fill] + 0.20, 2),     # بعد الشمعة التي ارتدّت من المستوى
-                t_brk=round(T[brk] + 0.15, 2),
+    return dict(S=S, lvl_i=p, sig_i=fill,
                 hook="الكسر وحده لا يكفي.<br>ما الذي لم تلاحظه؟",
                 steps=[
                  ("قمةٌ هابطة تحكم الهيكل", "كسرُها يقلب القراءة"),
@@ -236,21 +262,13 @@ def build(key, out=None):
     ex.append(checkmark(x(S["hit"]), y(S["TGT"]) - 40, id="ck"))
     fullset = fullset + ["ex", "box", "ck"]
 
-    t_lvl, t_sig = D["t_lvl"], D["t_sig"]
-    # ── جدول الخطوات الست ──
-    # ١ الشرط و٢ الإشارة يتبعان الشموع؛ و٣–٦ توزَّع بالتساوي حتى نهاية الشرح،
-    # فتبقى كل خطوة فوق حدّ القراءة ولا تُزاحم التي بعدها.
-    s1 = round(max(2.2, min(3.2, t_sig - 2.2)), 2)
-    s2 = t_sig
-    t_box = round(max(t_sig + 2.2, 9.0), 2)
-    END = 18.55
-    span = (END - t_box) / 4
-    s3, s4, s5, s6 = (round(t_box + k * span, 2) for k in range(4))
-    ST = [s1, s2, s3, s4, s5, s6]
-    assert all(ST[k + 1] - ST[k] >= 1.7 for k in range(5)), f"خطوة أقصر من حدّ القراءة: {ST}"
-    assert s1 - 0.10 >= 1.7, "الهوك أقصر من حدّ القراءة"
-
-    t_ck = round(s5 + 1.1, 2)
+    T, base, ST, END = schedule(S, D)
+    t_sig = ST[1]; t_box = ST[2]
+    # لو كانت الشمعة المُعرِّفة للمستوى ظاهرة منذ اللقطة الأولى فالمستوى
+    # قائم أصلاً، ويُرسم مع بداية الخطوة ١ لا بعد شمعة لن تتكشّف.
+    t_lvl = round(T[D["lvl_i"]] + 0.25, 2) if D["lvl_i"] in T else round(ST[0] + 0.3, 2)
+    s6 = ST[5]
+    t_ck = round(ST[4] + 1.1, 2)
     marks = [(drawset[0], t_lvl, t_lvl + 0.5, "draw")]
     if key == "sweep":
         # لا انسحاب: الوسوم هي سبب الدخول المرئي، تبقى مع الصندوق حتى النهاية
@@ -277,8 +295,8 @@ def build(key, out=None):
             B.append(f'<span class="cfw">{conf_html(S)}</span>')
         else:
             B.append(f'<b>{t}</b><span class="why"><em>لماذا:</em> {w}</span>')
-    b_ = [(0.10, s1 - 0.15, 46)] + [(ST[k], (ST[k + 1] if k < 5 else END) - 0.15, 40)
-                                    for k in range(6)]
+    b_ = [(0.10, ST[0] - 0.15, 46)] + [(ST[k], (ST[k + 1] if k < 5 else END) - 0.15, 40)
+                                       for k in range(6)]
     dom = [[f"sa{k+1}", ST[k], ST[k] + 0.25,
             (ST[k + 1] if k < 5 else END) - 0.15, .25] for k in range(6)]
 
@@ -290,15 +308,15 @@ def build(key, out=None):
         w=W, dark=DARKMODE, extra_css=BASE_CSS, extra_html=BASE_HTML,
         grid=False, pre_svg=pre,
         lp_pill=True, lp_dec=S["dec"], lp_col=tv_chart.T["PILL"], lp_txt=tv_chart.T["PILLTX"],
-        base=D["base"], openmax=N, open_t=[[N - 1, 0.45]],
-        story=[(j, t) for j, t in D["T"].items()],
+        base=base, openmax=N, open_t=[[N - 1, 0.45]],
+        story=[(j, t) for j, t in T.items()],
         extra_svg="".join(ex), marks=marks, fullset=fullset, drawset=drawset,
         dom_marks=dom,
         preview_a=0.0, preview_b=0.0, res_tease=False, sweep_op=0.0, flash_op=0.0,
         txt=[(f"t{i+1}", a, b, B[i], fs, INK) for i, (a, b, fs) in enumerate(b_)],
         chip="", res="", cta_k=f"اكتب «{D['kw']}»", cta_s="ويصلك الشرح كاملاً",
         edu=f'{S["sym"]} · {TFN[S["tf"]]} · {S["date"]} — لغرض تعليمي',
-        dur=DUR, res_t=999, cta_t=18.75,
+        dur=DUR, res_t=999, cta_t=round(END + 0.2, 2),
         flash=(999, 999.1), punch=(999, 999.1, 0.0),
         # الكاميرا ثابتة: شاشة المنصة لا تتجوّل، وأي تكبير يقصّ محور السعر
         cam=[[0.00, 1.0, .5, .5], [DUR, 1.0, .5, .5]],
@@ -306,7 +324,7 @@ def build(key, out=None):
     out = out or f"reel26_{key}_{THEME}.html"
     n = build_reel(cfg, os.path.join(HERE, out))
     json.dump(dict(dur=DUR, hook=0.10, steps=ST, t_lvl=t_lvl, t_sig=t_sig,
-                   t_box=t_box, t_ck=t_ck, end=END, cta=18.75),
+                   t_box=t_box, t_ck=t_ck, end=END, cta=round(END + 0.2, 2)),
               open(os.path.join(HERE, f"reel26_{key}_cues.json"), "w"), indent=1)
 
     # ── سكربت التعليق الصوتي بالفصحى ──
@@ -314,7 +332,6 @@ def build(key, out=None):
     # فلا ينقسم انتباه المشاهد بين نصٍّ يقرأه وصوتٍ يقول غيره.
     # الوتيرة مقيسة على توليد فعلي: ١٣ كلمة = ٦٫٨٨ ثانية ← ١٫٨٩ كلمة/ث.
     # سطر السبب لا يُنطق: نافذة الخطوة لا تتسع لجملتين بهذه الوتيرة.
-    PACE = 1.89
     lines, need_total = [], 0.0
     for q, (ta, tb, _) in enumerate(b_):
         if q == 0:
@@ -328,8 +345,10 @@ def build(key, out=None):
         need_total += need + 0.35          # فاصل تنفّس بين الأسطر
         lines.append(dict(i=q, t=round(ta, 2), slot=round(tb - ta, 2),
                           need=need, fits=need <= tb - ta, text=txt))
-    lines.append(dict(i=99, t=18.75, slot=round(DUR - 18.75, 2),
-                      need=round(2 / PACE, 2), fits=False, text=f'اكتب «{D["kw"]}»'))
+    cta_t = round(END + 0.2, 2)
+    lines.append(dict(i=99, t=cta_t, slot=round(DUR - cta_t, 2),
+                      need=round(2 / PACE, 2), fits=DUR - cta_t >= 2 / PACE,
+                      text=f'اكتب «{D["kw"]}»'))
     need_total += 1.06 + 0.35
     bad = [l["i"] for l in lines if not l["fits"]]
     json.dump(dict(voice="عربية فصحى · ذكر · نبرة مؤسسية هادئة · بلا تهويل",
@@ -340,8 +359,8 @@ def build(key, out=None):
               ensure_ascii=False, indent=1)
 
     print(f'{key:<6} {S["sym"]} {S["tf"]:<4} {S["date"]} | شموع {N} | '
-          f'خطوات {ST} | {n} bytes | تعليق: يحتاج {need_total + 1.2:.1f}s '
-          f'لسرد كامل، وضيّق في {len(bad)} من {len(lines)} أسطر')
+          f'base {base} | خطوات {ST} | {n} bytes | '
+          f'أسطر ضيّقة: {len(bad)} من {len(lines)}')
     return D
 
 
