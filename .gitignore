@@ -7,3 +7,6 @@
 
 # مخرجات التعليق الصوتي (تُرسل ولا تُرفع)
 .claude/skills/*/scripts/vo/
+
+# صور الجارت الأصلي (تُرسل ولا تُرفع)
+.claude/skills/*/scripts/chart_orig_*.png
