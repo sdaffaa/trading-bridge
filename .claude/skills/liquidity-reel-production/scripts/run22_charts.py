@@ -159,6 +159,11 @@ def _equity_of(risk):
 
 def _grid(Wd, H, pt=58, pb=80, pl=52, pr=44):
     # بلا خلفية: الرسوم الحسابية تجلس على الصفحة مباشرة كبقية الجارتات
+    # والشريطان يتبعان مقياس الوسوم كما في frame وإلا داس العنوان على منطقة الرسم
+    import run15_charts as _R15
+    sc = _R15.SCALE
+    pt = round(pt * sc) + (round(46 * sc) if sc > 1.15 else 0)
+    pb = round(pb * sc)
     s = [f'<svg class="chartsvg" viewBox="0 0 {Wd} {H}" width="{Wd}" height="{H}" '
          f'xmlns="http://www.w3.org/2000/svg">']
     for k in range(5):
