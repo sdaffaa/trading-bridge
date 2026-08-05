@@ -95,9 +95,19 @@ def mtf_structure(D):
 
 
 # ═══════ ٤ — سحب السيولة (٥ دقائق) ═══════
-def sweep(D, tol=0.35):
-    """قيعان متساوية تُكنس ثم يُغلق فوقها."""
+def sweep(D, tol=None):
+    """قيعان متساوية تُكنس ثم يُغلق فوقها.
+
+    التساوي يُقاس **نسبةً من مدى النافذة** لا بفرق ثابت. كان الفرق ثابتاً
+    (0.35) فصار المعيار يتمدّد أو ينكمش بحسب سعر الأداة: على الذهب يساوي
+    ١٫٤٪ من المدى، وعلى النفط ١٥٪ — أي أن قيعاناً متباعدة تُعدّ «متساوية».
+    وهذا ما أفسد ريل النفط ٢٠٢٦-٠٧-٢٣: قال «٦ قيعان عند 91.55» وفيها قاع
+    يبعد 0.27 (١١٪ من المدى). المتساوي فعلاً اثنان.
+    """
     w = D["5m"]["w"]; a = D["5m"]["anchor"]
+    R = max(c["h"] for c in w) - min(c["l"] for c in w)
+    tol = R * 0.015 if tol is None else tol
+    pierce = R * 0.001
     # يُبحث عن شمعة الكنس نفسها ثم يُشتقّ المستوى من قيعان ما قبلها —
     # لا العكس. البحث من المستوى أولاً يفوّت الحالة التي يكون فيها
     # المستوى أقدم من نافذة البحث.
@@ -106,7 +116,7 @@ def sweep(D, tol=0.35):
         if len(lb) < 6:
             continue
         base = min(w[j]["l"] for j in lb)
-        if not (w[sw]["l"] < base - 0.05):
+        if not (w[sw]["l"] < base - pierce):
             continue
         if w[sw]["c"] <= base:
             continue
@@ -133,13 +143,30 @@ def ltf_signal(D, sw):
                 wick=wick)
 
 
+def quote_dp(w):
+    """دقّة التسعير كما تظهر في الشموع نفسها، لا رقماً مفروضاً.
+
+    كان التقريب مثبَّتاً على منزلتين — يصحّ على الذهب (4,121.20) والنفط
+    (91.57)، ويُتلف النحاس: وقفٌ عند 6.3742 يصير 6.37، فتقفز المخاطرة من
+    0.0042 إلى 0.01 ويصبح الهدف المعروض سعراً لم يُحسب. المنزلة تُقرأ من
+    الأرقام المعروضة فتوافق كل أداة."""
+    dp = 0
+    for c in w:
+        for k in ("o", "h", "l", "c"):
+            s = repr(float(c[k]))
+            if "." in s and "e" not in s:
+                dp = max(dp, len(s.split(".")[1].rstrip("0")))
+    return min(max(dp, 2), 5)
+
+
 def plan(D, S):
     """الدخول عند إغلاق شمعة الكنس، والوقف تحت أدنى نقطتها."""
     w = D["5m"]["w"]; sw = S["sw"]
     R = max(c["h"] for c in w) - min(c["l"] for c in w)
+    dp = quote_dp(w)
     ENT = w[sw]["c"]
-    STP = round(w[sw]["l"] - R * 0.006, 2)
-    TGT = round(ENT + (ENT - STP) * 2.0, 2)
+    STP = round(w[sw]["l"] - R * 0.006, dp)
+    TGT = round(ENT + (ENT - STP) * 2.0, dp)
     hit = None
     for j in range(sw + 1, len(w)):
         if w[j]["l"] < STP:
@@ -147,7 +174,8 @@ def plan(D, S):
         if w[j]["h"] >= TGT:
             hit = j; break
     assert hit is not None, "الصفقة لم تبلغ ٢R قبل الوقف"
-    return dict(fill=sw, ENT=ENT, STP=STP, TGT=TGT, hit=hit, R=round(ENT - STP, 2))
+    return dict(fill=sw, ENT=ENT, STP=STP, TGT=TGT, hit=hit,
+                R=round(ENT - STP, dp), dp=dp)
 
 
 def build(name=None):

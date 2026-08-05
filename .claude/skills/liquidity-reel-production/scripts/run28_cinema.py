@@ -157,14 +157,18 @@ def m5_svg():
         ex.append(f'<g id="eq{n}" opacity="0"><circle cx="{x(j):.1f}" cy="{y(M5[j]["l"]):.1f}" '
                   f'r="10" fill="none" stroke="{tv_chart.T["LVL"]}" stroke-width="3"/></g>')
     ex.append(xmark(x(sw), y(M5[sw]["l"]) + 28, id="swp", r=17))
-    ex.append(f'<g id="swplbl" opacity="0">{htext(x(sw) - slot * 3.0, y(M5[sw]["l"]) + 36, "كَنْس", RED, 26)}</g>')
+    # «كَنْس» و«ذيل رفض» و«الوقف» تتزاحم كلها حول قاع شمعة واحدة. تُفرَّق
+    # رأسياً وأفقياً: الكنس تحت العلامة يساراً، والذيل بمنتصفه يميناً.
+    ex.append(f'<g id="swplbl" opacity="0">{htext(x(sw) - slot * 4.6, y(M5[sw]["l"]) + 60, "كَنْس", RED, 26)}</g>')
     # ذيل الرفض: خط رأسي يبرز الذيل نفسه
     c = M5[sw]
     wick_txt = "ذيل رفض " + str(round(L5["wick"] * 100)) + "٪"
     ex.append(f'<g id="wick" opacity="0"><line x1="{x(sw):.1f}" y1="{y(min(c["o"],c["c"])):.1f}" '
               f'x2="{x(sw):.1f}" y2="{y(c["l"]):.1f}" stroke="{RED}" stroke-width="7" '
               f'stroke-linecap="round" opacity=".55"/></g>')
-    ex.append(f'<g id="wicklbl" opacity="0">{htext(x(sw) + slot * 4.2, y(c["l"]) + 20, wick_txt, RED, 25)}</g>')
+    wy = (y(min(c["o"], c["c"])) + y(c["l"])) / 2 + 9
+    # يميناً كان يصطدم بـ«الوقف»: صندوق الصفقة يشغل يمين شمعة الدخول كله.
+    ex.append(f'<g id="wicklbl" opacity="0">{htext(x(sw) - slot * 4.6, wy, wick_txt, RED, 25)}</g>')
     ex.append(pos_box("box", x(FILL) - slot * .6, R, y(PLAN["ENT"]), y(PLAN["STP"]), y(PLAN["TGT"]),
                       lbl_e=f'الدخول {PLAN["ENT"]:,.2f}', lbl_s=f'الوقف {PLAN["STP"]:,.2f}',
                       lbl_t=f'الهدف ٢R  {PLAN["TGT"]:,.2f}', anchor_e="start",
@@ -174,7 +178,7 @@ def m5_svg():
               f'<path d="M {x(FILL)-t*2.2:.1f} {y(PLAN["ENT"])-t:.1f} L {x(FILL)-t*.5:.1f} {y(PLAN["ENT"]):.1f} '
               f'L {x(FILL)-t*2.2:.1f} {y(PLAN["ENT"])+t:.1f} Z" fill="{TEAL_D}"/>'
               f'<circle cx="{x(FILL):.1f}" cy="{y(PLAN["ENT"]):.1f}" r="5.5" fill="{TEAL_D}"/>'
-              + htext(x(FILL) - t * 2.6, y(PLAN["ENT"]) - 20, "تنفيذ", TEAL_D, 24, anchor="start") + '</g>')
+              + htext(x(FILL) - t * 2.6, y(PLAN["ENT"]) - 42, "تنفيذ", TEAL_D, 24, anchor="start") + '</g>')
     ex.append(checkmark(x(HIT), y(PLAN["TGT"]) - 42, id="ck"))
     return "".join(ex), x, y, slot
 

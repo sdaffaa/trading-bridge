@@ -1,0 +1,25 @@
+[
+ {
+  "file": "gc_td2_2026-08-04.json",
+  "sym": "GC=F",
+  "anchor": "2026-08-04 13:05",
+  "reel": "reel28_gc_td2_2026-08-04_final.mp4"
+ },
+ {
+  "file": "cl_td_2026-07-23.json",
+  "sym": "CL=F",
+  "anchor": "2026-07-23 19:30",
+  "reel": "reel28_cl_td_2026-07-23_final.mp4"
+ },
+ {
+  "file": "gc_td_2026-07-09.json",
+  "sym": "GC=F",
+  "anchor": "2026-07-09 17:15",
+  "reel": "reel28_gc_td_2026-07-09_final.mp4"
+ },
+ {
+  "file": "eth_sc_2026-07-21_1530.json",
+  "sym": "ETH-USD",
+  "anchor": "2026-07-21 15:30"
+ }
+]
