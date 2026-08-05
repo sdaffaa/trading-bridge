@@ -11,6 +11,7 @@
 فالنتيجة قابلة لإعادة التوليد بلا شبكة.
 """
 import json, os
+import confluence
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RAW = os.path.join(HERE, "raw_windows")
@@ -91,11 +92,13 @@ def build():
                     ENT=ENT, STP=STP, TGT=TGT, fill=fill, hit=hit))
 
     for s in out:
+        s["conf"] = confluence.build(s)
+        assert len(s["conf"]) >= 3, f'أسباب أقل من ثلاثة: {s["key"]}'
         U = s["ENT"] - s["STP"]; R = rng(s["w"])
         print(f'{s["key"]:<6} {s["sym"]} {s["tf"]:<4} {s["date"]} شموع={len(s["w"]):<3} '
               f'دخول={s["ENT"]:,.2f} وقف={s["STP"]:,.2f} هدف٢R={s["TGT"]:,.2f} | '
               f'مخاطرة={U:.2f} = {U / R * 100:.0f}٪ من مدى الشاشة | '
-              f'تنفيذ عند الشمعة {s["fill"]} وهدف عند {s["hit"]}')
+              f'تنفيذ عند الشمعة {s["fill"]} وهدف عند {s["hit"]} | أسباب {len(s["conf"])}')
     json.dump(out, open(os.path.join(HERE, "real_setups.json"), "w", encoding="utf-8"),
               ensure_ascii=False)
     print("كُتب real_setups.json — كل الشروط تحقّقت")

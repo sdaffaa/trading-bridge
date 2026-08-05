@@ -48,6 +48,11 @@ BASE_CSS = """
 .hl b{display:block;font-size:46px;font-weight:900;line-height:1.18}
 .hl .why{display:block;margin-top:10px;font-size:31px;font-weight:600;color:__SUB__;line-height:1.34}
 .hl .why em{font-style:normal;font-weight:800;color:__ACC__}
+.cfw{display:block;margin-top:12px}
+.cf{display:flex;align-items:baseline;gap:10px;margin-top:9px;font-size:27px;
+  font-weight:800;color:__TXT__;line-height:1.3}
+.cf i{font-style:normal;font-weight:900;color:__ACC__;font-size:25px}
+.cf b{font-weight:600;color:__SUB__;font-size:25px}
 #steps{position:absolute;top:272px;left:56px;right:56px;z-index:7;
   display:flex;gap:9px;justify-content:space-between}
 .sp{position:relative;flex:1;height:52px}
@@ -58,9 +63,10 @@ BASE_CSS = """
 """.replace("__SUB__", "#7F97A1" if DARKMODE else "#6B7C84") \
    .replace("__ACC__", "#43D4DC" if DARKMODE else "#1E627A") \
    .replace("__PILLBG__", "rgba(255,255,255,0.07)" if DARKMODE else "rgba(15,46,60,0.075)") \
-   .replace("__PILLTX__", "#08131C" if DARKMODE else "#FBF9F5")
+   .replace("__PILLTX__", "#08131C" if DARKMODE else "#FBF9F5") \
+   .replace("__TXT__", "#ECF3F6" if DARKMODE else "#0F2E3C")
 # ست خطوات مرقّمة ظاهرة طوال الريل: المشاهد يعرف أين هو ومَ بقي.
-STEP_NAMES = ["الشرط", "الإشارة", "الدخول", "الوقف", "الهدف", "الإبطال"]
+STEP_NAMES = ["الشرط", "الإشارة", "التنفيذ", "الأسباب", "الهدف", "الإبطال"]
 AR_NUM = "١٢٣٤٥٦"
 
 def steps_html():
@@ -77,6 +83,31 @@ TFN = {"5m": "٥ دقائق", "15m": "١٥ دقيقة", "30m": "٣٠ دقيقة"
 
 with open(os.path.join(HERE, "real_setups.json"), encoding="utf-8") as f:
     SETUPS = {s["key"]: s for s in json.load(f)}
+
+
+def exec_mark(xc, yc, price, dec=2, col="#1E627A"):
+    """ماركب مكان التنفيذ: مثلّث عند الشمعة التي نُفِّذ عندها الأمر وسعرُه.
+
+    بلا هذا الوسم يرى المشاهد صندوق صفقة معلّقاً في الهواء، ولا يعرف
+    أي شمعة بالضبط فُتحت عندها الصفقة."""
+    t = 13
+    return (f'<g id="ex" opacity="0">'
+            f'<path d="M {xc - t*2.2:.1f} {yc - t:.1f} L {xc - t*0.5:.1f} {yc:.1f} '
+            f'L {xc - t*2.2:.1f} {yc + t:.1f} Z" fill="{col}"/>'
+            f'<circle cx="{xc:.1f}" cy="{yc:.1f}" r="5.5" fill="{col}"/>'
+            + htext(xc - t*2.6, yc - 20, "تنفيذ", col, 24, anchor="start")
+            + '</g>')
+
+
+def conf_html(S):
+    """أسباب الدخول مجتمعة — محسوبة من الشموع، تُعرض بأرقامها لا بوصفها."""
+    # ثلاثة فقط: الرابع يتجاوز المسافة حتى شريط الخطوات فيركبه.
+    # نسبة العائد للمخاطرة تُعرض في الخطوة ٥ فلا تُكرَّر هنا.
+    spec = [r for r in S["conf"] if r["t"] != "عائد مقابل مخاطرة"]
+    rr = [r for r in S["conf"] if r["t"] == "عائد مقابل مخاطرة"]
+    top = (spec + rr)[:3]          # الأدلة المحددة أولاً، والنسبة تكمل الثلاثة
+    return "".join(f'<span class="cf"><i>✓</i>{r["t"]}<b>{r["d"]}</b></span>'
+                   for r in top)
 
 
 def times(S, base):
@@ -116,9 +147,9 @@ def sweep_svg(D, x, y, slot):
     S = D["S"]; W = S["w"]; i = S["i"]; LOW = S["LOW"]
     _, pr, _, _, _, _ = plot_box(); R = CVW - pr
     ex = [line_el(x(2), y(LOW), R, y(LOW), tv_chart.T["LVL"], 2.2, id="lvl"),
-          f'<g id="lvllbl" opacity="0">{htext(x(6), y(LOW) + 40, f"قاع محمي {LOW:,.2f}", tv_chart.T["LVL"], 25)}</g>',
+          f'<g id="lvllbl" opacity="0">{htext(x(4), y(LOW) - 14, f"قاع محمي {LOW:,.2f}", tv_chart.T["LVL"], 25)}</g>',
           xmark(x(i), y(W[i]["l"]) + 26, id="swp", r=16),
-          f'<g id="swplbl" opacity="0">{htext(x(i) + slot * 2.8, y(W[i]["l"]) + 34, "كَنْس", RED, 25)}</g>']
+          f'<g id="swplbl" opacity="0">{htext(x(i) - slot * 2.4, y(W[i]["l"]) + 34, "كَنْس", RED, 25)}</g>']
     return ex
 
 
@@ -149,11 +180,11 @@ def m_fvg():
 def fvg_svg(D, x, y, slot):
     S = D["S"]; k = S["k"]; GL, GH = S["GL"], S["GH"]
     _, pr, _, _, _, _ = plot_box(); R = CVW - pr
-    gl = htext(x(k + 6), y(GH) - 22, f"فجوة {GH - GL:,.2f}$", TEAL_D, 25)
+    gl = htext(x(k - 2), y(GH) - 22, f"فجوة {GH - GL:,.2f}$", TEAL_D, 25)
     ex = [zone_el("gap", x(k - 1) - slot * .6, y(GH), x(S["fill"]) + slot * 1.6, y(GL), ""),
           f'<g id="gaplbl" opacity="0">{gl}</g>',
           line_el(x(k) - slot * .6, y(S["ENT"]), R, y(S["ENT"]), TEAL_D, 2.2, dash="9 6", id="ce"),
-          f'<g id="celbl" opacity="0">{htext(x(k + 6), y(S["ENT"]) - 18, "المنتصف", TEAL_D, 25)}</g>']
+          f'<g id="celbl" opacity="0">{htext(x(k - 2), y(S["ENT"]) - 18, "المنتصف", TEAL_D, 25)}</g>']
     return ex
 
 
@@ -190,7 +221,7 @@ def bos_svg(D, x, y, slot):
           f'<g id="lvllbl" opacity="0">{lbl}</g>',
           # المنطقة هي شمعة النشأة نفسها — آخر شمعة هابطة قبل الكسر — لا مربع مفترض
           zone_el("zn", x(org) - slot * .6, y(S["ZT"]), x(S["fill"]) + slot * 1.6, y(S["ZB"]), ""),
-          f'<g id="znlbl" opacity="0">{htext(x(org + 7), y(S["ZB"]) + 34, "شمعة النشأة", TEAL_D, 24)}</g>']
+          f'<g id="znlbl" opacity="0">{htext(x(org - 2), y(S["ZB"]) + 34, "شمعة النشأة", TEAL_D, 24)}</g>']
     return ex
 
 
@@ -218,8 +249,10 @@ def build(key, out=None):
                       anchor_e="start",    # RTL: البداية يميناً فينمو النص يساراً داخل الكادر
                       col_e="#ECF3F6" if DARKMODE else INK))   # أبيض على أوف-وايت = وسم مختفٍ
     # علامة الصحّ على الشمعة التي بلغت الهدف فعلاً، لا في مكان مريح
+    ex.append(exec_mark(x(S["fill"]), y(S["ENT"]), S["ENT"], S["dec"],
+                        "#43D4DC" if DARKMODE else "#1E627A"))
     ex.append(checkmark(x(S["hit"]), y(S["TGT"]) - 40, id="ck"))
-    fullset = fullset + ["box", "ck"]
+    fullset = fullset + ["ex", "box", "ck"]
 
     t_lvl, t_sig = D["t_lvl"], D["t_sig"]
     # ── جدول الخطوات الست ──
@@ -238,23 +271,30 @@ def build(key, out=None):
     t_ck = round(s5 + 1.1, 2)
     marks = [(drawset[0], t_lvl, t_lvl + 0.5, "draw")]
     if key == "sweep":
+        # لا انسحاب: الوسوم هي سبب الدخول المرئي، تبقى مع الصندوق حتى النهاية
         marks += [("lvllbl", t_lvl + 0.55, t_lvl + 0.8, "pop"),
-                  ("swp", t_sig, t_sig + 0.4, "drawx", t_box - 0.2, .3),
-                  ("swplbl", t_sig + 0.45, t_sig + 0.7, "pop", t_box - 0.2, .3)]
+                  ("swp", t_sig, t_sig + 0.4, "drawx"),
+                  ("swplbl", t_sig + 0.45, t_sig + 0.7, "pop")]
     elif key == "fvg":
         marks = [("gap", t_lvl, t_lvl + 0.7, "zone"),
-                 ("gaplbl", t_lvl + 0.75, t_lvl + 1.0, "pop", t_box - 0.2, .3),
+                 ("gaplbl", t_lvl + 0.75, t_lvl + 1.0, "pop"),
                  ("ce", t_sig, t_sig + 0.5, "draw"),
-                 ("celbl", t_sig + 0.55, t_sig + 0.8, "pop", t_box - 0.2, .3)]
+                 ("celbl", t_sig + 0.55, t_sig + 0.8, "pop")]
     else:
-        marks += [("lvllbl", t_lvl + 0.55, t_lvl + 0.8, "pop", t_sig - 0.2, .3),
+        marks += [("lvllbl", t_lvl + 0.55, t_lvl + 0.8, "pop"),
                   ("zn", t_sig, t_sig + 0.7, "zone"),
-                  ("znlbl", t_sig + 0.75, t_sig + 1.0, "pop", t_box - 0.2, .3)]
-    # أداة الصفقة تُبنى على ثلاث خطوات: خط الدخول ← صندوق المخاطرة ← صندوق الهدف
-    marks += [("box", t_box, s6 - 0.4, "posbox"), ("ck", t_ck, t_ck + 0.3, "pop")]
+                  ("znlbl", t_sig + 0.75, t_sig + 1.0, "pop")]
+    # الصندوق كاملاً من لحظة التنفيذ لا موزَّعاً على خطوات: الصفقة تُفتح مرة واحدة
+    marks += [("ex", t_box, t_box + 0.35, "pop"),
+              ("box", t_box + 0.15, t_box + 1.75, "posbox"),
+              ("ck", t_ck, t_ck + 0.3, "pop")]
 
-    B = [D["hook"]] + [f'<b>{t}</b><span class="why"><em>لماذا:</em> {w}</span>'
-                       for t, w in D["steps"]]
+    B = [D["hook"]]
+    for n, (t, w) in enumerate(D["steps"]):
+        if n == 3:      # الخطوة ٤: الأسباب مجتمعة بأرقامها، بلا عنوان
+            B.append(f'<span class="cfw">{conf_html(S)}</span>')
+        else:
+            B.append(f'<b>{t}</b><span class="why"><em>لماذا:</em> {w}</span>')
     b_ = [(0.10, s1 - 0.15, 46)] + [(ST[k], (ST[k + 1] if k < 5 else END) - 0.15, 40)
                                     for k in range(6)]
     dom = [[f"sa{k+1}", ST[k], ST[k] + 0.25,
@@ -283,6 +323,9 @@ def build(key, out=None):
     )
     out = out or f"reel26_{key}_{THEME}.html"
     n = build_reel(cfg, os.path.join(HERE, out))
+    json.dump(dict(dur=DUR, hook=0.10, steps=ST, t_lvl=t_lvl, t_sig=t_sig,
+                   t_box=t_box, t_ck=t_ck, end=END, cta=18.75),
+              open(os.path.join(HERE, f"reel26_{key}_cues.json"), "w"), indent=1)
     print(f'{key:<6} {S["sym"]} {S["tf"]:<4} {S["date"]} | شموع {N} | '
           f'خطوات {ST} | مستوى {t_lvl}s صندوق {t_box}s | {n} bytes')
     return D
