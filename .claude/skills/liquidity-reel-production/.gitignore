@@ -8,3 +8,5 @@ scripts/frames_any/
 scripts/frames/
 scripts/qa_*.png
 scripts/qa15_*.html
+scripts/qa22*/
+scripts/qa22*.png
