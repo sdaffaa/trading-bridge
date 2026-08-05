@@ -147,6 +147,8 @@ body{{background:#cfcabf;font-family:'Tajawal',sans-serif}}
   padding:6px 0;box-shadow:none}}
 .chartwrap svg{{width:100%;height:auto;display:block}}
 .cont{{position:absolute;top:190px;left:90px;right:90px;bottom:170px;display:flex;flex-direction:column;gap:26px;justify-content:center}}
+/* صفحة الجارت البطل: الجارت ٧٠٪+ من الصفحة (أمر فهد 2026-08-05) */
+.cont.hero{{top:150px;left:40px;right:40px;bottom:74px;gap:14px;justify-content:flex-start}}
 .numrow{{display:flex;align-items:center;gap:18px}}
 .num{{width:66px;height:66px;flex:none;display:flex;align-items:center;justify-content:center;font-size:38px;
   font-weight:900;font-style:italic;color:#fff;background:linear-gradient(135deg,{TEAL},{TEAL_D});

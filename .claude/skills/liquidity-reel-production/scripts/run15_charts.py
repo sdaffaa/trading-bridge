@@ -10,6 +10,12 @@ CHARTS = []
 CARD = "#FBF9F5"
 BD = "#D8D2C8"
 
+# مقياس خطوط الوسوم: الجارت البطل (٧٠٪ من الصفحة) يحتاج وسوماً أكبر من الشريط القديم
+SCALE = 1.0
+def set_scale(k):
+    global SCALE
+    SCALE = k
+
 def fresh(seed, anch, label):
     chart_registry.assert_fresh_synthetic(seed, anch, label=label)
     CHARTS.append((seed, anch, label))
@@ -43,25 +49,31 @@ def hl(x0, x1, yy, col=INK, w=1.8, dash=None):
 def badge(Wd, txt, ok):
     """شارة الحكم أعلى يمين الإطار — عرضها يتبع طول النص."""
     col = TEAL_D if ok else RED
-    bw = min(Wd - 40, 36 + int(len(txt) * 11.5))
-    return (f'<rect x="14" y="14" width="{bw}" height="38" '
+    fs = round(19 * SCALE)
+    bw = min(Wd - 40, round((36 + len(txt) * 11.5) * SCALE))
+    h = round(38 * SCALE)
+    return (f'<rect x="14" y="14" width="{bw}" height="{h}" '
             f'fill="{"#EAF3F5" if ok else "#F8ECEC"}" stroke="{col}" stroke-width="1.4"/>'
-            + htext(14 + bw / 2, 40, txt, col, 19))
+            + htext(14 + bw / 2, 14 + h * 0.68, txt, col, fs))
 
 def frame(W, Wd, H, pad=0.06, pl=14, pr=18, pt=58, pb=50):
     """شريط علوي (عنوان + شارة) وشريط سفلي (ملاحظات) خارج مساحة الشموع دائماً."""
     ymin = min(c["l"] for c in W); ymax = max(c["h"] for c in W); rng = ymax - ymin
+    # الشريطان العلوي والسفلي يكبران مع مقياس الوسوم وإلا داست الشموع على النص
+    top = round(pt * SCALE) + (round(46 * SCALE) if SCALE > 1.15 else 0)
     return chart(W, Wd, H, ymin - rng * pad, ymax + rng * pad,
-                 grid=4, pl=pl, pr=pr, pt=pt, pb=pb, body=0.6)
+                 grid=4, pl=pl, pr=pr, pt=top, pb=round(pb * SCALE), body=0.6)
 
 def head(Wd, txt, col=INK, fs=19):
     """عنوان الجارت في الطرف المقابل للشارة (الشارة يسار، العنوان يمين)."""
     # في RTL يكون "start" هو الطرف الأيمن — anchor="end" يدفع النص خارج اللوحة
-    return htext(Wd - 20, 37, txt, col, fs, anchor="start")
+    # في الجارت البطل تتسع الشارة فيصطدم بها العنوان — يُنزَّل سطراً كاملاً تحتها
+    y = round(37 * SCALE) if SCALE <= 1.15 else round(14 + 68 * SCALE)
+    return htext(Wd - 20, y, txt, col, round(fs * SCALE), anchor="start")
 
 def note(cx, txt, col=INK, H=250, fs=18):
     """ملاحظة في الشريط السفلي — لا تصطدم بأي شمعة."""
-    return htext(cx, H - 16, txt, col, fs)
+    return htext(cx, H - round(16 * SCALE), txt, col, round(fs * SCALE))
 
 def cap(W, j, top):
     """يقصّ الشمعة j بحيث لا تتجاوز المستوى top."""

@@ -10,6 +10,22 @@ from guide_build import build_guide
 from run15_build import X15, page, bullets, trim, TOTAL
 import run22_charts as RC
 import chart_registry
+import run15_charts as RC15
+
+def hero_page(idx, body):
+    # الووردمارك في شريط العدّاد نفسه: حضور للهوية بلا اقتطاع من ارتفاع الجارت
+    return (f'<div class="slide" {CW}>{counter(idx, TOTAL)}'
+            f'<div class="hwm2">LIQUIDITY STATE</div>'
+            f'<div class="cont hero">{body}</div>{dots(idx, TOTAL)}</div>')
+
+X_HERO = '''
+.ttl9{font-size:44px;font-weight:900;color:#0F2E3C;line-height:1.14;text-align:center;letter-spacing:-.5px}
+.ttl9 b{color:#1E627A}
+.hpt{font-size:25px;font-weight:700;color:#5C6C73;text-align:center;line-height:1.4;margin-top:2px}
+.hpt b{color:#0F2E3C;font-weight:900}
+.hwm2{position:absolute;top:64px;right:80px;z-index:6;font-size:20px;font-weight:700;
+  letter-spacing:5px;color:#1E627A;opacity:.72}
+'''
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CONT = os.path.join(HERE, "..", "content")
@@ -46,15 +62,19 @@ def build_unit(key):
         has_chart = i < len(charts)
         bl = pg.get("bullets", [])
         if has_chart:
-            keep = bl[:2]
-            chart_html = f'<div class="chartwrap">{charts[i](880, 250)}</div>'
-            lead = trim(pg["lead"])
+            # صفحة الجارت البطل: عنوان + جارت ٩٥٠px (٧٠٪ من الصفحة) + سطرا خلاصة
+            RC15.set_scale(1.45)
+            svg = charts[i](1000, 950)
+            RC15.set_scale(1.0)
+            pts = "".join(f'<p class="hpt">{t}</p>' for t in bl[:2])
+            body = (f'<h1 class="ttl9">{pg["title"]}</h1>'
+                    f'<div class="chartwrap">{svg}</div>{pts}')
+            slides.append(hero_page(2 + i, body))
         else:
             keep = bl[:4] if sum(len(t) for t in bl[:4]) < 470 else bl[:3]
-            chart_html, lead = "", pg["lead"]
-        body = (f'<h1 class="ttl8">{pg["title"]}</h1><p class="lead8">{lead}</p>'
-                + chart_html + bullets(keep))
-        slides.append(page(2 + i, body))
+            body = (f'<h1 class="ttl8">{pg["title"]}</h1>'
+                    f'<p class="lead8">{pg["lead"]}</p>' + bullets(keep))
+            slides.append(page(2 + i, body))
     cta = car["cta"]
     items = "".join(f'<div class="cti"><span class="ck8">{i+1}</span><p>{t}</p></div>'
                     for i, t in enumerate(cta["items"]))
@@ -67,7 +87,7 @@ def build_unit(key):
       <p class="tag2 center" style="opacity:.75">{cta["share"]}</p></div>
       <div class="botmeta">لغرض تعليمي · <span dir="ltr">@liquidity.state</span></div>{dots(TOTAL, TOTAL)}</div>''')
     build_carousel(slides, f'{u["kw"]} — Liquidity State',
-                   os.path.join(HERE, f"car22_{key}.html"), extra_css=X15)
+                   os.path.join(HERE, f"car22_{key}.html"), extra_css=X15 + X_HERO)
 
     # ── الدليل: الجارت يُلحق بصفحات «الصفقة …» بالترتيب ──
     pages, tk = [], 0
