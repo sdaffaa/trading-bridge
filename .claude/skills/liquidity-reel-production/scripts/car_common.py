@@ -142,8 +142,9 @@ body{{background:#cfcabf;font-family:'Tajawal',sans-serif}}
   border-right:6px solid {TEAL};border-radius:3px;padding:18px 24px;line-height:1.5}}
 .note b{{font-weight:900;color:{TEAL_D}}}
 .tiny{{font-size:21px;color:{MUTE};font-weight:600;text-align:center}}
-.chartwrap{{width:100%;background:#FBF9F5;border:1px solid {CARDBD};border-radius:3px;
-  padding:20px;box-shadow:0 18px 44px rgba(15,46,60,0.10)}}
+/* بلا إطار (أمر فهد 2026-08-05): الجارت يجلس على الصفحة مباشرة — لا بطاقة ولا حد ولا ظل */
+.chartwrap{{width:100%;background:transparent;border:0;border-radius:0;
+  padding:6px 0;box-shadow:none}}
 .chartwrap svg{{width:100%;height:auto;display:block}}
 .cont{{position:absolute;top:190px;left:90px;right:90px;bottom:170px;display:flex;flex-direction:column;gap:26px;justify-content:center}}
 .numrow{{display:flex;align-items:center;gap:18px}}
@@ -207,8 +208,8 @@ body{{background:#cfcabf;font-family:'Tajawal',sans-serif}}
   background:linear-gradient(90deg,transparent,{CYAN},transparent);box-shadow:0 0 10px rgba(67,212,220,0.4)}}
 .dtag{{margin-top:24px;font-size:36px;color:#B9CBD3;font-weight:500;line-height:1.5}}
 .dtag b{{color:{CYAN};font-weight:800}}
-.dchart{{margin-top:44px;width:100%;background:rgba(255,255,255,0.025);border:1px solid rgba(67,212,220,0.28);
-  border-radius:3px;padding:22px}}
+.dchart{{margin-top:44px;width:100%;background:transparent;border:0;
+  border-radius:0;padding:10px 0}}
 .dchart svg{{width:78%;height:auto;display:block;margin:0 auto}}
 '''
 

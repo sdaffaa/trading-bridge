@@ -158,8 +158,9 @@ def _equity_of(risk):
     return cur, mdd
 
 def _grid(Wd, H, pt=58, pb=80, pl=52, pr=44):
+    # بلا خلفية: الرسوم الحسابية تجلس على الصفحة مباشرة كبقية الجارتات
     s = [f'<svg class="chartsvg" viewBox="0 0 {Wd} {H}" width="{Wd}" height="{H}" '
-         f'xmlns="http://www.w3.org/2000/svg"><rect width="{Wd}" height="{H}" fill="{CARD}"/>']
+         f'xmlns="http://www.w3.org/2000/svg">']
     for k in range(5):
         gy = pt + (H - pt - pb) * k / 4
         s.append(f'<line x1="{pl}" y1="{gy:.1f}" x2="{Wd-pr}" y2="{gy:.1f}" '

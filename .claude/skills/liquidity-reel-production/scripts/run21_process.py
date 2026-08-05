@@ -183,7 +183,7 @@ PCSS = '''
 .pcol{width:182px}
 .pt{font-size:25px;font-weight:900;color:#ECF3F6;text-align:center;white-space:nowrap}
 .pu{width:40px;height:3px;margin:9px auto 13px;background:#43D4DC;opacity:.8}
-.pbox{background:rgba(255,255,255,0.028);border:1px solid rgba(67,212,220,0.22);
+.pbox{background:transparent;border:0;
   height:232px;display:flex;align-items:center;justify-content:center}
 .pbox svg{display:block}
 .pcap{margin-top:14px;font-size:22px;font-weight:700;color:#9FB4BD;text-align:center;white-space:nowrap}
