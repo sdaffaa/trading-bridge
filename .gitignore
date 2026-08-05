@@ -4,3 +4,6 @@
 .claude/skills/*/scripts/*.mp4
 .claude/skills/*/scripts/*.wav
 .claude/skills/*/scripts/qa*.png
+
+# مخرجات التعليق الصوتي (تُرسل ولا تُرفع)
+.claude/skills/*/scripts/vo/

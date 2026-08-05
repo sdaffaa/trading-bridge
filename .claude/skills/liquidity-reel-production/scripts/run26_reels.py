@@ -15,7 +15,7 @@
 الفهارس كلها مكشوفة بالمسح في real_setups.json ومُتحقَّق منها بالحساب،
 لا مكتوبة بالنظر: لا مستوى ولا فجوة ولا كسر يُرسم ما لم تثبته الشموع.
 """
-import json, os
+import json, os, re
 from reel_build import INK, TEAL, TEAL_D, RED, GREY, htext, MUTE
 from reel_sfx_kit import (build_reel, geom, line_el, zone_el, xmark, checkmark,
                           pos_box, set_canvas, set_pad, plot_box)
@@ -45,8 +45,8 @@ BASE_CSS = """
 #brand{position:absolute;top:40px;left:0;right:0;text-align:center;z-index:7;opacity:.7}
 #brand .g{width:28px;margin:0 auto} #brand .g svg{width:28px;height:auto}
 #brand .w{margin-top:4px;font-size:13px;font-weight:800;letter-spacing:6px;color:__SUB__}
-.hl b{display:block;font-size:46px;font-weight:900;line-height:1.18}
-.hl .why{display:block;margin-top:10px;font-size:31px;font-weight:600;color:__SUB__;line-height:1.34}
+.hl b{display:block;font-size:50px;font-weight:900;line-height:1.16;letter-spacing:-.4px}
+.hl .why{display:block;margin-top:9px;font-size:30px;font-weight:600;color:__SUB__;line-height:1.3}
 .hl .why em{font-style:normal;font-weight:800;color:__ACC__}
 .cfw{display:block;margin-top:12px}
 .cf{display:flex;align-items:baseline;gap:10px;margin-top:9px;font-size:27px;
@@ -129,18 +129,12 @@ def m_sweep():
     return dict(S=S, base=8, T=T, t_lvl=t_lvl, t_sig=t_sig,
                 hook="كسر القاع ليس بيعاً.<br>تعرف لماذا؟",
                 steps=[
-                 (f'قاع محمي عند {S["LOW"]:,.2f}',
-                  "القيعان الواضحة تتكدّس تحتها أوامر الإيقاف، فهي وقود لا حاجز."),
-                 ("اختراق ثم إغلاق فوقه",
-                  "الإغلاق فوق القاع رفضٌ للسعر الأدنى، لا كسراً للهيكل."),
-                 (f'الدخول عند إغلاق تلك الشمعة {S["ENT"]:,.2f}',
-                  "قبل الإغلاق يبقى الكسر احتمالاً قائماً، فالانتظار جزء من الطريقة."),
-                 (f'الوقف تحت أدنى نقطة الكنس {S["STP"]:,.2f}',
-                  "نزول السعر تحتها يعني أن الرفض لم يكن رفضاً."),
-                 (f'الهدف ٢R عند {S["TGT"]:,.2f}',
-                  f'مخاطرة {U:,.2f} مقابل {U*2:,.2f} دولاراً على العقد نفسه.'),
-                 ("الإبطال: إغلاق يعود تحت القاع",
-                  "ما رُفض صار مقبولاً، فتسقط الفكرة كلها لا الصفقة وحدها."),
+                 ("قاعٌ محميٌّ تحته أوامر إيقاف", "سيولةٌ متراكمة، لا حاجز"),
+                 ("شمعةٌ تكنسه ثم تُغلق فوقه", "الإغلاق رفضٌ لا كسر"),
+                 ("التنفيذ عند إغلاق تلك الشمعة", "قبل الإغلاق يبقى الاحتمال قائماً"),
+                 ("أسباب مجتمعة", ""),
+                 ("الهدف ضعفُ المخاطرة", f'{U:,.2f} مقابل {U*2:,.2f} دولاراً'),
+                 ("يبطُل بإغلاقٍ تحت القاع", "ما رُفض صار مقبولاً"),
                 ], kw="كنس")
 
 def sweep_svg(D, x, y, slot):
@@ -163,18 +157,12 @@ def m_fvg():
                 t_sig=round(T[tap] + 0.20, 2),      # بعد الشمعة التي لمست المنتصف
                 hook="الفجوة ليست منطقة دخول.<br>أين الخطأ؟",
                 steps=[
-                 (f'فجوة {S["GH"] - S["GL"]:,.2f} دولاراً بين ذيلين',
-                  "اندفاع مرّ بسرعة فترك سعراً لم يُتداول عليه في الاتجاهين."),
-                 ("عودة تلمس منتصف الفجوة",
-                  "المنتصف أعدل نقطة بين حافتيها، وعنده يتوازن ما فات."),
-                 (f'الدخول بأمر معلّق عند {S["ENT"]:,.2f}',
-                  "الحافة العليا مبكّرة تُدخلك بلا تأكيد، والسفلى نادراً تُلمس."),
-                 (f'الوقف تحت قاع الفجوة {S["STP"]:,.2f}',
-                  "ملء الفجوة كاملة يلغي السبب الذي دخلت من أجله."),
-                 (f'الهدف ٢R عند {S["TGT"]:,.2f}',
-                  f'مخاطرة {U:,.2f} مقابل {U*2:,.2f} دولاراً على العقد نفسه.'),
-                 ("الإبطال: إغلاق تحت الفجوة كاملة",
-                  "الاختلال امتُصّ ولم يعد مرجعاً يُبنى عليه."),
+                 ("اندفاعٌ يترك فجوةً بين ذيلين", "سعرٌ لم يُتداول عليه"),
+                 ("عودةٌ تلمس منتصف الفجوة", "المنتصف أعدلُ نقطة"),
+                 ("التنفيذ بأمرٍ معلّق عند المنتصف", "الحافة العليا مبكّرة"),
+                 ("أسباب مجتمعة", ""),
+                 ("الهدف ضعفُ المخاطرة", f'{U:,.2f} مقابل {U*2:,.2f} دولاراً'),
+                 ("يبطُل بإغلاقٍ تحت الفجوة", "الاختلال امتُصّ"),
                 ], kw="منتصف")
 
 def fvg_svg(D, x, y, slot):
@@ -199,18 +187,12 @@ def m_bos():
                 t_brk=round(T[brk] + 0.15, 2),
                 hook="الكسر وحده لا يكفي.<br>ما الذي لم تلاحظه؟",
                 steps=[
-                 (f'آخر قمة هابطة عند {S["LH"]:,.2f}',
-                  "كسرها بإغلاق يقلب قراءة الهيكل من هابط إلى صاعد."),
-                 ("إغلاق فوقها ثم عودة إليها",
-                  "المستوى المكسور يتحوّل من سقف إلى أرضية، وهذا ما تختبره العودة."),
-                 (f'الدخول عند ارتداد المستوى {S["ENT"]:,.2f}',
-                  "منتصف المنطقة نادراً يُلمس، فأمر عنده يبقى معلّقاً بلا صفقة."),
-                 (f'الوقف تحت قاع شمعة النشأة {S["STP"]:,.2f}',
-                  "هي الشمعة التي أطلقت الكسر، وكسر قاعها يُسقط سببه."),
-                 (f'الهدف ٢R عند {S["TGT"]:,.2f}',
-                  f'مخاطرة {U:,.2f} مقابل {U*2:,.2f} دولاراً على العقد نفسه.'),
-                 ("الإبطال: إغلاق تحت المنطقة",
-                  "الأرضية الجديدة لم تصمد، فالقلب لم يكتمل."),
+                 ("قمةٌ هابطة تحكم الهيكل", "كسرُها يقلب القراءة"),
+                 ("إغلاقٌ فوقها ثم عودةٌ إليها", "السقف صار أرضية"),
+                 ("التنفيذ عند ارتداد المستوى", "المنتصف نادراً يُلمس"),
+                 ("أسباب مجتمعة", ""),
+                 ("الهدف ضعفُ المخاطرة", f'{U:,.2f} مقابل {U*2:,.2f} دولاراً'),
+                 ("يبطُل بإغلاقٍ تحت المنطقة", "الأرضية لم تصمد"),
                 ], kw="كسر")
 
 def bos_svg(D, x, y, slot):
@@ -326,8 +308,40 @@ def build(key, out=None):
     json.dump(dict(dur=DUR, hook=0.10, steps=ST, t_lvl=t_lvl, t_sig=t_sig,
                    t_box=t_box, t_ck=t_ck, end=END, cta=18.75),
               open(os.path.join(HERE, f"reel26_{key}_cues.json"), "w"), indent=1)
+
+    # ── سكربت التعليق الصوتي بالفصحى ──
+    # كل سطر يطابق عنوان الكابشن حرفياً: القراءة والسماع على النص نفسه،
+    # فلا ينقسم انتباه المشاهد بين نصٍّ يقرأه وصوتٍ يقول غيره.
+    # الوتيرة مقيسة على توليد فعلي: ١٣ كلمة = ٦٫٨٨ ثانية ← ١٫٨٩ كلمة/ث.
+    # سطر السبب لا يُنطق: نافذة الخطوة لا تتسع لجملتين بهذه الوتيرة.
+    PACE = 1.89
+    lines, need_total = [], 0.0
+    for q, (ta, tb, _) in enumerate(b_):
+        if q == 0:
+            txt = re.sub(r"<[^>]+>", " ", D["hook"])
+        elif q - 1 == 3:
+            txt = "ثلاثةُ أسبابٍ مجتمعة"
+        else:
+            txt = D["steps"][q - 1][0]
+        txt = " ".join(txt.split())
+        need = round(len(txt.split()) / PACE, 2)
+        need_total += need + 0.35          # فاصل تنفّس بين الأسطر
+        lines.append(dict(i=q, t=round(ta, 2), slot=round(tb - ta, 2),
+                          need=need, fits=need <= tb - ta, text=txt))
+    lines.append(dict(i=99, t=18.75, slot=round(DUR - 18.75, 2),
+                      need=round(2 / PACE, 2), fits=False, text=f'اكتب «{D["kw"]}»'))
+    need_total += 1.06 + 0.35
+    bad = [l["i"] for l in lines if not l["fits"]]
+    json.dump(dict(voice="عربية فصحى · ذكر · نبرة مؤسسية هادئة · بلا تهويل",
+                   pace_wps=PACE, dur_now=DUR,
+                   dur_for_full_narration=round(need_total + 1.2, 1),
+                   lines_over_slot=bad, lines=lines),
+              open(os.path.join(HERE, f"reel26_{key}_vo.json"), "w"),
+              ensure_ascii=False, indent=1)
+
     print(f'{key:<6} {S["sym"]} {S["tf"]:<4} {S["date"]} | شموع {N} | '
-          f'خطوات {ST} | مستوى {t_lvl}s صندوق {t_box}s | {n} bytes')
+          f'خطوات {ST} | {n} bytes | تعليق: يحتاج {need_total + 1.2:.1f}s '
+          f'لسرد كامل، وضيّق في {len(bad)} من {len(lines)} أسطر')
     return D
 
 
