@@ -61,8 +61,10 @@ def build_unit(key):
     charts = RC.CAR_CHARTS[key]
 
     # ── ١) الغلاف الداكن ──
-    slides = [cover_slide(car["eyebrow"], car["title"], car["tag"],
-                          dk(RC.HERO[key](700, 300)), total=TOTAL)]
+    RC15.set_minimal(True)                      # غلاف بلا وسوم: العنوان والشارة يتصادمان في 700×300
+    cover_svg = dk(RC.HERO[key](700, 300))
+    RC15.set_minimal(False)
+    slides = [cover_slide(car["eyebrow"], car["title"], car["tag"], cover_svg, total=TOTAL)]
 
     # ── ٢) الجارت البطل: الحالة الأقوى في الوحدة (يحددها key_page) ──
     ki = car.get("key_page", 0)
@@ -100,8 +102,11 @@ def build_unit(key):
         if tk < len(charts) and p_["title"].strip().startswith("الصفقة"):
             p["svg"] = charts[tk](880, 260); tk += 1
         pages.append(p)
+    RC15.set_minimal(True)
+    ghero = dk(RC.HERO[key](700, 320))
+    RC15.set_minimal(False)
     cfg = dict(eyebrow=u["geyebrow"], title=u["gtitle"], keyword=u["kw"],
-               subtitle=gd["subtitle"], hero=dk(RC.HERO[key](700, 320)), pages=pages,
+               subtitle=gd["subtitle"], hero=ghero, pages=pages,
                outro_title=gd["outro_title"], outro_items=gd["outro_items"])
     n = build_guide(cfg, os.path.join(HERE, f"guide24_{key}.html"))
     print(f"{key:<6} car24: {len(slides)} slides | guide24: {n} pages | charts: {tk}")

@@ -16,6 +16,12 @@ def set_scale(k):
     global SCALE
     SCALE = k
 
+# وضع الغلاف: الجارت المصغّر لا يتسع لعنوان وشارة معاً فيتصادمان — تُحذف الوسوم
+MINIMAL = False
+def set_minimal(v):
+    global MINIMAL
+    MINIMAL = v
+
 def fresh(seed, anch, label):
     chart_registry.assert_fresh_synthetic(seed, anch, label=label)
     CHARTS.append((seed, anch, label))
@@ -48,6 +54,7 @@ def hl(x0, x1, yy, col=INK, w=1.8, dash=None):
 
 def badge(Wd, txt, ok):
     """شارة الحكم أعلى يمين الإطار — عرضها يتبع طول النص."""
+    if MINIMAL: return ""
     col = TEAL_D if ok else RED
     fs = round(19 * SCALE)
     bw = min(Wd - 40, round((36 + len(txt) * 11.5) * SCALE))
@@ -67,12 +74,19 @@ def frame(W, Wd, H, pad=0.06, pl=14, pr=18, pt=58, pb=50):
 def head(Wd, txt, col=INK, fs=19):
     """عنوان الجارت في الطرف المقابل للشارة (الشارة يسار، العنوان يمين)."""
     # في RTL يكون "start" هو الطرف الأيمن — anchor="end" يدفع النص خارج اللوحة
+    if MINIMAL: return ""
     # في الجارت البطل تتسع الشارة فيصطدم بها العنوان — يُنزَّل سطراً كاملاً تحتها
     y = round(37 * SCALE) if SCALE <= 1.15 else round(14 + 68 * SCALE)
     return htext(Wd - 20, y, txt, col, round(fs * SCALE), anchor="start")
 
+def foot(Wd, H, txt, col=INK, fs=18, dy=14):
+    """سطر الخلاصة أسفل الجارت — يتبع المقياس ويختفي في وضع الغلاف."""
+    if MINIMAL: return ""
+    return htext(Wd / 2, H - round(dy * SCALE), txt, col, round(fs * SCALE))
+
 def note(cx, txt, col=INK, H=250, fs=18):
     """ملاحظة في الشريط السفلي — لا تصطدم بأي شمعة."""
+    if MINIMAL: return ""
     return htext(cx, H - round(16 * SCALE), txt, col, round(fs * SCALE))
 
 def cap(W, j, top):

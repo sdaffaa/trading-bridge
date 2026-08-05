@@ -5,7 +5,7 @@
 """
 import random
 from reel_build import INK, TEAL, TEAL_D, RED, GREY, MUTE, htext, gen
-from run15_charts import zbox, xm, tick, hl, badge, frame, head, note, cap, floorc
+from run15_charts import zbox, xm, tick, hl, badge, frame, head, note, foot, cap, floorc
 from run22_charts import _grid, _curves, _pairbars, _signed
 import chart_registry
 
@@ -44,7 +44,7 @@ def pb_paths(Wd=880, H=250, seed=8501):
     ser = [(p, RED if p[-1] < 0 else TEAL_D, 2.2) for p in ps]
     svg, x, y = _curves(Wd, H, ser, base=0.0)
     svg += head(Wd, "ست عيّنات · عشرون صفقة لكل عيّنة · النموذج نفسه")
-    svg += htext(Wd / 2, H - 14, "المنحنى الأحمر ليس نموذجاً فاشلاً — بل العيّنة نفسها بحظّ مختلف", INK, 18)
+    svg += foot(Wd, H, "المنحنى الأحمر ليس نموذجاً فاشلاً — بل العيّنة نفسها بحظّ مختلف", INK, 18)
     return svg + badge(Wd, "عشرون صفقة لا تحكم", False) + "</svg>"
 
 def pb_spread(Wd=880, H=250, seed=8502):
@@ -98,7 +98,7 @@ def pb_hist(Wd=880, H=250, seed=8503):
     s.append(htext(zx, y0 + 28, "صفر", INK, 18))
     svg = "".join(s)
     svg += head(Wd, "محصلة أربعة آلاف عيّنة · مئة صفقة لكل عيّنة")
-    svg += htext(Wd / 2, H - 14, f"‏{ar(neg,1)}٪ من العيّنات انتهت خاسرة رغم أن النموذج رابح", RED, 18)
+    svg += foot(Wd, H, f"‏{ar(neg,1)}٪ من العيّنات انتهت خاسرة رغم أن النموذج رابح", RED, 18)
     return svg + badge(Wd, "الخسارة واردة بلا خطأ", False) + "</svg>"
 
 def pb_streak(Wd=880, H=250, seed=8504):
@@ -128,8 +128,7 @@ def pb_streak(Wd=880, H=250, seed=8504):
                  f'fill="{TEAL_D if w else RED}" opacity="{0.9 if inrun else (0.8 if w else 0.4)}"/>')
     svg = "".join(s)
     svg += head(Wd, "مئة صفقة بالترتيب · السماوي رابح والأحمر خاسر")
-    svg += htext(Wd / 2, H - 14,
-                 f"أطول سلسلة خسائر هنا {ar(best)} — والوسيط المتوقع سبع خسائر في كل مئة", INK, 18)
+    svg += foot(Wd, H, f"أطول سلسلة خسائر هنا {ar(best)} — والوسيط المتوقع سبع خسائر في كل مئة", INK, 18)
     return svg + badge(Wd, "التجمّع طبيعي", True) + "</svg>"
 
 def pb_matrix(Wd=880, H=250, seed=8505):
@@ -154,7 +153,7 @@ def pb_matrix(Wd=880, H=250, seed=8505):
         s.append(htext(cx + (cw - 14) / 2, cy + chh * 0.72, verdict, col, round(18 * sc)))
     svg = "".join(s)
     svg += head(Wd, "النتيجة لا تُقيّم القرار")
-    svg += htext(Wd / 2, H - 14, "الخانة الحمراء العلوية أخطرها: ربح كافأ قراراً خاطئاً", RED, 18)
+    svg += foot(Wd, H, "الخانة الحمراء العلوية أخطرها: ربح كافأ قراراً خاطئاً", RED, 18)
     return svg + badge(Wd, "قيّم القرار لا النتيجة", True) + "</svg>"
 
 
@@ -211,8 +210,7 @@ def em_math(Wd=880, H=250, seed=8513):
         rows.append((f"هدف {lab}", e, f"{'+' if e>=0 else ''}{ar(e,2)}R"))
     svg, zy = _signed(Wd, H, rows)
     svg += head(Wd, "التوقع لكل صفقة · نسبة الفوز تُمنح للهدف الأقرب")
-    svg += htext(Wd / 2, H - 14,
-                 "٢R بفوز ٤٠٪ · ١R بفوز ٥٥٪ · ٠٫٥R بفوز ٧٠٪ — والأعلى ما زال الأبعد", INK, 18)
+    svg += foot(Wd, H, "٢R بفوز ٤٠٪ · ١R بفوز ٥٥٪ · ٠٫٥R بفوز ٧٠٪ — والأعلى ما زال الأبعد", INK, 18)
     return svg + badge(Wd, "الهدف الأقرب لا يعوّض", False) + "</svg>"
 
 def em_asym(Wd=880, H=250, seed=8514):
@@ -225,8 +223,8 @@ def em_asym(Wd=880, H=250, seed=8514):
         plan.append(plan[-1] + (0.5 if w else -1.0))
     svg, x, y = _curves(Wd, H, [(disc, TEAL_D, 2.6), (plan, RED, 2.6)], base=0.0)
     svg += head(Wd, "السماوي: الخطة · الأحمر: قطف الربح وترك الخسارة")
-    svg += htext(Wd / 2, H - 46, f"الفارق بعد ستين صفقة: {ar(disc[-1]-plan[-1],0)}R", RED, 19)
-    svg += htext(Wd / 2, H - 14, "الإشارات واحدة — والفارق كله في لحظة الخروج", INK, 18)
+    svg += foot(Wd, H, f"الفارق بعد ستين صفقة: {ar(disc[-1]-plan[-1],0)}R", RED, 19, dy=46)
+    svg += foot(Wd, H, "الإشارات واحدة — والفارق كله في لحظة الخروج", INK, 18)
     return svg + badge(Wd, "سلوك غير متماثل", False) + "</svg>"
 
 def em_partial(Wd=880, H=250, seed=8515):
@@ -247,9 +245,8 @@ def em_partial(Wd=880, H=250, seed=8515):
     svg, x, y = _curves(Wd, H, [(full, TEAL_D, 2.6), (withbe, INK, 2.4), (bare, RED, 2.4)],
                         base=0.0)
     svg += head(Wd, "السماوي: هدف كامل · الداكن: جزئي مع وقف تعادل · الأحمر: جزئي بلا وقف")
-    svg += htext(Wd / 2, H - 46, "الجزئي بلا وقف تعادل: التوقع صفر بالضبط", RED, 19)
-    svg += htext(Wd / 2, H - 14,
-                 "لا يعادل الخطة إلا إذا أنقذ وقفُ التعادل ثلث خسائرك على الأقل", INK, 18)
+    svg += foot(Wd, H, "الجزئي بلا وقف تعادل: التوقع صفر بالضبط", RED, 19, dy=46)
+    svg += foot(Wd, H, "لا يعادل الخطة إلا إذا أنقذ وقفُ التعادل ثلث خسائرك على الأقل", INK, 18)
     return svg + badge(Wd, "الجزئي ليس مجانياً", False) + "</svg>"
 
 
@@ -305,8 +302,7 @@ def hz_cost(Wd=880, H=250, seed=8523):
         picked.append(picked[-1] + (r if i in take else 0.0))
     svg, x, y = _curves(Wd, H, [(allr, TEAL_D, 2.6), (picked, RED, 2.6)], base=0.0)
     svg += head(Wd, "السماوي: تنفيذ كل إشارة · الأحمر: أربع من عشر")
-    svg += htext(Wd / 2, H - 14,
-                 "الانتقاء بالمزاج يحذف الرابحات والخاسرات معاً — بلا قاعدة تفرّق", INK, 18)
+    svg += foot(Wd, H, "الانتقاء بالمزاج يحذف الرابحات والخاسرات معاً — بلا قاعدة تفرّق", INK, 18)
     return svg + badge(Wd, "انتقاء بلا قاعدة", False) + "</svg>"
 
 def hz_trigger(Wd=880, H=250, seed=8524):
@@ -340,8 +336,7 @@ def hz_afterloss(Wd=880, H=250, seed=8525):
     svg, x, y = _curves(Wd, H, [(cur, TEAL_D, 2.6), (skipped, RED, 2.4)], base=0.0)
     svg += xm(x(miss + 1), y(cur[miss + 1]), r=11)
     svg += head(Wd, "السماوي: التزام كامل · الأحمر: توقّف بعد السلسلة")
-    svg += htext(Wd / 2, H - 14,
-                 "الصفقة التي تلي السلسلة هي أكثر ما يُترك — وهي التي تعيد المنحنى", RED, 18)
+    svg += foot(Wd, H, "الصفقة التي تلي السلسلة هي أكثر ما يُترك — وهي التي تعيد المنحنى", RED, 18)
     return svg + badge(Wd, "التوقف بعد الخسائر", False) + "</svg>"
 
 
