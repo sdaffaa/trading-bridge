@@ -11,13 +11,24 @@
 import reel_sfx_kit as _K
 from reel_sfx_kit import plot_box, price_scale
 
-# لوحة الشاشة: داكن الحساب مع تباين محاور يقرأ كشاشة تداول
-BG = "#0B1520"
-GRID = "rgba(255,255,255,0.045)"
-AXBD = "rgba(255,255,255,0.10)"
-AXTX = "#7F97A1"
-LEGT = "#D8E5EB"
-WMK = "rgba(216,229,235,0.055)"
+# لوحتان: الفاتحة هي لوحة جسم الشرح في الهوية، والداكنة للغلاف والافتتاحية
+LIGHT = dict(BG="#FBF9F5", GRID="rgba(15,46,60,0.075)", AXBD="rgba(15,46,60,0.17)",
+             AXTX="#6B7C84", LEGT="#0F2E3C", WMK="rgba(15,46,60,0.055)",
+             LVL="#0F2E3C", PILL="#1E627A", PILLTX="#FBF9F5")
+DARK = dict(BG="#0B1520", GRID="rgba(255,255,255,0.045)", AXBD="rgba(255,255,255,0.10)",
+            AXTX="#7F97A1", LEGT="#D8E5EB", WMK="rgba(216,229,235,0.055)",
+            LVL="#D8E5EB", PILL="#43D4DC", PILLTX="#08131C")
+T = LIGHT
+
+def set_theme(name="light"):
+    """يبدّل لوحة الأثاث. الافتراضي فاتح: جسم الشرح في الهوية أوف-وايت."""
+    global T, BG, GRID, AXBD, AXTX, LEGT, WMK
+    T = LIGHT if name == "light" else DARK
+    BG, GRID, AXBD, AXTX, LEGT, WMK = (T["BG"], T["GRID"], T["AXBD"],
+                                       T["AXTX"], T["LEGT"], T["WMK"])
+
+BG = T["BG"]; GRID = T["GRID"]; AXBD = T["AXBD"]
+AXTX = T["AXTX"]; LEGT = T["LEGT"]; WMK = T["WMK"]
 
 
 def _step(span, target=6):
@@ -78,13 +89,13 @@ def furniture(W, dec=2, sym="GC=F", tf="15m", tlabels=None, ticks=6):
     return "".join(g)
 
 
-def legend(W, sym="GC=F", tf="15m", dec=2, up="#43D4DC", dn="#E05656"):
+def legend(W, sym="GC=F", tf="15m", dec=2, up=None, dn=None):
     """شريط الرمز والفريم وقيم آخر شمعة — أعلى يسار الشاشة كما في المنصات."""
     pl, pr, pt, pb, pw, ph = plot_box()
     CW, CH = _K.CW, _K.CH
     c = W[-1]
     d = c["c"] - c["o"]
-    col = up if d >= 0 else dn
+    col = (up or ("#2E8CA6" if T is LIGHT else "#43D4DC")) if d >= 0 else (dn or ("#D24B4B" if T is LIGHT else "#E05656"))
     o = []
     o.append(f'<text x="{pl + 4}" y="{pt - 34}" fill="{LEGT}" font-size="25" font-weight="800" '
              f'font-family="system-ui,sans-serif" direction="ltr">{sym}  ·  {tf}</text>')

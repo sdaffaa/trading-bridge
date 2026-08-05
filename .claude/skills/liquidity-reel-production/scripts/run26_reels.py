@@ -22,6 +22,11 @@ from reel_sfx_kit import (build_reel, geom, line_el, zone_el, xmark, checkmark,
 import tv_chart
 from car_common import GEM
 
+# الهوية: جسم الشرح أوف-وايت. الشاشة الداكنة للغلاف والافتتاحية فقط.
+THEME = os.environ.get("LS_THEME", "light")
+tv_chart.set_theme(THEME)
+DARKMODE = THEME == "dark"
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 CVW, CVH = 1080, 1400              # ٧٢٫٩٪ من ارتفاع الريل
 set_canvas(CVW, CVH)
@@ -39,11 +44,12 @@ BASE_CSS = """
 #edu{bottom:22px;font-size:19px;opacity:.55}
 #brand{position:absolute;top:40px;left:0;right:0;text-align:center;z-index:7;opacity:.7}
 #brand .g{width:28px;margin:0 auto} #brand .g svg{width:28px;height:auto}
-#brand .w{margin-top:4px;font-size:13px;font-weight:800;letter-spacing:6px;color:#7F97A1}
+#brand .w{margin-top:4px;font-size:13px;font-weight:800;letter-spacing:6px;color:__SUB__}
 .step{position:absolute;top:244px;right:56px;z-index:7;opacity:0;
-  color:#43D4DC;font-size:25px;font-weight:800;letter-spacing:.5px}
-.step i{font-style:normal;color:#7F97A1;margin-left:10px}
-"""
+  color:__ACC__;font-size:25px;font-weight:800;letter-spacing:.5px}
+.step i{font-style:normal;color:__SUB__;margin-left:10px}
+""".replace("__SUB__", "#7F97A1" if DARKMODE else "#6B7C84") \
+   .replace("__ACC__", "#43D4DC" if DARKMODE else "#1E627A")
 BASE_HTML = (f'<div id="brand"><div class="g">{GEM}</div>'
              f'<div class="w">LIQUIDITY STATE</div></div>'
              '<div class="step" id="st1"><i>١</i>الشرط</div>'
@@ -82,8 +88,8 @@ def m_sweep():
 def sweep_svg(D, x, y, slot):
     S = D["S"]; W = S["w"]; i = S["i"]; LOW = S["LOW"]
     _, pr, _, _, _, _ = plot_box(); R = CVW - pr
-    ex = [line_el(x(2), y(LOW), R, y(LOW), "#D8E5EB", 2.2, id="lvl"),
-          f'<g id="lvllbl" opacity="0">{htext(x(6), y(LOW) + 40, f"قاع محمي {LOW:,.2f}", "#D8E5EB", 25)}</g>',
+    ex = [line_el(x(2), y(LOW), R, y(LOW), tv_chart.T["LVL"], 2.2, id="lvl"),
+          f'<g id="lvllbl" opacity="0">{htext(x(6), y(LOW) + 40, f"قاع محمي {LOW:,.2f}", tv_chart.T["LVL"], 25)}</g>',
           xmark(x(i), y(W[i]["l"]) + 26, id="swp", r=16),
           f'<g id="swplbl" opacity="0">{htext(x(i) + slot * 2.8, y(W[i]["l"]) + 34, "كَنْس", RED, 25)}</g>']
     return ex
@@ -132,8 +138,8 @@ def m_bos():
 def bos_svg(D, x, y, slot):
     S = D["S"]; p = S["p"]; LH = S["LH"]; org = S["org"]
     _, pr, _, _, _, _ = plot_box(); R = CVW - pr
-    lbl = htext(x(p + 6), y(LH) - 18, f"قمة هابطة {LH:,.2f}", "#D8E5EB", 25)
-    ex = [line_el(x(p - 5), y(LH), R, y(LH), "#D8E5EB", 2.2, id="lvl"),
+    lbl = htext(x(p + 6), y(LH) - 18, f"قمة هابطة {LH:,.2f}", tv_chart.T["LVL"], 25)
+    ex = [line_el(x(p - 5), y(LH), R, y(LH), tv_chart.T["LVL"], 2.2, id="lvl"),
           f'<g id="lvllbl" opacity="0">{lbl}</g>',
           # المنطقة هي شمعة النشأة نفسها — آخر شمعة هابطة قبل الكسر — لا مربع مفترض
           zone_el("zn", x(org) - slot * .6, y(S["ZT"]), x(S["fill"]) + slot * 1.6, y(S["ZB"]), ""),
@@ -162,7 +168,8 @@ def build(key, out=None):
                       lbl_e=f'الدخول {S["ENT"]:,.2f}',
                       lbl_s=f'الوقف {S["STP"]:,.2f}',
                       lbl_t=f'الهدف ٢R  {S["TGT"]:,.2f}',
-                      anchor_e="start"))   # RTL: البداية يميناً فينمو النص يساراً داخل الكادر
+                      anchor_e="start",    # RTL: البداية يميناً فينمو النص يساراً داخل الكادر
+                      col_e="#ECF3F6" if DARKMODE else INK))   # أبيض على أوف-وايت = وسم مختفٍ
     # علامة الصحّ على الشمعة التي بلغت الهدف فعلاً، لا في مكان مريح
     ex.append(checkmark(x(S["hit"]), y(S["TGT"]) - 40, id="ck"))
     fullset = fullset + ["box", "ck"]
@@ -186,9 +193,13 @@ def build(key, out=None):
                   ("znlbl", t_sig + 0.75, t_sig + 1.0, "pop", t_box - 0.2, .3)]
     marks += [("box", t_box, t_box + 1.5, "posbox"), ("ck", t_ck, t_ck + 0.3, "pop")]
 
-    # نصوص البيتات تتبع أزمان الشموع نفسها
-    b_ = [(0.10, t_lvl - 0.15, 46), (t_lvl, t_sig - 0.15, 42),
+    # نصوص البيتات تتبع أزمان الشموع، بحدّ أدنى للقراءة.
+    # ربط بداية البيت الثاني بزمن رسم المستوى تركه ٠٫٦٥ ثانية على الشاشة في
+    # نموذج الكنس — لا تُقرأ. النص يبدأ قبل الماركب ويبقى بعده.
+    b2s = round(max(2.2, min(3.4, t_sig - 2.2)), 2)
+    b_ = [(0.10, b2s - 0.15, 46), (b2s, t_sig - 0.15, 42),
           (t_sig, t_box - 0.15, 42), (t_box, 15.30, 40), (15.50, 18.40, 40)]
+    assert all(b - a >= 1.7 for a, b, _ in b_[:4]), f"بيت أقصر من حدّ القراءة: {b_}"
     B = D["beats"]
 
     tl = [c["d"] for c in W]
@@ -196,13 +207,13 @@ def build(key, out=None):
     ex.insert(0, tv_chart.legend(W, sym=S["sym"], tf=S["tf"], dec=S["dec"]))
 
     cfg = dict(
-        w=W, dark=True, extra_css=BASE_CSS, extra_html=BASE_HTML,
+        w=W, dark=DARKMODE, extra_css=BASE_CSS, extra_html=BASE_HTML,
         grid=False, pre_svg=pre,
-        lp_pill=True, lp_dec=S["dec"], lp_col="#43D4DC", lp_txt="#08131C",
+        lp_pill=True, lp_dec=S["dec"], lp_col=tv_chart.T["PILL"], lp_txt=tv_chart.T["PILLTX"],
         base=D["base"], openmax=N, open_t=[[N - 1, 0.45]],
         story=[(j, t) for j, t in D["T"].items()],
         extra_svg="".join(ex), marks=marks, fullset=fullset, drawset=drawset,
-        dom_marks=[["st1", t_lvl - 0.1, t_lvl + 0.2, t_box - 0.3, .3],
+        dom_marks=[["st1", b2s, b2s + 0.3, t_box - 0.3, .3],
                    ["st2", t_box, t_box + 0.3, 15.3, .3],
                    ["st3", 15.5, 15.8, 18.4, .3]],
         preview_a=0.0, preview_b=0.0, res_tease=False, sweep_op=0.0, flash_op=0.0,
@@ -214,10 +225,10 @@ def build(key, out=None):
         # الكاميرا ثابتة: شاشة المنصة لا تتجوّل، وأي تكبير يقصّ محور السعر
         cam=[[0.00, 1.0, .5, .5], [DUR, 1.0, .5, .5]],
     )
-    out = out or f"reel26_{key}.html"
+    out = out or f"reel26_{key}_{THEME}.html"
     n = build_reel(cfg, os.path.join(HERE, out))
     print(f'{key:<6} {S["sym"]} {S["tf"]:<4} {S["date"]} | شموع {N} | '
-          f'مستوى {t_lvl}s إشارة {t_sig}s صندوق {t_box}s | {n} bytes')
+          f'بيتات {[round(a,2) for a,_,_ in b_]} | مستوى {t_lvl}s إشارة {t_sig}s | {n} bytes')
     return D
 
 
