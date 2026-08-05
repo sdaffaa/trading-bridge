@@ -45,16 +45,33 @@ BASE_CSS = """
 #brand{position:absolute;top:40px;left:0;right:0;text-align:center;z-index:7;opacity:.7}
 #brand .g{width:28px;margin:0 auto} #brand .g svg{width:28px;height:auto}
 #brand .w{margin-top:4px;font-size:13px;font-weight:800;letter-spacing:6px;color:__SUB__}
-.step{position:absolute;top:244px;right:56px;z-index:7;opacity:0;
-  color:__ACC__;font-size:25px;font-weight:800;letter-spacing:.5px}
-.step i{font-style:normal;color:__SUB__;margin-left:10px}
+.hl b{display:block;font-size:46px;font-weight:900;line-height:1.18}
+.hl .why{display:block;margin-top:10px;font-size:31px;font-weight:600;color:__SUB__;line-height:1.34}
+.hl .why em{font-style:normal;font-weight:800;color:__ACC__}
+#steps{position:absolute;top:272px;left:56px;right:56px;z-index:7;
+  display:flex;gap:9px;justify-content:space-between}
+.sp{position:relative;flex:1;height:52px}
+.sp .f{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  border-radius:9px;font-size:23px;font-weight:800;letter-spacing:.3px}
+.sp .b{background:__PILLBG__;color:__SUB__}
+.sp .a{background:__ACC__;color:__PILLTX__;opacity:0}
 """.replace("__SUB__", "#7F97A1" if DARKMODE else "#6B7C84") \
-   .replace("__ACC__", "#43D4DC" if DARKMODE else "#1E627A")
+   .replace("__ACC__", "#43D4DC" if DARKMODE else "#1E627A") \
+   .replace("__PILLBG__", "rgba(255,255,255,0.07)" if DARKMODE else "rgba(15,46,60,0.075)") \
+   .replace("__PILLTX__", "#08131C" if DARKMODE else "#FBF9F5")
+# ست خطوات مرقّمة ظاهرة طوال الريل: المشاهد يعرف أين هو ومَ بقي.
+STEP_NAMES = ["الشرط", "الإشارة", "الدخول", "الوقف", "الهدف", "الإبطال"]
+AR_NUM = "١٢٣٤٥٦"
+
+def steps_html():
+    o = []
+    for k, nm in enumerate(STEP_NAMES):
+        o.append(f'<div class="sp"><div class="f b">{AR_NUM[k]} {nm}</div>'
+                 f'<div class="f a" id="sa{k+1}">{AR_NUM[k]} {nm}</div></div>')
+    return '<div id="steps">' + "".join(o) + '</div>'
+
 BASE_HTML = (f'<div id="brand"><div class="g">{GEM}</div>'
-             f'<div class="w">LIQUIDITY STATE</div></div>'
-             '<div class="step" id="st1"><i>١</i>الشرط</div>'
-             '<div class="step" id="st2"><i>٢</i>الدخول</div>'
-             '<div class="step" id="st3"><i>٣</i>الإبطال</div>')
+             f'<div class="w">LIQUIDITY STATE</div></div>' + steps_html())
 
 TFN = {"5m": "٥ دقائق", "15m": "١٥ دقيقة", "30m": "٣٠ دقيقة", "1h": "ساعة"}
 
@@ -77,13 +94,23 @@ def m_sweep():
     T = times(S, 8)
     t_lvl = round(T[i - 2] + 0.25, 2)          # بعد اكتمال الشموع التي صنعت القاع
     t_sig = round(T[i] + 0.20, 2)              # بعد إغلاق شمعة الكنس
+    U = S["ENT"] - S["STP"]
     return dict(S=S, base=8, T=T, t_lvl=t_lvl, t_sig=t_sig,
-                beats=["كيف تدخل بعد كنس السيولة؟",
-                       "قاع محمي تحته أوامر إيقاف.",
-                       "شمعة تكنسه ثم تُغلق فوقه.",
-                       f"الدخول {S['ENT']:,.2f} والوقف {S['STP']:,.2f} تحت أدنى نقطة الكنس.",
-                       "الإبطال: إغلاق يعود تحت القاع."],
-                kw="كنس")
+                hook="كسر القاع ليس بيعاً.<br>تعرف لماذا؟",
+                steps=[
+                 (f'قاع محمي عند {S["LOW"]:,.2f}',
+                  "القيعان الواضحة تتكدّس تحتها أوامر الإيقاف، فهي وقود لا حاجز."),
+                 ("اختراق ثم إغلاق فوقه",
+                  "الإغلاق فوق القاع رفضٌ للسعر الأدنى، لا كسراً للهيكل."),
+                 (f'الدخول عند إغلاق تلك الشمعة {S["ENT"]:,.2f}',
+                  "قبل الإغلاق يبقى الكسر احتمالاً قائماً، فالانتظار جزء من الطريقة."),
+                 (f'الوقف تحت أدنى نقطة الكنس {S["STP"]:,.2f}',
+                  "نزول السعر تحتها يعني أن الرفض لم يكن رفضاً."),
+                 (f'الهدف ٢R عند {S["TGT"]:,.2f}',
+                  f'مخاطرة {U:,.2f} مقابل {U*2:,.2f} دولاراً على العقد نفسه.'),
+                 ("الإبطال: إغلاق يعود تحت القاع",
+                  "ما رُفض صار مقبولاً، فتسقط الفكرة كلها لا الصفقة وحدها."),
+                ], kw="كنس")
 
 def sweep_svg(D, x, y, slot):
     S = D["S"]; W = S["w"]; i = S["i"]; LOW = S["LOW"]
@@ -99,15 +126,25 @@ def sweep_svg(D, x, y, slot):
 def m_fvg():
     S = SETUPS["fvg"]; k, tap = S["k"], S["tap"]
     T = times(S, 18)
+    U = S["ENT"] - S["STP"]
     return dict(S=S, base=18, T=T,
                 t_lvl=round(T[k + 1] + 0.25, 2),    # الفجوة تكتمل بظهور الشمعة اللاحقة
                 t_sig=round(T[tap] + 0.20, 2),      # بعد الشمعة التي لمست المنتصف
-                beats=["كيف تدخل من الفجوة السعرية؟",
-                       "اندفاع يترك فجوة بين ذيلين.",
-                       "أمر معلّق عند منتصفها لا عند حافتها.",
-                       f"الدخول {S['ENT']:,.2f} والوقف {S['STP']:,.2f} تحت قاع الفجوة.",
-                       "الإبطال: إغلاق تحت الفجوة كاملة."],
-                kw="منتصف")
+                hook="الفجوة ليست منطقة دخول.<br>أين الخطأ؟",
+                steps=[
+                 (f'فجوة {S["GH"] - S["GL"]:,.2f} دولاراً بين ذيلين',
+                  "اندفاع مرّ بسرعة فترك سعراً لم يُتداول عليه في الاتجاهين."),
+                 ("عودة تلمس منتصف الفجوة",
+                  "المنتصف أعدل نقطة بين حافتيها، وعنده يتوازن ما فات."),
+                 (f'الدخول بأمر معلّق عند {S["ENT"]:,.2f}',
+                  "الحافة العليا مبكّرة تُدخلك بلا تأكيد، والسفلى نادراً تُلمس."),
+                 (f'الوقف تحت قاع الفجوة {S["STP"]:,.2f}',
+                  "ملء الفجوة كاملة يلغي السبب الذي دخلت من أجله."),
+                 (f'الهدف ٢R عند {S["TGT"]:,.2f}',
+                  f'مخاطرة {U:,.2f} مقابل {U*2:,.2f} دولاراً على العقد نفسه.'),
+                 ("الإبطال: إغلاق تحت الفجوة كاملة",
+                  "الاختلال امتُصّ ولم يعد مرجعاً يُبنى عليه."),
+                ], kw="منتصف")
 
 def fvg_svg(D, x, y, slot):
     S = D["S"]; k = S["k"]; GL, GH = S["GL"], S["GH"]
@@ -124,16 +161,26 @@ def fvg_svg(D, x, y, slot):
 def m_bos():
     S = SETUPS["bos"]; p, brk, fill = S["p"], S["brk"], S["fill"]
     T = times(S, 8)
+    U = S["ENT"] - S["STP"]
     return dict(S=S, base=8, T=T,
                 t_lvl=round(T[p] + 0.25, 2),        # بعد ظهور القمة نفسها
                 t_sig=round(T[fill] + 0.20, 2),     # بعد الشمعة التي ارتدّت من المستوى
                 t_brk=round(T[brk] + 0.15, 2),
-                beats=["كيف تدخل بعد كسر الهيكل؟",
-                       "إغلاق فوق آخر قمة هابطة.",
-                       "العودة إلى المستوى المكسور نفسه.",
-                       f"الدخول {S['ENT']:,.2f} والوقف {S['STP']:,.2f} تحت قاع شمعة النشأة.",
-                       "الإبطال: إغلاق تحت المنطقة."],
-                kw="كسر")
+                hook="الكسر وحده لا يكفي.<br>ما الذي لم تلاحظه؟",
+                steps=[
+                 (f'آخر قمة هابطة عند {S["LH"]:,.2f}',
+                  "كسرها بإغلاق يقلب قراءة الهيكل من هابط إلى صاعد."),
+                 ("إغلاق فوقها ثم عودة إليها",
+                  "المستوى المكسور يتحوّل من سقف إلى أرضية، وهذا ما تختبره العودة."),
+                 (f'الدخول عند ارتداد المستوى {S["ENT"]:,.2f}',
+                  "منتصف المنطقة نادراً يُلمس، فأمر عنده يبقى معلّقاً بلا صفقة."),
+                 (f'الوقف تحت قاع شمعة النشأة {S["STP"]:,.2f}',
+                  "هي الشمعة التي أطلقت الكسر، وكسر قاعها يُسقط سببه."),
+                 (f'الهدف ٢R عند {S["TGT"]:,.2f}',
+                  f'مخاطرة {U:,.2f} مقابل {U*2:,.2f} دولاراً على العقد نفسه.'),
+                 ("الإبطال: إغلاق تحت المنطقة",
+                  "الأرضية الجديدة لم تصمد، فالقلب لم يكتمل."),
+                ], kw="كسر")
 
 def bos_svg(D, x, y, slot):
     S = D["S"]; p = S["p"]; LH = S["LH"]; org = S["org"]
@@ -175,12 +222,24 @@ def build(key, out=None):
     fullset = fullset + ["box", "ck"]
 
     t_lvl, t_sig = D["t_lvl"], D["t_sig"]
-    t_box = round(max(t_sig + 1.3, 10.2), 2)
-    t_ck = 16.0
+    # ── جدول الخطوات الست ──
+    # ١ الشرط و٢ الإشارة يتبعان الشموع؛ و٣–٦ توزَّع بالتساوي حتى نهاية الشرح،
+    # فتبقى كل خطوة فوق حدّ القراءة ولا تُزاحم التي بعدها.
+    s1 = round(max(2.2, min(3.2, t_sig - 2.2)), 2)
+    s2 = t_sig
+    t_box = round(max(t_sig + 2.2, 9.0), 2)
+    END = 18.55
+    span = (END - t_box) / 4
+    s3, s4, s5, s6 = (round(t_box + k * span, 2) for k in range(4))
+    ST = [s1, s2, s3, s4, s5, s6]
+    assert all(ST[k + 1] - ST[k] >= 1.7 for k in range(5)), f"خطوة أقصر من حدّ القراءة: {ST}"
+    assert s1 - 0.10 >= 1.7, "الهوك أقصر من حدّ القراءة"
+
+    t_ck = round(s5 + 1.1, 2)
     marks = [(drawset[0], t_lvl, t_lvl + 0.5, "draw")]
     if key == "sweep":
         marks += [("lvllbl", t_lvl + 0.55, t_lvl + 0.8, "pop"),
-                  ("swp", t_sig, t_sig + 0.4, "drawx"),
+                  ("swp", t_sig, t_sig + 0.4, "drawx", t_box - 0.2, .3),
                   ("swplbl", t_sig + 0.45, t_sig + 0.7, "pop", t_box - 0.2, .3)]
     elif key == "fvg":
         marks = [("gap", t_lvl, t_lvl + 0.7, "zone"),
@@ -191,16 +250,15 @@ def build(key, out=None):
         marks += [("lvllbl", t_lvl + 0.55, t_lvl + 0.8, "pop", t_sig - 0.2, .3),
                   ("zn", t_sig, t_sig + 0.7, "zone"),
                   ("znlbl", t_sig + 0.75, t_sig + 1.0, "pop", t_box - 0.2, .3)]
-    marks += [("box", t_box, t_box + 1.5, "posbox"), ("ck", t_ck, t_ck + 0.3, "pop")]
+    # أداة الصفقة تُبنى على ثلاث خطوات: خط الدخول ← صندوق المخاطرة ← صندوق الهدف
+    marks += [("box", t_box, s6 - 0.4, "posbox"), ("ck", t_ck, t_ck + 0.3, "pop")]
 
-    # نصوص البيتات تتبع أزمان الشموع، بحدّ أدنى للقراءة.
-    # ربط بداية البيت الثاني بزمن رسم المستوى تركه ٠٫٦٥ ثانية على الشاشة في
-    # نموذج الكنس — لا تُقرأ. النص يبدأ قبل الماركب ويبقى بعده.
-    b2s = round(max(2.2, min(3.4, t_sig - 2.2)), 2)
-    b_ = [(0.10, b2s - 0.15, 46), (b2s, t_sig - 0.15, 42),
-          (t_sig, t_box - 0.15, 42), (t_box, 15.30, 40), (15.50, 18.40, 40)]
-    assert all(b - a >= 1.7 for a, b, _ in b_[:4]), f"بيت أقصر من حدّ القراءة: {b_}"
-    B = D["beats"]
+    B = [D["hook"]] + [f'<b>{t}</b><span class="why"><em>لماذا:</em> {w}</span>'
+                       for t, w in D["steps"]]
+    b_ = [(0.10, s1 - 0.15, 46)] + [(ST[k], (ST[k + 1] if k < 5 else END) - 0.15, 40)
+                                    for k in range(6)]
+    dom = [[f"sa{k+1}", ST[k], ST[k] + 0.25,
+            (ST[k + 1] if k < 5 else END) - 0.15, .25] for k in range(6)]
 
     tl = [c["d"] for c in W]
     pre = tv_chart.furniture(W, dec=S["dec"], sym=S["sym"], tf=S["tf"], tlabels=tl)
@@ -213,14 +271,12 @@ def build(key, out=None):
         base=D["base"], openmax=N, open_t=[[N - 1, 0.45]],
         story=[(j, t) for j, t in D["T"].items()],
         extra_svg="".join(ex), marks=marks, fullset=fullset, drawset=drawset,
-        dom_marks=[["st1", b2s, b2s + 0.3, t_box - 0.3, .3],
-                   ["st2", t_box, t_box + 0.3, 15.3, .3],
-                   ["st3", 15.5, 15.8, 18.4, .3]],
+        dom_marks=dom,
         preview_a=0.0, preview_b=0.0, res_tease=False, sweep_op=0.0, flash_op=0.0,
         txt=[(f"t{i+1}", a, b, B[i], fs, INK) for i, (a, b, fs) in enumerate(b_)],
         chip="", res="", cta_k=f"اكتب «{D['kw']}»", cta_s="ويصلك الشرح كاملاً",
         edu=f'{S["sym"]} · {TFN[S["tf"]]} · {S["date"]} — لغرض تعليمي',
-        dur=DUR, res_t=999, cta_t=18.6,
+        dur=DUR, res_t=999, cta_t=18.75,
         flash=(999, 999.1), punch=(999, 999.1, 0.0),
         # الكاميرا ثابتة: شاشة المنصة لا تتجوّل، وأي تكبير يقصّ محور السعر
         cam=[[0.00, 1.0, .5, .5], [DUR, 1.0, .5, .5]],
@@ -228,7 +284,7 @@ def build(key, out=None):
     out = out or f"reel26_{key}_{THEME}.html"
     n = build_reel(cfg, os.path.join(HERE, out))
     print(f'{key:<6} {S["sym"]} {S["tf"]:<4} {S["date"]} | شموع {N} | '
-          f'بيتات {[round(a,2) for a,_,_ in b_]} | مستوى {t_lvl}s إشارة {t_sig}s | {n} bytes')
+          f'خطوات {ST} | مستوى {t_lvl}s صندوق {t_box}s | {n} bytes')
     return D
 
 

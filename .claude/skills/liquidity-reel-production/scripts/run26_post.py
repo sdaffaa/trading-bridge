@@ -10,9 +10,10 @@ from run25_post import soft_bed, master, H
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DUR = 19.4
-BEATS = {"sweep": (4.10, 10.20, 16.00),
-         "fvg":   (5.57, 10.20, 16.00),
-         "bos":   (3.69, 10.20, 16.00)}
+# (رسم المستوى، ظهور أداة الصفقة = الخطوة ٣، بلوغ الهدف = داخل الخطوة ٥)
+BEATS = {"sweep": (4.10, 9.00, 14.88),
+         "fvg":   (5.57, 9.26, 15.01),
+         "bos":   (3.69, 10.41, 15.58)}
 
 if __name__ == "__main__":
     import sys
