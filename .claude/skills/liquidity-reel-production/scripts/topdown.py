@@ -63,7 +63,8 @@ def daily_bias(D, fill):
     pdh, pdl = pd["h"], pd["l"]
     mid = (pdh + pdl) / 2
     m5 = D["5m"]["w"]; a5 = fill          # حتى شمعة الدخول لا بعدها
-    today = [c for c in m5[:a5 + 1] if c["d"][:10] == "2026-08-04"]
+    day = D["anchor_utc"][:10]            # يُقرأ من النافذة لا يُثبَّت
+    today = [c for c in m5[:a5 + 1] if c["d"][:10] == day]
     assert today, "لا شموع لليوم الجاري"
     lo_today = min(c["l"] for c in today)
     px = m5[a5]["c"]
@@ -149,8 +150,8 @@ def plan(D, S):
     return dict(fill=sw, ENT=ENT, STP=STP, TGT=TGT, hit=hit, R=round(ENT - STP, 2))
 
 
-def build(name=FILE):
-    D = load(name)
+def build(name=None):
+    D = load(name or os.environ.get("LS_SET", FILE))
     L4 = sweep(D)
     L = [htf_trend(D), daily_bias(D, L4["sw"]), mtf_structure(D), L4,
          ltf_signal(D, L4["sw"])]
@@ -158,7 +159,8 @@ def build(name=FILE):
 
 
 if __name__ == "__main__":
-    D, L, P = build()
+    import sys
+    D, L, P = build(sys.argv[1] if len(sys.argv) > 1 else None)
     print(f'{D["sym"]} · مرساة {D["anchor_utc"]}\n{D["src"]}\n')
     for n, x in enumerate(L, 1):
         print(f'  {n}) [{x["tf"]:>3}] {x["title"]:<18} {x["detail"]}')

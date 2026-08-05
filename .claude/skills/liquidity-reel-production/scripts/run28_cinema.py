@@ -30,7 +30,9 @@ DUR = 30.5
 PL, PR, PT, PB = 18, 122, 92, 66
 PW, PH = CVW - PL - PR, CVH - PT - PB
 
-D, LAY, PLAN = topdown.build()
+SET = os.environ.get("LS_SET", "gc_td2_2026-08-04.json")
+TAG = SET.replace(".json", "")
+D, LAY, PLAN = topdown.build(SET)
 M5 = D["5m"]["w"][:48]
 FILL, HIT = PLAN["fill"], PLAN["hit"]
 
@@ -158,7 +160,7 @@ def m5_svg():
     ex.append(f'<g id="swplbl" opacity="0">{htext(x(sw) - slot * 3.0, y(M5[sw]["l"]) + 36, "كَنْس", RED, 26)}</g>')
     # ذيل الرفض: خط رأسي يبرز الذيل نفسه
     c = M5[sw]
-    wick_txt = "ذيل رفض " + str(int(L5["wick"] * 100)) + "٪"
+    wick_txt = "ذيل رفض " + str(round(L5["wick"] * 100)) + "٪"
     ex.append(f'<g id="wick" opacity="0"><line x1="{x(sw):.1f}" y1="{y(min(c["o"],c["c"])):.1f}" '
               f'x2="{x(sw):.1f}" y2="{y(c["l"]):.1f}" stroke="{RED}" stroke-width="7" '
               f'stroke-linecap="round" opacity=".55"/></g>')
@@ -177,6 +179,8 @@ def m5_svg():
     return "".join(ex), x, y, slot
 
 
+PIP = (max(c["h"] for c in M5) - min(c["l"] for c in M5)) * 0.03
+EQC = sum(LAY[3]["eq"]) // len(LAY[3]["eq"])
 EX5, X5, Y5, SLOT5 = m5_svg()
 fx = lambda i: round(X5(i) / CVW, 4)
 fy = lambda p: round(Y5(p) / CVH, 4)
@@ -214,11 +218,11 @@ PH_ = [
 ]
 
 CAM = [
-    # الهوك: زوم شديد على ذيل شمعة الكنس ثم انسحاب سريع يكشف المشهد
-    [0.00, 3.30, fx(LAY[3]["sw"]), fy(M5[LAY[3]["sw"]]["l"])],
-    [1.60, 2.85, fx(LAY[3]["sw"] - 1), fy(M5[LAY[3]["sw"]]["l"] + 2), "creep"],
-    [2.90, 1.62, fx(28), fy(LAY[3]["lvl"] + 4), "whip"],
-    [5.20, 1.88, fx(27), fy(LAY[3]["lvl"] + 1), "creep"],
+    # الهوك: زوم شديد على عنقود القيعان المتساوية — الشمعة الأخيرة لم تتكشّف بعد
+    [0.00, 3.30, fx(EQC), fy(LAY[3]["lvl"])],
+    [1.60, 2.85, fx(EQC - 1), fy(LAY[3]["lvl"] + PIP * 2), "creep"],
+    [2.90, 1.62, fx(EQC + 4), fy(LAY[3]["lvl"] + PIP * 4), "whip"],
+    [5.20, 1.88, fx(EQC + 2), fy(LAY[3]["lvl"] + PIP), "creep"],
     # الفريمات الأعلى: زوم هادئ يتنفّس على كل لوحة
     [6.05, 1.14, .5, .46, "anticip"],
     [9.10, 1.26, .55, .52, "creep"],
@@ -227,9 +231,9 @@ CAM = [
     [12.35, 1.16, .5, .5, "anticip"],
     [15.45, 1.30, .58, .5, "creep"],
     # العودة للخمس دقائق: الكنس ثم الذيل
-    [15.60, 1.80, fx(LAY[3]["sw"] - 3), fy(LAY[3]["lvl"]), "whip"],
-    [18.90, 2.05, fx(LAY[3]["sw"]), fy(LAY[3]["lvl"] - 1), "creep"],
-    [19.00, 2.75, fx(LAY[3]["sw"]), fy(M5[LAY[3]["sw"]]["l"] + 1.5), "whip"],
+    [15.60, 1.80, fx(FILL - 3), fy(LAY[3]["lvl"]), "whip"],
+    [18.90, 2.05, fx(FILL), fy(LAY[3]["lvl"] - PIP), "creep"],
+    [19.00, 2.75, fx(FILL), fy(M5[FILL]["l"] + PIP * 1.5), "whip"],
     [21.90, 2.40, fx(LAY[3]["sw"] + 1), fy(PLAN["ENT"]), "creep"],
     # التنفيذ والصندوق
     [22.05, 1.55, fx(FILL + 4), fy((PLAN["ENT"] + PLAN["TGT"]) / 2), "anticip"],
@@ -257,8 +261,11 @@ FULLSET = ["eq0", "eq1", "lvllbl", "tf4h", "tf1d", "tf1h", "swp", "swplbl",
            "wick", "wicklbl", "ex", "box", "ck"]
 
 # تكشّف الشموع: الكنس حيّ أمام المشاهد، ثم وقفة، ثم شمعة الهدف
-STORY = [(38, 17.55), (39, 19.10), (40, 20.30), (41, 26.55)] + \
-        [(j, round(27.05 + (j - 42) * 0.34, 2)) for j in range(42, 48)]
+BASE = FILL - 1                      # الشمعة الحاسمة تتكشّف أمام المشاهد
+_after = [(FILL, 17.55), (FILL + 1, 19.10), (FILL + 2, 20.30), (HIT, 26.55)]
+STORY = sorted({j: t for j, t in _after if j < len(M5)}.items()) + \
+        [(j, round(27.05 + (j - HIT - 1) * 0.34, 2))
+         for j in range(HIT + 1, len(M5))]
 
 cfg = dict(
     w=M5, dark=DK, extra_css=BASE_CSS, extra_html=BASE_HTML,
@@ -266,22 +273,22 @@ cfg = dict(
     pre_svg=tv_chart.furniture(M5, dec=2, sym=D["sym"], tf="5m",
                                tlabels=[c["d"][11:] for c in M5]),
     lp_pill=True, lp_dec=2, lp_col=tv_chart.T["PILL"], lp_txt=tv_chart.T["PILLTX"],
-    base=37, openmax=48, open_t=[[37, 0.4]], story=STORY,
+    base=BASE, openmax=len(M5), open_t=[[BASE, 0.4]], story=STORY,
     extra_svg=EX5 + p_4h() + p_1d() + p_1h(),
     marks=MARKS, fullset=FULLSET, drawset=["lvl"],
     dom_marks=[],
     preview_a=0.0, preview_b=0.0, res_tease=False, sweep_op=0.0,
     txt=[(f"t{i+1}", a, b, s, 52, INK) for i, (a, b, s) in enumerate(PH_)],
     chip="", res="", cta_k="اكتب «شامل»", cta_s="ويصلك التحليل كاملاً",
-    edu=f'{D["sym"]} · ٥ دقائق · 04-08-2026 — مثال تعليمي',
+    edu=f'{D["sym"]} · ٥ دقائق · {D["anchor_utc"][:10]} — مثال تعليمي',
     dur=DUR, res_t=999, cta_t=28.9,
     flash=(2.90, 3.30), flash_op=0.22, punch=(2.90, 3.20, 0.05),
     cam=CAM,
 )
 
 if __name__ == "__main__":
-    n = build_reel(cfg, os.path.join(HERE, f"reel28_{THEME}.html"))
-    print(f'ريل شامل | {DUR}s | {len(LAY)} أسباب | كاميرا {len(CAM)} مفتاح | '
+    n = build_reel(cfg, os.path.join(HERE, f"reel28_{TAG}_{THEME}.html"))
+    print(f'{TAG} | ريل شامل | {DUR}s | {len(LAY)} أسباب | كاميرا {len(CAM)} مفتاح | '
           f'ماركب {len(MARKS)} | {n} bytes')
     for i, L in enumerate(LAY, 1):
         print(f'  {i} [{L["tf"]:>3}] {L["title"]}')
