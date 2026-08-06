@@ -185,8 +185,13 @@
    "pillar": "فوليوم بروفايل",
    "topic": "الفاليو إريا: وين السوق يتقبل السعر ووين يرفضه",
    "keyword": "فاليو",
-   "status": "queued",
-   "cat": "فنية"
+   "status": "done",
+   "cat": "فنية",
+   "done_date": "2026-08-06",
+   "run": "run31-daily-2026-08-06",
+   "media": "reel",
+   "slug": "value",
+   "guide": "dalil31_value.pdf"
   },
   {
    "id": 19,
@@ -271,8 +276,13 @@
    "pillar": "الانضباط",
    "topic": "خطة التداول المكتوبة: قراراتك قبل ما يفتح السوق",
    "keyword": "خطة",
-   "status": "queued",
-   "cat": "أساسية"
+   "status": "done",
+   "cat": "أساسية",
+   "done_date": "2026-08-06",
+   "run": "run31-daily-2026-08-06",
+   "media": "carousel",
+   "slug": "plan",
+   "guide": "dalil31_plan.pdf"
   },
   {
    "id": 28,
@@ -526,10 +536,15 @@
    "pillar": "هيكل السوق",
    "topic": "التوسّع والانضغاط: النطاق الضيق يجمع الأوامر والشمعة الواسعة تصرفها",
    "keyword": "توسع",
-   "status": "queued",
+   "status": "done",
    "cat": "فنية",
    "added": "2026-08-06",
-   "source": "تجديد البنك run31"
+   "source": "تجديد البنك run31",
+   "done_date": "2026-08-06",
+   "run": "run31-daily-2026-08-06",
+   "media": "reel",
+   "slug": "expan",
+   "guide": "dalil31_expan.pdf"
   },
   {
    "id": 54,
@@ -556,10 +571,15 @@
    "pillar": "علم نفس التداول",
    "topic": "أثر الشاشة: مراقبة الصفقة لحظة بلحظة تدفعك لإفسادها",
    "keyword": "مراقبة",
-   "status": "queued",
+   "status": "done",
    "cat": "نفسية",
    "added": "2026-08-06",
-   "source": "تجديد البنك run31"
+   "source": "تجديد البنك run31",
+   "done_date": "2026-08-06",
+   "run": "run31-daily-2026-08-06",
+   "media": "carousel",
+   "slug": "watch",
+   "guide": "dalil31_watch.pdf"
   },
   {
    "id": 57,
@@ -626,10 +646,15 @@
    "pillar": "إدارة المخاطر",
    "topic": "التسييل الجزئي: إغلاق نصف الصفقة ومتى يخدمك فعلاً",
    "keyword": "تجزئة",
-   "status": "queued",
+   "status": "done",
    "cat": "مالية",
    "added": "2026-08-06",
-   "source": "تجديد البنك run31"
+   "source": "تجديد البنك run31",
+   "done_date": "2026-08-06",
+   "run": "run31-daily-2026-08-06",
+   "media": "carousel",
+   "slug": "partial",
+   "guide": "dalil31_partial.pdf"
   },
   {
    "id": 64,

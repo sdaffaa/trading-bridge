@@ -28,6 +28,10 @@ set_pad(18, 122, 92, 66)
 PL, PR, PT, PB = 18, 122, 92, 66
 PW, PH = CVW - PL - PR, CVH - PT - PB
 DUR = 22.4                                   # سقف skip-rate (§12)
+# الخانات العشرية تتبع الأداة (§4): فوركس ٥، ين ٣، ذهب ١، مؤشرات ٠.
+# تثبيتها على ٢ كان يطبع محور الأسترالي/الدولار «0.66» أربع مرات متتالية.
+DEC = {"GC=F": 1, "NQ=F": 0, "YM=F": 0, "USDJPY=X": 3,
+       "AUDUSD=X": 5, "GBPUSD=X": 5, "EURUSD=X": 5}
 tv_chart.set_theme("light")
 
 
@@ -54,16 +58,16 @@ def markup(r):
         line_el(x(iH) - slot * .6, y(lv), x(bk) + slot * .55, y(lv), INK, 2.4, id="bos"),
         f'<g id="boslbl" opacity="0">{htext(x(iH) + slot * 1.8, y(lv) - 16, "كسر الهيكل", INK, 26)}</g>',
         zone_el("zn", x(iob) - slot * .6, y(zt), x(min(ir + 3, len(W) - 1)) + slot * .5,
-                y(zb), htext((x(iob) + x(ir)) / 2, y(zb) + 34, "منطقة الطلب", TEAL_D, 25)),
+                y(zb), htext(x(iob) + slot * 3.0, y(zb) + 34, "منطقة الطلب", TEAL_D, 25)),
         # الدخول المستعجل فوق المنطقة ثم هبوط السعر تحته
         f'<g id="trap" opacity="0">'
         f'<circle cx="{x(ne):.1f}" cy="{y(W[ne]["c"]):.1f}" r="13" fill="none" '
         f'stroke="{RED}" stroke-width="3.2"/>'
         + htext(x(ne) - slot * 3.4, y(W[ne]["c"]) - 22, "هني أغروك", RED, 25) + '</g>',
-        xmark(x(low_i), y(W[low_i]["l"]) + 26, id="xh", r=17),
+        xmark(x(low_i), y(W[low_i]["l"]) + 54, id="xh", r=17),
         # الدخول الصحيح عند العودة
         ring("ent", x(ir), y(W[ir]["l"]), 15, TEAL_D,
-             htext(x(ir) - slot * 3.8, y(W[ir]["l"]) + 46, "الدخلة الصح", TEAL_D, 26)),
+             htext(x(ir) + slot * 3.6, y(W[ir]["l"]) + 40, "الدخلة الصح", TEAL_D, 26)),
         line_el(x(ir) - slot * .6, y(W[top_i]["h"]), R, y(W[top_i]["h"]), TEAL_D, 2.2,
                 dash="8 7", id="tgt"),
         f'<g id="tgtlbl" opacity="0">'
@@ -81,13 +85,15 @@ BASE_CSS = """
 .hl .why{display:block;margin-top:10px;font-size:29px;font-weight:600;color:#6B7C84}
 #chartclip{top:360px;left:0}
 #chip{display:none} #endlogo{display:none} #res{display:none}
-#cta{top:1792px} #cta .k{font-size:44px;padding:9px 30px} #cta .s{margin-top:8px;font-size:26px}
+#cta{top:1712px} #cta .k{font-size:44px;padding:9px 30px} #cta .s{margin-top:8px;font-size:26px}
 #edu{bottom:22px;font-size:19px;opacity:.5}
 """
 
 
 def build(slug):
-    C = json.load(open(os.path.join(CONT, f"run31_{slug}.json"), encoding="utf-8"))
+    # النافذة والصيغة تُقرآن من `run31_run` كي لا يُسند لوحدةٍ نافذتان
+    import run31_run, run31_build
+    C = run31_build.load(slug)
     r = RC.win(C["window"])
     W = r["w"]
     ex, G = markup(r)
@@ -118,9 +124,9 @@ def build(slug):
            [DUR, 1.04, .5, .5, "creep"]]
     cfg = dict(
         w=W, dark=False, extra_css=BASE_CSS, extra_html="", grid=False,
-        pre_svg=tv_chart.furniture(W, dec=C.get("dec", 2), sym=r["sym"], tf=r["tf"],
+        pre_svg=tv_chart.furniture(W, dec=DEC.get(r["sym"], 2), sym=r["sym"], tf=r["tf"],
                                    tlabels=[c["d"] for c in W]),
-        lp_pill=True, lp_dec=C.get("dec", 2), lp_col=tv_chart.T["PILL"],
+        lp_pill=True, lp_dec=DEC.get(r["sym"], 2), lp_col=tv_chart.T["PILL"],
         lp_txt=tv_chart.T["PILLTX"],
         base=base, openmax=len(W), open_t=[[base, 0.4]], story=story,
         extra_svg=ex, marks=marks, fullset=full, drawset=["bos", "tgt"], dom_marks=[],

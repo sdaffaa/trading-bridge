@@ -7326,6 +7326,38 @@
    "end": "2025-09-11 19:00",
    "label": "run31-value",
    "video": "run31-daily-2026-08-06"
+  },
+  {
+   "symbol": "GC=F",
+   "timeframe": "30m",
+   "start": "2026-07-02 04:00",
+   "end": "2026-07-02 17:00",
+   "label": "run31-expan",
+   "video": "run31-daily-2026-08-06"
+  },
+  {
+   "symbol": "GC=F",
+   "timeframe": "15m",
+   "start": "2026-07-02 05:30",
+   "end": "2026-07-02 15:45",
+   "label": "run31-watch",
+   "video": "run31-daily-2026-08-06"
+  },
+  {
+   "symbol": "GBPUSD=X",
+   "timeframe": "1h",
+   "start": "2025-11-07 11:00",
+   "end": "2025-11-07 20:00",
+   "label": "run31-plan",
+   "video": "run31-daily-2026-08-06"
+  },
+  {
+   "symbol": "GC=F",
+   "timeframe": "15m",
+   "start": "2026-05-29 09:30",
+   "end": "2026-05-29 17:15",
+   "label": "run31-partial",
+   "video": "run31-daily-2026-08-06"
   }
  ]
 }
