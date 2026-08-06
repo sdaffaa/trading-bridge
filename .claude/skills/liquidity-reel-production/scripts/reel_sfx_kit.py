@@ -59,6 +59,23 @@ def zone_el(id, x0, y0, x1, y1, label_html="", fill=TEAL, stroke=TEAL_D):
             f'fill="none" stroke="{stroke}" stroke-width="1.7"/>'
             f'<g class="zl" opacity="0">{label_html}</g></g>')
 
+def zone_drag_el(id, x0, y0, x1, y1, label_html="", fill=TEAL, stroke=TEAL_D):
+    """زون يُسحب بالفأرة — mode «zonedrag»: يتمدّد أفقياً من حافته اليسرى.
+
+    يختلف عن `zone_el` في أن الإطار والتعبئة داخل مجموعة `.zw` مرساها
+    الحافة اليسرى، فيمتدّان مع المؤشر بدل أن يُرسم المحيط ثم يُملأ."""
+    xa, xb = min(x0, x1), max(x0, x1)
+    ya, yb = min(y0, y1), max(y0, y1)
+    w, h = xb - xa, yb - ya
+    return (f'<g id="{id}" opacity="0">'
+            f'<g class="zw" style="transform-box:view-box;transform-origin:{xa:.1f}px {ya:.1f}px">'
+            f'<rect class="zf" x="{xa:.1f}" y="{ya:.1f}" width="{w:.1f}" height="{h:.1f}" '
+            f'fill="{fill}" opacity="0"/>'
+            f'<rect x="{xa:.1f}" y="{ya:.1f}" width="{w:.1f}" height="{h:.1f}" '
+            f'fill="none" stroke="{stroke}" stroke-width="1.7"/></g>'
+            f'<g class="zl" opacity="0">{label_html}</g></g>')
+
+
 def ring(id, cx, cy, r=15, col=TEAL_D, label_html=""):
     """دائرة دخول نابضة: تظهر بسلايد ثم حلقة نبض تتوسع — mode «ring»."""
     return (f'<g id="{id}" opacity="0">'
@@ -155,6 +172,46 @@ def build_reel(cfg, out_html):
     if rf:
         rflash_js = (f'const rf=seg(t,{rf-0.05},{rf+0.1}), rf2=seg(t,{rf+0.1},{rf+0.6});'
                      f'$("rflash").style.opacity = rf>0&&rf2<1 ? 0.16*(rf<1?rf:(1-rf2)) : 0;')
+    # مؤشر الفأرة (اختياري): [[t, x, y, ease?, state?]] بإحداثيات #stage.
+    # قناة توقيت مستقلة عن `dom_marks` لأن تلك تفرض translateY على العنصر
+    # فلا يمكن تحريكه بها حرّاً. غياب المفتاح = لا عنصر ولا JS إطلاقاً.
+    cur = cfg.get("cursor")
+    CURSOR_HTML = CURSOR_JS = ""
+    if cur:
+        CURSOR_HTML = ('<div id="cur"><div class="cc"></div><svg class="cp" width="26" height="34" '
+                       'viewBox="0 0 26 34"><path d="M2 2 L2 26 L8.5 20.5 L12.5 30 L16.5 28.2 '
+                       'L12.8 19 L21 18.5 Z" fill="#0F2E3C" stroke="#FBF9F5" stroke-width="1.6" '
+                       'stroke-linejoin="round"/></svg></div>')
+        CURSOR_JS = """
+  {
+    const CUR = %s;
+    const el = $("cur");
+    let p0 = CUR[0], p1 = CUR[CUR.length - 1];
+    for (let i = 0; i < CUR.length - 1; i++)
+      if (t >= CUR[i][0] && t <= CUR[i+1][0]) { p0 = CUR[i]; p1 = CUR[i+1]; break; }
+    if (t <= CUR[0][0]) p1 = p0 = CUR[0];
+    if (t >= CUR[CUR.length-1][0]) p0 = p1 = CUR[CUR.length-1];
+    const ez = EASE[p1[3] || "ss"] || EASE.ss;
+    const u = p1[0] > p0[0] ? ez(seg(t, p0[0], p1[0])) : 1;
+    const cx = p0[1] + (p1[1] - p0[1]) * u, cy = p0[2] + (p1[2] - p0[2]) * u;
+    el.style.transform = `translate(${cx.toFixed(1)}px, ${cy.toFixed(1)}px)`;
+    el.style.opacity = oc(seg(t, CUR[0][0], CUR[0][0] + 0.3)) *
+                       (1 - seg(t, CUR[CUR.length-1][0], CUR[CUR.length-1][0] + 0.35));
+    // حلقة النقر: تتوسّع وتتلاشى مرة واحدة عند كل كيفريم حالته "down"
+    let cc = 0;
+    for (const p of CUR) {
+      if (p[4] !== "down") continue;
+      const kk = seg(t, p[0], p[0] + 0.35);
+      if (kk > 0 && kk < 1) cc = Math.max(cc, (1 - kk));
+    }
+    const ccEl = el.querySelector(".cc");
+    ccEl.style.opacity = (cc * 0.85).toFixed(3);
+    ccEl.style.transform = `scale(${(0.45 + 0.75 * (1 - cc)).toFixed(3)})`;
+  }
+""" % json.dumps([[round(float(p[0]), 3), round(float(p[1]), 1), round(float(p[2]), 1),
+                   (p[3] if len(p) > 3 and p[3] else "ss"),
+                   (p[4] if len(p) > 4 and p[4] else "move")] for p in cur])
+
     # افتتاحية داكنة V2 (نظام الهويتين): غلاف داكن 0→t ثم Light Sweep يكشف المحتوى الأوف وايت
     intro = cfg.get("intro")
     INTRO_CSS = INTRO_HTML = INTRO_JS = ""
@@ -207,6 +264,11 @@ def build_reel(cfg, out_html):
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}}
 .hl{{position:absolute;top:150px;left:40px;right:40px;text-align:center;font-weight:900;
   line-height:1.22;color:{TXTC};opacity:0}}
+#cur{{position:absolute;top:0;left:0;z-index:12;pointer-events:none;opacity:0;
+  will-change:transform}}
+#cur .cp{{position:absolute;top:0;left:0;filter:drop-shadow(0 2px 4px rgba(15,46,60,.35))}}
+#cur .cc{{position:absolute;top:-19px;left:-19px;width:38px;height:38px;border-radius:50%;
+  border:2.5px solid {"#43D4DC" if dark else "#1E627A"};opacity:0}}
 #chartclip{{position:absolute;top:430px;left:40px;width:{CW}px;height:{CH}px;overflow:hidden}}
 #chartwrap{{position:absolute;top:0;left:0;width:{CW}px;height:{CH}px;transform-origin:0 0}}
 .cnd .cw{{transform-box:fill-box;transform-origin:50% 50%}}
@@ -248,6 +310,7 @@ def build_reel(cfg, out_html):
 <div id="cta"><span class="k">{cfg["cta_k"]}</span><div class="s">{cfg["cta_s"]}</div></div>
 <div id="edu">{cfg.get("edu", "لغرض تعليمي — بيانات حقيقية")}</div>
 <div id="endlogo"><div class="eg">{GEM}</div><div class="ew">LIQUIDITY STATE</div></div>
+{CURSOR_HTML}
 <div id="flash"></div><div id="rflash"></div>
 {INTRO_HTML}
 {GRAIN}
@@ -337,6 +400,12 @@ window.__setFrame = function(t) {{
         el.querySelector(".zf").style.opacity = 0.16;
         const zl = el.querySelector(".zl"); if (zl) zl.style.opacity = 1;
       }}
+      if (m && m[3] === "zonedrag") {{
+        // بدون هذا يظهر الزون في لقطة النتيجة بمقياس آخر إطار مرسوم
+        const zw0 = el.querySelector(".zw"); if (zw0) zw0.style.transform = "scaleX(1)";
+        el.querySelector(".zf").style.opacity = 0.16;
+        const zl0 = el.querySelector(".zl"); if (zl0) zl0.style.opacity = 1;
+      }}
       if (m && m[3] === "drawx") el.querySelectorAll("line").forEach(l => setLine(l, 1));
       if (m && m[3] === "posbox") {{
         setLine(el.querySelector(".pe"), 1);
@@ -376,6 +445,16 @@ window.__setFrame = function(t) {{
       el.querySelector(".ps").style.transform = `scaleY(${{oc(clamp((k - 0.26) / 0.38, 0, 1)).toFixed(4)}})`;
       el.querySelector(".pt").style.transform = `scaleY(${{oc(clamp((k - 0.48) / 0.52, 0, 1)).toFixed(4)}})`;
       el.querySelector(".pl").style.opacity = clamp((k - 0.78) / 0.22, 0, 1);
+    }} else if (m[3] === "zonedrag") {{
+      // المنطقة تُسحب بالفأرة: تنمو من حافتها المثبتة نحو المؤشر بدل أن
+      // يُرسم محيطها ثم تُملأ (نمط zone). الحافة تُثبَّت بـtransform-origin
+      // في العنصر نفسه، فيبقى طرفها الأيسر ساكناً تحت نقطة بدء السحب.
+      el.style.opacity = k > 0 ? 1 : 0;
+      const zw = el.querySelector(".zw");
+      if (zw) zw.style.transform = `scaleX(${{Math.max(k, 0.001).toFixed(4)}})`;
+      el.querySelector(".zf").style.opacity = clamp(k, 0, 1) * 0.16;
+      const zl2 = el.querySelector(".zl");
+      if (zl2) zl2.style.opacity = clamp((k - 0.82) / 0.18, 0, 1);
     }} else if (m[3] === "drawx") {{
       el.style.opacity = k > 0 ? 1 : 0;
       const ls = el.querySelectorAll("line");
@@ -427,6 +506,9 @@ window.__setFrame = function(t) {{
   // كاميرا سينمائية: [t, scale, fx, fy, ease?, rot?] — ease: ss|whip|ramp|anticip|creep
   const CAM = {json.dumps(cfg.get("cam", [[0, 1.03, 0.5, 0.5]]))};
   const EASE = {{
+    // lin: للسحب بالفأرة — الرسم خطّي في k، فأي تنعيم يجعل طرف الخط
+    // يتخلّف عن رأس المؤشر بعشرات البكسلات في منتصف السحبة.
+    lin: u => u,
     ss: u => u * u * (3 - 2 * u),
     creep: u => -(Math.cos(Math.PI * u) - 1) / 2,
     whip: u => u >= 1 ? 1 : 1 - Math.pow(2, -10 * u),
@@ -488,6 +570,7 @@ window.__setFrame = function(t) {{
     $("cta").style.transform = `translateY(0px) scale(${{pulse.toFixed(4)}})`;
   }}
   {INTRO_JS}
+  {CURSOR_JS}
 }};
 window.__setFrame(0);
 </script></body></html>'''
