@@ -18,7 +18,7 @@
 تشغيلة. لذلك يفصل `queue` بين المرحلتين: المسح يملأ المخزون حين يستطيع،
 والإنتاج يسحب منه حين لا يستطيع. فلا تتوقّف السلسلة لأن الجلب تعذّر.
 """
-import json, os, sys
+import datetime as dt, json, os, sys
 
 import topdown
 
@@ -46,6 +46,21 @@ def name(w):
 MIN_R = 0.0006          # ٦ نقاط أساس: أصغر مخاطرة تستحق أن تُروى
 
 
+def gaps(w):
+    """الشموع الناقصة في إطار التنفيذ — كل قفزة أكبر من خطوة الإطار.
+
+    أمر فهد 2026-08-06: «لا تجعل فراغات بالجارت — يجب أن تكون الشموع
+    متتالية». الجارت يرسم بالفهرس لا بالزمن، فنافذةٌ ينقصها بوكت تُرسم
+    متلاصقة وتوهم أن السعر تحرّك بلا انقطاع. تُردّ من الباب لا تُجمَّل."""
+    tf = w.get("exec_tf", "5m")
+    step = dt.timedelta(minutes=int(tf[:-1]))
+    r = w[tf]["rows"]
+    f = "%Y-%m-%d %H:%M"
+    return [(r[i][0], r[i + 1][0]) for i in range(len(r) - 1)
+            if dt.datetime.strptime(r[i + 1][0], f)
+            - dt.datetime.strptime(r[i][0], f) != step]
+
+
 def accept(windows):
     used = {(u["sym"], u["anchor"]) for u in reg()}
     ok, bad = [], []
@@ -53,6 +68,10 @@ def accept(windows):
         f = name(w)
         if (w["sym"], w["anchor_utc"]) in used:
             bad.append((f, "منشور سابقاً")); continue
+        g = gaps(w)
+        if g:
+            bad.append((f, f"{len(g)} فجوة زمنية في الشموع — أوّلها "
+                           f"{g[0][0]} ← {g[0][1]}")); continue
         p = os.path.join(RAW, f)
         json.dump(w, open(p, "w", encoding="utf-8"), ensure_ascii=False)
         try:
@@ -96,17 +115,25 @@ if __name__ == "__main__":
                 D, L, P = topdown.build(f)
             except Exception:
                 continue                       # نوافذ قديمة لا تجتاز — تُتجاهل
+            g = gaps(json.load(open(os.path.join(RAW, f), encoding="utf-8")))
+            # النوافذ المقبولة قبل بوابة التتابع قد تحمل فجوات — تُعلَن ولا
+            # تُبنى: جارتٌ ينقصه بوكت يكذب على العين وإن صحّ تحليله.
             rows.append((len(L[3]["eq"]), L[4]["wick"], -(P["hit"] - P["fill"]),
-                         f, D, L, P))
-        rows.sort(reverse=True)
-        for _, _, _, f, D, L, P in rows:
+                         f, D, L, P, g))
+        rows.sort(key=lambda r: r[:3], reverse=True)
+        clean = [r for r in rows if not r[7]]
+        for _, _, _, f, D, L, P, g in rows:
             DP = P["dp"]
-            print(f'\n{f}   {D["sym"]} · {D["anchor_utc"]}')
+            print(f'\n{f}   {D["sym"]} · {D["anchor_utc"]}'
+                  + (f'\n   ⚠ {len(g)} فجوة زمنية ({g[0][0]} ← {g[0][1]}) — لا يُبنى'
+                     if g else ''))
             for x in L:
                 print(f'   · {x["title"]}: {x["detail"]}')
             print(f'   ← دخول {P["ENT"]:,.{DP}f} · وقف {P["STP"]:,.{DP}f} · هدف '
                   f'{P["TGT"]:,.{DP}f} · تحقّق بعد {P["hit"] - P["fill"]} شمعة')
-        print(f'\nفي المخزون: {len(rows)}')
+        print(f'\nفي المخزون: {len(clean)} صالح'
+              + (f' · {len(rows)-len(clean)} بفجوات زمنية' if len(rows) > len(clean) else ''))
+        rows = clean
         if rows:
             print(f'LS_SET={rows[0][3]}')
         raise SystemExit(0 if rows else 3)

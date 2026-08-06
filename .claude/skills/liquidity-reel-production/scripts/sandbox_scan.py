@@ -55,6 +55,9 @@ def fetch(sym, iv, rng):
     return out
 
 
+EXEC_TF, EXEC_MIN = "3m", 3      # إطار التنفيذ (أمر فهد 2026-08-06)
+
+
 def ts(s):
     return dt.datetime.strptime(s, "%Y-%m-%d %H:%M")
 
@@ -73,6 +76,33 @@ def agg(h1, hours):
         x = b.setdefault(k, dict(d=c["d"], o=c["o"], h=c["h"], l=c["l"], c=c["c"]))
         x["h"] = max(x["h"], c["h"]); x["l"] = min(x["l"], c["l"]); x["c"] = c["c"]
     return [(k, b[k]) for k in sorted(b)]
+
+
+def agg_min(m1, minutes):
+    """يجمّع شموع الدقيقة إلى إطار أدقّ من إطارات ياهو.
+
+    ياهو لا يخدم ٣ دقائق (١م·٢م·٥م·١٥م…)، وأمر فهد 2026-08-06 أن يكون
+    الدخول على ٣ دقائق. فتُجمَّع من الدقيقة الواحدة على حدود الساعة
+    (الدقيقة // ٣) — لا على أول شمعة في المصفوفة، وإلا اختلفت الشموع
+    باختلاف نقطة بدء الجلب."""
+    b = {}
+    for c in m1:
+        t = ts(c["d"])
+        k = t.replace(minute=t.minute // minutes * minutes)
+        x = b.setdefault(k, dict(d=k.strftime("%Y-%m-%d %H:%M"),
+                                 o=c["o"], h=c["h"], l=c["l"], c=c["c"]))
+        x["h"] = max(x["h"], c["h"]); x["l"] = min(x["l"], c["l"]); x["c"] = c["c"]
+    return [b[k] for k in sorted(b)]
+
+
+def contiguous(w, minutes):
+    """هل الشموع متتالية زمنياً بلا شمعة ناقصة؟
+
+    أمر فهد: «لا تجعل فراغات بالجارت — يجب أن تكون الشموع متتالية».
+    النافذة التي ينقصها بوكت (عطلة جلسة أو انقطاع بيانات) تُرسم متلاصقة
+    بالفهرس فتوهم أن السعر تحرّك بلا انقطاع — فتُرفض من المصدر."""
+    step = dt.timedelta(minutes=minutes)
+    return all(ts(w[i + 1]["d"]) - ts(w[i]["d"]) == step for i in range(len(w) - 1))
 
 
 def closed(rows, anchor, hours, n):
@@ -123,13 +153,16 @@ def window(sym, h1, m5, sw):
     w5 = m5[sw - 40:sw + 20]
     if len(d1) < 15 or len(h4) < 34 or len(hh) < 40:
         return None
+    if not contiguous(w5, EXEC_MIN):
+        return None
     row = lambda b: [b["d"], b["o"], b["h"], b["l"], b["c"]]
-    return {"sym": sym, "anchor_utc": m5[sw]["d"],
-            "src": f"Yahoo {sym}: 1h و5m خام، و1D/4H مُجمَّعة منهما — سلسلة واحدة متسقة",
+    return {"sym": sym, "anchor_utc": m5[sw]["d"], "exec_tf": EXEC_TF,
+            "src": f"Yahoo {sym}: 1h خام و{EXEC_TF} مجمَّعة من الدقيقة، "
+                   f"و1D/4H مجمَّعة من الساعة — سلسلة واحدة متسقة",
             "1D": {"anchor": 14, "rows": [row(b) for b in d1]},
             "4H": {"anchor": 33, "rows": [row(b) for b in h4]},
             "1h": {"anchor": 39, "rows": [row(b) for b in hh]},
-            "5m": {"anchor": 40, "rows": [row(b) for b in w5]}}
+            EXEC_TF: {"anchor": 40, "rows": [row(b) for b in w5]}}
 
 
 def fname(w):
@@ -163,7 +196,9 @@ if __name__ == "__main__":
     for sym in univ:
         try:
             h1 = fetch(sym, "1h", "1mo")
-            m5 = fetch(sym, "5m", "1mo")
+            # مدى الدقيقة الواحدة عند ياهو سبعة أيام لا شهر — فالمسح على
+            # إطار التنفيذ يغطّي أسبوعاً، وهذا ثمن الثلاث دقائق المعلَن.
+            m5 = agg_min(fetch(sym, "1m", "7d"), EXEC_MIN)
         except Exception as e:
             print(f"{sym}: تعذّر الجلب — {e}", file=sys.stderr)
             continue

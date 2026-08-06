@@ -24,12 +24,20 @@ FILE = "gc_td2_2026-08-04.json"
 DP = 2
 
 
+EXEC = "5m"          # إطار التنفيذ الفعّال — يُضبط من الملف في `load_dict`
+
+
 def load_dict(d):
     """يحوّل نافذةً خاماً إلى الشكل الذي تقرأه الطبقات — من الذاكرة لا القرص.
 
     الباك تست يفحص آلاف النوافذ فلا يكتبها كلها ملفات."""
-    out = {"sym": d["sym"], "anchor_utc": d["anchor_utc"], "src": d["src"]}
-    for tf in ("1D", "4H", "1h", "5m"):
+    global EXEC
+    # إطار التنفيذ صار حقلاً في الملف (أمر فهد 2026-08-06: «الدخول على فريم
+    # ٣ دقايق»). الملفات القديمة بلا الحقل تبقى على الخمس دقائق.
+    EXEC = d.get("exec_tf") or ("3m" if "3m" in d else "5m")
+    out = {"sym": d["sym"], "anchor_utc": d["anchor_utc"], "src": d["src"],
+           "exec_tf": EXEC}
+    for tf in ("1D", "4H", "1h", EXEC):
         out[tf] = dict(anchor=d[tf]["anchor"],
                        w=[dict(d=r[0], o=r[1], h=r[2], l=r[3], c=r[4])
                           for r in d[tf]["rows"]])
@@ -91,7 +99,7 @@ def daily_bias(D, fill):
     dw = D["1D"]["w"]; pd = dw[D["1D"]["anchor"]]      # آخر يوم مكتمل
     pdh, pdl = pd["h"], pd["l"]
     mid = (pdh + pdl) / 2
-    m5 = D["5m"]["w"]; a5 = fill          # حتى شمعة الدخول لا بعدها
+    m5 = D[EXEC]["w"]; a5 = fill          # حتى شمعة الدخول لا بعدها
     day = D["anchor_utc"][:10]            # يُقرأ من النافذة لا يُثبَّت
     today = [c for c in m5[:a5 + 1] if c["d"][:10] == day]
     assert today, "لا شموع لليوم الجاري"
@@ -133,7 +141,7 @@ def sweep(D, tol=None):
     وهذا ما أفسد ريل النفط ٢٠٢٦-٠٧-٢٣: قال «٦ قيعان عند 91.55» وفيها قاع
     يبعد 0.27 (١١٪ من المدى). المتساوي فعلاً اثنان.
     """
-    w = D["5m"]["w"]; a = D["5m"]["anchor"]
+    w = D[EXEC]["w"]; a = D[EXEC]["anchor"]
     tol_of = lambda i: rng_to(w, i) * 0.015 if tol is None else tol
     # يُبحث عن شمعة الكنس نفسها ثم يُشتقّ المستوى من قيعان ما قبلها —
     # لا العكس. البحث من المستوى أولاً يفوّت الحالة التي يكون فيها
@@ -151,7 +159,7 @@ def sweep(D, tol=None):
         eq = [j for j in lb if abs(w[j]["l"] - base) <= tol_of(sw)]
         if len(eq) < 2:
             continue
-        return dict(tf="5m", title="سحب سيولة",
+        return dict(tf=EXEC, title="سحب سيولة",
                     detail=f"{len(eq)} قيعان عند {base:,.{DP}f} كُنست إلى "
                            f"{w[sw]['l']:,.{DP}f} ثم إغلاق {w[sw]['c']:,.{DP}f} فوقها",
                     lvl=base, eq=eq, sw=sw)
@@ -161,12 +169,12 @@ def sweep(D, tol=None):
 # ═══════ ٥ — إشارة الانعكاس (٥ دقائق) ═══════
 def ltf_signal(D, sw):
     """ذيل رفض مقيس على شمعة الكنس نفسها."""
-    w = D["5m"]["w"]; c = w[sw]
+    w = D[EXEC]["w"]; c = w[sw]
     rg = c["h"] - c["l"]
     assert rg > 0
     wick = (min(c["o"], c["c"]) - c["l"]) / rg
     assert wick >= 0.30, f"الذيل السفلي ضعيف: {wick:.0%}"
-    return dict(tf="5m", title="إشارة انعكاس",
+    return dict(tf=EXEC, title="إشارة انعكاس",
                 detail=f"ذيل سفلي {wick:.0%} من مدى الشمعة — البائع فقد السيطرة",
                 wick=wick)
 
@@ -189,7 +197,7 @@ def quote_dp(w):
 
 def plan(D, S):
     """الدخول عند إغلاق شمعة الكنس، والوقف تحت أدنى نقطتها."""
-    w = D["5m"]["w"]; sw = S["sw"]
+    w = D[EXEC]["w"]; sw = S["sw"]
     R = rng_to(w, sw)                     # بلا استشراف — انظر rng_to
     dp = quote_dp(w)
     ENT = w[sw]["c"]
@@ -209,7 +217,7 @@ def plan(D, S):
 def build(name=None):
     global DP
     D = load(name or os.environ.get("LS_SET", FILE))
-    DP = quote_dp(D["5m"]["w"])
+    DP = quote_dp(D[EXEC]["w"])
     L4 = sweep(D)
     L = [htf_trend(D), daily_bias(D, L4["sw"]), mtf_structure(D), L4,
          ltf_signal(D, L4["sw"])]

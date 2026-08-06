@@ -39,7 +39,9 @@ FILL, HIT = PLAN["fill"], PLAN["hit"]
 # والدخول عند الأربعين — فكل صفقة تحتاج أكثر من ثماني شمعات لتبلغ هدفها
 # كانت علامةُ تحقّقها تُرسم خارج حدود الرسم ولا تُرى. صفقة النفط احتاجت
 # ثماني عشرة شمعة، والفضة إحدى عشرة.
-M5 = D["5m"]["w"][:min(len(D["5m"]["w"]), max(48, HIT + 4))]
+EXEC = D.get("exec_tf", "5m")        # ٣ دقائق أو ٥ — يُقرأ من الملف
+TF_AR = {"3m": "٣ دقائق", "5m": "٥ دقائق", "15m": "١٥ دقيقة"}
+M5 = D[EXEC]["w"][:min(len(D[EXEC]["w"]), max(48, HIT + 4))]
 
 
 def scale_of(w):
@@ -175,7 +177,7 @@ def m5_svg():
           # عن الذيل والكنس (وهما يسار شمعة الكنس)، وداخل اللوحة دائماً
           # بفضل `_clampx`.
           f'<g id="lvllbl" opacity="0">'
-          f'{htext(_clampx((x(FILL) + R) / 2, 205), y(lvl) + 30, f"قيعان متساوية {lvl:,.{DP}f}", tv_chart.T["LVL"], 22)}</g>']
+          f'{htext(max(x(min(eq)) - slot * 1.2, PL + 8 + 400), y(lvl) + 30, f"قيعان متساوية {lvl:,.{DP}f}", tv_chart.T["LVL"], 22, anchor="start")}</g>']
     for n, j in enumerate(eq):
         ex.append(f'<g id="eq{n}" opacity="0"><circle cx="{x(j):.1f}" cy="{y(M5[j]["l"]):.1f}" '
                   f'r="10" fill="none" stroke="{tv_chart.T["LVL"]}" stroke-width="3"/></g>')
@@ -248,7 +250,43 @@ PH_ = [
     (26.20, 28.75, f'<b>الهدف ٢R عند {PLAN["TGT"]:,.{DP}f}</b><span class="why">تحقق بعد {HIT-FILL} شمعات</span>'),
 ]
 
-CAM = [
+# تكشّف الشموع: الكنس حيّ أمام المشاهد، ثم وقفة، ثم شمعة الهدف
+BASE = FILL - 1                      # الشمعة الحاسمة تتكشّف أمام المشاهد
+_after = [(FILL, 17.55), (FILL + 1, 19.10), (FILL + 2, 20.30), (HIT, 26.55)]
+STORY = sorted({j: t for j, t in _after if j < len(M5)}.items()) + \
+        [(j, round(27.05 + (j - HIT - 1) * 0.34, 2))
+         for j in range(HIT + 1, len(M5))]
+
+def revealed_at(t):
+    """آخر شمعة مكشوفة عند اللحظة t — الكاميرا لا تعرف الغيب.
+
+    الشموع حتى `BASE` مفتوحة من الإطار صفر، وما بعدها يتكشّف بجدول
+    `STORY`. فأيّ إطارٍ يمين هذه الشمعة **فراغ لم يُرسَم بعد**."""
+    j = BASE
+    for idx, tt in STORY:
+        if tt <= t:
+            j = max(j, idx)
+    return j
+
+
+def cam_fit(kf):
+    """يزحزح مركز الكاميرا كي لا تؤطّر فراغاً — أمر فهد «لا فراغات بالجارت».
+
+    الخلل لم يكن في الشموع: هي متتالية فعلاً. لكن اللوحة تحجز عرضها لكل
+    النافذة (٥٧ شمعة) بينما المكشوف عند الهوك ٤٠، فالثُلث الفارغ يتضخّم
+    تحت زوم ١٫٧ حتى يصير نصف الشاشة. فيُقصّ مركزُ الكاميرا هنا بحيث لا
+    تتجاوز حافتُها اليمنى آخر شمعة مكشوفة (مع هامش شمعتين كأي منصّة)."""
+    out = []
+    for kf_ in kf:
+        t, sc, cx, cy = kf_[0], kf_[1], kf_[2], kf_[3]
+        half = 0.5 / sc
+        right = (X5(revealed_at(t)) + SLOT5 * 2) / CVW
+        lo, hi = half, max(half, right - half)
+        out.append([t, sc, round(min(max(cx, lo), hi), 4), cy] + list(kf_[4:]))
+    return out
+
+
+CAM = cam_fit([
     # الهوك: زوم شديد على عنقود القيعان المتساوية — الشمعة الأخيرة لم تتكشّف بعد
     [0.00, 3.30, fx(EQC), fy(LAY[3]["lvl"])],
     [1.60, 2.85, fx(EQC - 1), fy(LAY[3]["lvl"] + PIP * 2), "creep"],
@@ -272,7 +310,7 @@ CAM = [
     [26.25, 1.34, fx(HIT), fy(PLAN["TGT"]), "whip"],
     [28.70, 1.20, .5, .5, "creep"],
     [DUR, 1.10, .5, .5, "creep"],
-]
+])
 
 MARKS = [
     ("lvl", 3.00, 3.60, "draw"),
@@ -291,17 +329,10 @@ MARKS = [
 FULLSET = ["eq0", "eq1", "lvllbl", "tf4h", "tf1d", "tf1h", "swp", "swplbl",
            "wick", "wicklbl", "ex", "box", "ck"]
 
-# تكشّف الشموع: الكنس حيّ أمام المشاهد، ثم وقفة، ثم شمعة الهدف
-BASE = FILL - 1                      # الشمعة الحاسمة تتكشّف أمام المشاهد
-_after = [(FILL, 17.55), (FILL + 1, 19.10), (FILL + 2, 20.30), (HIT, 26.55)]
-STORY = sorted({j: t for j, t in _after if j < len(M5)}.items()) + \
-        [(j, round(27.05 + (j - HIT - 1) * 0.34, 2))
-         for j in range(HIT + 1, len(M5))]
-
 cfg = dict(
     w=M5, dark=DK, extra_css=BASE_CSS, extra_html=BASE_HTML,
     grid=False,
-    pre_svg=tv_chart.furniture(M5, dec=2, sym=D["sym"], tf="5m",
+    pre_svg=tv_chart.furniture(M5, dec=2, sym=D["sym"], tf=EXEC,
                                tlabels=[c["d"][11:] for c in M5]),
     lp_pill=True, lp_dec=2, lp_col=tv_chart.T["PILL"], lp_txt=tv_chart.T["PILLTX"],
     base=BASE, openmax=len(M5), open_t=[[BASE, 0.4]], story=STORY,
@@ -311,7 +342,7 @@ cfg = dict(
     preview_a=0.0, preview_b=0.0, res_tease=False, sweep_op=0.0,
     txt=[(f"t{i+1}", a, b, s, 52, INK) for i, (a, b, s) in enumerate(PH_)],
     chip="", res="", cta_k="اكتب «شامل»", cta_s="ويصلك التحليل كاملاً",
-    edu=f'{D["sym"]} · ٥ دقائق · {D["anchor_utc"][:10]} — مثال تعليمي',
+    edu=f'{D["sym"]} · {TF_AR.get(EXEC, EXEC)} · {D["anchor_utc"][:10]} — مثال تعليمي',
     dur=DUR, res_t=999, cta_t=28.9,
     flash=(2.90, 3.30), flash_op=0.22, punch=(2.90, 3.20, 0.05),
     cam=CAM,
