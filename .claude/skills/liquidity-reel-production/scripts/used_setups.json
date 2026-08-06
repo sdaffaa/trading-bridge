@@ -21,5 +21,11 @@
   "file": "eth_sc_2026-07-21_1530.json",
   "sym": "ETH-USD",
   "anchor": "2026-07-21 15:30"
+ },
+ {
+  "file": "si_sc_2026-07-30_1715.json",
+  "sym": "SI=F",
+  "anchor": "2026-07-30 17:15",
+  "reel": "reel29_si_sc_2026-07-30_1715_final.mp4"
  }
 ]

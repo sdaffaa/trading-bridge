@@ -34,8 +34,12 @@ SET = os.environ.get("LS_SET", "gc_td2_2026-08-04.json")
 TAG = SET.replace(".json", "")
 D, LAY, PLAN = topdown.build(SET)
 DP = PLAN["dp"]                     # منزلة العرض تتبع دقّة الأداة
-M5 = D["5m"]["w"][:48]
 FILL, HIT = PLAN["fill"], PLAN["hit"]
+# النافذة المعروضة يجب أن تبلغ شمعة الهدف. كانت مثبَّتة على ٤٨ شمعة،
+# والدخول عند الأربعين — فكل صفقة تحتاج أكثر من ثماني شمعات لتبلغ هدفها
+# كانت علامةُ تحقّقها تُرسم خارج حدود الرسم ولا تُرى. صفقة النفط احتاجت
+# ثماني عشرة شمعة، والفضة إحدى عشرة.
+M5 = D["5m"]["w"][:min(len(D["5m"]["w"]), max(48, HIT + 4))]
 
 
 def scale_of(w):
@@ -160,7 +164,7 @@ def m5_svg():
     ex.append(xmark(x(sw), y(M5[sw]["l"]) + 28, id="swp", r=17))
     # «كَنْس» و«ذيل رفض» و«الوقف» تتزاحم كلها حول قاع شمعة واحدة. تُفرَّق
     # رأسياً وأفقياً: الكنس تحت العلامة يساراً، والذيل بمنتصفه يميناً.
-    ex.append(f'<g id="swplbl" opacity="0">{htext(x(sw) - slot * 4.6, y(M5[sw]["l"]) + 60, "كَنْس", RED, 26)}</g>')
+    ex.append(f'<g id="swplbl" opacity="0">{htext(x(sw) - slot * 7.4, y(M5[sw]["l"]) + 60, "كَنْس", RED, 26)}</g>')
     # ذيل الرفض: خط رأسي يبرز الذيل نفسه
     c = M5[sw]
     wick_txt = "ذيل رفض " + str(round(L5["wick"] * 100)) + "٪"
@@ -169,7 +173,8 @@ def m5_svg():
               f'stroke-linecap="round" opacity=".55"/></g>')
     wy = (y(min(c["o"], c["c"])) + y(c["l"])) / 2 + 9
     # يميناً كان يصطدم بـ«الوقف»: صندوق الصفقة يشغل يمين شمعة الدخول كله.
-    ex.append(f'<g id="wicklbl" opacity="0">{htext(x(sw) - slot * 4.6, wy, wick_txt, RED, 25)}</g>')
+    # وبلا زوم (تشغيلة ٢٩) يضيق ما تبقّى، فأُبعدت الوسوم إلى يسار الصندوق.
+    ex.append(f'<g id="wicklbl" opacity="0">{htext(x(sw) - slot * 7.4, wy, wick_txt, RED, 25)}</g>')
     ex.append(pos_box("box", x(FILL) - slot * .6, R, y(PLAN["ENT"]), y(PLAN["STP"]), y(PLAN["TGT"]),
                       lbl_e=f'الدخول {PLAN["ENT"]:,.{DP}f}', lbl_s=f'الوقف {PLAN["STP"]:,.{DP}f}',
                       lbl_t=f'الهدف ٢R  {PLAN["TGT"]:,.{DP}f}', anchor_e="start",

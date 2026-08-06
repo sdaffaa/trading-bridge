@@ -448,6 +448,13 @@ window.__setFrame = function(t) {{
              fy: s0[3] + (s1[3] - s0[3]) * u,
              rz: (s0[5] || 0) + ((s1[5] || 0) - (s0[5] || 0)) * u }};
   }}
+  // cam فارغة = جارت ثابت تماماً: لا زوم ولا اهتزاز ولا دوران ولا بلير.
+  // منصّة التداول لا تتنفّس، فأي حركة عدسة هنا تكسر الإيهام بأنها لقطة شاشة.
+  if (!CAM.length) {{
+    $("chartwrap").style.transform = "";
+    $("camrot").style.transform = ""; $("camrot").style.filter = "";
+    $("vig").style.opacity = 0.10;
+  }} else {{
   const pNow = camPose(t), pPrev = camPose(Math.max(0, t - 0.033));
   // اهتزاز هاند-هيلد ميكروسكوبي مستمر (حياة سينمائية بالثبات)
   let cs = pNow.cs * (1 + 0.0028 * Math.sin(t * 0.62)) + punch;
@@ -469,6 +476,7 @@ window.__setFrame = function(t) {{
   rot.style.filter = mblur > 0.25 ? `blur(${{mblur.toFixed(2)}}px)` : "";
   // فينيت يتنفس مع الزوم + ضربة ضوء تكنس الشاشة بالذروة
   $("vig").style.opacity = clamp(0.10 + (cs - 1) * 0.17 + (shp > 0 && shp < 1 ? 0.08 : 0), 0, 0.36);
+  }}
   const swk = seg(t, {fl_a} - 0.08, {fl_a} + 0.5);
   const sw = $("sweep");
   if (swk > 0 && swk < 1) {{

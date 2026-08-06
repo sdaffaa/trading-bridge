@@ -24,14 +24,32 @@ FILE = "gc_td2_2026-08-04.json"
 DP = 2
 
 
-def load(name=FILE):
-    d = json.load(open(os.path.join(HERE, "raw_windows", name), encoding="utf-8"))
+def load_dict(d):
+    """يحوّل نافذةً خاماً إلى الشكل الذي تقرأه الطبقات — من الذاكرة لا القرص.
+
+    الباك تست يفحص آلاف النوافذ فلا يكتبها كلها ملفات."""
     out = {"sym": d["sym"], "anchor_utc": d["anchor_utc"], "src": d["src"]}
     for tf in ("1D", "4H", "1h", "5m"):
         out[tf] = dict(anchor=d[tf]["anchor"],
                        w=[dict(d=r[0], o=r[1], h=r[2], l=r[3], c=r[4])
                           for r in d[tf]["rows"]])
     return out
+
+
+def load(name=FILE):
+    return load_dict(json.load(
+        open(os.path.join(HERE, "raw_windows", name), encoding="utf-8")))
+
+
+def rng_to(w, i):
+    """مدى الشموع حتى الشمعة i — ما كان معلوماً لحظة الدخول لا بعده.
+
+    كان المدى يُحسب على النافذة كلها، وفيها تسع عشرة شمعة **بعد** الدخول.
+    فيها يدخل السعر الذي لم يقع بعد في تحديد عتبة تساوي القيعان وفي مسافة
+    الوقف. الفرق صغير (وقف الذهب 4,116.90 مقابل 4,116.96) لكنه يُبطل أي
+    باك تست: صفقةٌ وقفُها مشتقٌّ من المستقبل ليست صفقة يمكن تنفيذها."""
+    seg = w[:i + 1]
+    return max(c["h"] for c in seg) - min(c["l"] for c in seg)
 
 
 def swing_lows(w, k=2):
@@ -109,9 +127,7 @@ def sweep(D, tol=None):
     يبعد 0.27 (١١٪ من المدى). المتساوي فعلاً اثنان.
     """
     w = D["5m"]["w"]; a = D["5m"]["anchor"]
-    R = max(c["h"] for c in w) - min(c["l"] for c in w)
-    tol = R * 0.015 if tol is None else tol
-    pierce = R * 0.001
+    tol_of = lambda i: rng_to(w, i) * 0.015 if tol is None else tol
     # يُبحث عن شمعة الكنس نفسها ثم يُشتقّ المستوى من قيعان ما قبلها —
     # لا العكس. البحث من المستوى أولاً يفوّت الحالة التي يكون فيها
     # المستوى أقدم من نافذة البحث.
@@ -119,12 +135,13 @@ def sweep(D, tol=None):
         lb = list(range(max(0, sw - 16), sw))
         if len(lb) < 6:
             continue
+        R = rng_to(w, sw)
         base = min(w[j]["l"] for j in lb)
-        if not (w[sw]["l"] < base - pierce):
+        if not (w[sw]["l"] < base - R * 0.001):
             continue
         if w[sw]["c"] <= base:
             continue
-        eq = [j for j in lb if abs(w[j]["l"] - base) <= tol]
+        eq = [j for j in lb if abs(w[j]["l"] - base) <= tol_of(sw)]
         if len(eq) < 2:
             continue
         return dict(tf="5m", title="سحب سيولة",
@@ -166,7 +183,7 @@ def quote_dp(w):
 def plan(D, S):
     """الدخول عند إغلاق شمعة الكنس، والوقف تحت أدنى نقطتها."""
     w = D["5m"]["w"]; sw = S["sw"]
-    R = max(c["h"] for c in w) - min(c["l"] for c in w)
+    R = rng_to(w, sw)                     # بلا استشراف — انظر rng_to
     dp = quote_dp(w)
     ENT = w[sw]["c"]
     STP = round(w[sw]["l"] - R * 0.006, dp)
