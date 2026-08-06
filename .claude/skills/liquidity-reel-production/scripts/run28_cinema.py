@@ -106,15 +106,18 @@ def p_4h():
     w = D["4H"]["w"][:D["4H"]["anchor"] + 1][-30:]
     x, y, slot, *_ = geo(w)
     L = LAY[0]
-    cl = L["closes"]
-    idx = [len(w) - 3, len(w) - 2, len(w) - 1]
-    ex = [f'<line x1="{PL}" y1="{y(L["ma"]):.1f}" x2="{CVW-PR}" y2="{y(L["ma"]):.1f}" '
-          f'stroke="{TEAL_D}" stroke-width="2" stroke-dasharray="9 7" opacity=".8"/>',
-          htext(x(len(w) - 9), y(L["ma"]) - 16, f'متوسط ٢٠ · {L["ma"]:,.{DP}f}', TEAL_D, 24)]
-    for n, j in enumerate(idx):
-        ex.append(f'<circle cx="{x(j):.1f}" cy="{y(w[j]["c"]):.1f}" r="9" fill="none" '
-                  f'stroke="{TEAL_D}" stroke-width="3.4"/>')
-    ex.append(htext(x(len(w) - 6), y(max(cl)) - 54, "ثلاثة إغلاقات صاعدة", TEAL_D, 26))
+    j = len(w) - 1
+    # بعد إلغاء شرط الإغلاقات لم تعد الدوائر الثلاث تصف شيئاً: الطبقة صارت
+    # موقعَ السعر من المتوسط، فيُظلَّل ما بينهما ويُقاس الفارق.
+    ex = [f'<rect x="{PL}" y="{min(y(L["px"]), y(L["ma"])):.1f}" width="{CVW-PR-PL}" '
+          f'height="{abs(y(L["ma"])-y(L["px"])):.1f}" fill="{TEAL}" fill-opacity=".13"/>',
+          f'<line x1="{PL}" y1="{y(L["ma"]):.1f}" x2="{CVW-PR}" y2="{y(L["ma"]):.1f}" '
+          f'stroke="{TEAL_D}" stroke-width="2" stroke-dasharray="9 7" opacity=".85"/>',
+          htext(x(len(w) - 9), y(L["ma"]) + 32, f'متوسط ٢٠ · {L["ma"]:,.{DP}f}', TEAL_D, 24),
+          f'<circle cx="{x(j):.1f}" cy="{y(L["px"]):.1f}" r="10" fill="none" '
+          f'stroke="{TEAL_D}" stroke-width="3.4"/>',
+          htext(x(len(w) - 7), y(L["px"]) - 44,
+                f'السعر فوق المتوسط بـ{L["gap"]*100:.2f}٪', TEAL_D, 26)]
     return panel("tf4h", w, D["sym"], "4H", "".join(ex))
 
 
@@ -218,7 +221,7 @@ BASE_HTML = (f'<div id="brand"><div class="g">{GEM}</div>'
 PH_ = [
     (0.10, 2.90, "<b>القاع الذي انكسر<br>لم يكن كسراً.</b>"),
     (2.95, 6.00, '<b>هنا يبيع أغلبهم</b><span class="why">قاعان متساويان تحتهما أوامر إيقاف</span>'),
-    (6.05, 9.20, f'<b>١ · زخم صاعد على الأربع ساعات</b><span class="why">{LAY[0]["detail"]}</span>'),
+    (6.05, 9.20, f'<b>١ · اتجاه صاعد على الأربع ساعات</b><span class="why">{LAY[0]["detail"]}</span>'),
     (9.25, 12.30, f'<b>٢ · انحياز اليوم صاعد</b><span class="why">{LAY[1]["detail"]}</span>'),
     (12.35, 15.55, f'<b>٣ · هيكل استمراري على الساعة</b><span class="why">{LAY[2]["detail"]}</span>'),
     (15.60, 18.95, f'<b>٤ · سحب السيولة</b><span class="why">{LAY[3]["detail"]}</span>'),
