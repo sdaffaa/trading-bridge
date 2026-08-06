@@ -236,7 +236,52 @@ def c_context(r, Wd=880, H=250):
     return svg + badge(Wd, "السياق — أصل المنطقة", True) + "</svg>"
 
 
-CASES = [c_correct, c_trap, c_stop, c_retest, c_miss, c_context]
+def c_sweep(r, Wd=880, H=250):
+    """٧ · سحب السيولة: قاعان متساويان يُخترقان ثم يُغلَق فوقهما.
+
+    تعمل على نوافذ الصنف `sweep` وحدها لأنها تقرأ `ipdl`. كل ادّعاء
+    مقيس: تساوي القاعين نسبةً إلى مدى النافذة، ووجود شمعة تهبط تحتهما،
+    وإغلاقها فوقهما. ما لم يثبت أحدها تسقط الحالة."""
+    W = r["w"]
+    ip = r.get("ipdl")
+    assert ip is not None, "النافذة ليست من صنف سحب السيولة"
+    rng = max(c["h"] for c in W) - min(c["l"] for c in W)
+    # القاع الثاني: أقرب قاع لاحق يساوي قاع `ipdl` ضمن ١٪ من مدى النافذة
+    pair = [j for j in range(ip + 1, min(ip + 4, len(W)))
+            if abs(W[j]["l"] - W[ip]["l"]) <= rng * 0.01]
+    assert pair, "لا قاع ثانٍ يساوي قاع السيولة"
+    i2 = pair[0]
+    lvl = min(W[ip]["l"], W[i2]["l"])
+    brk = [j for j in range(i2 + 1, len(W)) if W[j]["l"] < lvl]
+    assert brk, "لا شمعة تهبط تحت القاعين"
+    deep = min(brk, key=lambda j: W[j]["l"])
+    # الاسترداد يُقاس من أعمق نزول لا من أول نزول: لو أُخذ الأول لظهر
+    # الإغلاق فوق القاعين ثم نزول أعمق بعده — وهذا يكذّب صورة الشمعة.
+    back = next((j for j in range(deep, len(W)) if W[j]["c"] > lvl), None)
+    assert back is not None, "لا شمعة تغلق فوق القاعين بعد الهبوط تحتهما"
+    top_i = max(range(back, len(W)), key=lambda j: W[j]["h"])
+    assert W[top_i]["h"] > W[back]["c"], "لا حركة صاعدة بعد الإغلاق"
+    svg, x, y, slot = _geo(W, Wd, H)
+    svg += hl(x(ip) - slot * .6, x(min(top_i + 1, len(W) - 1)), y(lvl), INK, 2.0)
+    for j in (ip, i2):
+        svg += f'<circle cx="{x(j):.1f}" cy="{y(W[j]["l"]):.1f}" r="9" fill="none" ' \
+               f'stroke="{GREY}" stroke-width="2.2"/>'
+    # الوسم يُوسَّط بين القاعين لا يميل نحو شمعة السحب: عند مقاس الدليل
+    # (٨٨٠) تضيق الخانة ولا يضيق النص، فأي ميل يلامس علامة السحب.
+    svg += htext(x(ip) + slot * 0.5, y(lvl) + round(26 * _SC[0]),
+                 "قاعان متساويان", INK, round(19 * _SC[0]))
+    svg += xm(x(deep), y(W[deep]["l"]))
+    svg += f'<circle cx="{x(back):.1f}" cy="{y(W[back]["c"]):.1f}" r="12" fill="none" ' \
+           f'stroke="{TEAL_D}" stroke-width="3"/>'
+    svg += tick(x(top_i), y(W[top_i]["h"]) - 18)
+    svg += _title(Wd, "الإغلاق فوق القاع يُلغي الكسر الذي تحته")
+    svg += _why(Wd, H, "هني أغروك تبيع — لأن الفتيل نزل والإغلاق رجع", TEAL_D)
+    svg += _sum(Wd, H, f'سُحب {pips(r, lvl, W[deep]["l"])} نقطة تحت القاعين، '
+                       f'ثم صعد {pips(r, W[top_i]["h"], W[back]["c"])} نقطة')
+    return svg + badge(Wd, "سحب السيولة", True) + "</svg>"
+
+
+CASES = [c_correct, c_trap, c_stop, c_retest, c_miss, c_context, c_sweep]
 
 
 def unit_charts(idx):
@@ -255,5 +300,5 @@ def unit_charts(idx):
 if __name__ == "__main__":
     for i in (0, 1, 3, 7, 9, 10, 12, 13, 2, 5, 6, 8):
         r, ok, dr = unit_charts(i)
-        print(f'{i:>2} {r["slug"]:<34} صالح {len(ok)}/6' +
+        print(f'{i:>2} {r["slug"]:<34} صالح {len(ok)}/{len(CASES)}' +
               ("" if not dr else "  ساقط: " + ", ".join(n for n, _ in dr)))

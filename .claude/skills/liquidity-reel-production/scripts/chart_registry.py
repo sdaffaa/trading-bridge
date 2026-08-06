@@ -33,10 +33,35 @@ def assert_fresh_synthetic(seed, anchors, label=""):
         if e["anchors"] == [list(a) for a in anchors]:
             raise ValueError(f"chart anchors already used in '{e['video']}' — reshape the scenario ({label})")
 
+def _tf(t):
+    """توحيد صيغة الفريم: `M15` و`15m` و`15` فريم واحد.
+
+    بلا هذا التوحيد تمرّ نافذة منشورة كأنها حرّة لمجرّد أن السجل كتبها
+    بصيغة أخرى — وهذا ما كاد يعيد نشر ذهب ١٥ دقيقة 2026-06-26."""
+    t = str(t).strip().lower()
+    unit = {"m": "m", "h": "h", "d": "d", "w": "w"}
+    if t and t[0] in unit and t[1:].isdigit():        # M15 · H1 · D1
+        return t[1:] + unit[t[0]]
+    if t.isdigit():                                    # 15
+        return t + "m"
+    return t
+
+
+def _ov(a0, a1, b0, b1):
+    """تقاطع مدَيين زمنيين بمقارنة نصّية بعد قصّ اللاحقة الزمنية.
+
+    السجل يخلط `2026-06-26T06:00` مع `2026-06-26 06:00+00:00`؛ المقارنة
+    النصّية الخام تجعلهما لا يتقاطعان."""
+    n = lambda s: str(s).replace("T", " ")[:16]
+    return not (n(a1) < n(b0) or n(a0) > n(b1))
+
+
 def assert_fresh_real(symbol, timeframe, start, end, label=""):
     d = _load()
     for e in d["real"]:
-        if e["symbol"] == symbol and e["timeframe"] == timeframe and not (end < e["start"] or start > e["end"]):
+        if e["symbol"].split("=")[0] == symbol.split("=")[0] \
+                and _tf(e["timeframe"]) == _tf(timeframe) \
+                and _ov(start, end, e["start"], e["end"]):
             raise ValueError(f"real window {symbol} {timeframe} {start}..{end} overlaps '{e['video']}' — fetch a different period/instrument ({label})")
 
 def register_synthetic(video, charts):
