@@ -27,5 +27,10 @@
   "sym": "SI=F",
   "anchor": "2026-07-30 17:15",
   "reel": "reel29_si_sc_2026-07-30_1715_final.mp4"
+ },
+ {
+  "file": "btc_sc_2026-08-04_2200.json",
+  "sym": "BTC-USD",
+  "anchor": "2026-08-04 22:00"
  }
 ]

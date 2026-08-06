@@ -154,27 +154,45 @@ def p_1h():
 
 
 # ═════════ ماركب الخمس دقائق ═════════
+def _clampx(cx, half):
+    """يبقي وسماً موسَّطاً داخل اللوحة: نصف عرضه لا يتجاوز أي حافة.
+
+    بلا هذا يُقصّ الرقم عند الحافة كلما وقع الحدث في طرف النافذة —
+    والرقم المقصوص أسوأ من الوسم المزاح."""
+    return min(max(cx, PL + half), CVW - PR - half)
+
+
 def m5_svg():
     x, y, slot, *_ = geo(M5)
     R = CVW - PR
     L4, L5 = LAY[3], LAY[4]
     lvl, eq, sw = L4["lvl"], L4["eq"], L4["sw"]
     ex = [line_el(x(min(eq)) - slot, y(lvl), R, y(lvl), tv_chart.T["LVL"], 2.4, id="lvl"),
-          f'<g id="lvllbl" opacity="0">{htext(x(min(eq)) - slot * 3.4, y(lvl) - 15, f"قيعان متساوية {lvl:,.{DP}f}", tv_chart.T["LVL"], 25)}</g>']
+          # موضع هذا الوسم لا يحتمل الاجتهاد: الدوائر مركزها الخطّ نفسه،
+          # وسعرُ الدخول قد يبعد عن المستوى ٢٢ نقطة فقط (بتكوين اليوم ٥٥
+          # بكسل) فلا يتّسع ما بينهما لسطر. ودفعُه يساراً يقصّ الرقم عند
+          # الحافة. فيُوضع تحت الخطّ في الفراغ الذي يمين آخر قاع — بعيداً
+          # عن الذيل والكنس (وهما يسار شمعة الكنس)، وداخل اللوحة دائماً
+          # بفضل `_clampx`.
+          f'<g id="lvllbl" opacity="0">'
+          f'{htext(_clampx((x(FILL) + R) / 2, 205), y(lvl) + 30, f"قيعان متساوية {lvl:,.{DP}f}", tv_chart.T["LVL"], 22)}</g>']
     for n, j in enumerate(eq):
         ex.append(f'<g id="eq{n}" opacity="0"><circle cx="{x(j):.1f}" cy="{y(M5[j]["l"]):.1f}" '
                   f'r="10" fill="none" stroke="{tv_chart.T["LVL"]}" stroke-width="3"/></g>')
     ex.append(xmark(x(sw), y(M5[sw]["l"]) + 28, id="swp", r=17))
     # «كَنْس» و«ذيل رفض» و«الوقف» تتزاحم كلها حول قاع شمعة واحدة. تُفرَّق
     # رأسياً وأفقياً: الكنس تحت العلامة يساراً، والذيل بمنتصفه يميناً.
-    ex.append(f'<g id="swplbl" opacity="0">{htext(x(sw) - slot * 7.4, y(M5[sw]["l"]) + 60, "كَنْس", RED, 26)}</g>')
+    ex.append(f'<g id="swplbl" opacity="0">{htext(x(sw) - slot * 7.4, y(M5[sw]["l"]) + 74, "كَنْس", RED, 26)}</g>')
     # ذيل الرفض: خط رأسي يبرز الذيل نفسه
     c = M5[sw]
     wick_txt = "ذيل رفض " + str(round(L5["wick"] * 100)) + "٪"
     ex.append(f'<g id="wick" opacity="0"><line x1="{x(sw):.1f}" y1="{y(min(c["o"],c["c"])):.1f}" '
               f'x2="{x(sw):.1f}" y2="{y(c["l"]):.1f}" stroke="{RED}" stroke-width="7" '
               f'stroke-linecap="round" opacity=".55"/></g>')
-    wy = (y(min(c["o"], c["c"])) + y(c["l"])) / 2 + 9
+    # منتصف الذيل يقع على ارتفاع مستوى القيعان تقريباً، فكان وسم الذيل
+    # يصطدم بوسم «قيعان متساوية» أفقياً. يُنزَل تحت قاع الشمعة: صفٌّ أحمر
+    # مستقلّ فوق «كَنْس»، ويبقى ملاصقاً لما يصفه.
+    wy = y(c["l"]) + 26
     # يميناً كان يصطدم بـ«الوقف»: صندوق الصفقة يشغل يمين شمعة الدخول كله.
     # وبلا زوم (تشغيلة ٢٩) يضيق ما تبقّى، فأُبعدت الوسوم إلى يسار الصندوق.
     ex.append(f'<g id="wicklbl" opacity="0">{htext(x(sw) - slot * 7.4, wy, wick_txt, RED, 25)}</g>')
