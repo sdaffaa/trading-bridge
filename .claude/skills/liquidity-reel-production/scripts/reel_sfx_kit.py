@@ -136,6 +136,11 @@ def build_reel(cfg, out_html):
     _ymin, _ymax = price_scale(W_)
     _pl, _pr, _pt, _pb, _pw, _ph = plot_box()
     dark = bool(cfg.get("dark"))
+    # ركن الجارت داخل الإطار: الكروسهير يعمل بإحداثيات الإطار بينما
+    # المقياس بإحداثيات اللوحة، فيلزم الفرق بينهما.
+    cx_off, cy_off = cfg.get("chart_at", (0, 0))
+    tlab = json.dumps(cfg.get("tlabels") or [c.get("d", "") for c in W_],
+                      ensure_ascii=False)
     svg = [f'<svg viewBox="0 0 {CW} {CH}" width="{CW}" height="{CH}" xmlns="http://www.w3.org/2000/svg">']
     if cfg.get("grid", True):
         for k in range(5):
@@ -181,7 +186,13 @@ def build_reel(cfg, out_html):
     cur = cfg.get("cursor")
     CURSOR_HTML = CURSOR_JS = ""
     if cur:
-        CURSOR_HTML = ('<div id="cur"><div class="cc"></div><svg class="cp" width="26" height="34" '
+        # الكروسهير: خطّان متقطعان ووسما محور يتبعان المؤشر. مهارة
+        # `tradingview-platform-pov` تسمّيه «أكثر تفصيل يبيع الإيهام»،
+        # ووسماه يُشتقّان من مقياس اللوحة نفسه — فلا رقم مخترع.
+        if cfg.get("crosshair"):
+            CURSOR_HTML += ('<div id="xh"><div class="xhv"></div><div class="xhh"></div>'
+                            '<div class="xhp"></div><div class="xht"></div></div>')
+        CURSOR_HTML += ('<div id="cur"><div class="cc"></div><svg class="cp" width="26" height="34" '
                        'viewBox="0 0 26 34"><path d="M2 2 L2 26 L8.5 20.5 L12.5 30 L16.5 28.2 '
                        'L12.8 19 L21 18.5 Z" fill="#0F2E3C" stroke="#FBF9F5" stroke-width="1.6" '
                        'stroke-linejoin="round"/></svg></div>')
@@ -210,6 +221,33 @@ def build_reel(cfg, out_html):
     const ccEl = el.querySelector(".cc");
     ccEl.style.opacity = (cc * 0.85).toFixed(3);
     ccEl.style.transform = `scale(${(0.45 + 0.75 * (1 - cc)).toFixed(3)})`;
+
+    // الكروسهير داخل منطقة الجارت فقط — فوق الأشرطة والأدوات يختفي كما
+    // يفعل في المنصّة. السعر بمعادلة شريط السعر الحيّ نفسها، والوقت من
+    // فهرس الشمعة تحت المؤشر لا من تقدير.
+    {
+      const xh = $("xh");
+      if (xh) {
+        const lx = cx - CXO, ly = cy - CYO;
+        const inside = lx >= PLx && lx <= CWc - PRx && ly >= PT && ly <= CHc - PBx
+                       && el.style.opacity > 0.05;
+        xh.style.opacity = inside ? 1 : 0;
+        // داخل اللوحة يتحوّل المؤشر إلى كروسهير المنصّة فيغيب سهمه
+        el.querySelector(".cp").style.opacity = inside ? 0 : 1;
+        if (inside) {
+          xh.querySelector(".xhv").style.transform = `translateX(${cx.toFixed(1)}px)`;
+          xh.querySelector(".xhh").style.transform = `translateY(${cy.toFixed(1)}px)`;
+          const pv = YMAX - (ly - PT) / PH * (YMAX - YMIN);
+          const pp = xh.querySelector(".xhp");
+          pp.style.transform = `translateY(${(cy - 20).toFixed(1)}px)`;
+          pp.textContent = pv.toFixed(LPD);
+          const bi = Math.max(0, Math.min(NB - 1, Math.round((lx - PLx - SLOTW / 2) / SLOTW)));
+          const tt = xh.querySelector(".xht");
+          tt.style.transform = `translateX(${(cx - 52).toFixed(1)}px)`;
+          tt.textContent = TLAB[bi] || "";
+        }
+      }
+    }
   }
 """ % json.dumps([[round(float(p[0]), 3), round(float(p[1]), 1), round(float(p[2]), 1),
                    (p[3] if len(p) > 3 and p[3] else "ss"),
@@ -267,6 +305,17 @@ def build_reel(cfg, out_html):
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}}
 .hl{{position:absolute;top:150px;left:40px;right:40px;text-align:center;font-weight:900;
   line-height:1.22;color:{TXTC};opacity:0}}
+#xh{{position:absolute;inset:0;z-index:11;pointer-events:none;opacity:0}}
+#xh .xhv{{position:absolute;top:{cy_off}px;left:0;width:1px;height:{CH}px;
+  border-left:1.4px dashed {"rgba(216,229,235,.42)" if dark else "rgba(15,46,60,.34)"}}}
+#xh .xhh{{position:absolute;top:0;left:{cx_off}px;width:{CW}px;height:1px;
+  border-top:1.4px dashed {"rgba(216,229,235,.42)" if dark else "rgba(15,46,60,.34)"}}}
+#xh .xhp{{position:absolute;top:0;left:{cx_off + CW - _pr + 6}px;padding:4px 9px;
+  background:{"#43D4DC" if dark else "#0F2E3C"};color:{"#08131C" if dark else "#FBF9F5"};
+  font-size:21px;font-weight:800;direction:ltr;white-space:nowrap}}
+#xh .xht{{position:absolute;top:{cy_off + CH - _pb + 8}px;left:0;padding:4px 10px;
+  background:{"#43D4DC" if dark else "#0F2E3C"};color:{"#08131C" if dark else "#FBF9F5"};
+  font-size:20px;font-weight:800;direction:ltr;white-space:nowrap}}
 #cur{{position:absolute;top:0;left:0;z-index:12;pointer-events:none;opacity:0;
   will-change:transform}}
 #cur .cp{{position:absolute;top:0;left:0;filter:drop-shadow(0 2px 4px rgba(15,46,60,.35))}}
@@ -336,6 +385,10 @@ const DOM_MARKS = {json.dumps(cfg.get("dom_marks", []))};
 const LPP = {json.dumps(bool(cfg.get("lp_pill")))};
 const LPD = {cfg.get("lp_dec", 2)};
 const YMIN = {_ymin}, YMAX = {_ymax}, PT = {_pt}, PH = {_ph};
+// إحداثيات ركن الجارت داخل الإطار + مقاييسه — يقرؤها الكروسهير
+const CXO = {cx_off}, CYO = {cy_off}, PLx = {_pl}, PRx = {_pr}, PBx = {_pb};
+const CHc = {CH}, CWc = {CW}, SLOTW = {slot}, NB = {N};
+const TLAB = {tlab};
 const OPENMAX = {cfg.get("openmax", "BASE")};
 const YO = {json.dumps([round(y(c["o"]), 1) for c in W_])};
 const CDUR = {json.dumps([round(0.4 + 0.18*((i*37)%10)/10, 3) for i in range(N)])};

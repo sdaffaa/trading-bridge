@@ -43,6 +43,7 @@ from reel_sfx_kit import (build_reel, line_el, zone_drag_el, ring, pos_box,
 import tv_chart
 import confluence
 import run31_charts as RC
+import tv_shell as TV
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CONT = os.path.normpath(os.path.join(HERE, "..", "content"))
@@ -261,13 +262,6 @@ def preflight(idx):
 
 # ═══════════ واجهة المنصّة (HTML + CSS) ═══════════
 def chrome_html(r, P, A):
-    tfs = "".join(
-        f'<span class="tf{" on" if k == r["tf"] else ""}">{v}</span>'
-        for k, v in TF_AR.items())
-    tools = "".join(
-        f'<div class="tb" style="top:{TOOL_TOP[i]}px" id="tb{i}">'
-        f'<span class="tglow" id="tg{i}"></span><span class="tl">{t}</span></div>'
-        for i, t in enumerate(TOOLS))
     d = P["dp"]
     rows = "".join(
         f'<div class="rs" id="rs{i+1}"><b>{q["t"]}</b><span>{q["d"]}</span></div>'
@@ -289,31 +283,12 @@ def chrome_html(r, P, A):
   <div class="tkb" id="tkbuy">شراء {P["lot"]:.2f}</div>
   <div class="tkn">مثال: حساب 10,000$ · مخاطرة ١٪ — الحجم مشتقّ منهما</div>
 </div>'''
-    return (f'<div id="topbar"><span class="sym">{r["sym"]}</span>'
-            f'<span class="dot"></span><span class="mk">السوق مفتوح</span>'
-            f'<span class="cd" id="cdown">--:--</span></div>'
-            f'<div id="tfrow">{tfs}</div>'
-            f'<div id="tools">{tools}</div>{reasons}{ticket}')
+    # الشريط العلوي وصفّ الفريمات وعمود الأدوات صارت في `tv_shell`
+    # المشتركة (أمر التعميم 2026-08-06) — ويبقى هنا ما يخصّ هذا الريل.
+    return TV.shell_html(r["sym"], r["tf"]) + reasons + ticket
 
 
-CHROME_CSS = f"""
-#topbar{{position:absolute;top:0;left:0;right:0;height:96px;display:flex;align-items:center;
-  gap:16px;padding:0 26px;background:#FBF9F5;border-bottom:1.5px solid rgba(15,46,60,.14);z-index:8}}
-#topbar .sym{{font-size:32px;font-weight:900;color:{INK};direction:ltr}}
-#topbar .dot{{width:11px;height:11px;border-radius:50%;background:#3FA96A}}
-#topbar .mk{{font-size:22px;font-weight:700;color:#6B7C84}}
-#topbar .cd{{margin-right:auto;font-size:27px;font-weight:800;color:{TEAL_D};direction:ltr;
-  background:rgba(46,125,150,.10);padding:5px 14px;border:1.4px solid rgba(30,98,122,.30)}}
-#tfrow{{position:absolute;top:96px;left:0;right:0;height:64px;display:flex;align-items:center;
-  gap:10px;padding:0 26px;background:#FBF9F5;border-bottom:1.5px solid rgba(15,46,60,.10);z-index:8}}
-#tfrow .tf{{font-size:23px;font-weight:800;color:#8C9BA2;padding:5px 15px;
-  border:1.4px solid transparent}}
-#tfrow .tf.on{{color:{TEAL_D};background:rgba(46,125,150,.12);border-color:rgba(30,98,122,.34)}}
-#tools{{position:absolute;top:0;left:0;width:84px;height:1920px;z-index:9}}
-.tb{{position:absolute;left:10px;width:64px;height:76px;border:1.4px solid rgba(15,46,60,.16);
-  background:#FBF9F5;display:flex;align-items:center;justify-content:center;overflow:hidden}}
-.tb .tl{{font-size:19px;font-weight:800;color:#6B7C84;position:relative;z-index:2}}
-.tglow{{position:absolute;inset:0;background:rgba(46,125,150,.30);opacity:0}}
+CHROME_CSS = TV.SHELL_CSS + f"""
 #reasons{{position:absolute;top:1010px;left:84px;width:996px;height:450px;padding:22px 30px;
   background:#FBF9F5;border-top:2.5px solid rgba(15,46,60,.30);
   box-shadow:0 -20px 46px rgba(15,46,60,.10);z-index:10;opacity:0}}

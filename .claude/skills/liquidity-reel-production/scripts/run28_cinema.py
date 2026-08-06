@@ -16,6 +16,7 @@ from reel_build import INK, TEAL, TEAL_D, RED, GREY, htext, gen
 from reel_sfx_kit import (build_reel, line_el, zone_el, xmark, checkmark, pos_box,
                           set_canvas, set_pad, plot_box)
 import tv_chart, topdown
+import tv_shell as TV
 from car_common import GEM
 
 THEME = os.environ.get("LS_THEME", "light")
@@ -23,11 +24,15 @@ tv_chart.set_theme(THEME)
 DK = THEME == "dark"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CVW, CVH = 1080, 1400
+# 🔒 أمر فهد 2026-08-06: «اريد الجارت وكأني داخل تريدنق فيو وأقوم بماركب،
+#    وليس كريلز». فاللوحة لم تعد تملأ الإطار: تنكمش لتفسح لعمود الأدوات
+#    يساراً وللشريطين العلوي والسفلي — والتخطيط كله في `tv_shell`.
+CVW, CVH = 996, 1500
 set_canvas(CVW, CVH)
-set_pad(18, 122, 92, 66)
+set_pad(18, 118, 84, 60)
 DUR = 30.5
-PL, PR, PT, PB = 18, 122, 92, 66
+PL, PR, PT, PB = 18, 118, 84, 60
+CX, CY = TV.CX, TV.CY
 PW, PH = CVW - PL - PR, CVH - PT - PB
 
 SET = os.environ.get("LS_SET", "gc_td2_2026-08-04.json")
@@ -118,8 +123,8 @@ def p_4h():
           htext(x(len(w) - 9), y(L["ma"]) + 44, f'متوسط ٢٠ · {L["ma"]:,.{DP}f}', TEAL_D, 28),
           f'<circle cx="{x(j):.1f}" cy="{y(L["px"]):.1f}" r="13" fill="none" '
           f'stroke="{TEAL_D}" stroke-width="3.4"/>',
-          htext(x(len(w) - 7), y(L["px"]) - 44,
-                f'السعر فوق المتوسط بـ{L["gap"]*100:.2f}٪', TEAL_D, 30)]
+          # نصّ النسبة انتقل إلى ملاحظة الجارت — وقولها مرّتين حشو
+          ]
     return panel("tf4h", w, D["sym"], "4H", "".join(ex))
 
 
@@ -220,37 +225,85 @@ def m5_svg():
 
 EX5, X5, Y5, SLOT5 = m5_svg()
 
-BASE_CSS = """
-.hl{top:118px;left:56px;right:56px;line-height:1.16}
-.hl b{display:block;font-size:52px;font-weight:900;line-height:1.14;letter-spacing:-.6px}
-.hl .why{display:block;margin-top:10px;font-size:30px;font-weight:600;color:__SUB__}
-#chartclip{top:360px;left:0}
-#chip{display:none} #endlogo{display:none} #res{display:none}
-#cta{top:1792px} #cta .k{font-size:44px;padding:9px 30px} #cta .s{margin-top:8px;font-size:26px}
-#edu{bottom:22px;font-size:19px;opacity:.5}
-#brand{position:absolute;top:40px;left:0;right:0;text-align:center;z-index:7;opacity:.62}
-#brand .g{width:26px;margin:0 auto} #brand .g svg{width:26px;height:auto}
-#brand .w{margin-top:3px;font-size:12px;font-weight:800;letter-spacing:6px;color:__SUB__}
-""".replace("__SUB__", "#8FA6AF" if DK else "#6B7C84") \
-   .replace("__ACC__", "#43D4DC" if DK else "#1E627A")
+# ═════════ الواجهة والملاحظات ═════════
+# العنوان العائم ٥٢px والـCTA كانا أكثر ما يجعل المشهد ريلاً — ومهارة
+# `tradingview-platform-pov` تسمّيهما بالاسم: «عنصر يطفو فوق المنصّة لا
+# يحتويه أي تسجيل شاشة». فالعنوان صار **ملاحظات على الجارت** بجانب ما
+# تصفه (قرار فهد)، والـCTA صار **بطاقة ختام بعد انتهاء الجلسة**.
+BASE_CSS = TV.SHELL_CSS + TV.FOOT_CSS + TV.NOTE_CSS + """
+#edu{display:none}
+#cta{inset:0;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:22px;background:#F2EEE7;z-index:14}
+#cta .k{font-size:60px;padding:16px 46px}
+#cta .s{margin-top:4px;font-size:32px}
+#cta .egm{width:56px;margin:44px auto 0} #cta .egm svg{width:56px;height:auto}
+#cta .ewm{margin-top:10px;font-size:19px;font-weight:800;letter-spacing:8px;color:#6B7C84}
+"""
 
-BASE_HTML = (f'<div id="brand"><div class="g">{GEM}</div>'
-             f'<div class="w">LIQUIDITY STATE</div></div>'
-             )
+FX = lambda i: CX + X5(i)            # من إحداثيات اللوحة إلى إحداثيات الإطار
+FY = lambda p: CY + Y5(p)
 
-# ═════════ الخط الزمني ═════════
-# كل مرحلة ≤ ٣ ثوانٍ، وبعد كل واحدة تتغيّر الكاميرا والزوم والماركب.
-PH_ = [
-    (0.10, 2.90, "<b>القاع الذي انكسر<br>لم يكن كسراً.</b>"),
-    (2.95, 6.00, '<b>هنا يبيع أغلبهم</b><span class="why">قاعان متساويان تحتهما أوامر إيقاف</span>'),
-    (6.05, 9.20, f'<b>١ · اتجاه صاعد على الأربع ساعات</b><span class="why">{LAY[0]["detail"]}</span>'),
-    (9.25, 12.30, f'<b>٢ · انحياز اليوم صاعد</b><span class="why">{LAY[1]["detail"]}</span>'),
-    (12.35, 15.55, f'<b>٣ · هيكل استمراري على الساعة</b><span class="why">{LAY[2]["detail"]}</span>'),
-    (15.60, 18.95, f'<b>٤ · سحب السيولة</b><span class="why">{LAY[3]["detail"]}</span>'),
-    (19.00, 21.95, f'<b>٥ · إشارة الانعكاس</b><span class="why">{LAY[4]["detail"]}</span>'),
-    (22.00, 26.15, f'<b>خمسة أسباب اجتمعت</b><span class="why">الدخول {PLAN["ENT"]:,.{DP}f} · الوقف {PLAN["STP"]:,.{DP}f} · المخاطرة {PLAN["R"]:,.{DP}f}</span>'),
-    (26.20, 28.75, f'<b>الهدف ٢R عند {PLAN["TGT"]:,.{DP}f}</b><span class="why">تحقق بعد {HIT-FILL} شمعات</span>'),
-]
+
+def notes():
+    """كل سبب ملاحظةٌ عند ما يصفه — لا سطراً فوق الجارت.
+
+    المواضع تتبع مرساها: ملاحظات الفريمات الأعلى في أعلى اللوحة لأن
+    لوحاتها تغطّيها كاملةً، وملاحظات الخمس دقائق قرب الشمعة المعنيّة."""
+    L4, L5 = LAY[3], LAY[4]
+    eqx = FX(sum(L4["eq"]) // len(L4["eq"]))
+    sw = L4["sw"]
+    top = CY + 26
+    XR = CX + CVW - PR - 18      # الحافة اليمنى للوحة
+    out = [
+        TV.note_el("n0", 0, top, "القاع الذي انكسر لم يكن كسراً",
+                   "قاعان متساويان تحتهما أوامر إيقاف",
+                   anchor=(eqx, FY(L4["lvl"])), xr=XR),
+        TV.note_el("n1", 0, top, "١ · اتجاه صاعد على الأربع ساعات", LAY[0]["detail"], xr=XR),
+        TV.note_el("n2", 0, top, "٢ · انحياز اليوم صاعد", LAY[1]["detail"], xr=XR),
+        TV.note_el("n3", 0, top, "٣ · هيكل استمراري على الساعة", LAY[2]["detail"], xr=XR),
+        TV.note_el("n4", 0, top, "٤ · سحب السيولة", L4["detail"],
+                   anchor=(FX(sw), FY(M5[sw]["l"])), xr=XR),
+        TV.note_el("n5", 0, top, "٥ · إشارة الانعكاس", L5["detail"],
+                   anchor=(FX(sw), FY(M5[sw]["l"])), xr=XR),
+        TV.note_el("n6", 0, top, "خمسة أسباب اجتمعت",
+                   f'الدخول {PLAN["ENT"]:,.{DP}f} · الوقف {PLAN["STP"]:,.{DP}f} · '
+                   f'المخاطرة {PLAN["R"]:,.{DP}f}', xr=XR),
+        TV.note_el("n7", 0, top, f'الهدف ٢R عند {PLAN["TGT"]:,.{DP}f}',
+                   f'تحقّق بعد {HIT - FILL} شمعات', xr=XR),
+    ]
+    return "".join(out)
+
+
+# نوافذ ظهور الملاحظات — نفس إيقاع الأسباب السابق، بلا عنوان عائم
+NOTE_T = [(0.55, 5.90), (6.35, 9.10), (9.55, 12.20), (12.65, 15.45),
+          (17.30, 18.90), (19.55, 21.90), (22.60, 26.10), (26.60, 29.60)]
+
+# عدّاد إغلاق الشمعة وساعة الجلسة: العنصران «الحيّان» في الواجهة، يجعلان
+# اللقطة تسجيلاً لا صورة. يُحدَّثان بتغليف `window.__setFrame` بعد التحميل.
+CLOCK_JS = """<script>
+window.addEventListener('load', () => {
+  const base = window.__setFrame, TOT = __TOT__, H0 = __H0__, M0 = __M0__;
+  const cd = document.getElementById('cdown'), fc = document.getElementById('fclock');
+  window.__setFrame = t => {
+    base(t);
+    const left = Math.max(0, TOT * 0.42 - t);
+    cd.textContent = String(Math.floor(left / 60)).padStart(2, '0') + ':' +
+                     String(Math.floor(left % 60)).padStart(2, '0');
+    const sec = Math.floor(t);
+    fc.textContent = String(H0).padStart(2, '0') + ':' + String(M0).padStart(2, '0') +
+                     ':' + String(sec % 60).padStart(2, '0');
+  };
+});
+</script>"""
+
+_hh, _mm = (M5[FILL]["d"][11:13], M5[FILL]["d"][14:16]) if len(M5[FILL]["d"]) > 15 \
+    else (M5[FILL]["d"][:2], M5[FILL]["d"][3:5])
+TF_SEC = {"3m": 180, "5m": 300, "15m": 900, "30m": 1800, "1h": 3600}
+BASE_HTML = (TV.shell_html(D["sym"], EXEC, foot=f'{D["sym"]} · {TF_AR.get(EXEC, EXEC)} · '
+                           f'{D["anchor_utc"][:10]} — مثال تعليمي')
+             + notes()
+             + CLOCK_JS.replace("__TOT__", str(TF_SEC.get(EXEC, 300)))
+                       .replace("__H0__", str(int(_hh))).replace("__M0__", str(int(_mm))))
 
 # تكشّف الشموع: الجارت كامل من الإطار صفر.
 #
@@ -282,6 +335,45 @@ MARKS = [
 FULLSET = ["eq0", "eq1", "lvllbl", "tf4h", "tf1d", "tf1h", "swp", "swplbl",
            "wick", "wicklbl", "ex", "box", "ck"]
 
+# ═════════ تشغيل الجلسة: النقرة قبل الرسم دائماً ═════════
+# قاعدة `tradingview-platform-pov`: «أداة رسم تظهر بلا نقرة في الشريط
+# اليساري» عيبٌ يكسر الإيهام. فكل حدث هنا له سببه المرئي.
+CUR, DOM = [[0.20, 700, 980]], []
+
+
+def _do(pair):
+    c, d = pair
+    CUR.extend(c); DOM.append(d)
+
+
+_do(TV.click_tool(TV.HLINE, 0.62, until=2.45))            # أداة الخط الأفقي
+CUR += TV.draw_path(1.05, 1.85, FX(min(LAY[3]["eq"])) - SLOT5,
+                    FY(LAY[3]["lvl"]), CX + CVW - PR, FY(LAY[3]["lvl"]))
+CUR += [[2.35, FX(LAY[3]["eq"][0]), FY(M5[LAY[3]["eq"][0]]["l"]) + 40, "creep"]]
+for i, (tf, t) in enumerate((("4H", 5.85), ("1D", 9.05), ("1h", 12.15), (EXEC, 15.40))):
+    _do(TV.click_tf(tf, t))
+    CUR += [[t + 0.9, 690, 620 + i * 40, "creep"]]        # يقرأ اللوحة
+CUR += [[17.60, FX(LAY[3]["sw"]), FY(M5[LAY[3]["sw"]]["l"]) + 30, "ramp"],
+        [19.10, FX(LAY[3]["sw"]) - SLOT5 * 1.4, FY(M5[LAY[3]["sw"]]["c"]), "creep"]]
+_do(TV.click_tool(TV.TRADE, 21.95, until=24.20))          # أداة الصفقة
+CUR += TV.draw_path(22.25, 24.10, FX(FILL), FY(PLAN["ENT"]),
+                    FX(FILL) + 120, FY(PLAN["TGT"]))
+CUR += [[26.40, FX(HIT), FY(PLAN["TGT"]) - 46, "creep"],
+        [28.60, 760, 900, "creep"]]
+# الفريم المختار: قرص واحد مضيء في كل لحظة — يُطفأ الخمس دقائق عند التبديل
+# ويُعاد عند العودة، فالحالة تتبع النقرة لا تسبقها.
+_TFI = {k: i for i, k in enumerate(TV.TF_ORDER)}
+_E = _TFI.get(EXEC, 0)
+DOM += [[f'tfo{_E}', 0.0, 0.05, 5.85, 0.15],
+        [f'tfo{_TFI["4H"]}', 5.85, 6.00, 9.05, 0.15],
+        [f'tfo{_TFI["1D"]}', 9.05, 9.20, 12.15, 0.15],
+        [f'tfo{_TFI["1h"]}', 12.15, 12.30, 15.40, 0.15],
+        [f'tfq{_E}', 15.40, 15.55, 0, 0]]      # القرص الاحتياطي عند العودة
+# الملاحظات وخيوطها تظهر وتختفي بنافذة كل سبب
+for i, (a, b) in enumerate(NOTE_T):
+    DOM.append([f"n{i}", a, a + 0.32, b, 0.28])
+    DOM.append([f"n{i}l", a + 0.10, a + 0.40, b, 0.28])
+
 cfg = dict(
     w=M5, dark=DK, extra_css=BASE_CSS, extra_html=BASE_HTML,
     grid=False,
@@ -291,12 +383,15 @@ cfg = dict(
     base=BASE, openmax=len(M5), open_t=[[BASE, 0.45]], story=STORY,
     extra_svg=EX5 + p_4h() + p_1d() + p_1h(),
     marks=MARKS, fullset=FULLSET, drawset=["lvl"],
-    dom_marks=[],
+    dom_marks=DOM, cursor=CUR, crosshair=True, chart_at=(CX, CY),
+    tlabels=[c["d"][11:] for c in M5],
     preview_a=0.0, preview_b=0.0, res_tease=False, sweep_op=0.0,
-    txt=[(f"t{i+1}", a, b, s, 52, INK) for i, (a, b, s) in enumerate(PH_)],
-    chip="", res="", cta_k="اكتب «شامل»", cta_s="ويصلك التحليل كاملاً",
+    txt=[],                       # لا عنوان عائم — الملاحظات على الجارت
+    chip="", res="", cta_k="اكتب «شامل»",
+    cta_s=f'ويصلك التحليل كاملاً<div class="egm">{GEM}</div>'
+          f'<div class="ewm">LIQUIDITY STATE</div>',
     edu=f'{D["sym"]} · {TF_AR.get(EXEC, EXEC)} · {D["anchor_utc"][:10]} — مثال تعليمي',
-    dur=DUR, res_t=999, cta_t=28.9,
+    dur=DUR, res_t=999, cta_t=DUR - 2.4,
     # لا وميض ولا نبضة: الشاشة لا تومض. (الفرع الثابت في المحرّك يتجاهل
     # النبضة والاهتزاز أصلاً، والإطفاء هنا تصريحٌ لا تكرار.)
     flash=(0.0, 0.0), flash_op=0.0, punch=(0.0, 0.0, 0.0),
