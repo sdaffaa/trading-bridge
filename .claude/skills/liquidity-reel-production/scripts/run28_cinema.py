@@ -33,6 +33,7 @@ PW, PH = CVW - PL - PR, CVH - PT - PB
 SET = os.environ.get("LS_SET", "gc_td2_2026-08-04.json")
 TAG = SET.replace(".json", "")
 D, LAY, PLAN = topdown.build(SET)
+DP = PLAN["dp"]                     # منزلة العرض تتبع دقّة الأداة
 M5 = D["5m"]["w"][:48]
 FILL, HIT = PLAN["fill"], PLAN["hit"]
 
@@ -105,7 +106,7 @@ def p_4h():
     idx = [len(w) - 3, len(w) - 2, len(w) - 1]
     ex = [f'<line x1="{PL}" y1="{y(L["ma"]):.1f}" x2="{CVW-PR}" y2="{y(L["ma"]):.1f}" '
           f'stroke="{TEAL_D}" stroke-width="2" stroke-dasharray="9 7" opacity=".8"/>',
-          htext(x(len(w) - 9), y(L["ma"]) - 16, f'متوسط ٢٠ · {L["ma"]:,.2f}', TEAL_D, 24)]
+          htext(x(len(w) - 9), y(L["ma"]) - 16, f'متوسط ٢٠ · {L["ma"]:,.{DP}f}', TEAL_D, 24)]
     for n, j in enumerate(idx):
         ex.append(f'<circle cx="{x(j):.1f}" cy="{y(w[j]["c"]):.1f}" r="9" fill="none" '
                   f'stroke="{TEAL_D}" stroke-width="3.4"/>')
@@ -123,8 +124,8 @@ def p_1d():
           f'stroke="{TEAL_D}" stroke-width="1.6" stroke-opacity=".6"/>',
           f'<line x1="{x(j)-slot*.6:.1f}" y1="{y(L["mid"]):.1f}" x2="{CVW-PR}" y2="{y(L["mid"]):.1f}" '
           f'stroke="{TEAL_D}" stroke-width="2.4" stroke-dasharray="8 6"/>',
-          htext(x(j) - slot * 4.2, y(L["mid"]) - 16, f'منتصف مدى الأمس {L["mid"]:,.2f}', TEAL_D, 24),
-          htext(x(j) - slot * 3.6, y(L["pdl"]) + 34, f'قاع الأمس {L["pdl"]:,.2f} لم يُلمس', RED, 24)]
+          htext(x(j) - slot * 4.2, y(L["mid"]) - 16, f'منتصف مدى الأمس {L["mid"]:,.{DP}f}', TEAL_D, 24),
+          htext(x(j) - slot * 3.6, y(L["pdl"]) + 34, f'قاع الأمس {L["pdl"]:,.{DP}f} لم يُلمس', RED, 24)]
     return panel("tf1d", w, D["sym"], "1D", "".join(ex))
 
 
@@ -136,12 +137,12 @@ def p_1h():
     hi, lo = L["hi"] - off, L["lo"] - off
     ex = [f'<line x1="{PL}" y1="{y(w[hi]["h"]):.1f}" x2="{CVW-PR}" y2="{y(w[hi]["h"]):.1f}" '
           f'stroke="{tv_chart.T["LVL"]}" stroke-width="2.2"/>',
-          htext(x(6), y(w[hi]["h"]) - 16, f'قمة {w[hi]["h"]:,.2f}', tv_chart.T["LVL"], 24),
+          htext(x(6), y(w[hi]["h"]) - 16, f'قمة {w[hi]["h"]:,.{DP}f}', tv_chart.T["LVL"], 24),
           f'<line x1="{PL}" y1="{y(L["prev_lo"]):.1f}" x2="{CVW-PR}" y2="{y(L["prev_lo"]):.1f}" '
           f'stroke="{GREY}" stroke-width="1.8" stroke-dasharray="7 6"/>',
           f'<circle cx="{x(lo):.1f}" cy="{y(w[lo]["l"]):.1f}" r="11" fill="none" '
           f'stroke="{TEAL_D}" stroke-width="3.4"/>',
-          htext(x(lo) - slot * 3.4, y(w[lo]["l"]) + 36, f'قاعٌ أعلى {w[lo]["l"]:,.2f}', TEAL_D, 25)]
+          htext(x(lo) - slot * 3.4, y(w[lo]["l"]) + 36, f'قاعٌ أعلى {w[lo]["l"]:,.{DP}f}', TEAL_D, 25)]
     return panel("tf1h", w, D["sym"], "1h", "".join(ex))
 
 
@@ -152,7 +153,7 @@ def m5_svg():
     L4, L5 = LAY[3], LAY[4]
     lvl, eq, sw = L4["lvl"], L4["eq"], L4["sw"]
     ex = [line_el(x(min(eq)) - slot, y(lvl), R, y(lvl), tv_chart.T["LVL"], 2.4, id="lvl"),
-          f'<g id="lvllbl" opacity="0">{htext(x(min(eq)) - slot * 3.4, y(lvl) - 15, f"قيعان متساوية {lvl:,.2f}", tv_chart.T["LVL"], 25)}</g>']
+          f'<g id="lvllbl" opacity="0">{htext(x(min(eq)) - slot * 3.4, y(lvl) - 15, f"قيعان متساوية {lvl:,.{DP}f}", tv_chart.T["LVL"], 25)}</g>']
     for n, j in enumerate(eq):
         ex.append(f'<g id="eq{n}" opacity="0"><circle cx="{x(j):.1f}" cy="{y(M5[j]["l"]):.1f}" '
                   f'r="10" fill="none" stroke="{tv_chart.T["LVL"]}" stroke-width="3"/></g>')
@@ -170,8 +171,8 @@ def m5_svg():
     # يميناً كان يصطدم بـ«الوقف»: صندوق الصفقة يشغل يمين شمعة الدخول كله.
     ex.append(f'<g id="wicklbl" opacity="0">{htext(x(sw) - slot * 4.6, wy, wick_txt, RED, 25)}</g>')
     ex.append(pos_box("box", x(FILL) - slot * .6, R, y(PLAN["ENT"]), y(PLAN["STP"]), y(PLAN["TGT"]),
-                      lbl_e=f'الدخول {PLAN["ENT"]:,.2f}', lbl_s=f'الوقف {PLAN["STP"]:,.2f}',
-                      lbl_t=f'الهدف ٢R  {PLAN["TGT"]:,.2f}', anchor_e="start",
+                      lbl_e=f'الدخول {PLAN["ENT"]:,.{DP}f}', lbl_s=f'الوقف {PLAN["STP"]:,.{DP}f}',
+                      lbl_t=f'الهدف ٢R  {PLAN["TGT"]:,.{DP}f}', anchor_e="start",
                       col_e="#ECF3F6" if DK else INK))
     t = 13
     ex.append(f'<g id="ex" opacity="0">'
@@ -217,8 +218,8 @@ PH_ = [
     (12.35, 15.55, f'<b>٣ · هيكل استمراري على الساعة</b><span class="why">{LAY[2]["detail"]}</span>'),
     (15.60, 18.95, f'<b>٤ · سحب السيولة</b><span class="why">{LAY[3]["detail"]}</span>'),
     (19.00, 21.95, f'<b>٥ · إشارة الانعكاس</b><span class="why">{LAY[4]["detail"]}</span>'),
-    (22.00, 26.15, f'<b>خمسة أسباب اجتمعت</b><span class="why">الدخول {PLAN["ENT"]:,.2f} · الوقف {PLAN["STP"]:,.2f} · المخاطرة {PLAN["R"]:,.2f}</span>'),
-    (26.20, 28.75, f'<b>الهدف ٢R عند {PLAN["TGT"]:,.2f}</b><span class="why">تحقق بعد {HIT-FILL} شمعات</span>'),
+    (22.00, 26.15, f'<b>خمسة أسباب اجتمعت</b><span class="why">الدخول {PLAN["ENT"]:,.{DP}f} · الوقف {PLAN["STP"]:,.{DP}f} · المخاطرة {PLAN["R"]:,.{DP}f}</span>'),
+    (26.20, 28.75, f'<b>الهدف ٢R عند {PLAN["TGT"]:,.{DP}f}</b><span class="why">تحقق بعد {HIT-FILL} شمعات</span>'),
 ]
 
 CAM = [

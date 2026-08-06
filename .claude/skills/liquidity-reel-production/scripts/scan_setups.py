@@ -10,8 +10,13 @@
 الصمت.
 
     python3 scan_setups.py accept < نوافذ.json     # فحص وحفظ وترتيب
+    python3 scan_setups.py queue                   # المقبول الذي لم يُنشر بعد
     python3 scan_setups.py claim gc_td3_....json   # تسجيل ما نُشر
     python3 scan_setups.py list                    # ما في السجلّ
+
+المسح يحتاج الشبكة، والشبكة تحتاج صندوقاً خارجياً قد لا يتوفّر في كل
+تشغيلة. لذلك يفصل `queue` بين المرحلتين: المسح يملأ المخزون حين يستطيع،
+والإنتاج يسحب منه حين لا يستطيع. فلا تتوقّف السلسلة لأن الجلب تعذّر.
 """
 import json, os, sys
 
@@ -69,7 +74,7 @@ def accept(windows):
                        layers=[x["detail"] for x in L], titles=[x["title"] for x in L],
                        ent=P["ENT"], stp=P["STP"], tgt=P["TGT"],
                        bars=P["hit"] - P["fill"], eq=len(L[3]["eq"]),
-                       wick=round(L[4]["wick"], 3)))
+                       wick=round(L[4]["wick"], 3), dp=P["dp"]))
     # الأقوى: قيعان أكثر عند المستوى، ثم ذيل رفض أعمق، ثم بلوغ أسرع للهدف
     ok.sort(key=lambda r: (-r["eq"], -r["wick"], r["bars"]))
     return ok, bad
@@ -81,6 +86,30 @@ if __name__ == "__main__":
         for u in reg():
             print(f'{u["sym"]:<9} {u["anchor"]}  {u["file"]}')
         raise SystemExit
+    if cmd == "queue":
+        used = {u["file"] for u in reg()}
+        rows = []
+        for f in sorted(os.listdir(RAW)):
+            if not f.endswith(".json") or f in used:
+                continue
+            try:
+                D, L, P = topdown.build(f)
+            except Exception:
+                continue                       # نوافذ قديمة لا تجتاز — تُتجاهل
+            rows.append((len(L[3]["eq"]), L[4]["wick"], -(P["hit"] - P["fill"]),
+                         f, D, L, P))
+        rows.sort(reverse=True)
+        for _, _, _, f, D, L, P in rows:
+            DP = P["dp"]
+            print(f'\n{f}   {D["sym"]} · {D["anchor_utc"]}')
+            for x in L:
+                print(f'   · {x["title"]}: {x["detail"]}')
+            print(f'   ← دخول {P["ENT"]:,.{DP}f} · وقف {P["STP"]:,.{DP}f} · هدف '
+                  f'{P["TGT"]:,.{DP}f} · تحقّق بعد {P["hit"] - P["fill"]} شمعة')
+        print(f'\nفي المخزون: {len(rows)}')
+        if rows:
+            print(f'LS_SET={rows[0][3]}')
+        raise SystemExit(0 if rows else 3)
     if cmd == "claim":
         r = reg()
         for f in sys.argv[2:]:
@@ -105,9 +134,10 @@ if __name__ == "__main__":
         raise SystemExit(3)
     print(f"\n✓ اجتاز {len(ok)}:")
     for r in ok:
+        DP = r["dp"]
         print(f'\n  {r["file"]}   {r["sym"]} · {r["anchor"]}')
         for t, d in zip(r["titles"], r["layers"]):
             print(f'    · {t}: {d}')
-        print(f'    ← دخول {r["ent"]:,.2f} · وقف {r["stp"]:,.2f} · هدف '
-              f'{r["tgt"]:,.2f} · تحقّق بعد {r["bars"]} شمعة')
+        print(f'    ← دخول {r["ent"]:,.{DP}f} · وقف {r["stp"]:,.{DP}f} · هدف '
+              f'{r["tgt"]:,.{DP}f} · تحقّق بعد {r["bars"]} شمعة')
     print(f'\nLS_SET={ok[0]["file"]}')

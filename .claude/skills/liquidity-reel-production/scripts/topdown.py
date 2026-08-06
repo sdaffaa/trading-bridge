@@ -19,6 +19,10 @@ import json, os
 HERE = os.path.dirname(os.path.abspath(__file__))
 FILE = "gc_td2_2026-08-04.json"
 
+# منزلة العرض للأداة الجارية. `build` يضبطها من دقّة الشموع نفسها قبل أن
+# تُصاغ أي طبقة، فلا تُطبع أسعار النحاس والغاز منزلتين فتتساوى ظاهرياً.
+DP = 2
+
 
 def load(name=FILE):
     d = json.load(open(os.path.join(HERE, "raw_windows", name), encoding="utf-8"))
@@ -51,8 +55,8 @@ def htf_trend(D, k=3):
     ma = sum(c["c"] for c in seg[-20:]) / min(20, len(seg))
     assert seg[-1]["c"] > ma, f"الإغلاق تحت المتوسط: {seg[-1]['c']} ≤ {ma:.2f}"
     return dict(tf="4H", title="زخم صاعد على الأربع ساعات",
-                detail=f"{k} إغلاقات صاعدة: " + " ← ".join(f"{v:,.2f}" for v in cl)
-                       + f"، فوق متوسط ٢٠ ({ma:,.2f})",
+                detail=f"{k} إغلاقات صاعدة: " + " ← ".join(f"{v:,.{DP}f}" for v in cl)
+                       + f"، فوق متوسط ٢٠ ({ma:,.{DP}f})",
                 closes=cl, ma=round(ma, 2), n=len(seg))
 
 
@@ -71,8 +75,8 @@ def daily_bias(D, fill):
     assert lo_today > pdl, f"قاع الأمس لُمس: {lo_today} ≤ {pdl}"
     assert px > mid, f"السعر تحت منتصف مدى الأمس: {px} ≤ {mid:.2f}"
     return dict(tf="1D", title="انحياز اليوم صاعد",
-                detail=f"السعر فوق منتصف مدى الأمس ({mid:,.2f}) وقاعُه "
-                       f"{pdl:,.2f} لم يُلمس",
+                detail=f"السعر فوق منتصف مدى الأمس ({mid:,.{DP}f}) وقاعُه "
+                       f"{pdl:,.{DP}f} لم يُلمس",
                 pdh=pdh, pdl=pdl, mid=round(mid, 2))
 
 
@@ -89,8 +93,8 @@ def mtf_structure(D):
     assert seg[lo]["l"] > prev_lo, \
         f"القاع بعد القمة ليس أعلى: {seg[lo]['l']} ≤ {prev_lo}"
     return dict(tf="1h", title="هيكل استمراري",
-                detail=f"قمة {seg[hi]['h']:,.2f} ثم قاعٌ أعلى {seg[lo]['l']:,.2f} "
-                       f"فوق {prev_lo:,.2f}",
+                detail=f"قمة {seg[hi]['h']:,.{DP}f} ثم قاعٌ أعلى {seg[lo]['l']:,.{DP}f} "
+                       f"فوق {prev_lo:,.{DP}f}",
                 hi=off + hi, lo=off + lo, prev_lo=prev_lo)
 
 
@@ -124,8 +128,8 @@ def sweep(D, tol=None):
         if len(eq) < 2:
             continue
         return dict(tf="5m", title="سحب سيولة",
-                    detail=f"{len(eq)} قيعان عند {base:,.2f} كُنست إلى "
-                           f"{w[sw]['l']:,.2f} ثم إغلاق {w[sw]['c']:,.2f} فوقها",
+                    detail=f"{len(eq)} قيعان عند {base:,.{DP}f} كُنست إلى "
+                           f"{w[sw]['l']:,.{DP}f} ثم إغلاق {w[sw]['c']:,.{DP}f} فوقها",
                     lvl=base, eq=eq, sw=sw)
     raise AssertionError("لا قيعان متساوية مكنوسة قبل الدخول")
 
@@ -179,7 +183,9 @@ def plan(D, S):
 
 
 def build(name=None):
+    global DP
     D = load(name or os.environ.get("LS_SET", FILE))
+    DP = quote_dp(D["5m"]["w"])
     L4 = sweep(D)
     L = [htf_trend(D), daily_bias(D, L4["sw"]), mtf_structure(D), L4,
          ltf_signal(D, L4["sw"])]
@@ -192,6 +198,6 @@ if __name__ == "__main__":
     print(f'{D["sym"]} · مرساة {D["anchor_utc"]}\n{D["src"]}\n')
     for n, x in enumerate(L, 1):
         print(f'  {n}) [{x["tf"]:>3}] {x["title"]:<18} {x["detail"]}')
-    print(f'\n  ← الدخول {P["ENT"]:,.2f} · الوقف {P["STP"]:,.2f} · هدف ٢R '
-          f'{P["TGT"]:,.2f} · مخاطرة {P["R"]:,.2f} · تحقق بعد '
+    print(f'\n  ← الدخول {P["ENT"]:,.{DP}f} · الوقف {P["STP"]:,.{DP}f} · هدف ٢R '
+          f'{P["TGT"]:,.{DP}f} · مخاطرة {P["R"]:,.{DP}f} · تحقق بعد '
           f'{P["hit"] - P["fill"]} شمعات')
