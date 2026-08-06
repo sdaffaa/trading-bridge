@@ -115,11 +115,11 @@ def p_4h():
           f'height="{abs(y(L["ma"])-y(L["px"])):.1f}" fill="{TEAL}" fill-opacity=".13"/>',
           f'<line x1="{PL}" y1="{y(L["ma"]):.1f}" x2="{CVW-PR}" y2="{y(L["ma"]):.1f}" '
           f'stroke="{TEAL_D}" stroke-width="2" stroke-dasharray="9 7" opacity=".85"/>',
-          htext(x(len(w) - 9), y(L["ma"]) + 32, f'متوسط ٢٠ · {L["ma"]:,.{DP}f}', TEAL_D, 24),
-          f'<circle cx="{x(j):.1f}" cy="{y(L["px"]):.1f}" r="10" fill="none" '
+          htext(x(len(w) - 9), y(L["ma"]) + 44, f'متوسط ٢٠ · {L["ma"]:,.{DP}f}', TEAL_D, 28),
+          f'<circle cx="{x(j):.1f}" cy="{y(L["px"]):.1f}" r="13" fill="none" '
           f'stroke="{TEAL_D}" stroke-width="3.4"/>',
           htext(x(len(w) - 7), y(L["px"]) - 44,
-                f'السعر فوق المتوسط بـ{L["gap"]*100:.2f}٪', TEAL_D, 26)]
+                f'السعر فوق المتوسط بـ{L["gap"]*100:.2f}٪', TEAL_D, 30)]
     return panel("tf4h", w, D["sym"], "4H", "".join(ex))
 
 
@@ -133,8 +133,8 @@ def p_1d():
           f'stroke="{TEAL_D}" stroke-width="1.6" stroke-opacity=".6"/>',
           f'<line x1="{x(j)-slot*.6:.1f}" y1="{y(L["mid"]):.1f}" x2="{CVW-PR}" y2="{y(L["mid"]):.1f}" '
           f'stroke="{TEAL_D}" stroke-width="2.4" stroke-dasharray="8 6"/>',
-          htext(x(j) - slot * 4.2, y(L["mid"]) - 16, f'منتصف مدى الأمس {L["mid"]:,.{DP}f}', TEAL_D, 24),
-          htext(x(j) - slot * 3.6, y(L["pdl"]) + 34, f'قاع الأمس {L["pdl"]:,.{DP}f} لم يُلمس', RED, 24)]
+          htext(x(j) - slot * 4.2, y(L["mid"]) - 16, f'منتصف مدى الأمس {L["mid"]:,.{DP}f}', TEAL_D, 28),
+          htext(x(j) - slot * 3.6, y(L["pdl"]) + 34, f'قاع الأمس {L["pdl"]:,.{DP}f} لم يُلمس', RED, 28)]
     return panel("tf1d", w, D["sym"], "1D", "".join(ex))
 
 
@@ -146,12 +146,12 @@ def p_1h():
     hi, lo = L["hi"] - off, L["lo"] - off
     ex = [f'<line x1="{PL}" y1="{y(w[hi]["h"]):.1f}" x2="{CVW-PR}" y2="{y(w[hi]["h"]):.1f}" '
           f'stroke="{tv_chart.T["LVL"]}" stroke-width="2.2"/>',
-          htext(x(6), y(w[hi]["h"]) - 16, f'قمة {w[hi]["h"]:,.{DP}f}', tv_chart.T["LVL"], 24),
+          htext(x(6), y(w[hi]["h"]) - 16, f'قمة {w[hi]["h"]:,.{DP}f}', tv_chart.T["LVL"], 28),
           f'<line x1="{PL}" y1="{y(L["prev_lo"]):.1f}" x2="{CVW-PR}" y2="{y(L["prev_lo"]):.1f}" '
           f'stroke="{GREY}" stroke-width="1.8" stroke-dasharray="7 6"/>',
-          f'<circle cx="{x(lo):.1f}" cy="{y(w[lo]["l"]):.1f}" r="11" fill="none" '
+          f'<circle cx="{x(lo):.1f}" cy="{y(w[lo]["l"]):.1f}" r="13" fill="none" '
           f'stroke="{TEAL_D}" stroke-width="3.4"/>',
-          htext(x(lo) - slot * 3.4, y(w[lo]["l"]) + 36, f'قاعٌ أعلى {w[lo]["l"]:,.{DP}f}', TEAL_D, 25)]
+          htext(x(lo) - slot * 3.4, y(w[lo]["l"]) + 48, f'قاعٌ أعلى {w[lo]["l"]:,.{DP}f}', TEAL_D, 29)]
     return panel("tf1h", w, D["sym"], "1h", "".join(ex))
 
 
@@ -173,29 +173,29 @@ def m5_svg():
     # ثابتة عن كلٍّ لا تكفي — الكنس على النحاس أعمقُ من المستوى بـ0.0005
     # فقط (٠٫٤٪ من المدى) فيقع صفّ الذيل على صفّ المستوى. فتُحسب الصفوف
     # بحدٍّ أدنى بينها: ما يليه لا يقترب منه أقلّ من ٣٤ بكسل.
-    YL_ROW = y(lvl) + 30
-    Y_WICK = max(y(M5[sw]["l"]) + 26, YL_ROW + 34)
-    Y_SWP = Y_WICK + 44
-    ex = [line_el(x(min(eq)) - slot, y(lvl), R, y(lvl), tv_chart.T["LVL"], 2.4, id="lvl"),
+    YL_ROW = y(lvl) + 34
+    Y_WICK = max(y(M5[sw]["l"]) + 30, YL_ROW + 40)
+    Y_SWP = Y_WICK + 52
+    ex = [line_el(x(min(eq)) - slot, y(lvl), R, y(lvl), tv_chart.T["LVL"], 3.0, id="lvl"),
           # تحت الخطّ لا فوقه: الدوائر مركزها الخطّ نفسه، وقد يبعد الدخول
           # عن المستوى ٢٢ نقطة فقط فلا يتّسع ما بينهما لسطر. وممتدّاً
           # يساراً من أول قاع (الارتساء `start` في العربية هو الحافة
           # اليمنى) فينتهي قبل الدوائر. ولا يُدفع يمين آخر قاع: الكاميرا
           # لا تؤطّر ما لم يتكشّف بعدُ، فوسمٌ هناك يُقصّ.
           f'<g id="lvllbl" opacity="0">'
-          f'{htext(max(x(min(eq)) - slot * 1.2, PL + 8 + 400), YL_ROW, f"قيعان متساوية {lvl:,.{DP}f}", tv_chart.T["LVL"], 22, anchor="start")}</g>']
+          f'{htext(max(x(min(eq)) - slot * 1.2, PL + 8 + 400), YL_ROW, f"قيعان متساوية {lvl:,.{DP}f}", tv_chart.T["LVL"], 28, anchor="start")}</g>']
     for n, j in enumerate(eq):
         ex.append(f'<g id="eq{n}" opacity="0"><circle cx="{x(j):.1f}" cy="{y(M5[j]["l"]):.1f}" '
-                  f'r="10" fill="none" stroke="{tv_chart.T["LVL"]}" stroke-width="3"/></g>')
-    ex.append(xmark(x(sw), y(M5[sw]["l"]) + 28, id="swp", r=17))
+                  f'r="13" fill="none" stroke="{tv_chart.T["LVL"]}" stroke-width="3.6"/></g>')
+    ex.append(xmark(x(sw), y(M5[sw]["l"]) + 34, id="swp", r=22))
     # «كَنْس» و«ذيل رفض» و«الوقف» تتزاحم كلها حول قاع شمعة واحدة. تُفرَّق
     # رأسياً وأفقياً: الكنس تحت العلامة يساراً، والذيل بمنتصفه يميناً.
-    ex.append(f'<g id="swplbl" opacity="0">{htext(x(sw) - slot * 7.4, Y_SWP, "كَنْس", RED, 26)}</g>')
+    ex.append(f'<g id="swplbl" opacity="0">{htext(x(sw) - slot * 7.4, Y_SWP, "كَنْس", RED, 32)}</g>')
     # ذيل الرفض: خط رأسي يبرز الذيل نفسه
     c = M5[sw]
     wick_txt = "ذيل رفض " + str(round(L5["wick"] * 100)) + "٪"
     ex.append(f'<g id="wick" opacity="0"><line x1="{x(sw):.1f}" y1="{y(min(c["o"],c["c"])):.1f}" '
-              f'x2="{x(sw):.1f}" y2="{y(c["l"]):.1f}" stroke="{RED}" stroke-width="7" '
+              f'x2="{x(sw):.1f}" y2="{y(c["l"]):.1f}" stroke="{RED}" stroke-width="9" '
               f'stroke-linecap="round" opacity=".55"/></g>')
     # منتصف الذيل يقع على ارتفاع مستوى القيعان تقريباً، فكان وسم الذيل
     # يصطدم بوسم «قيعان متساوية» أفقياً. يُنزَل تحت قاع الشمعة: صفٌّ أحمر
@@ -203,26 +203,22 @@ def m5_svg():
     wy = Y_WICK
     # يميناً كان يصطدم بـ«الوقف»: صندوق الصفقة يشغل يمين شمعة الدخول كله.
     # وبلا زوم (تشغيلة ٢٩) يضيق ما تبقّى، فأُبعدت الوسوم إلى يسار الصندوق.
-    ex.append(f'<g id="wicklbl" opacity="0">{htext(x(sw) - slot * 7.4, wy, wick_txt, RED, 25)}</g>')
+    ex.append(f'<g id="wicklbl" opacity="0">{htext(x(sw) - slot * 7.4, wy, wick_txt, RED, 30)}</g>')
     ex.append(pos_box("box", x(FILL) - slot * .6, R, y(PLAN["ENT"]), y(PLAN["STP"]), y(PLAN["TGT"]),
                       lbl_e=f'الدخول {PLAN["ENT"]:,.{DP}f}', lbl_s=f'الوقف {PLAN["STP"]:,.{DP}f}',
                       lbl_t=f'الهدف ٢R  {PLAN["TGT"]:,.{DP}f}', anchor_e="start",
-                      col_e="#ECF3F6" if DK else INK))
+                      col_e="#ECF3F6" if DK else INK, fs=28))
     t = 13
     ex.append(f'<g id="ex" opacity="0">'
               f'<path d="M {x(FILL)-t*2.2:.1f} {y(PLAN["ENT"])-t:.1f} L {x(FILL)-t*.5:.1f} {y(PLAN["ENT"]):.1f} '
               f'L {x(FILL)-t*2.2:.1f} {y(PLAN["ENT"])+t:.1f} Z" fill="{TEAL_D}"/>'
               f'<circle cx="{x(FILL):.1f}" cy="{y(PLAN["ENT"]):.1f}" r="5.5" fill="{TEAL_D}"/>'
-              + htext(x(FILL) - t * 2.6, y(PLAN["ENT"]) - 42, "تنفيذ", TEAL_D, 24, anchor="start") + '</g>')
+              + htext(x(FILL) - t * 2.6, y(PLAN["ENT"]) - 48, "تنفيذ", TEAL_D, 30, anchor="start") + '</g>')
     ex.append(checkmark(x(HIT), y(PLAN["TGT"]) - 42, id="ck"))
     return "".join(ex), x, y, slot
 
 
-PIP = (max(c["h"] for c in M5) - min(c["l"] for c in M5)) * 0.03
-EQC = sum(LAY[3]["eq"]) // len(LAY[3]["eq"])
 EX5, X5, Y5, SLOT5 = m5_svg()
-fx = lambda i: round(X5(i) / CVW, 4)
-fy = lambda p: round(Y5(p) / CVH, 4)
 
 BASE_CSS = """
 .hl{top:118px;left:56px;right:56px;line-height:1.16}
@@ -256,78 +252,23 @@ PH_ = [
     (26.20, 28.75, f'<b>الهدف ٢R عند {PLAN["TGT"]:,.{DP}f}</b><span class="why">تحقق بعد {HIT-FILL} شمعات</span>'),
 ]
 
-# تكشّف الشموع: الكنس حيّ أمام المشاهد، ثم وقفة، ثم شمعة الهدف
-BASE = FILL - 1                      # الشمعة الحاسمة تتكشّف أمام المشاهد
-_after = [(FILL, 17.55), (FILL + 1, 19.10), (FILL + 2, 20.30), (HIT, 26.55)]
-STORY = sorted({j: t for j, t in _after if j < len(M5)}.items()) + \
-        [(j, round(27.05 + (j - HIT - 1) * 0.34, 2))
-         for j in range(HIT + 1, len(M5))]
-
-BOX_T = 22.05        # لحظة ظهور سهم التنفيذ وصندوق الصفقة
-
-
-def revealed_at(t):
-    """آخر شمعة مكشوفة عند اللحظة t — الكاميرا لا تعرف الغيب.
-
-    الشموع حتى `BASE` مفتوحة من الإطار صفر، وما بعدها يتكشّف بجدول
-    `STORY`. فأيّ إطارٍ يمين هذه الشمعة **فراغ لم يُرسَم بعد**."""
-    j = BASE
-    for idx, tt in STORY:
-        if tt <= t:
-            j = max(j, idx)
-    return j
-
-
-def cam_fit(kf):
-    """يزحزح مركز الكاميرا كي لا تؤطّر فراغاً — أمر فهد «لا فراغات بالجارت».
-
-    الخلل لم يكن في الشموع: هي متتالية فعلاً. لكن اللوحة تحجز عرضها لكل
-    النافذة (٥٧ شمعة) بينما المكشوف عند الهوك ٤٠، فالثُلث الفارغ يتضخّم
-    تحت زوم ١٫٧ حتى يصير نصف الشاشة. فيُقصّ مركزُ الكاميرا هنا بحيث لا
-    تتجاوز حافتُها اليمنى آخر شمعة مكشوفة (مع هامش شمعتين كأي منصّة)."""
-    out = []
-    for kf_ in kf:
-        t, sc, cx, cy = kf_[0], kf_[1], kf_[2], kf_[3]
-        half = 0.5 / sc
-        # بعد فتح الصفقة لم يعد يمين اللوحة فراغاً: صندوق الصفقة يشغله
-        # بوسومه الثلاثة حتى الحافة. فالقصّ عند آخر شمعة مكشوفة كان يقطع
-        # «الهدف/الدخول/الوقف» فتُقرأ «هدف/دخول/وقف».
-        right = 1.0 if t >= BOX_T else (X5(revealed_at(t)) + SLOT5 * 2) / CVW
-        lo, hi = half, max(half, right - half)
-        out.append([t, sc, round(min(max(cx, lo), hi), 4), cy] + list(kf_[4:]))
-    return out
-
-
-CAM = cam_fit([
-    # الهوك: زوم شديد على عنقود القيعان المتساوية — الشمعة الأخيرة لم تتكشّف بعد
-    [0.00, 3.30, fx(EQC), fy(LAY[3]["lvl"])],
-    [1.60, 2.85, fx(EQC - 1), fy(LAY[3]["lvl"] + PIP * 2), "creep"],
-    [2.90, 1.62, fx(EQC + 4), fy(LAY[3]["lvl"] + PIP * 4), "whip"],
-    [5.20, 1.88, fx(EQC + 2), fy(LAY[3]["lvl"] + PIP), "creep"],
-    # الفريمات الأعلى: زوم هادئ يتنفّس على كل لوحة
-    [6.05, 1.14, .5, .46, "anticip"],
-    [9.10, 1.26, .55, .52, "creep"],
-    [9.25, 1.12, .5, .48, "anticip"],
-    [12.20, 1.24, .46, .54, "creep"],
-    [12.35, 1.16, .5, .5, "anticip"],
-    [15.45, 1.30, .58, .5, "creep"],
-    # العودة للخمس دقائق: الكنس ثم الذيل
-    [15.60, 1.80, fx(FILL - 3), fy(LAY[3]["lvl"]), "whip"],
-    [18.90, 2.05, fx(FILL), fy(LAY[3]["lvl"] - PIP), "creep"],
-    [19.00, 2.75, fx(FILL), fy(M5[FILL]["l"] + PIP * 1.5), "whip"],
-    [21.90, 2.40, fx(LAY[3]["sw"] + 1), fy(PLAN["ENT"]), "creep"],
-    # التنفيذ والصندوق
-    [22.05, 1.55, fx(FILL + 4), fy((PLAN["ENT"] + PLAN["TGT"]) / 2), "anticip"],
-    [26.10, 1.42, fx(FILL + 5), fy(PLAN["TGT"]), "creep"],
-    [26.25, 1.34, fx(HIT), fy(PLAN["TGT"]), "whip"],
-    [28.70, 1.20, .5, .5, "creep"],
-    [DUR, 1.10, .5, .5, "creep"],
-])
+# تكشّف الشموع: الجارت كامل من الإطار صفر.
+#
+# 🔒 أمر فهد 2026-08-06: «بدون زومات وهالأمور، فقط ماركب كأنه من الكمبيوتر».
+# فحُذفت الكاميرا (١٩ مفتاحاً بزوم يبلغ 3.30×) ومعها `cam_fit` التي كانت
+# تمنعها من تأطير ما لم يتكشّف. وبلا كاميرا صار التكشّف التدريجي يترك
+# هامشاً يمينياً فارغاً حتى تصل الشموع — فكلّها تُفتح من البداية، وهو ما
+# يبدو عليه جارتٌ مفتوح على الكمبيوتر فعلاً. الأنيميشن نصف ثانية يفي
+# بقاعدة §12 «فريم-0 شموع تتحرك»، والقصّة يرويها الماركب لا التكشّف.
+BASE = len(M5) - 1
+STORY = []
 
 MARKS = [
-    ("lvl", 3.00, 3.60, "draw"),
-    ("eq0", 3.60, 3.85, "pop"), ("eq1", 3.80, 4.05, "pop"),
-    ("lvllbl", 4.10, 4.40, "pop"),
+    # بلا زوم تصير الثواني الأولى جارتاً ساكناً مع نصّ — فيُقدَّم أول
+    # ماركب إلى داخل الهوك، وهو يصف ما يقوله الهوك نفسه.
+    ("lvl", 1.05, 1.85, "draw"),
+    ("eq0", 1.90, 2.15, "pop"), ("eq1", 2.05, 2.30, "pop"),
+    ("lvllbl", 2.15, 2.45, "pop"),
     ("tf4h", 6.05, 6.45, "fade", 9.00, .32),
     ("tf1d", 9.25, 9.65, "fade", 12.10, .32),
     ("tf1h", 12.35, 12.75, "fade", 15.35, .32),
@@ -347,7 +288,7 @@ cfg = dict(
     pre_svg=tv_chart.furniture(M5, dec=2, sym=D["sym"], tf=EXEC,
                                tlabels=[c["d"][11:] for c in M5]),
     lp_pill=True, lp_dec=2, lp_col=tv_chart.T["PILL"], lp_txt=tv_chart.T["PILLTX"],
-    base=BASE, openmax=len(M5), open_t=[[BASE, 0.4]], story=STORY,
+    base=BASE, openmax=len(M5), open_t=[[BASE, 0.45]], story=STORY,
     extra_svg=EX5 + p_4h() + p_1d() + p_1h(),
     marks=MARKS, fullset=FULLSET, drawset=["lvl"],
     dom_marks=[],
@@ -356,13 +297,15 @@ cfg = dict(
     chip="", res="", cta_k="اكتب «شامل»", cta_s="ويصلك التحليل كاملاً",
     edu=f'{D["sym"]} · {TF_AR.get(EXEC, EXEC)} · {D["anchor_utc"][:10]} — مثال تعليمي',
     dur=DUR, res_t=999, cta_t=28.9,
-    flash=(2.90, 3.30), flash_op=0.22, punch=(2.90, 3.20, 0.05),
-    cam=CAM,
+    # لا وميض ولا نبضة: الشاشة لا تومض. (الفرع الثابت في المحرّك يتجاهل
+    # النبضة والاهتزاز أصلاً، والإطفاء هنا تصريحٌ لا تكرار.)
+    flash=(0.0, 0.0), flash_op=0.0, punch=(0.0, 0.0, 0.0),
+    cam=[],                       # أمر فهد: بدون زومات — ماركب فقط
 )
 
 if __name__ == "__main__":
     n = build_reel(cfg, os.path.join(HERE, f"reel28_{TAG}_{THEME}.html"))
-    print(f'{TAG} | ريل شامل | {DUR}s | {len(LAY)} أسباب | كاميرا {len(CAM)} مفتاح | '
-          f'ماركب {len(MARKS)} | {n} bytes')
+    print(f'{TAG} | ريل شامل ثابت | {DUR}s | {len(LAY)} أسباب | '
+          f'ماركب {len(MARKS)} | شموع {len(M5)} كلها مفتوحة | {n} bytes')
     for i, L in enumerate(LAY, 1):
         print(f'  {i} [{L["tf"]:>3}] {L["title"]}')

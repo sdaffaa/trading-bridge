@@ -86,8 +86,11 @@ def ring(id, cx, cy, r=15, col=TEAL_D, label_html=""):
 
 
 def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", lbl_t="الهدف",
-            col_t=TEAL_D, col_s=RED, col_e="#ECF3F6", anchor_e="end"):
-    """بوكس هدف/ستوب بستايل TradingView: خط دخول يترسم ← الستوب يتمدد لتحت ← الهدف يتمدد لفوق."""
+            col_t=TEAL_D, col_s=RED, col_e="#ECF3F6", anchor_e="end", fs=22):
+    """بوكس هدف/ستوب بستايل TradingView: خط دخول يترسم ← الستوب يتمدد لتحت ← الهدف يتمدد لفوق.
+
+    `fs` حجم وسوم الهدف/الستوب/الدخول: افتراضه ٢٢ كما كان، ويكبر في الريلات
+    الثابتة (بلا زوم) لأن النصّ هناك يُرى بحجمه الحقيقي لا مكبَّراً."""
     w = x1 - x0
     ln = w
     return (f'<g id="{id}" opacity="0">'
@@ -98,9 +101,9 @@ def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", 
             f'<line class="pe" data-len="{ln:.0f}" x1="{x0:.1f}" y1="{ye:.1f}" x2="{x1:.1f}" y2="{ye:.1f}" '
             f'stroke="{col_e}" stroke-width="2.2"/>'
             f'<g class="pl" opacity="0">'
-            + htext((x0+x1)/2, yt + 30, lbl_t, col_t, 22)
-            + htext((x0+x1)/2, ys - 22, lbl_s, col_s, 22)
-            + htext(x1 - 12, ye - 12, lbl_e, col_e, 21, anchor=anchor_e)
+            + htext((x0+x1)/2, yt + 8 + fs, lbl_t, col_t, fs)
+            + htext((x0+x1)/2, ys - fs, lbl_s, col_s, fs)
+            + htext(x1 - 12, ye - 12, lbl_e, col_e, fs - 1, anchor=anchor_e)
             + '</g></g>')
 
 def checkmark(cx, cy, col=TEAL_D, id="ck1"):
