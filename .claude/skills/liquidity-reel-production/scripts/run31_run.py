@@ -21,8 +21,20 @@ for k, (w, m, _) in PLAN.items():
 
 if __name__ == "__main__":
     B._unregister()
-    for k in PLAN:
+    import run32_desk as D                  # محرّك الريل بعد التعميم (§11 بند ٤)
+    reels = []
+    for k, (_, m, _c) in PLAN.items():
         try:
             B.build_unit(k)
         except Exception as e:
-            print(f"✗ {k}: {type(e).__name__}: {e}")
+            print(f"✗ {k}: {type(e).__name__}: {e}"); continue
+        if m != "reel":
+            continue
+        # بناء الريل صار جزءاً من التشغيلة لا خطوة يدوية. سقوط الريل لا
+        # يُسقط وحدته: دليلها بُني، ويُذكر النقص في الملخص.
+        try:
+            D.build(k); reels.append(k)
+        except Exception as e:
+            print(f"✗ ريل {k}: {type(e).__name__}: {e}")
+    if reels:
+        print("\nللرندر والمؤثرات:  python3 run32_post.py " + " ".join(reels))

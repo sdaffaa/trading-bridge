@@ -110,6 +110,10 @@ def scan(cs, sym, tf, sec, relax=False):
     return res
 
 KW = dt.timezone(dt.timedelta(hours=3))
+PER_CLS = 10          # نوافذ لكل فئة — المصنع يستهلك ريلين يومياً
+MAXW = 52             # أقصى طول نافذة عرض (سقف قبول لا مقصّ)
+MIN_AFTER = 4         # شمعات بعد الدخول تكفي لرواية النتيجة
+MIN_RISK_BP = 0.0006  # أرضية `scan_setups`: أقل من ٦ نقاط أساس داخل السبريد
 SRC = [("GC=F", "30m", 1800), ("YM=F", "30m", 1800), ("NQ=F", "30m", 1800),
        ("GBPUSD=X", "15m", 900), ("USDJPY=X", "15m", 900), ("GC=F", "15m", 900),
        ("GC=F", "1h", 3600), ("YM=F", "1h", 3600), ("NQ=F", "1h", 3600),
@@ -135,17 +139,35 @@ for cls in ("chan", "consol", "sweep"):
         if any(k["sym"] == c["sym"] and k["tf"] == c["tf"] and abs(k["bk"] - c["bk"]) < 30 for k in kept):
             continue
         kept.append(c)
-        if len(kept) >= 5: break
+        if len(kept) >= PER_CLS: break
     if not kept: print(f"NO CANDIDATE for {cls}", file=sys.stderr)
     chosen.extend(kept)
 
-rows = []
+rows = []; rejected = []
 for c in chosen:
     cs = series[(c["sym"], c["tf"])]
     ws = max(0, c["iH"] - 5)
     ee = c["ir"] + 1
     while ee < len(cs) - 1 and cs[ee]["h"] < cs[c["bk"]]["h"] and ee - c["ir"] < 9: ee += 1
-    we = min(len(cs) - 1, ee + 3, ws + 41)
+    # نهاية النافذة لا تُقصّ قبل الدخول: القصّ على `ws+41` كان يُخرج شمعة
+    # العودة من المصفوفة فتصير الفهارس خارج المدى. السقف يُطبَّق على الطول
+    # كشرط قبول لا كمقصّ — النافذة الأطول من MAXW تُرفض معلَنةً.
+    we = min(len(cs) - 1, max(ee + 3, c["ir"] + MIN_AFTER))
+    lbl = f'{c["cls"]} {c["sym"]} {c["tf"]}'
+    if we - ws + 1 > MAXW:
+        rejected.append(f'{lbl}: النافذة {we-ws+1} شمعة > {MAXW}'); continue
+    if we - c["ir"] < MIN_AFTER:
+        rejected.append(f'{lbl}: {we-c["ir"]} شمعات بعد الدخول'); continue
+    # قابلية النشر: مخاطرة معتبرة، وهدف ٢R بلغه السعر فعلاً داخل النافذة
+    ent = cs[c["ir"]]["c"]; stp = cs[c["iob"]]["l"]
+    rng = max(x["h"] for x in cs[ws:c["ir"]+1]) - min(x["l"] for x in cs[ws:c["ir"]+1])
+    stp -= rng * 0.006
+    if ent <= stp or (ent - stp) / ent < MIN_RISK_BP:
+        rejected.append(f'{lbl}: المخاطرة {(ent-stp)/ent*1e4:.1f} نقطة أساس < {MIN_RISK_BP*1e4:.0f}')
+        continue
+    tgt = ent + (ent - stp) * 2.0
+    if not any(cs[k]["h"] >= tgt for k in range(c["ir"] + 1, we + 1)):
+        rejected.append(f'{lbl}: لم يبلغ ٢R داخل النافذة'); continue
     w = []
     for cd in cs[ws:we+1]:
         k = dt.datetime.fromtimestamp(cd["ts"], KW)
@@ -161,5 +183,6 @@ for c in chosen:
         if key in c: row[key] = [v - ws for v in c[key]]
     rows.append(row)
 
+for m in rejected: print("rejected " + m, file=sys.stderr)
 print(f"chosen: {[(r['cls'], r['sym'], r['tf'], r['date'], len(r['w'])) for r in rows]}", file=sys.stderr)
 print(json.dumps(rows, ensure_ascii=False))

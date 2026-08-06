@@ -473,6 +473,12 @@ window.__setFrame = function(t) {{
     if (P0 || t < {cfg.get("preview_b", 2.35)}) {{ setLine(el, 1); el.style.opacity = 1 - TR; continue; }}
     const m = MARKS.find(m => m[0] === id);
     setLine(el, m ? seg(t, m[1], m[2]) : 0);
+    // `setLine` تُعيد الشفافية إلى ١، وهي تلي حلقة الوسوم — فزمن اختفاء
+    // الخط المرسوم (mark[4]) كان يُمحى ويبقى الخط إلى آخر الريل.
+    if (m && m.length > 4 && m[4]) {{
+      const ko = seg(t, m[4], m[4] + (m[5] || 0.4));
+      if (ko > 0) el.style.opacity = (parseFloat(el.style.opacity) || 0) * (1 - ko);
+    }}
   }}
   for (const [id, a, b] of TXTS) {{
     const el = $(id);

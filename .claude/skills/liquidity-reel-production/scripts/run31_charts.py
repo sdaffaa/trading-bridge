@@ -29,8 +29,13 @@ PIP = {"GC=F": 0.1, "NQ=F": 1.0, "YM=F": 1.0,
 
 
 def win(idx):
-    """نافذة مرشّحة بفهرسها، مع شريحة التعريف بالعربي."""
+    """نافذة مرشّحة بفهرسها، مع شريحة التعريف بالعربي.
+
+    المدخل الموسوم بـ`bad` (من `fix_candidates.py`) يُرفض هنا لا يُصمت
+    عنه: فهارسه خارج مصفوفة الشموع، فأي رسم عليه يكذب."""
     r = CAND[idx]
+    if r.get("bad"):
+        raise ValueError(f'النافذة {idx} فاسدة: {" · ".join(r["bad"])}')
     r = dict(r)
     r["slug"] = f'{AR_SYM.get(r["sym"], r["sym"])} · {AR_TF.get(r["tf"], r["tf"])} · {r["date"]}'
     return r

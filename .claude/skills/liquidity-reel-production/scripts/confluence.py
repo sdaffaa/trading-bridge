@@ -7,6 +7,15 @@
 import statistics as st
 
 
+def _n(v):
+    """تنسيق فرقٍ سعري بلا ضجيج عشري: 0.1001 تُقرأ 0.10 لا كما خزّنها الحاسوب."""
+    a = abs(v)
+    if a >= 100: return f"{v:,.0f}"
+    if a >= 1: return f"{v:,.2f}"
+    if a >= 0.01: return f"{v:.3f}"
+    return f"{v:.5f}"
+
+
 def _rng(w):
     return max(c["h"] for c in w) - min(c["l"] for c in w)
 
@@ -54,6 +63,116 @@ def respected(w, a, b, lvl, above=True):
 def rr(ENT, STP, TGT):
     U = ENT - STP
     return ("عائد مقابل مخاطرة", f"{U:,.2f} مقابل {TGT - ENT:,.2f} — نسبة ١:٢", 2.0)
+
+
+# ═══════════ أسباب ريل «جلسة متداول» — أربعة أنماط دخول ═══════════
+# كلها تتبع القاعدة نفسها: قيمة مقيسة أو `None`. الفرق أن هذه تُقاس على
+# فهارس `sheet_candidates.json` (`i1/i2/ipdl` · `ca/cb/rt/rb` · `chi/clo`)
+# التي لم تُستعمل قبل اليوم، فيختلف سبب الدخول باختلاف النافذة لا نصّها.
+
+def equal_highs(w, i1, i2, R):
+    """قمّتان متساويتان: الفرق بينهما نسبةً إلى المدى — تحت ٤٪ يُعدّ تساوياً."""
+    d = abs(w[i1]["h"] - w[i2]["h"])
+    if R <= 0 or d > R * 0.04:
+        return None
+    return ("قمّتان متساويتان", f"الفرق بينهما {_n(d)} فقط = {d/R*100:.1f}٪ من المدى "
+                                f"— سيولة أوامر فوقهما", d)
+
+
+def swept(w, i2, fill, R):
+    """كنسٌ فعلي: السعر تجاوز القمّة الثانية ثم أغلق تحتها قبل التنفيذ."""
+    hi = w[i2]["h"]
+    j = next((k for k in range(i2 + 1, fill + 1)
+              if w[k]["h"] > hi and w[k]["c"] < hi), None)
+    if j is None:
+        return None
+    over = (w[j]["h"] - hi)
+    return ("كنس ثم إغلاق تحت", f"تجاوزها بـ{_n(over)} ثم أغلق تحتها — "
+                                f"اصطياد سيولة لا اختراق", over)
+
+
+def compression(w, a, b, R):
+    """انضغاط النطاق: عرضه نسبةً إلى مدى الشاشة — الضيق يسبق الحركة."""
+    if b <= a or R <= 0:
+        return None
+    rt = max(c["h"] for c in w[a:b + 1]); rb = min(c["l"] for c in w[a:b + 1])
+    p = (rt - rb) / R
+    if p > 0.42:
+        return None
+    return ("نطاق منضغط", f"{b-a+1} شمعة داخل {p*100:.0f}٪ من مدى الشاشة — "
+                          f"تجميع قبل الحركة", p)
+
+
+def breakout_close(w, i, lvl, R):
+    """كسر بإغلاق لا بفتيل: مقدار تجاوز الجسم للحدّ."""
+    d = w[i]["c"] - lvl
+    if d <= 0 or R <= 0 or d < R * 0.004:
+        return None
+    return ("كسر بإغلاق", f"الجسم أغلق فوق الحدّ بـ{_n(d)} = {d/R*100:.1f}٪ "
+                          f"من المدى — لا فتيل عابر", d)
+
+
+def steps_down(w, hi_a, hi_b, lo_a, lo_b, R):
+    """قناة هابطة: تدرّج القمم والقيعان معاً — أحدهما وحده ليس قناة."""
+    dh = w[hi_a]["h"] - w[hi_b]["h"]
+    dl = w[lo_a]["l"] - w[lo_b]["l"]
+    if R <= 0 or dh <= 0 or dl <= 0:
+        return None
+    return ("قمم وقيعان متدرّجة", f"القمم نزلت {_n(dh)} والقيعان {_n(dl)} — "
+                                  f"قناة هابطة لا هبوط عشوائي", min(dh, dl) / R)
+
+
+def retest_of(w, brk, lvl, fill):
+    """العودة لاختبار الحدّ المكسور: كم شمعة بين الكسر والاختبار."""
+    if fill <= brk:
+        return None
+    lo = min(c["l"] for c in w[brk + 1:fill + 1])
+    if lo > lvl:
+        return None
+    return ("إعادة اختبار الحدّ", f"عاد للحدّ بعد {fill-brk} شمعات من كسره — "
+                                  f"المقاومة صارت دعماً", fill - brk)
+
+
+def _pack(rows, S):
+    """يُرجع (الأسباب المتحقّقة، سطر العائد) — الشرط ثلاثة فأكثر عدا العائد."""
+    ok = [dict(t=t, d=d) for t, d, _ in (r for r in rows if r)]
+    return ok, dict(zip(("t", "d"), rr(S["ENT"], S["STP"], S["TGT"])[:2]))
+
+
+def build_desk(S):
+    """أسباب الدخول بحسب فئة النافذة (`cls`) — لكل فئة فهارسها ومقاييسها.
+
+    ترجع `(reasons, rr_row)`؛ والبنّاء يرفض ما دون ثلاثة أسباب متحقّقة."""
+    w, fill, cls = S["w"], S["fill"], S["cls"]
+    R = _rng(w[:fill + 1])
+    if cls == "sweep":
+        rows = [equal_highs(w, S["i1"], S["i2"], R),
+                swept(w, S["i2"], fill, R),
+                equal_lows(w, fill, w[S["ipdl"]]["l"], R),
+                rejection(w, fill, "شمعة العودة"),
+                displacement(w, S["bk"]),
+                above_ma(w, fill)]
+    elif cls == "consol":
+        rt = max(w[k]["h"] for k in range(S["ca"], S["cb"] + 1))
+        rows = [compression(w, S["ca"], S["cb"], R),
+                breakout_close(w, S["bk"], rt, R),
+                retest_of(w, S["bk"], S["ZT"], fill),
+                rejection(w, fill, "شمعة العودة"),
+                above_ma(w, fill)]
+    elif cls == "chan":
+        hi, lo = S["chi"], S["clo"]
+        rows = [steps_down(w, hi[0], hi[1], lo[0], lo[1], R),
+                breakout_close(w, S["bk"], w[hi[1]]["h"], R),
+                respected(w, hi[0], S["bk"], w[hi[0]]["h"], above=False),
+                rejection(w, fill, "شمعة العودة"),
+                above_ma(w, fill)]
+    else:                                   # zone — كسر هيكل ثم منطقة أصل
+        rows = [breakout_close(w, S["bk"], S["LH"], R),
+                displacement(w, S["bk"]),
+                respected(w, S["iob"] + 1, S["bk"], S["ZT"], above=True),
+                rejection(w, fill, "شمعة العودة"),
+                above_ma(w, fill)]
+    return _pack(rows, S)
 
 
 def build(S):
