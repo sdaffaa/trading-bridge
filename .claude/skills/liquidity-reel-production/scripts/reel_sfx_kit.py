@@ -550,7 +550,16 @@ window.__setFrame = function(t) {{
     const ki = oc(seg(t, m[1], m[2]));
     const ko = (m.length > 3 && m[3]) ? seg(t, m[3], m[3] + (m[4] || 0.3)) : 0;
     el.style.opacity = (ki * (1 - ko)).toFixed(3);
-    el.style.transform = `translateY(${{((1 - ki) * 10).toFixed(1)}}px)`;
+    // النمط «type»: النصّ يُكتب بأداة النصّ لا يظهر دفعةً — والكشف من
+    // اليمين لأن العربية تبدأ منه، مع مؤشّر كتابة يومض حتى تكتمل الجملة.
+    if (m[5] === "type") {{
+      const k = seg(t, m[1], m[2]);
+      el.style.clipPath = `inset(0 0 0 ${{((1 - k) * 100).toFixed(2)}}%)`;
+      el.style.transform = "none";
+      el.classList.toggle("typing", k > 0 && k < 1);
+    }} else {{
+      el.style.transform = `translateY(${{((1 - ki) * 10).toFixed(1)}}px)`;
+    }}
   }}
   const r1 = {"oc(seg(t, 1.25, 1.6)) * (1 - seg(t, 1.9, 2.2))" if cfg.get("res_tease", True) else "0"};
   const r2 = oc(seg(t, {cfg["res_t"]}, {cfg["res_t"]}+0.4));

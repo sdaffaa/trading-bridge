@@ -244,39 +244,57 @@ FX = lambda i: CX + X5(i)            # من إحداثيات اللوحة إلى
 FY = lambda p: CY + Y5(p)
 
 
-def notes():
-    """كل سبب ملاحظةٌ عند ما يصفه — لا سطراً فوق الجارت.
+def _place(ax, ay, w=560, h=150):
+    """موضع الملاحظة: في النصف الفارغ من اللوحة لا فوق الشموع.
 
-    المواضع تتبع مرساها: ملاحظات الفريمات الأعلى في أعلى اللوحة لأن
-    لوحاتها تغطّيها كاملةً، وملاحظات الخمس دقائق قرب الشمعة المعنيّة."""
+    القاعدة مقيسة لا مقدَّرة: إن كان ما تصفه في النصف السفلي كُتبت أعلى
+    اللوحة والعكس، ثم تُقصّ أفقياً داخل الحدود. فلا تُغطّي الملاحظة
+    الشمعةَ التي تشرحها مهما اختلفت النافذة."""
+    top = CY + 40 if ay > CY + CVH / 2 else CY + CVH - PB - h - 30
+    x = min(max(ax - w / 2, CX + 24), CX + CVW - PR - w - 10)
+    return x, top
+
+
+# 🔒 أمر فهد 2026-08-06: «الشرح بكتابة داخل الأداة». فالملاحظة لم تعد
+#    تظهر في ركن ثابت: المؤشر يمسك أداة «نص»، ينقر مكانها على الجارت،
+#    ثم تُكتب حرفاً حرفاً من اليمين — كما تُكتب في المنصّة تماماً.
+#    (id, x, y, العنوان, التفصيل, لحظة النقر, بداية الكتابة, نهايتها, الاختفاء)
+def note_plan():
     L4, L5 = LAY[3], LAY[4]
-    eqx = FX(sum(L4["eq"]) // len(L4["eq"]))
-    sw = L4["sw"]
-    top = CY + 26
-    XR = CX + CVW - PR - 18      # الحافة اليمنى للوحة
-    out = [
-        TV.note_el("n0", 0, top, "القاع الذي انكسر لم يكن كسراً",
-                   "قاعان متساويان تحتهما أوامر إيقاف",
-                   anchor=(eqx, FY(L4["lvl"])), xr=XR),
-        TV.note_el("n1", 0, top, "١ · اتجاه صاعد على الأربع ساعات", LAY[0]["detail"], xr=XR),
-        TV.note_el("n2", 0, top, "٢ · انحياز اليوم صاعد", LAY[1]["detail"], xr=XR),
-        TV.note_el("n3", 0, top, "٣ · هيكل استمراري على الساعة", LAY[2]["detail"], xr=XR),
-        TV.note_el("n4", 0, top, "٤ · سحب السيولة", L4["detail"],
-                   anchor=(FX(sw), FY(M5[sw]["l"])), xr=XR),
-        TV.note_el("n5", 0, top, "٥ · إشارة الانعكاس", L5["detail"],
-                   anchor=(FX(sw), FY(M5[sw]["l"])), xr=XR),
-        TV.note_el("n6", 0, top, "خمسة أسباب اجتمعت",
-                   f'الدخول {PLAN["ENT"]:,.{DP}f} · الوقف {PLAN["STP"]:,.{DP}f} · '
-                   f'المخاطرة {PLAN["R"]:,.{DP}f}', xr=XR),
-        TV.note_el("n7", 0, top, f'الهدف ٢R عند {PLAN["TGT"]:,.{DP}f}',
-                   f'تحقّق بعد {HIT - FILL} شمعات', xr=XR),
+    eq0, sw = L4["eq"][0], L4["sw"]
+    W = 560
+    mid = CX + (CVW - PR) / 2
+    rows = [
+        ("n0", *_place(FX(eq0), FY(L4["lvl"]), W),
+         "القاع الذي انكسر لم يكن كسراً", "قاعان متساويان تحتهما أوامر إيقاف",
+         1.45, 1.55, 3.00, 5.90),
+        ("n1", *_place(mid, CY + CVH - 200, W), "١ · اتجاه صاعد على الأربع ساعات",
+         LAY[0]["detail"], 7.00, 7.10, 8.40, 9.30),
+        ("n2", *_place(mid, CY + CVH - 200, W), "٢ · انحياز اليوم صاعد",
+         LAY[1]["detail"], 10.30, 10.40, 11.60, 12.55),
+        ("n3", *_place(mid, CY + CVH - 200, W), "٣ · هيكل استمراري على الساعة",
+         LAY[2]["detail"], 13.50, 13.60, 14.80, 15.75),
+        ("n4", *_place(FX(sw), FY(M5[sw]["l"]), W), "٤ · سحب السيولة",
+         L4["detail"], 16.60, 16.70, 18.00, 19.20),
+        ("n5", *_place(FX(sw), FY(M5[sw]["l"]), W), "٥ · إشارة الانعكاس",
+         L5["detail"], 19.45, 19.55, 20.90, 21.70),
+        ("n6", *_place(FX(FILL), FY(PLAN["ENT"]), W), "خمسة أسباب اجتمعت",
+         f'الدخول {PLAN["ENT"]:,.{DP}f} · الوقف {PLAN["STP"]:,.{DP}f} · '
+         f'المخاطرة {PLAN["R"]:,.{DP}f}', 25.55, 25.65, 26.85, 27.10),
+        ("n7", *_place(FX(HIT), FY(PLAN["TGT"]), W), f'الهدف ٢R عند {PLAN["TGT"]:,.{DP}f}',
+         f'تحقّق بعد {HIT - FILL} شمعات', 27.55, 27.65, 28.65, 28.95),
     ]
-    return "".join(out)
+    return rows, W
 
 
-# نوافذ ظهور الملاحظات — نفس إيقاع الأسباب السابق، بلا عنوان عائم
-NOTE_T = [(0.55, 5.90), (6.35, 9.10), (9.55, 12.20), (12.65, 15.45),
-          (17.30, 18.90), (19.55, 21.90), (22.60, 26.10), (26.60, 29.60)]
+NOTE_ROWS, NOTE_W = note_plan()
+
+
+def notes():
+    """كل سبب نصٌّ مكتوب على الجارت في مكانه — لا لوحة في ركن ثابت."""
+    return "".join(TV.note_el(nid, x, y, ttl, det, w=NOTE_W)
+                   for nid, x, y, ttl, det, _c, _a, _b, _d in NOTE_ROWS)
+
 
 # عدّاد إغلاق الشمعة وساعة الجلسة: العنصران «الحيّان» في الواجهة، يجعلان
 # اللقطة تسجيلاً لا صورة. يُحدَّثان بتغليف `window.__setFrame` بعد التحميل.
@@ -319,18 +337,18 @@ STORY = []
 MARKS = [
     # بلا زوم تصير الثواني الأولى جارتاً ساكناً مع نصّ — فيُقدَّم أول
     # ماركب إلى داخل الهوك، وهو يصف ما يقوله الهوك نفسه.
-    ("lvl", 1.05, 1.85, "draw"),
-    ("eq0", 1.90, 2.15, "pop"), ("eq1", 2.05, 2.30, "pop"),
-    ("lvllbl", 2.15, 2.45, "pop"),
-    ("tf4h", 6.05, 6.45, "fade", 9.00, .32),
-    ("tf1d", 9.25, 9.65, "fade", 12.10, .32),
-    ("tf1h", 12.35, 12.75, "fade", 15.35, .32),
-    ("swp", 17.80, 18.20, "drawx"),
-    ("swplbl", 18.20, 18.50, "pop"),
-    ("wick", 19.20, 19.60, "fade"), ("wicklbl", 19.65, 19.95, "pop"),
-    ("ex", 22.05, 22.45, "pop"),
-    ("box", 22.25, 24.10, "posbox"),
-    ("ck", 26.80, 27.15, "pop"),
+    ("lvl", 4.05, 4.85, "draw"),
+    ("eq0", 4.90, 5.15, "pop"), ("eq1", 5.05, 5.30, "pop"),
+    ("lvllbl", 5.20, 5.50, "pop"),
+    ("tf4h", 6.50, 6.90, "fade", 9.50, .32),
+    ("tf1d", 9.80, 10.20, "fade", 12.70, .32),
+    ("tf1h", 13.00, 13.40, "fade", 15.85, .32),
+    ("swp", 18.10, 18.50, "drawx"),
+    ("swplbl", 18.50, 18.80, "pop"),
+    ("wick", 19.55, 19.95, "fade"), ("wicklbl", 20.00, 20.30, "pop"),
+    ("ex", 22.20, 22.60, "pop"),
+    ("box", 22.40, 24.20, "posbox"),
+    ("ck", 26.90, 27.25, "pop"),
 ]
 FULLSET = ["eq0", "eq1", "lvllbl", "tf4h", "tf1d", "tf1h", "swp", "swplbl",
            "wick", "wicklbl", "ex", "box", "ck"]
@@ -338,41 +356,72 @@ FULLSET = ["eq0", "eq1", "lvllbl", "tf4h", "tf1d", "tf1h", "swp", "swplbl",
 # ═════════ تشغيل الجلسة: النقرة قبل الرسم دائماً ═════════
 # قاعدة `tradingview-platform-pov`: «أداة رسم تظهر بلا نقرة في الشريط
 # اليساري» عيبٌ يكسر الإيهام. فكل حدث هنا له سببه المرئي.
-CUR, DOM = [[0.20, 700, 980]], []
+CUR, DOM, WIN = [[0.10, 700, 980]], [], []
 
 
-def _do(pair):
+def _do(pair, label=""):
     c, d = pair
     CUR.extend(c); DOM.append(d)
+    WIN.append((c[0][0], c[-1][0], label or d[0]))
 
 
-_do(TV.click_tool(TV.HLINE, 0.62, until=2.45))            # أداة الخط الأفقي
-CUR += TV.draw_path(1.05, 1.85, FX(min(LAY[3]["eq"])) - SLOT5,
+def _click_at(x, y, t, until=None, approach=0.42, hold=0.16):
+    """نقرة على الجارت: وصولٌ ثم تردّدٌ قصير ثم ضغطة — لا وصول-وضغط معاً.
+
+    و`until` تُبقي المؤشر عند النقطة حتى تنتهي الكتابة: مغادرتُه وسط
+    الجملة تكشف أن النصّ ليس مكتوباً بيده."""
+    CUR.extend([[round(t - approach - hold, 2), x, y, "ramp"],
+                [round(t - hold, 2), x, y, "ss"],
+                [round(t, 2), x, y, "ss", "down"]])
+    if until:
+        CUR.append([round(until, 2), x, y, "ss"])
+    WIN.append((round(t - approach - hold, 2), round(until or t, 2), "نصّ"))
+
+
+# أداة النصّ تُمسك مرّة وتبقى: المتداول لا يعيد اختيارها لكل جملة، بل
+# حين يتركها لأداةٍ أخرى ثم يعود إليها.
+_do(TV.click_tool(TV.TEXT, 0.85, until=3.70))
+for nid, x, y, _t, _d, tc, ta, tb, td in NOTE_ROWS[:1]:
+    _click_at(x + NOTE_W - 30, y + 30, tc, until=tb)
+
+_do(TV.click_tool(TV.HLINE, 3.75, until=5.30))            # أداة الخط الأفقي
+CUR += TV.draw_path(4.05, 4.85, FX(min(LAY[3]["eq"])) - SLOT5,
                     FY(LAY[3]["lvl"]), CX + CVW - PR, FY(LAY[3]["lvl"]))
-CUR += [[2.35, FX(LAY[3]["eq"][0]), FY(M5[LAY[3]["eq"][0]]["l"]) + 40, "creep"]]
-for i, (tf, t) in enumerate((("4H", 5.85), ("1D", 9.05), ("1h", 12.15), (EXEC, 15.40))):
+WIN.append((4.05, 4.85, "رسم الخط"))
+
+_do(TV.click_tool(TV.TEXT, 5.60, until=22.05))            # ويعود للنصّ
+for i, (tf, t) in enumerate((("4H", 6.30), ("1D", 9.60), ("1h", 12.80), (EXEC, 15.95))):
     _do(TV.click_tf(tf, t))
-    CUR += [[t + 0.9, 690, 620 + i * 40, "creep"]]        # يقرأ اللوحة
-CUR += [[17.60, FX(LAY[3]["sw"]), FY(M5[LAY[3]["sw"]]["l"]) + 30, "ramp"],
-        [19.10, FX(LAY[3]["sw"]) - SLOT5 * 1.4, FY(M5[LAY[3]["sw"]]["c"]), "creep"]]
-_do(TV.click_tool(TV.TRADE, 21.95, until=24.20))          # أداة الصفقة
-CUR += TV.draw_path(22.25, 24.10, FX(FILL), FY(PLAN["ENT"]),
+for nid, x, y, _t, _d, tc, ta, tb, td in NOTE_ROWS[1:6]:
+    _click_at(x + NOTE_W - 30, y + 30, tc, until=tb)
+
+_do(TV.click_tool(TV.TRADE, 22.10, until=24.70))          # أداة الصفقة
+CUR += TV.draw_path(22.40, 24.20, FX(FILL), FY(PLAN["ENT"]),
                     FX(FILL) + 120, FY(PLAN["TGT"]))
-CUR += [[26.40, FX(HIT), FY(PLAN["TGT"]) - 46, "creep"],
-        [28.60, 760, 900, "creep"]]
-# الفريم المختار: قرص واحد مضيء في كل لحظة — يُطفأ الخمس دقائق عند التبديل
-# ويُعاد عند العودة، فالحالة تتبع النقرة لا تسبقها.
+WIN.append((22.40, 24.20, "سحب الصفقة"))
+_do(TV.click_tool(TV.TEXT, 24.90, until=29.00))
+for nid, x, y, _t, _d, tc, ta, tb, td in NOTE_ROWS[6:]:
+    _click_at(x + NOTE_W - 30, y + 30, tc, until=tb)
+CUR += [[29.05, 780, 1000, "creep"]]
+# اليد واحدة: لا تكون في مكانين. لو تداخلت نافذتا فعل عاد المؤشر أدراجه
+# وسط الجملة — وهو أوضح ما يكشف أن النصّ ليس مكتوباً بيده. فيُفحص البناء
+# على النوافذ لا على ترتيب الكتابة في الملف.
+WIN.sort()
+_bad = [(WIN[i], WIN[i + 1]) for i in range(len(WIN) - 1) if WIN[i][1] > WIN[i + 1][0]]
+assert not _bad, "نوافذ أفعال متداخلة: " + str(_bad[:2])
+CUR.sort(key=lambda k: k[0])
+
+# الفريم المختار: قرص واحد مضيء في كل لحظة — يتبع النقرة لا يسبقها
 _TFI = {k: i for i, k in enumerate(TV.TF_ORDER)}
 _E = _TFI.get(EXEC, 0)
-DOM += [[f'tfo{_E}', 0.0, 0.05, 5.85, 0.15],
-        [f'tfo{_TFI["4H"]}', 5.85, 6.00, 9.05, 0.15],
-        [f'tfo{_TFI["1D"]}', 9.05, 9.20, 12.15, 0.15],
-        [f'tfo{_TFI["1h"]}', 12.15, 12.30, 15.40, 0.15],
-        [f'tfq{_E}', 15.40, 15.55, 0, 0]]      # القرص الاحتياطي عند العودة
-# الملاحظات وخيوطها تظهر وتختفي بنافذة كل سبب
-for i, (a, b) in enumerate(NOTE_T):
-    DOM.append([f"n{i}", a, a + 0.32, b, 0.28])
-    DOM.append([f"n{i}l", a + 0.10, a + 0.40, b, 0.28])
+DOM += [[f'tfo{_E}', 0.0, 0.05, 6.30, 0.15],
+        [f'tfo{_TFI["4H"]}', 6.30, 6.45, 9.60, 0.15],
+        [f'tfo{_TFI["1D"]}', 9.60, 9.75, 12.80, 0.15],
+        [f'tfo{_TFI["1h"]}', 12.80, 12.95, 15.95, 0.15],
+        [f'tfq{_E}', 15.95, 16.10, 0, 0]]
+# الملاحظات: تُكتب بين `ta` و`tb` بنمط «type» ثم تُمسح عند `td`
+DOM += [[nid, ta, tb, td, 0.26, "type"]
+        for nid, _x, _y, _t, _d, _c, ta, tb, td in NOTE_ROWS]
 
 cfg = dict(
     w=M5, dark=DK, extra_css=BASE_CSS, extra_html=BASE_HTML,
@@ -391,7 +440,7 @@ cfg = dict(
     cta_s=f'ويصلك التحليل كاملاً<div class="egm">{GEM}</div>'
           f'<div class="ewm">LIQUIDITY STATE</div>',
     edu=f'{D["sym"]} · {TF_AR.get(EXEC, EXEC)} · {D["anchor_utc"][:10]} — مثال تعليمي',
-    dur=DUR, res_t=999, cta_t=DUR - 2.4,
+    dur=DUR, res_t=999, cta_t=29.1,
     # لا وميض ولا نبضة: الشاشة لا تومض. (الفرع الثابت في المحرّك يتجاهل
     # النبضة والاهتزاز أصلاً، والإطفاء هنا تصريحٌ لا تكرار.)
     flash=(0.0, 0.0), flash_op=0.0, punch=(0.0, 0.0, 0.0),

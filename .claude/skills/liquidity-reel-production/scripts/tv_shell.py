@@ -127,6 +127,10 @@ NOTE_CSS = """
 .nt b{display:block;font-size:30px;font-weight:900;color:#0F2E3C;line-height:1.2}
 .nt span{display:block;margin-top:5px;font-size:25px;font-weight:600;color:#5C6C73;line-height:1.35}
 .ntl{position:absolute;z-index:6;opacity:0;background:rgba(30,98,122,.42)}
+/* مؤشّر الكتابة: خطٌّ رفيع على حافة النصّ يومض ما دامت الأداة تكتب */
+.nt.typing::after{content:"";position:absolute;left:14px;bottom:14px;width:3px;height:30px;
+  background:#1E627A;animation:cbl .5s steps(1) infinite}
+@keyframes cbl{0%,49%{opacity:1}50%,100%{opacity:0}}
 """
 
 
