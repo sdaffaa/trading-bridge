@@ -1,0 +1,45 @@
+{
+ "_readme": "أي مفتاح سبب استُعمل في أي ريل — كي لا تتكرّر الرواية",
+ "runs": [
+  {
+   "tag": "ng_sc_2026-08-03_1409",
+   "keys": [
+    "4H.ma_gap",
+    "1D.pd_mid",
+    "1h.struct",
+    "sweep.sweep",
+    "signal.wick"
+   ]
+  },
+  {
+   "tag": "si_sc_2026-08-07_1139",
+   "keys": [
+    "4H.ma_gap",
+    "1D.pd_mid",
+    "1h.struct",
+    "sweep.sweep",
+    "signal.wick"
+   ]
+  },
+  {
+   "tag": "gc_sc_2026-08-05_0736",
+   "keys": [
+    "4H.ma_gap",
+    "1D.pd_mid",
+    "1h.struct",
+    "sweep.sweep",
+    "signal.wick"
+   ]
+  },
+  {
+   "tag": "bz_sc_2026-08-07_1051",
+   "keys": [
+    "4H.ma_run",
+    "1D.pd_room",
+    "1h.room",
+    "sweep.depth",
+    "signal.close_top"
+   ]
+  }
+ ]
+}
