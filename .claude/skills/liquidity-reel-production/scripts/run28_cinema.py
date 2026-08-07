@@ -169,6 +169,18 @@ def _clampx(cx, half):
     return min(max(cx, PL + half), CVW - PR - half)
 
 
+def _y_exec(y):
+    """صفّ وسم «تنفيذ» فوق قمم الشموع المجاورة للدخول لا فوق سعر الدخول.
+
+    إزاحةٌ ثابتة عن سعر الدخول (٤٨ بكسل) تضع الوسم داخل أجساد الشموع
+    كلما ارتفعت قممها فوقه — وهذا ما حدث على الغاز. فيُرفع فوق أعلى قمة
+    مجاورة، ويبقى تحت صفّ «الهدف» كي لا يزاحمه."""
+    # الوسم مرتكز `start` (يمينه عند الدخول) فيمتدّ يساراً فوق نحو ستّ
+    # شمعات سابقة — فالمدى المفحوص يمتدّ يساراً لا حول الدخول وحده.
+    hi = min(y(M5[j]["h"]) for j in range(max(0, FILL - 7), min(len(M5), FILL + 3)))
+    return max(hi - 26, y(PLAN["TGT"]) + 44)
+
+
 def m5_svg():
     x, y, slot, *_ = geo(M5)
     R = CVW - PR
@@ -193,9 +205,10 @@ def m5_svg():
         ex.append(f'<g id="eq{n}" opacity="0"><circle cx="{x(j):.1f}" cy="{y(M5[j]["l"]):.1f}" '
                   f'r="13" fill="none" stroke="{tv_chart.T["LVL"]}" stroke-width="3.6"/></g>')
     ex.append(xmark(x(sw), y(M5[sw]["l"]) + 34, id="swp", r=22))
-    # «كَنْس» و«ذيل رفض» و«الوقف» تتزاحم كلها حول قاع شمعة واحدة. تُفرَّق
-    # رأسياً وأفقياً: الكنس تحت العلامة يساراً، والذيل بمنتصفه يميناً.
-    ex.append(f'<g id="swplbl" opacity="0">{htext(x(sw) - slot * 7.4, Y_SWP, "كَنْس", RED, 32)}</g>')
+    # «سحب سيولة» و«ذيل رفض» و«الوقف» تتزاحم كلها حول قاع شمعة واحدة.
+    # تُفرَّق رأسياً وأفقياً: السحب تحت العلامة يساراً، والذيل فوقه.
+    # واللفظ «سحب السيولة» لا «كنس» — §6 يمنع الثاني في كل ما يُنشر.
+    ex.append(f'<g id="swplbl" opacity="0">{htext(x(sw) - slot * 7.4, Y_SWP, "سحب سيولة", RED, 32)}</g>')
     # ذيل الرفض: خط رأسي يبرز الذيل نفسه
     c = M5[sw]
     wick_txt = "ذيل رفض " + str(round(L5["wick"] * 100)) + "٪"
@@ -218,7 +231,7 @@ def m5_svg():
               f'<path d="M {x(FILL)-t*2.2:.1f} {y(PLAN["ENT"])-t:.1f} L {x(FILL)-t*.5:.1f} {y(PLAN["ENT"]):.1f} '
               f'L {x(FILL)-t*2.2:.1f} {y(PLAN["ENT"])+t:.1f} Z" fill="{TEAL_D}"/>'
               f'<circle cx="{x(FILL):.1f}" cy="{y(PLAN["ENT"]):.1f}" r="5.5" fill="{TEAL_D}"/>'
-              + htext(x(FILL) - t * 2.6, y(PLAN["ENT"]) - 48, "تنفيذ", TEAL_D, 30, anchor="start") + '</g>')
+              + htext(x(FILL) - t * 2.6, _y_exec(y), "تنفيذ", TEAL_D, 30, anchor="start") + '</g>')
     ex.append(checkmark(x(HIT), y(PLAN["TGT"]) - 42, id="ck"))
     return "".join(ex), x, y, slot
 
@@ -317,7 +330,10 @@ window.addEventListener('load', () => {
 _hh, _mm = (M5[FILL]["d"][11:13], M5[FILL]["d"][14:16]) if len(M5[FILL]["d"]) > 15 \
     else (M5[FILL]["d"][:2], M5[FILL]["d"][3:5])
 TF_SEC = {"3m": 180, "5m": 300, "15m": 900, "30m": 1800, "1h": 3600}
-BASE_HTML = (TV.shell_html(D["sym"], EXEC, foot=f'{D["sym"]} · {TF_AR.get(EXEC, EXEC)} · '
+# صفّ الفريمات يبدأ بفريم التنفيذ نفسه: نافذة الثلاث دقائق كانت تُضيء
+# شريحة «٥د» لأن الصفّ ثابت — والشاشة يجب أن تقول ما رُسم عليه فعلاً.
+TFS = TV.tf_row(EXEC)
+BASE_HTML = (TV.shell_html(D["sym"], EXEC, tfs=TFS, foot=f'{D["sym"]} · {TF_AR.get(EXEC, EXEC)} · '
                            f'{D["anchor_utc"][:10]} — مثال تعليمي')
              + notes()
              + CLOCK_JS.replace("__TOT__", str(TF_SEC.get(EXEC, 300)))
@@ -391,7 +407,7 @@ WIN.append((4.05, 4.85, "رسم الخط"))
 
 _do(TV.click_tool(TV.TEXT, 5.60, until=22.05))            # ويعود للنصّ
 for i, (tf, t) in enumerate((("4H", 6.30), ("1D", 9.60), ("1h", 12.80), (EXEC, 15.95))):
-    _do(TV.click_tf(tf, t))
+    _do(TV.click_tf(tf, t, tfs=TFS))
 for nid, x, y, _t, _d, tc, ta, tb, td in NOTE_ROWS[1:6]:
     _click_at(x + NOTE_W - 30, y + 30, tc, until=tb)
 
@@ -412,7 +428,7 @@ assert not _bad, "نوافذ أفعال متداخلة: " + str(_bad[:2])
 CUR.sort(key=lambda k: k[0])
 
 # الفريم المختار: قرص واحد مضيء في كل لحظة — يتبع النقرة لا يسبقها
-_TFI = {k: i for i, k in enumerate(TV.TF_ORDER)}
+_TFI = {k: i for i, k in enumerate(TFS)}
 _E = _TFI.get(EXEC, 0)
 DOM += [[f'tfo{_E}', 0.0, 0.05, 6.30, 0.15],
         [f'tfo{_TFI["4H"]}', 6.30, 6.45, 9.60, 0.15],
