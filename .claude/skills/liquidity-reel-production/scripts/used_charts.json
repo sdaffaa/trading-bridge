@@ -7397,6 +7397,14 @@
    "end": "2026-05-29 17:15",
    "label": "run31-partial",
    "video": "run31-daily-2026-08-06"
+  },
+  {
+   "symbol": "BZ=F",
+   "timeframe": "3m",
+   "start": "2026-08-07 08:51",
+   "end": "2026-08-07 11:48",
+   "label": "run35-frame",
+   "video": "run35-frame-2026-08-07"
   }
  ]
 }
