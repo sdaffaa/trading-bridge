@@ -152,3 +152,62 @@ def furniture(W, CW, CH, pl, pr, pt, pb, ymin, ymax, slot, dec, sym, tf, gem="")
                   f'font-weight="600" text-anchor="middle" '
                   f'font-family="system-ui,sans-serif" direction="ltr">{W[i]["d"]}</text>')
     return "".join(g), "".join(tg)
+
+# ═══════════ مفردات الماركب — مرجع فهد الثاني 2026-08-08 ═══════════
+# 🔒 المرجع منشورٌ منشور لمتداول آخر. المأخوذ منه **اصطلاحات الرسم** وحدها
+# — وهي مفردات SMC عامة يرسمها آلاف المتداولين وتبنيها أدوات المنصّة
+# نفسها (صندوق FVG · مستطيل الأوردر بلوك · خطّ سيولة موسوم · وسوم BOS
+# وCHoCH · ترقيم السوينقات). ولا يُؤخذ منه ما يخصّ صاحبه: علامته المائية
+# ولا شعاره ولا معالجة عناوينه — تلك هويّةُ حسابٍ لا اصطلاحُ سوق.
+
+
+def line_label(x, y, txt, col, fs=27, gid=None):
+    """وسمٌ يقطع الخطّ لا يعلوه: مستطيل بلون الخلفية يمحو ما تحته، والنصّ
+    فوقه بلا حدٍّ ولا إطار.
+
+    هكذا ترسم المنصّة وسوم مستوياتها، وهكذا في المرجع: الخطّ يمشي، ثم
+    ينقطع عند الاسم، ثم يستأنف. والتنفيذ بمستطيلٍ ماحٍ أبسط من قصّ الخطّ
+    شطرين — والنتيجة على الشاشة واحدة، ويبقى الخطّ عنصراً واحداً يُرسم
+    بحركة واحدة."""
+    w = len(txt) * fs * 0.58 + 26
+    o = (f'<rect x="{x-w/2:.1f}" y="{y-fs*0.82:.1f}" width="{w:.1f}" '
+         f'height="{fs*1.64:.1f}" fill="{BG}"/>'
+         f'<text x="{x:.1f}" y="{y+fs*0.34:.1f}" fill="{col}" font-size="{fs}" '
+         f'font-weight="600" text-anchor="middle" '
+         f'font-family="system-ui,Segoe UI,sans-serif" direction="ltr">{_esc(txt)}</text>')
+    return f'<g id="{gid}" opacity="0">{o}</g>' if gid else o
+
+
+def zone_box(x0, y0, x1, y1, txt, col, fill=None, fs=27, gid=None):
+    """منطقة موسومة: مستطيل بحدٍّ ٢٫٥ وحشوٍ شفّاف، واسمها **داخله** موسَّطاً.
+
+    هذا شكل الأوردر بلوك و«Small OB» و«FVG» في المرجع: لا بطاقة معلّقة
+    على الحافة، إنما اسمٌ يجلس في قلب المنطقة."""
+    h = abs(y1 - y0)
+    top = min(y0, y1)
+    # الاسم داخل المنطقة ما دامت تتّسع له، وإلا فوقها. منطقة الأوردر بلوك
+    # قد تكون جسم شمعةٍ واحدة (بضعة بكسلات) فيخرج النصّ من حدّيها ويلتحم
+    # بخطّ الدخول تحته — والمنصّة نفسها تُخرج الوسم حين لا يتّسع.
+    inside = h >= fs * 1.9
+    ty_ = (top + h / 2 + fs * 0.34) if inside else (top - fs * 0.55)
+    lbl = (f'<rect x="{(x0+x1)/2-(len(txt)*fs*0.58+22)/2:.1f}" '
+           f'y="{ty_-fs*1.02:.1f}" width="{len(txt)*fs*0.58+22:.1f}" '
+           f'height="{fs*1.42:.1f}" fill="{BG}"/>' if not inside else "")
+    o = (f'<rect x="{x0:.1f}" y="{top:.1f}" width="{x1-x0:.1f}" '
+         f'height="{h:.1f}" fill="{fill or ZONE_WIN}" '
+         f'stroke="{col}" stroke-width="2.5"/>' + lbl +
+         f'<text x="{(x0+x1)/2:.1f}" y="{ty_:.1f}" fill="{col}" '
+         f'font-size="{fs}" font-weight="600" text-anchor="middle" '
+         f'font-family="system-ui,Segoe UI,sans-serif" direction="ltr">{_esc(txt)}</text>')
+    return f'<g id="{gid}" opacity="0">{o}</g>' if gid else o
+
+
+def swing(x, y, n, col=None, fs=24, gid=None):
+    """ترقيم السوينقات `(1)…(5)` — وسمٌ صغير عند القمّة أو القاع.
+
+    يقرأ المشاهد به ترتيب الحركة بلا جملة واحدة، وهو ما يجعل الفيديو
+    مفهوماً والصوت مقفول (شرط فهد)."""
+    o = (f'<text x="{x:.1f}" y="{y:.1f}" fill="{col or TEAL}" font-size="{fs}" '
+         f'font-weight="700" text-anchor="middle" '
+         f'font-family="system-ui,Segoe UI,sans-serif" direction="ltr">({n})</text>')
+    return f'<g id="{gid}" opacity="0">{o}</g>' if gid else o

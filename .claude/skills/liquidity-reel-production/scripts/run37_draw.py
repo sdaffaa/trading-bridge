@@ -134,38 +134,41 @@ T_CTA = 19.00                          # البريف: لا CTA قبل ١٦
 
 
 def markup():
-    """مفردات المرجع: بطاقة وسم على كل خطّ، وخطوطٌ تعبر العرض، وبطاقة
-    سعر على المحور، ومنطقتان شفافتان تمتدّان إلى الحافة."""
+    """مفردات المرجع الثاني: الوسم يقطع الخطّ، والمنطقة يجلس اسمها داخلها.
+
+    كانت البطاقات المحاطة بحدٍّ معلّقةً على أطراف الخطوط (المرجع الأول).
+    والمرجع الثاني يرسم غير ذلك: الخطّ يمشي ثم ينقطع عند اسمه ثم يستأنف،
+    والمنطقة اسمها في قلبها لا على حافتها. فالمفردات هذه، والتخطيط
+    والألوان وبطاقات المحور تبقى كما هي."""
     XR = CVW - PR                                # حافة محور السعر
     bx0 = X(IOB) - SLOT * .6                     # يسار الأوردر بلوك
     yt, yb = Y(OB_HI), Y(OB_LO)
     ey, sy, ty = Y(ENT), Y(STP), Y(TGT)
+    mid = (bx0 + XR) / 2
     ex = []
 
-    # ١) خط السيولة يُسحب من اليسار إلى حافة المحور
-    ex.append(line_el(0, Y(LIQ), XR, Y(LIQ), INK, 3.0, id="liq"))
-    # ٢) بطاقة `$$$` على الخطّ من طرفه الأيسر
-    ex.append(TVF.tag(14, Y(LIQ), "$$$", INK, gid="dol"))
-    # ٣) مستطيل الأوردر بلوك — أربعة أضلاع تُرسم واحداً واحداً
-    for n, (p0, q0, p1, q1) in enumerate((
-            (bx0, yt, XR, yt), (XR, yt, XR, yb),
-            (XR, yb, bx0, yb), (bx0, yb, bx0, yt))):
-        ex.append(line_el(p0, q0, p1, q1, TEAL_D, 3.0, id=f"ob{n}"))
-    # ٤) بطاقة ORDER BLOCK على ضلعه العلوي من اليسار
-    ex.append(TVF.tag(14, yt, "ORDER BLOCK", TEAL_D, gid="obl"))
-    # ٥) خط الدخول وبطاقة الاتجاه من الطرف الأيمن
-    ex.append(line_el(bx0, ey, XR, ey, INK, 2.6, id="entl"))
-    ex.append(TVF.tag(XR - 14, ey, DIRN, RED if SELL else TEAL_D,
-                      anchor="end", gid="side"))
-    # ٦) الوقف: خط متقطّع + بطاقة يمنى + منطقة المخاطرة
+    # ١) خطّ السيولة يعبر العرض، واسمه يقطعه في وسطه
+    ex.append(line_el(0, Y(LIQ), XR, Y(LIQ), INK, 2.2, id="liq"))
+    ex.append(TVF.line_label(mid * 0.62, Y(LIQ), "$$$", INK, gid="dol"))
+    # ٢) الأوردر بلوك: مستطيل موسوم من الداخل يمتدّ إلى حافة المحور
+    ex.append(TVF.zone_box(bx0, yt, XR, yb, "ORDER BLOCK", TEAL_D,
+                           fill="rgba(46,125,150,0.10)", gid="obz"))
+    # ٣) خطّ الدخول واسم الاتجاه يقطعه
+    ex.append(line_el(bx0, ey, XR, ey, INK, 2.2, id="entl"))
+    ex.append(TVF.line_label(mid, ey, DIRN, RED if SELL else TEAL_D, gid="side"))
+    # ٤) الوقف: منطقة المخاطرة ثم خطّ متقطّع واسمه يقطعه
     ex.append(TVF.zone(bx0, ey, XR, sy, TVF.ZONE_LOSS, gid="zloss"))
-    ex.append(line_el(bx0, sy, XR, sy, RED, 2.6, dash="12 9", id="stp"))
-    ex.append(TVF.tag(XR - 14, sy, "STOP LOSS", RED, anchor="end", gid="stpl"))
-    # ٧) الهدف: خط متقطّع + بطاقة يمنى + منطقة العائد
+    ex.append(line_el(bx0, sy, XR, sy, RED, 2.2, dash="12 9", id="stp"))
+    ex.append(TVF.line_label(mid, sy, "STOP LOSS", RED, gid="stpl"))
+    # ٥) الهدف: منطقة العائد ثم خطّ متقطّع واسمه يقطعه
     ex.append(TVF.zone(bx0, ey, XR, ty, TVF.ZONE_WIN, gid="zwin"))
-    ex.append(line_el(bx0, ty, XR, ty, TEAL_D, 2.6, dash="12 9", id="tgt"))
-    ex.append(TVF.tag(XR - 14, ty, "TAKE PROFIT", TEAL_D, anchor="end", gid="tgtl"))
-
+    ex.append(line_el(bx0, ty, XR, ty, TEAL_D, 2.2, dash="12 9", id="tgt"))
+    ex.append(TVF.line_label(mid, ty, "TAKE PROFIT", TEAL_D, gid="tgtl"))
+    # ٦) ترقيم السوينقات: القاع الذي كوّن المنطقة ثم شمعة الدخول ثم الهدف
+    _lo_i = min(range(max(0, IOB - 6), IOB + 1), key=lambda j: W[j]["l"])
+    ex.append(TVF.swing(X(_lo_i), Y(W[_lo_i]["l"]) + 38, 1, gid="sw1"))
+    ex.append(TVF.swing(X(FILL), Y(W[FILL]["l"]) + 38, 2, gid="sw2"))
+    ex.append(TVF.swing(X(HIT), Y(W[HIT]["h"]) - 22, 3, gid="sw3"))
     return "".join(ex)
 
 
@@ -186,11 +189,11 @@ def axis_chips():
 MARKS = [
     ("liq", T_LIQ, T_LIQ_E, "draw"),
     ("dol", T_DOL, T_DOL + 0.55, "pop"),
-    ("ob0", T_BOX, T_BOX + 0.90, "draw"), ("ob1", T_BOX + 0.85, T_BOX + 1.75, "draw"),
-    ("ob2", T_BOX + 1.70, T_BOX + 2.60, "draw"), ("ob3", T_BOX + 2.55, T_BOX_E, "draw"),
-    ("obl", T_OBL, T_OBL + 0.60, "pop"),
+    ("sw1", T_DOL + 0.60, T_DOL + 1.00, "pop"),
+    ("obz", T_BOX, T_BOX_E, "fade"),
     ("entl", T_SIDE - 0.55, T_SIDE, "draw"),
     ("side", T_SIDE, T_SIDE + 0.60, "pop"),
+    ("sw2", T_SIDE + 0.55, T_SIDE + 0.95, "pop"),
     ("che", T_SIDE + 0.25, T_SIDE + 0.70, "fade"),
     ("stp", T_STP, T_STP + 1.60, "draw"), ("stpl", T_STP + 1.55, T_STP + 2.15, "pop"),
     ("zloss", T_STP + 1.70, T_STP + 2.40, "fade"),
@@ -198,9 +201,11 @@ MARKS = [
     ("tgt", T_TGT, T_TGT + 2.00, "draw"), ("tgtl", T_TGT + 1.95, T_TGT + 2.60, "pop"),
     ("zwin", T_TGT + 2.10, T_TGT + 2.95, "fade"),
     ("cht", T_TGT + 2.55, T_TGT + 2.95, "fade"),
+    ("sw3", T_ARR, T_ARR + 0.45, "pop"),
 ]
-FULLSET = ["dol", "obl", "side", "stpl", "tgtl", "zloss", "zwin", "chs", "che", "cht"]
-DRAWSET = ["liq", "ob0", "ob1", "ob2", "ob3", "entl", "stp", "tgt"]
+FULLSET = ["dol", "obz", "side", "stpl", "tgtl", "zloss", "zwin",
+           "chs", "che", "cht", "sw1", "sw2", "sw3"]
+DRAWSET = ["liq", "entl", "stp", "tgt"]
 
 # الشموع: ساكنة حتى ١٨ ثم تُطبع ثمانٍ حتى ٢١، ثم تثبت للوب
 RP_KF = [[0.0, RP_BASE], [T_RUN, RP_BASE], [T_RUN_E, len(W) - 1], [DUR, len(W) - 1]]
@@ -232,11 +237,7 @@ CURSOR = [
     [T_LIQ_E, CX + R - RSHIFT, FY(LIQ), "lin"],           # سحب خط السيولة
     [T_DOL, FX(max(0, FILL - 16)), FY(LIQ) + (34 if SELL else -18), "ss", "down"],
     [T_BOX, _bx0, _yt, "ss"],
-    [T_BOX + 0.90, _bx1, _yt, "lin"],                     # الضلع العلوي
-    [T_BOX + 1.75, _bx1, _yb, "lin"],                     # الأيمن
-    [T_BOX + 2.60, _bx0, _yb, "lin"],                     # السفلي
-    [T_BOX_E, _bx0, _yt, "lin"],                          # الأيسر
-    [T_OBL, (_bx0 + _bx1) / 2, _yb + 40, "ss", "down"],
+    [T_BOX_E, CX + CVW - PR, _yb, "lin"],                 # سحب المنطقة قطرياً
     [T_SIDE, _bx0 - 97, FY(ENT), "ss", "down"],
     [T_STP, _bx0, FY(STP), "ss"],
     [T_STP + 1.60, CX + R - RSHIFT, FY(STP), "lin"],      # سحب خط الوقف
