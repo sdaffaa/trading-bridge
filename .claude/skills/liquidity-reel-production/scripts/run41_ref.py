@@ -49,7 +49,7 @@ set_canvas(CVW, CVH)
 PL, PR, PT, PB = 0, 0, 300, 150
 set_pad(PL, PR, PT, PB)
 PW, PH = CVW - PL - PR, CVH - PT - PB
-DUR = 28.5
+DUR = 30.0
 FPS = 60
 
 SET = os.environ.get("LS_SET", "btc_sc_2026-08-07_1233.json")
@@ -129,84 +129,130 @@ if _T1 <= _T0:
     _T1 = len(W) - 1
 
 
-# ═══════════ إحداثيات العناصر — مصدرٌ واحد ═══════════
-# تُحسب مرّةً ويقرؤها الماركبُ والمقابضُ والمؤشّر معاً.
+# ═══════════ إحداثيات العناصر — ملتصقة بشمعتها ═══════════
+# 🔒 «يجب ان تكون دقة الماركب ١٠٠٪» — أمر فهد 2026-08-08.
 #
-# والترتيب الرأسي **يقوّس الحركة** كما في المرجع الثالث: شريطٌ عريض عند
-# سقف النافذة وآخر عند قاعها، وبينهما الصناديق. أول بناءٍ اشتقّ الشريطين
-# من جسم الأوردر بلوك وقاع الساق فوقعا في وسط اللوحة متلاصقين، وتراكبت
-# أسماؤهما مع `CHoCH` و`Liquidity`. والتقويس يمنع التصادم بالبناء لا
-# بالمعالجة بعده.
+# أول بناءٍ أزاح الشريطين إلى سقف النافذة وقاعها هرباً من تصادم الأسماء،
+# وهذا يكسر الدقّة: `OB` في المراجع يجلس على **جسم شمعته بالضبط**، لا
+# على سقفٍ اختير للراحة. فالقاعدة الآن:
+#
+#   · كل منطقة تأخذ سعرها الحقيقي من الشمعة التي اشتُقّت منها.
+#   · وتمتدّ يميناً إلى حافة اللوحة — امتداد المنصّة نفسه: تغيّرٌ في
+#     الزمن لا في السعر، فلا يمسّ الدقّة.
+#   · والتصادم يُحلّ بموضع **الاسم** أفقياً لا بإزاحة الشكل. فتتقاطع
+#     المناطق (وهو تقاطعٌ حقيقي يجب أن يظهر) ولا تتقاطع أسماؤها.
+# **لا توسيع.** كل حدٍّ هو حدّ شمعته بالضبط؛ والاسم يخرج فوق الشكل حين
+# يضيق عنه (`shape_label`). التوسيع يُصلح المظهر ويكسر ما يُرسم لأجله:
+# حدّا الأوردر بلوك هما موضع التفاعل، وإزاحتُهما ثمانية بكسلات تجعل
+# اللوحة تقول سعراً لم تلمسه الشمعة.
 _HI = max(c["h"] for c in W); _LO = min(c["l"] for c in W)
-_BAND = (Y(_LO) - Y(_HI)) * 0.045          # سُمك الشريط بنسبة ارتفاع اللوحة
-OB_T, OB_B = Y(_HI) - _BAND * 1.6, Y(_HI) + _BAND * 0.4
-DM_T, DM_B = Y(_LO) - _BAND * 0.4, Y(_LO) + _BAND * 1.6
 
-# الصندوقان يقتسمان الفراغ بين الشريطين: الفجوة أعلى وفيبو أسفلها،
-# وكلٌّ في نطاق x مستقلّ كي لا يلتقي اسماهما.
-FV_X0 = FV_X1 = FV_T = FV_B = 0.0
+OB_T, OB_B = Y(OB_HI), Y(OB_LO)            # جسم شمعة الأوردر بلوك بالضبط
+OB_X0 = X(IOB) - SLOT * 0.6
+
+_iHI = max(range(len(W)), key=lambda j: W[j]["h"])
+_iLO = min(range(len(W)), key=lambda j: W[j]["l"])
+SUP_T, SUP_B = Y(_HI), Y(max(W[_iHI]["o"], W[_iHI]["c"]))
+DM_T, DM_B = Y(min(W[_iLO]["o"], W[_iLO]["c"])), Y(_LO)
+SUP_X0, DM_X0 = X(_iHI) - SLOT * 0.6, X(_iLO) - SLOT * 0.6
+
+FV_X0 = FV_T = FV_B = 0.0
 if FVG:
     _i, _flo, _fhi = FVG
-    FV_X0 = max(XL + 20, X(_i) - SLOT)
-    FV_X1 = min(FV_X0 + 300, XR - 20)
+    FV_X0 = X(_i) - SLOT * 0.6
     FV_T, FV_B = Y(_fhi), Y(_flo)
-    if FV_B - FV_T < 54:                   # فجوةٌ رفيعة لا يتّسع لها اسم
-        _m = (FV_T + FV_B) / 2
-        FV_T, FV_B = _m - 27, _m + 27
+
 FB_T, FB_B = Y(FIB618), Y(FIB5)
-if FB_B - FB_T < 54:
-    _m = (FB_T + FB_B) / 2
-    FB_T, FB_B = _m - 27, _m + 27
-# منطقة فيبو ٠٫٥–٠٫٦١٨ تقع كثيراً على فجوة القيمة نفسها — وهو تقاطعٌ
-# حقيقي لا خطأ. فيبقى الصندوقان ويُفصلان **أفقياً**: الفجوة عند شمعاتها
-# وفيبو بجوارها، فيُقرأ الاسمان. وإن ضاق اليمين انتقل الصندوق يساراً.
-_FBW = 330
-if FVG and abs((FB_T + FB_B) / 2 - (FV_T + FV_B) / 2) < 60:
-    FB_X0 = FV_X1 + 44
-    if FB_X0 + _FBW > XR - 20:
-        FB_X0 = max(XL + 20, FV_X0 - 44 - _FBW)
-else:
-    FB_X0 = X(_LEG_LO) + SLOT * 2
-FB_X0 = max(XL + 20, min(FB_X0, XR - 20 - _FBW))
-FB_X1 = FB_X0 + _FBW
+FB_X0 = X(_LEG_LO if SELL else _LEG_HI) - SLOT * 0.6
+
 TR_X0, TR_Y0 = X(_T0), Y(W[_T0]["h"] if SELL else W[_T0]["l"])
 TR_X1, TR_Y1 = X(_T1), Y(W[_T1]["h"] if SELL else W[_T1]["l"])
 LQ_Y = Y(LVL)
 
-# ═══════════ الخط الزمني — كيفريمات المرجع الثالث ═══════════
+# موضع اسم كل عنصر: نسبةٌ من عرضه. أداةُ فضّ التصادم في هذا الطراز.
+LX = {"sup": 0.50, "ob": 0.74, "fvg": 0.58, "fib": 0.30, "dem": 0.50}
+_lx = lambda k, x0: x0 + (XR - x0) * LX[k]
+
+
+def _choch():
+    """نقطة انقلاب الهيكل: أول شمعةٍ بعد الكنس تغلق خلف الطرف السابق.
+
+    تُشتقّ ولا تُوضع بالنظر، وإن لم تُوجد فلا يُرسم الوسم أصلاً — وسمٌ
+    بلا حدثٍ يقابله هو بالضبط ما ينقض دقّة الماركب."""
+    if SELL:
+        ref = min(W[j]["l"] for j in range(max(0, SW - 8), SW + 1))
+        return next((i for i in range(SW + 1, len(W)) if W[i]["c"] < ref), None)
+    ref = max(W[j]["h"] for j in range(max(0, SW - 8), SW + 1))
+    return next((i for i in range(SW + 1, len(W)) if W[i]["c"] > ref), None)
+
+
+ICH = _choch()
+
+
+def _pivots(k=3):
+    """قممٌ وقيعانٌ محورية حقيقية: أدنى/أعلى نقطةٍ في نافذة ٧ شمعات."""
+    out = []
+    for i in range(k, len(W) - k):
+        seg = W[i - k:i + k + 1]
+        if W[i]["l"] == min(c["l"] for c in seg):
+            out.append((i, "l"))
+        elif W[i]["h"] == max(c["h"] for c in seg):
+            out.append((i, "h"))
+    return out
+
+
+SWINGS = [(n, X(i), Y(W[i]["l"]) + 34 if k == "l" else Y(W[i]["h"]) - 18)
+          for n, (i, k) in enumerate(_pivots()[-3:], start=1)]
+
+# ═══════════ الخط الزمني — إيقاع المرجع ≈٣ث للعنصر ═══════════
 _D1, _DR = 2.30, 1.20                  # سحبة أولى ثم ما بعدها
 _HOLD, _DESEL, CUT = 0.35, 0.85, 0.02
 
-T_OB = 1.20
-T_CHOCH = 5.20
-T_FVG = 8.20
-T_FIB = 11.60
-T_DEM = 15.20
+T_SUP = 1.00
+T_OB = 4.40
+T_CHOCH = 7.30
+T_FVG = 8.60
+T_FIB = 11.80
+T_DEM = 15.00
 T_TRD = 18.20
-T_LIQ = 21.20
-T_PROJ = 24.20
-T_ARROW = 27.40
+T_LIQ = 21.00
+T_SWG = 23.60
+T_PROJ = 25.40
+T_ARROW = 28.80
 T_RUN = T_RUN_E = 0.0                   # لا ريبلاي — الجارت ساكن كالمرجع
 
 
 def markup():
     """الست أب كما يبنيه المرجع: أشرطة ثم صناديق ثم خطوط ثم توقّع."""
     ex = []
-    ex.append(R.zone_bar(XL, XR, OB_T, OB_B, gid="ob"))
-    ex.append(R.shape_label(XL, OB_T, XR, OB_B, "OB + BSL", gid="ob_l"))
-    ex.append(R.struct_label(X(SW), Y(LVL), "CHoCH", gid="ch"))
+    ex.append(R.zone_bar(SUP_X0, XR, SUP_T, SUP_B, gid="sup"))
+    ex.append(R.shape_label(SUP_X0, SUP_T, XR, SUP_B, "BSL",
+                            gid="sup_l", at=_lx("sup", SUP_X0)))
+    ex.append(R.zone_bar(OB_X0, XR, OB_T, OB_B, gid="ob"))
+    ex.append(R.shape_label(OB_X0, OB_T, XR, OB_B, "OB",
+                            gid="ob_l", at=_lx("ob", OB_X0)))
+    if ICH is not None:
+        ex.append(R.struct_label(X(ICH), Y(W[ICH]["c"]), "CHoCH", gid="ch"))
     if FVG:
-        ex.append(R.box(FV_X0, FV_T, FV_X1, FV_B, gid="fvg"))
-        ex.append(R.shape_label(FV_X0, FV_T, FV_X1, FV_B, "FVG", gid="fvg_l"))
-    ex.append(R.box(FB_X0, FB_T, FB_X1, FB_B, gid="fib"))
-    ex.append(R.shape_label(FB_X0, FB_T, FB_X1, FB_B, "Fibo Zone", gid="fib_l"))
+        ex.append(R.box(FV_X0, FV_T, XR, FV_B, gid="fvg"))
+        ex.append(R.shape_label(FV_X0, FV_T, XR, FV_B, "FVG",
+                                gid="fvg_l", at=_lx("fvg", FV_X0)))
+    ex.append(R.box(FB_X0, FB_T, XR, FB_B, gid="fib"))
+    ex.append(R.shape_label(FB_X0, FB_T, XR, FB_B, "Fibo Zone",
+                            gid="fib_l", at=_lx("fib", FB_X0)))
     ex.append(R.fib_mark(FB_X0, FB_T, "0.618", gid="f618"))
     ex.append(R.fib_mark(FB_X0, FB_B, "0.5", gid="f5"))
-    ex.append(R.zone_bar(XL, XR, DM_T, DM_B, gid="dem"))
-    ex.append(R.shape_label(XL, DM_T, XR, DM_B,
-                            "Supply Zone" if SELL else "Demand Zone", gid="dem_l"))
+    ex.append(R.zone_bar(DM_X0, XR, DM_T, DM_B, gid="dem"))
+    ex.append(R.shape_label(DM_X0, DM_T, XR, DM_B,
+                            "Supply Zone" if SELL else "Demand Zone",
+                            gid="dem_l", at=_lx("dem", DM_X0)))
     ex.append(R.trend_line(TR_X0, TR_Y0, TR_X1, TR_Y1, "Trendline", gid="trd"))
-    ex.append(R.level_line(XL, XR, LQ_Y, "Liquidity", gid="liq"))
+    # جهة السيولة تتبع الاتجاه: الشراء يكنس سيولة البيع (SSL) والعكس.
+    # تسميةٌ مقلوبة تجعل اللوحة تقول غير ما تصفه الشموع.
+    ex.append(R.level_line(XL, XR, LQ_Y, "BSL" if SELL else "SSL", gid="liq"))
+    ex.append(R.struct_label(X(SW), LQ_Y - 32, "Sweep", gid="swp"))
+    for _n, _sx, _sy in SWINGS:
+        ex.append(R.swing(_sx, _sy, _n, gid=f"sw{_n}"))
     return "".join(ex)
 
 
@@ -245,11 +291,12 @@ def overlay():
     ax0, ay0 = p[0][0] + 40, min(max(p[0][1] - _s * 190, PT + 60), CVH - PB - 60)
     ax1, ay1 = p[-1][0] - 30, min(max(p[-1][1] + _s * 30, PT + 60), CVH - PB - 60)
     o.append(R.big_arrow(ax0, ay0, ax1, ay1, gid="arw"))
-    o.append(R.handles("box", XL, OB_T, XR, OB_B, gid="h_ob"))
+    o.append(R.handles("box", SUP_X0, SUP_T, XR, SUP_B, gid="h_sup"))
+    o.append(R.handles("box", OB_X0, OB_T, XR, OB_B, gid="h_ob"))
     if FVG:
-        o.append(R.handles("box", FV_X0, FV_T, FV_X1, FV_B, gid="h_fvg"))
-    o.append(R.handles("box", FB_X0, FB_T, FB_X1, FB_B, gid="h_fib"))
-    o.append(R.handles("box", XL, DM_T, XR, DM_B, gid="h_dem"))
+        o.append(R.handles("box", FV_X0, FV_T, XR, FV_B, gid="h_fvg"))
+    o.append(R.handles("box", FB_X0, FB_T, XR, FB_B, gid="h_fib"))
+    o.append(R.handles("box", DM_X0, DM_T, XR, DM_B, gid="h_dem"))
     o.append(R.handles("line", TR_X0, TR_Y0, TR_X1, TR_Y1, gid="h_trd"))
     o.append(R.handles("line", XL, LQ_Y, XR, LQ_Y, gid="h_liq"))
     return "".join(o)
@@ -271,8 +318,9 @@ def _el(draw_id, t0, dur, mode="zonedrag", lbl=True):
 
 
 MARKS = (
-    _el("ob", T_OB, _D1)
-    + [("ch", T_CHOCH, T_CHOCH + CUT, "cut")]
+    _el("sup", T_SUP, _D1)
+    + _el("ob", T_OB, _DR)
+    + ([("ch", T_CHOCH, T_CHOCH + CUT, "cut")] if ICH is not None else [])
     + (_el("fvg", T_FVG, _DR) if FVG else [])
     + _el("fib", T_FIB, _DR)
     + [("f618", T_FIB + _DR + _HOLD + 0.20, T_FIB + _DR + _HOLD + 0.20 + CUT, "cut"),
@@ -280,11 +328,18 @@ MARKS = (
     + _el("dem", T_DEM, _DR)
     + _el("trd", T_TRD, _DR, mode="draw", lbl=False)
     + _el("liq", T_LIQ, _DR, mode="draw", lbl=False)
+    + [("swp", T_LIQ + _DR + _HOLD, T_LIQ + _DR + _HOLD + CUT, "cut")]
+    + [(f"sw{n}", T_SWG + 0.24 * (n - 1), T_SWG + 0.24 * (n - 1) + CUT, "cut")
+       for n, _, _ in SWINGS]
     + [("prj", T_PROJ, T_PROJ + 2.60, "draw"),
        ("arw", T_ARROW, T_ARROW + 0.45, "pop")]
 )
-FULLSET = ["ob", "ob_l", "ch", "fib", "fib_l", "dem", "dem_l", "arw",
-           "f618", "f5", "h_ob", "h_fib", "h_dem", "h_trd", "h_liq"]
+FULLSET = ["sup", "sup_l", "ob", "ob_l", "fib", "fib_l", "dem", "dem_l",
+           "arw", "f618", "f5", "swp",
+           "h_sup", "h_ob", "h_fib", "h_dem", "h_trd", "h_liq"]
+FULLSET += [f"sw{n}" for n, _, _ in SWINGS]
+if ICH is not None:
+    FULLSET.append("ch")
 if FVG:
     FULLSET += ["fvg", "fvg_l", "h_fvg"]
 DRAWSET = ["trd", "liq", "prj"]
@@ -298,23 +353,28 @@ _P = _proj_pts()
 CURSOR = [
     # يدخل المؤشّر من خارج اللوحة إلى نقطة الإمساك: بلا هذه الساق تبقى
     # الثانية الأولى إطاراً ساكناً، والمرجع لا يترك إطاراً ساكناً واحداً.
-    [0.00, XL - 150, OB_T - 120, "ss"],
-    [T_OB, XL, OB_T, "ss"],
-    [T_OB + _D1, XR, OB_B, "ss"],
-    [T_CHOCH, X(SW), LQ_Y, "ss", "down"],
-    [T_FVG, FV_X0 if FVG else XL, FV_T if FVG else OB_B, "ss"],
-    [T_FVG + _DR, FV_X1 if FVG else XL + 300, FV_B if FVG else FB_T, "ss"],
+    [0.00, SUP_X0 - 150, SUP_T - 120, "ss"],
+    [T_SUP, SUP_X0, SUP_T, "ss"],
+    [T_SUP + _D1, XR, SUP_B, "ss"],
+    [T_OB, OB_X0, OB_T, "ss"],
+    [T_OB + _DR, XR, OB_B, "ss"],
+    [T_CHOCH, X(ICH) if ICH is not None else OB_X0,
+     Y(W[ICH]["c"]) if ICH is not None else OB_B, "ss", "down"],
+    [T_FVG, FV_X0 if FVG else FB_X0, FV_T if FVG else FB_T, "ss"],
+    [T_FVG + _DR, XR, FV_B if FVG else FB_B, "ss"],
     [T_FIB, FB_X0, FB_T, "ss"],
-    [T_FIB + _DR, FB_X1, FB_B, "ss"],
-    [T_DEM, XL, DM_T, "ss"],
+    [T_FIB + _DR, XR, FB_B, "ss"],
+    [T_DEM, DM_X0, DM_T, "ss"],
     [T_DEM + _DR, XR, DM_B, "ss"],
     [T_TRD, TR_X0, TR_Y0, "ss"],
     [T_TRD + _DR, TR_X1, TR_Y1, "ss"],
     [T_LIQ, XL, LQ_Y, "ss"],
     [T_LIQ + _DR, XR, LQ_Y, "ss"],
+    [T_SWG, SWINGS[0][1], SWINGS[0][2], "ss", "down"],
+    [T_SWG + 0.7, SWINGS[-1][1], SWINGS[-1][2], "ss", "down"],
     [T_PROJ, _P[0][0], _P[0][1], "ss"],
     [T_PROJ + 2.60, _P[-1][0], _P[-1][1], "ss"],
-    [DUR, XL - 150, OB_T - 120, "creep"],       # يعود لموضع الإطار صفر
+    [DUR, SUP_X0 - 150, SUP_T - 120, "creep"],   # يعود لموضع الإطار صفر
 ]
 
 
@@ -354,22 +414,47 @@ def _gate():
     # لا يتراكب وسمان. البناء الأول أوقع `FVG` على `Fibo Zone` و`CHoCH`
     # على `Demand Zone`، ولم يكن في البوابة ما يمسكه — فالفحص البصري
     # وحده كشفه. وهذا الشرط يمسكه قبل الرندر.
-    lb = [("OB + BSL", (XL + XR) / 2, (OB_T + OB_B) / 2),
-          ("Demand", (XL + XR) / 2, (DM_T + DM_B) / 2),
-          ("Fibo Zone", (FB_X0 + FB_X1) / 2, (FB_T + FB_B) / 2),
-          ("CHoCH", X(SW), LQ_Y),
-          ("Liquidity", XR - 120 - (len("Liquidity") * 26 * 0.56 + 22) / 2, LQ_Y)]
+    lb = [("BSL", _lx("sup", SUP_X0), (SUP_T + SUP_B) / 2),
+          ("OB", _lx("ob", OB_X0), (OB_T + OB_B) / 2),
+          ("Fibo Zone", _lx("fib", FB_X0), (FB_T + FB_B) / 2),
+          ("Demand Zone", _lx("dem", DM_X0), (DM_T + DM_B) / 2),
+          ("Sweep", X(SW), LQ_Y - 32),
+          ("SSL", XR - 120 - (3 * 26 * 0.56 + 22) / 2, LQ_Y)]
     if FVG:
-        lb.append(("FVG", (FV_X0 + FV_X1) / 2, (FV_T + FV_B) / 2))
+        lb.append(("FVG", _lx("fvg", FV_X0), (FV_T + FV_B) / 2))
+    if ICH is not None:
+        lb.append(("CHoCH", X(ICH), Y(W[ICH]["c"])))
     for i in range(len(lb)):
         for j in range(i + 1, len(lb)):
             (na, xa, ya), (nb, xb, yb) = lb[i], lb[j]
             wa = len(na) * 26 * 0.56 + 20
             wb = len(nb) * 26 * 0.56 + 20
-            if abs(ya - yb) < 34 and abs(xa - xb) < (wa + wb) / 2:
+            if abs(ya - yb) < 32 and abs(xa - xb) < (wa + wb) / 2:
                 raise AssertionError(
                     f"وسمان متراكبان: «{na}» و«{nb}» "
                     f"(Δy={abs(ya-yb):.0f} Δx={abs(xa-xb):.0f})")
+
+    # 🔒 دقّة الماركب ١٠٠٪: مركز كل منطقةٍ على السعر المشتقّ منها بالضبط.
+    # هذا هو الشرط الذي يمنع تكرار خطأ البناء الأول — إزاحةُ شكلٍ إلى
+    # موضعٍ مريحٍ بصرياً تمرّ بلا أن يلحظها أحد ما لم تُقس.
+    # يُقاس **كل حدٍّ على حدة** لا المركز: مركزٌ صحيح وحافّتان مزاحتان
+    # يمرّ من فحص المركز، وهو بالضبط الخطأ الذي وقع في البناء الأول.
+    edges = [("OB علوي", OB_T, OB_HI), ("OB سفلي", OB_B, OB_LO),
+             ("BSL علوي", SUP_T, _HI),
+             ("BSL سفلي", SUP_B, max(W[_iHI]["o"], W[_iHI]["c"])),
+             ("القاع علوي", DM_T, min(W[_iLO]["o"], W[_iLO]["c"])),
+             ("القاع سفلي", DM_B, _LO),
+             ("فيبو ٠٫٦١٨", FB_T, FIB618), ("فيبو ٠٫٥", FB_B, FIB5),
+             ("السيولة", LQ_Y, LVL)]
+    if FVG:
+        _i, _flo, _fhi = FVG
+        edges += [("الفجوة علوي", FV_T, _fhi), ("الفجوة سفلي", FV_B, _flo)]
+    for nm, got, price in edges:
+        d = abs(got - Y(price))
+        assert d < 0.01, f"«{nm}» يبعد {d:.2f} بكسل عن سعره الحقيقي"
+    # الوسوم الهيكلية على شمعاتها لا قربها
+    assert ICH is None or 0 <= ICH < len(W), "CHoCH خارج النافذة"
+    assert 0 <= SW < len(W), "شمعة الكنس خارج النافذة"
     assert RP_KF[0][1] == RP_KF[1][1] and RP_KF[-1][1] == len(W) - 1
 
 

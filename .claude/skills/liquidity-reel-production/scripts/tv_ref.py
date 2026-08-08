@@ -138,10 +138,21 @@ def box(x0, y0, x1, y1, gid, fill="none"):
     return _drag_rect(gid, x0, y0, x1, y1, fill)
 
 
-def shape_label(x0, y0, x1, y1, txt, gid=None):
-    """اسم الشكل في قلبه — عنصرٌ مستقلّ يظهر بقصّةٍ صلبة بعد استقراره."""
-    o = _t((x0 + x1) / 2, (min(y0, y1) + abs(y1 - y0) / 2) + FS_LBL * 0.35, txt)
-    return _wrap(o, gid)
+def shape_label(x0, y0, x1, y1, txt, gid=None, at=None, min_h=42):
+    """اسم الشكل — عنصرٌ مستقلّ يظهر بقصّةٍ صلبة بعد استقرار الشكل.
+
+    `at` يزيح الاسم أفقياً داخل الشكل بدل توسيطه: هذه أداةُ فضّ التصادم
+    هنا. فحين تتقاطع منطقتان في السعر — وهو تقاطعٌ حقيقي يجب أن يظهر —
+    يبقى الشكلان في مكانيهما الصحيحين ويُفرَّق بين اسميهما أفقياً.
+
+    وحين يضيق الشكل عن اسمه **يخرج الاسم فوقه ولا يتمدّد الشكل**. أوّل
+    بناءٍ وسّع الشريط ليتّسع للاسم، فانزاحت حدوده عن حدود شمعته: مركزه
+    صحيح وحافّتاه خاطئتان — وحدّا الأوردر بلوك هما موضع التفاعل كلّه.
+    الشكل يقول السعر، والاسم يجد مكانه حوله."""
+    cx = at if at is not None else (x0 + x1) / 2
+    top, h = min(y0, y1), abs(y1 - y0)
+    cy = (top + h / 2 + FS_LBL * 0.35) if h >= min_h else (top - 10)
+    return _wrap(_t(cx, cy, txt), gid)
 
 
 def fib_mark(x, y, txt, tick=42, gid=None):
@@ -233,6 +244,37 @@ def big_arrow(x0, y0, x1, y1, gid=None, w=34, col=None):
     d = " ".join(f"{'M' if i == 0 else 'L'} {a_:.1f} {b_:.1f}"
                  for i, (a_, b_) in enumerate(p)) + " Z"
     return _wrap(f'<path d="{d}" fill="{col or ACC}" opacity="0.82"/>', gid)
+
+
+def swing(x, y, n, gid=None, fs=22):
+    """ترقيم السوينقات `(1)…(5)` بالأزرق عند القمّة أو القاع.
+
+    في المراجع الأربعة كلّها: أرقامٌ صغيرة زرقاء على النقاط المحورية،
+    يقرأ بها المشاهد ترتيب الحركة بلا جملة واحدة."""
+    return _wrap(_t(x, y, f"({n})", fs=fs, col=SEL, weight="700"), gid)
+
+
+def chip_label(cx, y, txt, gid=None, fs=22):
+    """وسمٌ مميَّز بخلفيةٍ زرقاء مصمتة — `Strong Bearish Wave` في المرجع.
+
+    يُستعمل لعنصرٍ واحدٍ في اللوحة يريد الكاتب تمييزه عن بقيّة الوسوم،
+    ولا يُكثَر منه: في المرجع لا يظهر إلا مرّةً واحدة."""
+    w = len(txt) * fs * 0.58 + 22
+    o = (f'<rect x="{cx-w/2:.1f}" y="{y-fs*0.9:.1f}" width="{w:.1f}" '
+         f'height="{fs*1.8:.1f}" fill="{SEL}"/>'
+         + _t(cx, y + fs * 0.34, txt, fs=fs, col="#FFFFFF", weight="700"))
+    return _wrap(o, gid)
+
+
+def channel(x0, y0, x1, y1, dy, gid=None, fill="rgba(15,46,60,0.07)"):
+    """قناة سعرية: خطّان متوازيان بينهما ظِلٌّ خفيف — قناة المرجع الرابع."""
+    o = (f'<path d="M {x0:.1f} {y0:.1f} L {x1:.1f} {y1:.1f} '
+         f'L {x1:.1f} {y1+dy:.1f} L {x0:.1f} {y0+dy:.1f} Z" fill="{fill}"/>'
+         f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1:.1f}" y2="{y1:.1f}" '
+         f'stroke="{LN}" stroke-width="1.6"/>'
+         f'<line x1="{x0:.1f}" y1="{y0+dy:.1f}" x2="{x1:.1f}" y2="{y1+dy:.1f}" '
+         f'stroke="{LN}" stroke-width="1.6"/>')
+    return _wrap(o, gid)
 
 
 def handles(kind, x0, y0, x1, y1, gid=None, r=9):
