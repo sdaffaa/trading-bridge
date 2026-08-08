@@ -71,7 +71,9 @@ LVL, SW = L4["lvl"], L4["sw"]          # مستوى السيولة وشمعة ك
 # ═══════════ الهندسة ═══════════
 # مدرَجٌ فارغ يمين اللوحة يمشي إليه المسار المتوقَّع — وهو نفسه الفراغ
 # الذي أمر فهد بتركه: «الشموع تمشي بمنتصف الجارت لا بآخر الطرف الأيمن».
-RP_OFF = 14
+# الشموع تشغل ٦٢٪ من العرض والباقي فراغٌ نظيف يمتدّ إليه الماركب —
+# هذا ما يجعل أسماء المرجع تُقرأ: تجلس في الخالي لا على الشموع.
+RP_OFF = max(14, int(len(W) * 0.62))
 VIS = len(W) + RP_OFF
 ANCHOR = len(W) - 1                    # لا انزلاق
 # **الشموع ساكنة.** المرجع الثالث لا يحرّك شمعةً واحدة: الجارت مكتملٌ
@@ -101,7 +103,13 @@ _OB = [i for i in range(max(0, FILL - 14), FILL)
        if (W[i]["c"] > W[i]["o"]) == SELL]
 assert _OB, "لا شمعة معاكسة قبل الدخول — الأوردر بلوك لا يُشتقّ"
 IOB = _OB[-1]
-OB_HI, OB_LO = max(W[IOB]["o"], W[IOB]["c"]), min(W[IOB]["o"], W[IOB]["c"])
+# 🔒 «الماركب سيء». والقياس بيّن أن منطقة الأوردر بلوك كانت **٤٫١٦ نقطة**
+# على مدى ٥٤٥ — تسعة بكسلات — بينما جسم الشمعة الوسيط في النافذة ٢٧٫٧
+# نقطة. السبب أنّي رسمتها **جسماً** فوقعت على شمعة دوجي. واصطلاح السوق
+# أن الأوردر بلوك مدى الشمعة كاملاً (القمّة إلى القاع): هناك تقع الأوامر،
+# والذيل جزءٌ من المنطقة لا خارجها. فصارت المنطقة تصف ما تصفه فعلاً،
+# وكبرت من ٩ بكسلات إلى ما يناسب شمعتها.
+OB_HI, OB_LO = W[IOB]["h"], W[IOB]["l"]
 
 # فجوة القيمة: أوّل ثلاثيّةٍ لا يتلامس فيها ذيلا الطرفين بعد الدخول
 def _fvg():
@@ -115,6 +123,12 @@ def _fvg():
 
 
 FVG = _fvg()
+# فجوةٌ أصغر من جسم الشمعة الوسيط ليست اختلالاً يُتداول عليه، إنما ضجيج.
+# ورسمُها يعطي شريحةً بعشرين بكسلاً باسمٍ معلَّق فوقها — وهو من أسباب
+# «الماركب سيء». فالعتبة من البيانات نفسها لا من رقمٍ مختار.
+_MEDB = sorted(abs(c["c"] - c["o"]) for c in W)[len(W) // 2]
+if FVG and (FVG[2] - FVG[1]) < _MEDB:
+    FVG = None
 
 # منطقة فيبو ٠٫٥–٠٫٦١٨ على الساق التي سبقت الدخول
 _LEG_LO = min(range(max(0, FILL - 12), FILL + 1), key=lambda j: W[j]["l"])
@@ -234,9 +248,56 @@ FB_T, FB_B = Y(FIB618), Y(FIB5)
 FB_X0 = X(_LEG_LO if SELL else _LEG_HI) - SLOT * 0.6
 
 
-# موضع اسم كل عنصر: نسبةٌ من عرضه. أداةُ فضّ التصادم في هذا الطراز.
-LX = {"sup": 0.50, "ob": 0.74, "fvg": 0.58, "fib": 0.30, "dem": 0.50}
-_lx = lambda k, x0: x0 + (XR - x0) * LX[k]
+# ═══════════ موضع الاسم: حيث لا شمعة ═══════════
+# 🔒 «الماركب سيء» — أمر فهد. والمقارنة جنباً إلى جنب مع المرجع كشفت
+# السبب الذي لم تكشفه ثلاث جولاتٍ من الاشتقاق: **وسوم المرجع تقع في
+# فراغٍ نظيف، ووسومي تقع فوق الشموع فتُمحى.** عنده الماركب يمتدّ يميناً
+# إلى مساحةٍ خالية فيُقرأ اسمه من أول نظرة؛ وعندي كان الاسم عند نسبةٍ
+# ثابتة من عرض الشكل، فيقع على أجسام الشموع مهما كانت النسبة.
+#
+# فالموضع يُحسب الآن ولا يُفترض: يُمسح مدى الشكل أفقياً، ويُختار الموضع
+# الذي لا تقطعه شمعةٌ تشترك مع الشكل في مداه الرأسي.
+_PLACED = []            # [(x0, x1, ytop, ybot)] لكل اسمٍ وُضع
+
+
+def _clear_x(x0, x1, ytop, ybot, txt, fs=26):
+    """أنظف موضعٍ لاسمٍ داخل [x0,x1]: لا تقطعه شمعةٌ في نطاقه الرأسي،
+    ولا يلامس اسماً وُضع قبله.
+
+    يُمنع التصادم **بالبناء** لا بالفحص بعده، ويُفضَّل اليمين عند
+    التساوي — هناك يمتدّ الشكل إلى الفراغ، وهو موضع أسماء المرجع."""
+    w = len(txt) * fs * 0.56 + 24
+    yt, yb = min(ytop, ybot), max(ytop, ybot)
+    busy = [(X(i) - SLOT * 0.7, X(i) + SLOT * 0.7) for i, c in enumerate(W)
+            if not (Y(c["h"]) > yb or Y(c["l"]) < yt)]
+    busy += [(px0, px1) for px0, px1, pt, pb in _PLACED
+             if not (pt > yb + 34 or pb < yt - 34)]
+    lo, hi = x0 + w / 2 + 8, x1 - w / 2 - 8
+    if hi <= lo:
+        lo = hi = (x0 + x1) / 2
+    best, bestsc = None, -1e9
+    for k in range(81):
+        cx = lo + (hi - lo) * (k / 80.0 if hi > lo else 0)
+        a, b = cx - w / 2, cx + w / 2
+        gap = min((-1.0 if (p < b and q > a) else min(abs(a - q), abs(b - p)))
+                  for p, q in busy) if busy else 1e9
+        sc = min(gap, 60) + (cx - lo) / max(hi - lo, 1) * 8
+        if gap >= 0 and sc > bestsc:
+            best, bestsc = cx, sc
+    # لم يبقَ موضعٌ نظيف داخل الشكل: يُرفع الاسم فوق حافته العليا —
+    # وهو ما تفعله المنصّة نفسها حين يضيق الشكل. أن يجلس اسمان متلاصقان
+    # على شمعةٍ واحدة أسوأ من أن يعلو أحدهما شكله.
+    if best is None:
+        cx, dy = (x0 + x1) / 2, -(yb - yt) / 2 - 22
+        _PLACED.append((cx - w / 2, cx + w / 2, yt + dy - 16, yt + dy + 16))
+        return cx, dy
+    _PLACED.append((best - w / 2, best + w / 2, yt, yb))
+    return best, 0.0
+
+
+_LBL = {}                                   # يُملأ بعد اشتقاق كل العناصر
+_lx = lambda k, _x0=None: _LBL[k][0]
+_ldy = lambda k: _LBL[k][1]
 
 
 def _choch():
@@ -296,6 +357,14 @@ def _trend():
 _TR = _trend()
 
 TR_X0, TR_Y0, TR_X1, TR_Y1 = (_TR[:4] if _TR else (0.0, 0.0, 0.0, 0.0))
+_LBL["ob"] = _clear_x(OB_X0, XR, OB_T, OB_B, "OB")
+_LBL["dem"] = _clear_x(DM_X0, XR, DM_T, DM_B,
+                       "Supply Zone" if SELL else "Demand Zone")
+if SUP_I is not None:
+    _LBL["sup"] = _clear_x(SUP_X0, XR, SUP_T, SUP_B, "SSL" if SELL else "BSL")
+if FVG:
+    _LBL["fvg"] = _clear_x(FV_X0, XR, FV_T, FV_B, "FVG")
+_LBL["fib"] = _clear_x(FB_X0, XR, FB_T, FB_B, "Fibo Zone")
 LQ_Y = Y(LVL)
 
 # ═══════════ الخط الزمني — إيقاع المرجع ≈٣ث للعنصر ═══════════
@@ -323,26 +392,26 @@ def markup():
         ex.append(R.zone_bar(SUP_X0, XR, SUP_T, SUP_B, gid="sup"))
         ex.append(R.shape_label(SUP_X0, SUP_T, XR, SUP_B,
                                 "SSL" if SELL else "BSL",
-                                gid="sup_l", at=_lx("sup", SUP_X0)))
+                                gid="sup_l", at=_lx("sup"), dy=_ldy("sup")))
     ex.append(R.zone_bar(OB_X0, XR, OB_T, OB_B, gid="ob"))
     ex.append(R.shape_label(OB_X0, OB_T, XR, OB_B, "OB",
-                            gid="ob_l", at=_lx("ob", OB_X0)))
+                            gid="ob_l", at=_lx("ob"), dy=_ldy("ob")))
     if ICH is not None:
         ex.append(R.struct_label(X(ICH), Y(W[ICH]["c"]), "CHoCH", gid="ch"))
     if FVG:
         ex.append(R.box(FV_X0, FV_T, XR, FV_B, gid="fvg"))
         ex.append(R.shape_label(FV_X0, FV_T, XR, FV_B, "FVG",
-                                gid="fvg_l", at=_lx("fvg", FV_X0)))
+                                gid="fvg_l", at=_lx("fvg"), dy=_ldy("fvg")))
     ex.append(R.box(FB_X0, FB_T, XR, FB_B, gid="fib"))
     ex.append(R.shape_label(FB_X0, FB_T, XR, FB_B, "Fibo Zone",
-                            gid="fib_l", at=_lx("fib", FB_X0)))
+                            gid="fib_l", at=_lx("fib"), dy=_ldy("fib")))
     ex.append(R.fib_mark(FB_X0, FB_T, "0.618", gid="f618"))
     ex.append(R.fib_mark(FB_X0, FB_B, "0.5", gid="f5"))
     if SHOW_DM:
         ex.append(R.zone_bar(DM_X0, XR, DM_T, DM_B, gid="dem"))
         ex.append(R.shape_label(DM_X0, DM_T, XR, DM_B,
                                 "Supply Zone" if SELL else "Demand Zone",
-                                gid="dem_l", at=_lx("dem", DM_X0)))
+                                gid="dem_l", at=_lx("dem"), dy=_ldy("dem")))
     if _TR:
         ex.append(R.trend_line(TR_X0, TR_Y0, TR_X1, TR_Y1, "Trendline", gid="trd"))
     # جهة السيولة تتبع الاتجاه: الشراء يكنس سيولة البيع (SSL) والعكس.
@@ -520,18 +589,18 @@ def _gate():
     # لا يتراكب وسمان. البناء الأول أوقع `FVG` على `Fibo Zone` و`CHoCH`
     # على `Demand Zone`، ولم يكن في البوابة ما يمسكه — فالفحص البصري
     # وحده كشفه. وهذا الشرط يمسكه قبل الرندر.
-    lb = [("OB", _lx("ob", OB_X0), (OB_T + OB_B) / 2),
-          ("Fibo Zone", _lx("fib", FB_X0), (FB_T + FB_B) / 2),
+    lb = [("OB", _lx("ob"), (OB_T + OB_B) / 2 + _ldy("ob")),
+          ("Fibo Zone", _lx("fib"), (FB_T + FB_B) / 2 + _ldy("fib")),
           ("Sweep", X(SW), LQ_Y - 32),
           ("SSL", XR - 120 - (3 * 26 * 0.56 + 22) / 2, LQ_Y)]
     if FVG:
-        lb.append(("FVG", _lx("fvg", FV_X0), (FV_T + FV_B) / 2))
+        lb.append(("FVG", _lx("fvg"), (FV_T + FV_B) / 2 + _ldy("fvg")))
     if ICH is not None:
         lb.append(("CHoCH", X(ICH), Y(W[ICH]["c"])))
     if SUP_I is not None:
-        lb.append(("BSL", _lx("sup", SUP_X0), (SUP_T + SUP_B) / 2))
+        lb.append(("BSL", _lx("sup"), (SUP_T + SUP_B) / 2 + _ldy("sup")))
     if SHOW_DM:
-        lb.append(("Demand Zone", _lx("dem", DM_X0), (DM_T + DM_B) / 2))
+        lb.append(("Demand Zone", _lx("dem"), (DM_T + DM_B) / 2 + _ldy("dem")))
     for i in range(len(lb)):
         for j in range(i + 1, len(lb)):
             (na, xa, ya), (nb, xb, yb) = lb[i], lb[j]

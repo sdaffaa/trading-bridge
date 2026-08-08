@@ -138,7 +138,7 @@ def box(x0, y0, x1, y1, gid, fill="none"):
     return _drag_rect(gid, x0, y0, x1, y1, fill)
 
 
-def shape_label(x0, y0, x1, y1, txt, gid=None, at=None, min_h=42):
+def shape_label(x0, y0, x1, y1, txt, gid=None, at=None, min_h=42, dy=0.0):
     """اسم الشكل — عنصرٌ مستقلّ يظهر بقصّةٍ صلبة بعد استقرار الشكل.
 
     `at` يزيح الاسم أفقياً داخل الشكل بدل توسيطه: هذه أداةُ فضّ التصادم
@@ -152,7 +152,7 @@ def shape_label(x0, y0, x1, y1, txt, gid=None, at=None, min_h=42):
     cx = at if at is not None else (x0 + x1) / 2
     top, h = min(y0, y1), abs(y1 - y0)
     cy = (top + h / 2 + FS_LBL * 0.35) if h >= min_h else (top - 10)
-    return _wrap(_t(cx, cy, txt), gid)
+    return _wrap(_t(cx, cy + dy, txt), gid)
 
 
 def fib_mark(x, y, txt, tick=42, gid=None):
