@@ -50,6 +50,16 @@
     "sweep.pool",
     "signal.close_top"
    ]
+  },
+  {
+   "tag": "btc_sc_2026-08-03_1845",
+   "keys": [
+    "4H.expand_4h",
+    "1D.pd_low",
+    "1h.room",
+    "sweep.depth",
+    "signal.range"
+   ]
   }
  ]
 }
