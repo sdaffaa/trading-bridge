@@ -199,6 +199,7 @@ def build_reel(cfg, out_html):
         CURSOR_JS = """
   {
     const CUR = %s;
+    const XHMUTE = __XHMUTE__;
     const el = $("cur");
     let p0 = CUR[0], p1 = CUR[CUR.length - 1];
     for (let i = 0; i < CUR.length - 1; i++)
@@ -229,8 +230,12 @@ def build_reel(cfg, out_html):
       const xh = $("xh");
       if (xh) {
         const lx = cx - CXO, ly = cy - CYO;
+        // ونوافذ الكتم: حين تعلو لوحةُ فريمٍ أعلى جارتَ التنفيذ يبقى
+        // مقياس الكروسهير مقياسَ التنفيذ، فيقرأ المشاهد سعر ٣ دقائق على
+        // شاشة الساعة. رقمٌ مخترع — فيُكتَم الكروسهير ما دامت اللوحة فوقه.
+        const muted = XHMUTE.some(w => t >= w[0] && t <= w[1]);
         const inside = lx >= PLx && lx <= CWc - PRx && ly >= PT && ly <= CHc - PBx
-                       && el.style.opacity > 0.05;
+                       && el.style.opacity > 0.05 && !muted;
         xh.style.opacity = inside ? 1 : 0;
         // داخل اللوحة يتحوّل المؤشر إلى كروسهير المنصّة فيغيب سهمه
         el.querySelector(".cp").style.opacity = inside ? 0 : 1;
@@ -252,6 +257,8 @@ def build_reel(cfg, out_html):
 """ % json.dumps([[round(float(p[0]), 3), round(float(p[1]), 1), round(float(p[2]), 1),
                    (p[3] if len(p) > 3 and p[3] else "ss"),
                    (p[4] if len(p) > 4 and p[4] else "move")] for p in cur])
+        CURSOR_JS = CURSOR_JS.replace("__XHMUTE__",
+                                      json.dumps(cfg.get("xh_mute", [])))
 
     # افتتاحية داكنة V2 (نظام الهويتين): غلاف داكن 0→t ثم Light Sweep يكشف المحتوى الأوف وايت
     intro = cfg.get("intro")

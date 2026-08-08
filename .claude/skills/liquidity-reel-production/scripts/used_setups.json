@@ -67,5 +67,10 @@
   "file": "btc_sc_2026-08-03_1845.json",
   "sym": "BTC-USD",
   "anchor": "2026-08-03 18:45"
+ },
+ {
+  "file": "sol-usd_sc_2026-08-05_1015.json",
+  "sym": "SOL-USD",
+  "anchor": "2026-08-05 10:15"
  }
 ]

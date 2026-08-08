@@ -52,6 +52,33 @@ def register(tag, keys):
         json.dump(d, f, ensure_ascii=False, indent=1)
 
 
+# ═══════════ السجلّ يقول ما نُشر لا ما بُني ═══════════
+# كان البناء نفسه يسجّل، فكل تجربة — إعادة بناء لفحص إطار، أو تشغيل على
+# نافذة لاختبار الكود — تُدخل تشغيلةً لم تُنشر وتزيح العدّاد. فيصير السجلّ
+# يصف ما جرّبناه لا ما سمعه الناس، والدوران يبني على رقمٍ كاذب.
+# فالبناء **يودِع** المفاتيح جانباً، و`scan_setups.py claim` — ولا يُنادى
+# إلا على ريلٍ سُلّم — هو الذي يُدخلها السجلّ.
+PEND = os.path.join(HERE, "reasons_pending")
+
+
+def stage(tag, keys):
+    os.makedirs(PEND, exist_ok=True)
+    with open(os.path.join(PEND, tag + ".json"), "w", encoding="utf-8") as f:
+        json.dump(list(keys), f, ensure_ascii=False)
+
+
+def register_staged(tag):
+    """يُدخل السجلَّ مفاتيحَ ريلٍ نُشر. يُرجع المفاتيح أو None إن لم تُودَع."""
+    p = os.path.join(PEND, tag + ".json")
+    if not os.path.exists(p):
+        return None
+    with open(p, encoding="utf-8") as f:
+        keys = json.load(f)
+    register(tag, keys)
+    os.remove(p)
+    return keys
+
+
 # ═══════════ القراءات المقيسة ═══════════
 # كل دالّة تُرجع (عنوان، تفصيل) أو None إن لم تتحقّق على هذه النافذة.
 # الرقم في التفصيل يخرج من الشموع لا من التقدير.

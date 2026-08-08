@@ -138,10 +138,16 @@ if __name__ == "__main__":
             print(f'LS_SET={rows[0][3]}')
         raise SystemExit(0 if rows else 3)
     if cmd == "claim":
+        import reason_pool
         r = reg()
         for f in sys.argv[2:]:
             w = json.load(open(os.path.join(RAW, f), encoding="utf-8"))
             r.append(dict(file=f, sym=w["sym"], anchor=w["anchor_utc"]))
+            # وأسباب الريل تدخل سجلّها هنا لا عند البناء: هذه اللحظة وحدها
+            # تعني «نُشر»، فلا تزيح تجربةُ بناءٍ دورانَ الأسباب.
+            k = reason_pool.register_staged(f.replace(".json", ""))
+            if k:
+                print("   أسباب: " + " · ".join(k))
         save_reg(r)
         print(f"سُجّل {len(sys.argv) - 2} · المجموع {len(r)}")
         raise SystemExit
