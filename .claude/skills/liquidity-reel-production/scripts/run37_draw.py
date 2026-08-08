@@ -26,19 +26,21 @@ import sys
 from reel_build import INK, TEAL, TEAL_D, RED, htext
 from reel_sfx_kit import (build_reel, line_el, set_canvas, set_pad,
                           set_price_pad, set_vis)
-import tv_chart
+import tv_flat as TVF
 import xau_load
+from car_common import GEM
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-tv_chart.set_theme("light")
 
 # ═══════════ اللوحة ═══════════
-CVW, CVH = 1080, 1560
+# الجارت يملأ الإطار: لا شريط أدوات ولا شريط علوي ولا سفلي (طراز المرجع).
+# المحور يمين ١٥٠ بكسل ليتّسع لبطاقات السعر، ووسوم الوقت في ٧٠ تحت.
+CVW, CVH = 1080, 1920
 set_canvas(CVW, CVH)
-set_pad(20, 128, 96, 84)
-PL, PR, PT, PB = 20, 128, 96, 84
+set_pad(0, 176, 34, 92)
+PL, PR, PT, PB = 0, 176, 34, 92
 PW, PH = CVW - PL - PR, CVH - PT - PB
-CX, CY = 0, 200                       # ركن الجارت داخل إطار 1080×1920
+CX, CY = 0, 0                         # الجارت من ركن الإطار
 DUR = 22.0                            # سقف البريف المطلق ٢٣ — نلتزم ٢٢ بالضبط
 FPS = 60                              # بريف التسليم
 
@@ -132,42 +134,53 @@ T_CTA = 19.00                          # البريف: لا CTA قبل ١٦
 
 
 def markup():
-    """كل عنصر في مجموعته، ويُرسم بالترتيب الذي يفرضه الجدول."""
-    ex = []
-    # ١) خط السيولة — يُرسم من اليسار إلى اليمين بسرعة ثابتة
-    ex.append(line_el(PL, Y(LIQ), R, Y(LIQ), INK, 3.0, id="liq"))
-    # ٢) `$$$` تحت الخط (بيع: السيولة فوق فالرمز تحتها مباشرة)
-    ex.append(f'<g id="dol" opacity="0">'
-              + htext(X(max(0, FILL - 16)), Y(LIQ) + (34 if SELL else -18),
-                      "$$$", INK, 44) + '</g>')
-    # ٣) بوكس الأوردر بلوك — أربعة أضلاع تُرسم واحداً واحداً
-    bx0, bx1 = X(IOB) - SLOT * .6, X(min(HIT + 2, len(W) - 1))
+    """مفردات المرجع: بطاقة وسم على كل خطّ، وخطوطٌ تعبر العرض، وبطاقة
+    سعر على المحور، ومنطقتان شفافتان تمتدّان إلى الحافة."""
+    XR = CVW - PR                                # حافة محور السعر
+    bx0 = X(IOB) - SLOT * .6                     # يسار الأوردر بلوك
     yt, yb = Y(OB_HI), Y(OB_LO)
-    for n, (a, b, c, d) in enumerate((
-            (bx0, yt, bx1, yt), (bx1, yt, bx1, yb),
-            (bx1, yb, bx0, yb), (bx0, yb, bx0, yt))):
-        ex.append(line_el(a, b, c, d, TEAL_D, 3.0, id=f"ob{n}"))
-    ex.append(f'<g id="obfill" opacity="0"><rect x="{bx0:.1f}" y="{yt:.1f}" '
-              f'width="{bx1-bx0:.1f}" height="{yb-yt:.1f}" fill="{TEAL}" '
-              f'fill-opacity=".12"/></g>')
-    # ٤) ليبل ORDER BLOCK
-    ex.append(f'<g id="obl" opacity="0">'
-              + htext((bx0 + bx1) / 2, yb + 40, "ORDER BLOCK", TEAL_D, 30) + '</g>')
-    # ٥) توكن الاتجاه عند حافة البوكس التي يلمسها السعر
-    ey = Y(ENT)
-    ex.append(f'<g id="side" opacity="0">'
-              f'<rect x="{bx0-172:.1f}" y="{ey-27:.1f}" width="150" height="54" '
-              f'fill="{RED if SELL else TEAL_D}" rx="2"/>'
-              + htext(bx0 - 97, ey + 11, DIRN, "#FFFFFF", 32) + '</g>')
-    # ٦) الوقف — خط متقطّع فوق البوكس (بيع)
-    ex.append(line_el(bx0, Y(STP), R, Y(STP), RED, 2.6, dash="10 8", id="stp"))
-    ex.append(f'<g id="stpl" opacity="0">'
-              + htext(bx0 + 176, Y(STP) - 16, "STOP LOSS", RED, 28) + '</g>')
-    # ٧) الهدف — خط متقطّع تحته
-    ex.append(line_el(bx0, Y(TGT), R, Y(TGT), TEAL_D, 2.6, dash="10 8", id="tgt"))
-    ex.append(f'<g id="tgtl" opacity="0">'
-              + htext(bx0 + 196, Y(TGT) + 36, "TAKE PROFIT", TEAL_D, 28) + '</g>')
+    ey, sy, ty = Y(ENT), Y(STP), Y(TGT)
+    ex = []
+
+    # ١) خط السيولة يُسحب من اليسار إلى حافة المحور
+    ex.append(line_el(0, Y(LIQ), XR, Y(LIQ), INK, 3.0, id="liq"))
+    # ٢) بطاقة `$$$` على الخطّ من طرفه الأيسر
+    ex.append(TVF.tag(14, Y(LIQ), "$$$", INK, gid="dol"))
+    # ٣) مستطيل الأوردر بلوك — أربعة أضلاع تُرسم واحداً واحداً
+    for n, (p0, q0, p1, q1) in enumerate((
+            (bx0, yt, XR, yt), (XR, yt, XR, yb),
+            (XR, yb, bx0, yb), (bx0, yb, bx0, yt))):
+        ex.append(line_el(p0, q0, p1, q1, TEAL_D, 3.0, id=f"ob{n}"))
+    # ٤) بطاقة ORDER BLOCK على ضلعه العلوي من اليسار
+    ex.append(TVF.tag(14, yt, "ORDER BLOCK", TEAL_D, gid="obl"))
+    # ٥) خط الدخول وبطاقة الاتجاه من الطرف الأيمن
+    ex.append(line_el(bx0, ey, XR, ey, INK, 2.6, id="entl"))
+    ex.append(TVF.tag(XR - 14, ey, DIRN, RED if SELL else TEAL_D,
+                      anchor="end", gid="side"))
+    # ٦) الوقف: خط متقطّع + بطاقة يمنى + منطقة المخاطرة
+    ex.append(TVF.zone(bx0, ey, XR, sy, TVF.ZONE_LOSS, gid="zloss"))
+    ex.append(line_el(bx0, sy, XR, sy, RED, 2.6, dash="12 9", id="stp"))
+    ex.append(TVF.tag(XR - 14, sy, "STOP LOSS", RED, anchor="end", gid="stpl"))
+    # ٧) الهدف: خط متقطّع + بطاقة يمنى + منطقة العائد
+    ex.append(TVF.zone(bx0, ey, XR, ty, TVF.ZONE_WIN, gid="zwin"))
+    ex.append(line_el(bx0, ty, XR, ty, TEAL_D, 2.6, dash="12 9", id="tgt"))
+    ex.append(TVF.tag(XR - 14, ty, "TAKE PROFIT", TEAL_D, anchor="end", gid="tgtl"))
+
     return "".join(ex)
+
+
+def axis_chips():
+    """بطاقات السعر تُرسم في الطبقة العليا لا في المنزلقة.
+
+    القصّ الأفقي ينتهي عند حافة مربّع الرسم، والبطاقات تجلس **بعدها** على
+    المحور — فوضعُها داخل الطبقة المقصوصة يمحوها تماماً (وقع في أول بناء:
+    ظهرت الخطوط وغابت أرقامها)."""
+    XR = CVW - PR
+    return "".join([
+        TVF.axis_chip(XR, Y(STP), f'{STP:,.{DP}f}', RED, gid="chs"),
+        TVF.axis_chip(XR, Y(ENT), f'{ENT:,.{DP}f}', INK, gid="che"),
+        TVF.axis_chip(XR, Y(TGT), f'{TGT:,.{DP}f}', TEAL_D, gid="cht"),
+    ])
 
 
 MARKS = [
@@ -175,14 +188,19 @@ MARKS = [
     ("dol", T_DOL, T_DOL + 0.55, "pop"),
     ("ob0", T_BOX, T_BOX + 0.90, "draw"), ("ob1", T_BOX + 0.85, T_BOX + 1.75, "draw"),
     ("ob2", T_BOX + 1.70, T_BOX + 2.60, "draw"), ("ob3", T_BOX + 2.55, T_BOX_E, "draw"),
-    ("obfill", T_BOX_E - 0.30, T_BOX_E + 0.20, "fade"),
     ("obl", T_OBL, T_OBL + 0.60, "pop"),
+    ("entl", T_SIDE - 0.55, T_SIDE, "draw"),
     ("side", T_SIDE, T_SIDE + 0.60, "pop"),
+    ("che", T_SIDE + 0.25, T_SIDE + 0.70, "fade"),
     ("stp", T_STP, T_STP + 1.60, "draw"), ("stpl", T_STP + 1.55, T_STP + 2.15, "pop"),
+    ("zloss", T_STP + 1.70, T_STP + 2.40, "fade"),
+    ("chs", T_STP + 2.10, T_STP + 2.50, "fade"),
     ("tgt", T_TGT, T_TGT + 2.00, "draw"), ("tgtl", T_TGT + 1.95, T_TGT + 2.60, "pop"),
+    ("zwin", T_TGT + 2.10, T_TGT + 2.95, "fade"),
+    ("cht", T_TGT + 2.55, T_TGT + 2.95, "fade"),
 ]
-FULLSET = ["dol", "obfill", "obl", "side", "stpl", "tgtl"]
-DRAWSET = ["liq", "ob0", "ob1", "ob2", "ob3", "stp", "tgt"]
+FULLSET = ["dol", "obl", "side", "stpl", "tgtl", "zloss", "zwin", "chs", "che", "cht"]
+DRAWSET = ["liq", "ob0", "ob1", "ob2", "ob3", "entl", "stp", "tgt"]
 
 # الشموع: ساكنة حتى ١٨ ثم تُطبع ثمانٍ حتى ٢١، ثم تثبت للوب
 RP_KF = [[0.0, RP_BASE], [T_RUN, RP_BASE], [T_RUN_E, len(W) - 1], [DUR, len(W) - 1]]
@@ -261,8 +279,11 @@ CSS = """
 #chip{display:none} #res{display:none} #endlogo{display:none} #edu{display:none}
 /* تحت وسوم الوقت لا فوقها: البريف يوجب ألّا يغطّي الـCTA الشموع، ووسوم
    الساعة جزء من الجارت. */
-#cta{top:1806px;left:80px;right:80px}
-#cta .k{font-size:38px;padding:12px 34px;border-width:2px}
+/* شريحة الـCTA بطراز المرجع (COMMENT: IDM): مستطيل داكن مصمت يجلس فوق
+   محور الوقت — لا يغطّي شمعة، ويظهر بعد الثانية ١٦ وحدها. */
+#cta{top:1742px;left:0;right:176px;text-align:center}
+#cta .k{display:inline-block;background:#0F2E3C;color:#FBF9F5;border:none;
+  border-radius:10px;font-size:34px;font-weight:900;padding:14px 40px;letter-spacing:1px}
 #cta .s{display:none}
 """ % (CY, CX)
 
@@ -270,9 +291,9 @@ cfg = dict(
     w=W, dark=False, extra_css=CSS, grid=False,
     extra_html="",                          # لا عنوان ولا كارد — بريف فهد
     pre_svg=None, scroll_svg=None,          # يُملآن أدناه
-    lp_pill=True, lp_dec=DP, lp_col=tv_chart.T["PILL"], lp_txt=tv_chart.T["PILLTX"],
+    lp_pill=False,
     base=RP_BASE - 1, openmax=RP_BASE - 1, open_t=[[RP_BASE - 1, 0.3]], story=[],
-    extra_svg=markup(), overlay_svg="",
+    extra_svg=markup(), overlay_svg=axis_chips(),
     replay={"kf": RP_KF, "vis": ANCHOR},
     marks=MARKS, fullset=FULLSET, drawset=DRAWSET, dom_marks=[],
     cursor=CURSOR, crosshair=False, chart_at=(CX, CY),
@@ -284,8 +305,10 @@ cfg = dict(
     flash=(0.0, 0.0), flash_op=0.0, punch=(0.0, 0.0, 0.0),
     cam=[],                                  # قرار فهد: اللوب أهم — بلا بوش
 )
-_F = tv_chart.furniture(W, dec=DP, sym=SYM, tf=TF,
-                        tlabels=[c["d"] for c in W], split=True)
+_lo = min(c["l"] for c in W); _hi = max(c["h"] for c in W)
+_pad = (_hi - _lo) * 0.08
+_F = TVF.furniture(W, CVW, CVH, PL, PR, PT, PB,
+                   _lo - _pad * 1.25, _hi + _pad, SLOT, DP, SYM, TF, gem=GEM)
 cfg["pre_svg"], cfg["scroll_svg"] = _F
 
 if __name__ == "__main__":
