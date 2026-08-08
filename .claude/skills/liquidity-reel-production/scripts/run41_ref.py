@@ -238,14 +238,24 @@ def _target_liq():
 _TL = _target_liq()
 SUP_I, SUP_T, SUP_B, SUP_X0 = _TL if _TL else (None, 0.0, 0.0, 0.0)
 
-FV_X0 = FV_T = FV_B = 0.0
+FV_X0 = FV_X1 = FV_T = FV_B = 0.0
 if FVG:
     _i, _flo, _fhi = FVG
     FV_X0 = X(_i) - SLOT * 0.6
+    FV_X1 = min(FV_X0 + BOXW, XR)
     FV_T, FV_B = Y(_fhi), Y(_flo)
+
+# 🔒 «بداية ونهاية الرسم غير دقيقة». قيست أطراف مستطيلات المرجع على
+# إطارٍ عرضه ١٢٩٠: الأشرطة تعبر العرض (`OB + BSL` من ٢٧ إلى ١٢٤٠ = ٩٤٪
+# و`Demand Zone` ٨٩٪)، أما **الصناديق فمحدودة**: `FVG` من ١٥٧ إلى ٥٢١
+# (٢٨٪) و`Fibo Zone` من ١٨٤ إلى ٦٦٧ (٣٧٪). وكنتُ أمدّ كلَّ شيء إلى حافة
+# اللوحة، فيضيع الفرق بين شريطٍ يمتدّ إلى المستقبل وصندوقٍ يصف نطاقاً
+# منتهياً — وتصير كل الأطراف على خطٍّ واحد، وهو ما يُرى «غير دقيق».
+BOXW = PW * 0.33                       # عرض الصندوق — وسط مدى المرجع
 
 FB_T, FB_B = Y(FIB618), Y(FIB5)
 FB_X0 = X(_LEG_LO if SELL else _LEG_HI) - SLOT * 0.6
+FB_X1 = min(FB_X0 + BOXW, XR)
 
 
 # ═══════════ موضع الاسم: حيث لا شمعة ═══════════
@@ -284,13 +294,16 @@ def _clear_x(x0, x1, ytop, ybot, txt, fs=26):
         sc = min(gap, 60) + (cx - lo) / max(hi - lo, 1) * 8
         if gap >= 0 and sc > bestsc:
             best, bestsc = cx, sc
-    # لم يبقَ موضعٌ نظيف داخل الشكل: يُرفع الاسم فوق حافته العليا —
-    # وهو ما تفعله المنصّة نفسها حين يضيق الشكل. أن يجلس اسمان متلاصقان
-    # على شمعةٍ واحدة أسوأ من أن يعلو أحدهما شكله.
+    # لم يبقَ موضعٌ نظيف **داخل** الشكل — الشموع تملؤه. فيخرج الاسم إلى
+    # يمين الشكل حيث الفراغ، على ارتفاعه نفسه.
+    #
+    # (أوّل صياغةٍ رفعته فوق الحافة العليا، فجلس على حدّ الصندوق وعلى
+    # شمعةٍ معاً — وهو ما رآه الفحص البصري على `Fibo Zone`. والخروج
+    # يميناً أنظف: هناك الفراغ الذي يمتدّ إليه الماركب أصلاً.)
     if best is None:
-        cx, dy = (x0 + x1) / 2, -(yb - yt) / 2 - 22
-        _PLACED.append((cx - w / 2, cx + w / 2, yt + dy - 16, yt + dy + 16))
-        return cx, dy
+        cx = min(x1 + w / 2 + 14, XR - w / 2 - 8)
+        _PLACED.append((cx - w / 2, cx + w / 2, yt, yb))
+        return cx, 0.0
     _PLACED.append((best - w / 2, best + w / 2, yt, yb))
     return best, 0.0
 
@@ -363,9 +376,15 @@ _LBL["dem"] = _clear_x(DM_X0, XR, DM_T, DM_B,
 if SUP_I is not None:
     _LBL["sup"] = _clear_x(SUP_X0, XR, SUP_T, SUP_B, "SSL" if SELL else "BSL")
 if FVG:
-    _LBL["fvg"] = _clear_x(FV_X0, XR, FV_T, FV_B, "FVG")
-_LBL["fib"] = _clear_x(FB_X0, XR, FB_T, FB_B, "Fibo Zone")
+    _LBL["fvg"] = _clear_x(FV_X0, FV_X1, FV_T, FV_B, "FVG")
+_LBL["fib"] = _clear_x(FB_X0, FB_X1, FB_T, FB_B, "Fibo Zone")
 LQ_Y = Y(LVL)
+# بداية خطّ السيولة: أوّل شمعةٍ لمست المستوى — هناك تكوّنت السيولة.
+# كان يبدأ من حافة اللوحة، فيقول إن المستوى قائمٌ قبل أن يوجد.
+_tol = (_HI - _LO) * 0.004
+_touch = [i for i, c in enumerate(W)
+          if abs((c["h"] if SELL else c["l"]) - LVL) <= _tol]
+LQ_X0 = X(min(_touch)) - SLOT * 0.6 if _touch else XL
 
 # ═══════════ الخط الزمني — إيقاع المرجع ≈٣ث للعنصر ═══════════
 _D1, _DR = 2.30, 1.20                  # سحبة أولى ثم ما بعدها
@@ -399,11 +418,11 @@ def markup():
     if ICH is not None:
         ex.append(R.struct_label(X(ICH), Y(W[ICH]["c"]), "CHoCH", gid="ch"))
     if FVG:
-        ex.append(R.box(FV_X0, FV_T, XR, FV_B, gid="fvg"))
-        ex.append(R.shape_label(FV_X0, FV_T, XR, FV_B, "FVG",
+        ex.append(R.box(FV_X0, FV_T, FV_X1, FV_B, gid="fvg"))
+        ex.append(R.shape_label(FV_X0, FV_T, FV_X1, FV_B, "FVG",
                                 gid="fvg_l", at=_lx("fvg"), dy=_ldy("fvg")))
-    ex.append(R.box(FB_X0, FB_T, XR, FB_B, gid="fib"))
-    ex.append(R.shape_label(FB_X0, FB_T, XR, FB_B, "Fibo Zone",
+    ex.append(R.box(FB_X0, FB_T, FB_X1, FB_B, gid="fib"))
+    ex.append(R.shape_label(FB_X0, FB_T, FB_X1, FB_B, "Fibo Zone",
                             gid="fib_l", at=_lx("fib"), dy=_ldy("fib")))
     ex.append(R.fib_mark(FB_X0, FB_T, "0.618", gid="f618"))
     ex.append(R.fib_mark(FB_X0, FB_B, "0.5", gid="f5"))
@@ -416,7 +435,7 @@ def markup():
         ex.append(R.trend_line(TR_X0, TR_Y0, TR_X1, TR_Y1, "Trendline", gid="trd"))
     # جهة السيولة تتبع الاتجاه: الشراء يكنس سيولة البيع (SSL) والعكس.
     # تسميةٌ مقلوبة تجعل اللوحة تقول غير ما تصفه الشموع.
-    ex.append(R.level_line(XL, XR, LQ_Y, "BSL" if SELL else "SSL", gid="liq"))
+    ex.append(R.level_line(LQ_X0, XR, LQ_Y, "BSL" if SELL else "SSL", gid="liq"))
     ex.append(R.struct_label(X(SW), LQ_Y - 32, "Sweep", gid="swp"))
     for _n, _sx, _sy in SWINGS:
         ex.append(R.swing(_sx, _sy, _n, gid=f"sw{_n}"))
@@ -462,13 +481,13 @@ def overlay():
         o.append(R.handles("box", SUP_X0, SUP_T, XR, SUP_B, gid="h_sup"))
     o.append(R.handles("box", OB_X0, OB_T, XR, OB_B, gid="h_ob"))
     if FVG:
-        o.append(R.handles("box", FV_X0, FV_T, XR, FV_B, gid="h_fvg"))
-    o.append(R.handles("box", FB_X0, FB_T, XR, FB_B, gid="h_fib"))
+        o.append(R.handles("box", FV_X0, FV_T, FV_X1, FV_B, gid="h_fvg"))
+    o.append(R.handles("box", FB_X0, FB_T, FB_X1, FB_B, gid="h_fib"))
     if SHOW_DM:
         o.append(R.handles("box", DM_X0, DM_T, XR, DM_B, gid="h_dem"))
     if _TR:
         o.append(R.handles("line", TR_X0, TR_Y0, TR_X1, TR_Y1, gid="h_trd"))
-    o.append(R.handles("line", XL, LQ_Y, XR, LQ_Y, gid="h_liq"))
+    o.append(R.handles("line", LQ_X0, LQ_Y, XR, LQ_Y, gid="h_liq"))
     return "".join(o)
 
 
@@ -536,14 +555,14 @@ CURSOR = [
     [T_CHOCH, X(ICH) if ICH is not None else OB_X0,
      Y(W[ICH]["c"]) if ICH is not None else OB_B, "ss", "down"],
     [T_FVG, FV_X0 if FVG else FB_X0, FV_T if FVG else FB_T, "ss"],
-    [T_FVG + _DR, XR, FV_B if FVG else FB_B, "ss"],
+    [T_FVG + _DR, FV_X1 if FVG else FB_X1, FV_B if FVG else FB_B, "ss"],
     [T_FIB, FB_X0, FB_T, "ss"],
-    [T_FIB + _DR, XR, FB_B, "ss"],
+    [T_FIB + _DR, FB_X1, FB_B, "ss"],
     [T_DEM, DM_X0, DM_T, "ss"],
     [T_DEM + _DR, XR, DM_B, "ss"],
     [T_TRD, TR_X0, TR_Y0, "ss"],
     [T_TRD + _DR, TR_X1, TR_Y1, "ss"],
-    [T_LIQ, XL, LQ_Y, "ss"],
+    [T_LIQ, LQ_X0, LQ_Y, "ss"],
     [T_LIQ + _DR, XR, LQ_Y, "ss"],
     [T_SWG, SWINGS[0][1], SWINGS[0][2], "ss", "down"],
     [T_SWG + 0.7, SWINGS[-1][1], SWINGS[-1][2], "ss", "down"],
