@@ -7405,6 +7405,46 @@
    "end": "2026-08-07 11:48",
    "label": "run35-frame",
    "video": "run35-frame-2026-08-07"
+  },
+  {
+   "symbol": "BTC-USD",
+   "timeframe": "1h",
+   "start": "2025-12-28 05:00",
+   "end": "2025-12-28 04:00",
+   "label": "run36-disp",
+   "video": "run36-daily-2026-08-08"
+  },
+  {
+   "symbol": "BTC-USD",
+   "timeframe": "1h",
+   "start": "2025-09-02 20:00",
+   "end": "2025-09-02 07:00",
+   "label": "run36-miss",
+   "video": "run36-daily-2026-08-08"
+  },
+  {
+   "symbol": "ES=F",
+   "timeframe": "30m",
+   "start": "2026-07-01 11:30",
+   "end": "2026-07-01 06:00",
+   "label": "run36-irhaq",
+   "video": "run36-daily-2026-08-08"
+  },
+  {
+   "symbol": "ES=F",
+   "timeframe": "1h",
+   "start": "2025-09-03 19:00",
+   "end": "2025-09-03 02:00",
+   "label": "run36-laebeen",
+   "video": "run36-daily-2026-08-08"
+  },
+  {
+   "symbol": "ETH-USD",
+   "timeframe": "1h",
+   "start": "2026-05-10 02:00",
+   "end": "2026-05-10 03:00",
+   "label": "run36-saqf",
+   "video": "run36-daily-2026-08-08"
   }
  ]
 }

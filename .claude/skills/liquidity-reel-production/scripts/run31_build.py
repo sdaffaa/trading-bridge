@@ -87,7 +87,9 @@ def build_carousel_unit(slug, C, r, ok):
     ki = min(car.get("key_page", 0), len(ok) - 1)
     pg = car["pages"][min(car.get("key_page", 0), len(car["pages"]) - 1)]
     RC.set_scale(1.45)
+    RC.set_no_title(True)          # العنوان في <h1> الصفحة — لا يُكرَّر داخل الرسم
     svg = ok[ki](r, 1000, 950)
+    RC.set_no_title(False)
     RC.set_scale(1.0)
     pts = "".join(f'<p class="hpt">{t}</p>' for t in pg.get("bullets", [])[:2])
     slides.append(hero_page(2, f'<h1 class="ttl9">{pg["title"]}</h1>'
