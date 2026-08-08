@@ -24,17 +24,42 @@ def plot_box():
     pl, pr, pt, pb = PAD
     return pl, pr, pt, pb, CW - pl - pr, CH - pt - pb
 
+# هامشا محور السعر — يقرؤهما المحرّك و`tv_chart` و`run28` من مكان واحد.
+# كانت `run28` تحسب هامشها السفلي بنفسها (١٫٤٥ بعد تضييقه) والمحرّك يرسم
+# الشموع بـ١٫٧، فيهبط الماركب عن الشموع نحو ثلاثة عشر بكسلاً عند القيعان.
+# مقياسٌ واحد للجميع، ومن أراد تغييره غيّره هنا فيتبعه الكلّ.
+SPAD = [1.7, 0.08]
+
+
+def set_price_pad(plo, ptop=0.08):
+    SPAD[0], SPAD[1] = plo, ptop
+
+
+# عدد الشموع الظاهرة في عرض اللوحة. بلا ضبطٍ = كل النافذة (كما كان).
+# في وضع الريبلاي تكون النافذة أطول من المعروض، فالباقي ينتظر خارج
+# الحافة اليمنى حتى يُطبع وينزلق إليه الجارت.
+VIS = [None]
+
+
+def set_vis(n):
+    VIS[0] = n
+
+
+def vis_n(N):
+    return VIS[0] or N
+
+
 def price_scale(W_):
     """المدى السعري نفسه الذي تستعمله geom — ليتطابق محور السعر مع الشموع."""
     ymin = min(c["l"] for c in W_); ymax = max(c["h"] for c in W_)
-    pad = (ymax - ymin) * 0.08
-    return ymin - pad * 1.7, ymax + pad
+    pad = (ymax - ymin) * SPAD[1]
+    return ymin - pad * SPAD[0], ymax + pad
 
 def geom(W_):
     N = len(W_)
     ymin, ymax = price_scale(W_)
     pl, pr, pt, pb = PAD
-    pw = CW - pl - pr; ph = CH - pt - pb; slot = pw / N
+    pw = CW - pl - pr; ph = CH - pt - pb; slot = pw / vis_n(N)
     return (lambda i: pl + slot * i + slot / 2), (lambda p: pt + (ymax - p) / (ymax - ymin) * ph), slot
 
 def line_el(x1, y1, x2, y2, col, w=2.4, dash=None, id=""):
@@ -147,16 +172,41 @@ def build_reel(cfg, out_html):
             gy = 26 + (CH - 46) * k / 4
             svg.append(f'<line x1="16" y1="{gy:.0f}" x2="{CW-20}" y2="{gy:.0f}" stroke="rgba(15,46,60,0.06)" stroke-width="1.5"/>')
     svg.append(cfg.get("pre_svg", ""))       # أثاث المنصة يسبق الشموع فلا يغطيها
+    # ═══ وضع الريبلاي: طبقة تنزلق أفقياً ═══
+    # 🔒 أمر فهد 2026-08-08 (بتسجيل شاشة من المنصّة): «اجعل الشموع تتحرك
+    # هكذا بالرسم». في ريبلاي تريدنق فيو لا تظهر الشمعة مكانها ثم تكبر —
+    # الجارت **ينزلق** سلوتاً كاملاً مع كل شمعة جديدة، ومحور السعر ثابت،
+    # وآخر شمعة تتشكّل حيّة عند الحافة اليمنى. فيلزم أن تنزلق الشموع
+    # والماركب ومحور الوقت معاً في طبقة واحدة، ويبقى محور السعر ساكناً.
+    RP = cfg.get("replay")
+    if RP:
+        # القصّ أفقيّ فقط: الحدّان الأيسر والأيمن هما حافتا مربّع الرسم كي
+        # لا تفيض الشموع على محور السعر، أمّا رأسياً فيمتدّ إلى أسفل
+        # اللوحة لأن وسوم الوقت تُكتب تحت الحدّ السفلي — وقصّها هناك كان
+        # يمحو الساعات من الشاشة.
+        svg.append(f'<defs><clipPath id="rpclip"><rect x="{_pl}" y="0" '
+                   f'width="{CW-_pr-_pl}" height="{CH}"/></clipPath></defs>'
+                   f'<g clip-path="url(#rpclip)"><g id="wrl">')
+        svg.append(cfg.get("scroll_svg", ""))   # محور الوقت ينزلق مع الشموع
     svg.append(candles_svg(W_, x, y, slot))
     # خط السعر الحي (ستايل TradingView) — يتبع إغلاق آخر شمعة مكشوفة
-    svg.append(f'<g id="lp" opacity="0"><line id="lpl" x1="16" y1="0" x2="{CW-20}" y2="0" '
+    LP_G = (f'<g id="lp" opacity="0"><line id="lpl" x1="16" y1="0" x2="{CW-20}" y2="0" '
                f'stroke="{INK}" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.4"/>'
                f'<circle id="lpd" cx="{CW-20}" cy="0" r="4.5" fill="{INK}"/>'
                + (f'<rect id="lpp" x="{CW-_pr+3}" y="0" width="{_pr-7}" height="30" rx="3" fill="{cfg.get("lp_col", INK)}"/>'
                   f'<text id="lpv" x="{CW-_pr+9}" y="0" fill="{cfg.get("lp_txt", "#08131C")}" '
                   f'font-size="19" font-weight="800" font-family="system-ui,sans-serif">0</text>'
                   if cfg.get("lp_pill") else '') + '</g>')
+    if not RP:
+        svg.append(LP_G)
     svg.append(cfg["extra_svg"])
+    if RP:
+        svg.append('</g></g>')
+        svg.append(LP_G)               # خارج الانزلاق: يعلو الماركب ويثبت أفقياً
+        # طبقة تعلو الجارت كلّه ولا تنزلق ولا تُقصّ: لوحات الفريمات الأعلى
+        # تملأ الإطار بخلفية معتمة، فوضعُها داخل القصّ يترك محور السعر
+        # وأطراف اللوحة مكشوفةً من تحتها، وانزلاقُها يزيح شريط رمزها.
+        svg.append(cfg.get("overlay_svg", ""))
     svg.append('</svg>')
     CHART = "".join(svg)
     if dark:   # خريطة الثيم الغامق (المرجع §3–4): إعادة تلوين كل عناصر الجارت
@@ -397,6 +447,19 @@ const CXO = {cx_off}, CYO = {cy_off}, PLx = {_pl}, PRx = {_pr}, PBx = {_pb};
 const CHc = {CH}, CWc = {CW}, SLOTW = {slot}, NB = {N};
 const TLAB = {tlab};
 const OPENMAX = {cfg.get("openmax", "BASE")};
+// الريبلاي: {{kf: [[لحظة، فهرس الشمعة الجارية], …], vis: كم شمعة تظهر
+// قبل أن يبدأ الانزلاق}}. الكيفريمات لا معدّلٌ واحد: لوحات الفريمات
+// الأعلى تحجب جارت التنفيذ عشر ثوانٍ، فلو مشى الريبلاي بمعدّل ثابت
+// لطُبعت نصف الشموع خلف ستار ولم يرها أحد. بلا المفتاح يعمل كما كان.
+const RPL = {json.dumps(cfg.get("replay") or None)};
+function rpP(t) {{
+  const K = RPL.kf;
+  if (t <= K[0][0]) return K[0][1];
+  for (let i = 0; i < K.length - 1; i++)
+    if (t <= K[i+1][0])
+      return K[i][1] + (K[i+1][1] - K[i][1]) * seg(t, K[i][0], K[i+1][0]);
+  return K[K.length-1][1];
+}}
 const YO = {json.dumps([round(y(c["o"]), 1) for c in W_])};
 const CDUR = {json.dumps([round(0.4 + 0.18*((i*37)%10)/10, 3) for i in range(N)])};
 const YC = {json.dumps([round(y(c["c"]), 1) for c in W_])};
@@ -425,6 +488,32 @@ window.__setFrame = function(t) {{
   const P0 = t < {cfg.get("preview_a", 2.05)};
   const TR = seg(t, {cfg.get("preview_a", 2.05) - 0.15}, {cfg.get("preview_b", 2.35)});
   let li = BASE, lk = 1;                       // آخر شمعة مكشوفة (لخط السعر الحي)
+  if (RPL) {{
+    // الفهرس الجاري رقمٌ كسري: صحيحُه الشمعة المكتملة الأخيرة، وكسرُه
+    // نسبةُ تشكّل الشمعة الحيّة. الانزلاق يتبعه فيمشي بسلاسة لا بقفزات.
+    const p = rpP(t);
+    const shift = Math.max(0, p - RPL.vis) * SLOTW;
+    $("wrl").setAttribute("transform", `translate(${{(-shift).toFixed(2)}},0)`);
+    const cur = Math.floor(p);
+    for (let i = 0; i < NB; i++) {{
+      const k = i < cur ? 1 : (i === cur ? Math.max(p - cur, 0.06) : 0);
+      candleK(i, k);
+      if (k > 0 && i > li) {{ li = i; lk = k; }}
+    }}
+    // خط السعر الحيّ يلاحق إغلاق الشمعة الجارية، ويبقى في محلّه أفقياً
+    // لأنه خارج الطبقة المنزلقة — كما هو في المنصّة تماماً.
+    const ly2 = YO[li] + (YC[li] - YO[li]) * Math.min(lk * 1.6, 1);
+    $("lp").style.opacity = 0.9;
+    $("lpl").setAttribute("y1", ly2); $("lpl").setAttribute("y2", ly2);
+    $("lpd").setAttribute("cy", ly2);
+    if (LPP) {{
+      const pv2 = YMAX - (ly2 - PT) / PH * (YMAX - YMIN);
+      $("lpp").setAttribute("y", ly2 - 15);
+      $("lpv").setAttribute("y", ly2 + 6);
+      $("lpv").textContent = pv2.toFixed(LPD);
+    }}
+  }}
+  if (!RPL)
   for (let i = 0; i < {N}; i++) {{
     let k = 0;
     if (i <= BASE) k = 1;
@@ -444,6 +533,7 @@ window.__setFrame = function(t) {{
   }}
   // خط السعر الحي: يمشي من الافتتاح للإغلاق مع تكشف الشمعة
   const ly = YO[li] + (YC[li] - YO[li]) * Math.min(lk * 1.6, 1);
+  if (!RPL) {{
   $("lp").style.opacity = (P0 ? 0.9 : (t < 2.35 ? (1 - TR) * 0.9 : 0.9));
   $("lpl").setAttribute("y1", ly); $("lpl").setAttribute("y2", ly);
   $("lpd").setAttribute("cy", ly);
@@ -452,6 +542,7 @@ window.__setFrame = function(t) {{
     $("lpp").setAttribute("y", ly - 15);
     $("lpv").setAttribute("y", ly + 6);
     $("lpv").textContent = pv.toFixed(LPD);
+  }}
   }}
   for (const id of FULLSET) {{
     const el = $(id);

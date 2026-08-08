@@ -19,7 +19,7 @@
 import json, os
 from reel_build import INK, TEAL, TEAL_D, RED, GREY, htext, gen
 from reel_sfx_kit import (build_reel, line_el, zone_el, xmark, checkmark, pos_box,
-                          set_canvas, set_pad, plot_box)
+                          set_canvas, set_pad, plot_box, set_price_pad, set_vis)
 import tv_chart, topdown
 import tv_shell as TV
 import reason_pool
@@ -62,6 +62,29 @@ TF_AR = {"3m": "٣ دقائق", "5m": "٥ دقائق", "15m": "١٥ دقيقة"}
 M5 = D[EXEC]["w"]
 assert HIT < len(M5), "الهدف خارج النافذة المرسومة"
 
+# 🔒 أمر فهد 2026-08-08 (أرسل تسجيل شاشة من ريبلاي المنصّة): «اجعل الشموع
+# تتحرك هكذا بالرسم». وما في التسجيل ثلاثة أشياء مجتمعة، لا واحد:
+#   ١) الجارت **ينزلق** سلوتاً كاملاً مع كل شمعة جديدة — لا الشمعة تكبر
+#      في مكانها والباقي ساكن.
+#   ٢) محور السعر **ثابت** لا يُعاد قياسه مع كل شمعة.
+#   ٣) آخر شمعة تتشكّل حيّة عند الحافة اليمنى، وخطّ السعر المتقطّع يلاحق
+#      إغلاقها بينما يبقى هو في محلّه أفقياً.
+# فالنافذة صارت أطول من المعروض: يُعرض `VIS` شمعة، والباقي ينتظر خارج
+# الحافة اليمنى حتى يُطبع فينزلق إليه الجارت. و`VIS` يُختار بحيث تمتلئ
+# اللوحة من الإطار صفر — أقلّ منه يترك يمين اللوحة فارغاً، وهو العيب
+# الذي أُصلح بالأمس.
+VIS = 46                              # شمعة ظاهرة في عرض اللوحة
+RP_BASE = VIS - 1                     # أول شمعة تُطبع حيّة (ما قبلها حاضر)
+# كيفريمات الطباعة لا معدّل ثابت: لوحات ٤س و١د و١س تحجب جارت التنفيذ من
+# 6.3 إلى 16.1، فمعدّلٌ ثابت كان يطبع نصف الشموع خلف ستار. فتُطبع سبعٌ
+# قبل الحجب وسبعٌ بعده، وتنتهي الطباعة قبل رسم صندوق الصفقة.
+_LAST = len(M5) - 1
+assert _LAST > RP_BASE, f"النافذة {len(M5)} شمعة لا تكفي عرض {VIS} + ريبلاي"
+_MID = RP_BASE + (_LAST - RP_BASE) // 2      # نصف الشموع قبل الحجب ونصفها بعده
+RP_KF = [[0.0, RP_BASE], [6.20, _MID], [16.20, _MID], [23.00, _LAST]]
+set_vis(VIS)
+set_price_pad(1.45, 0.08)             # مقياس واحد للمحرّك والماركب معاً
+
 
 def scale_of(w, plo=1.45, pt=0.08):
     """حدود محور السعر. `plo` مضاعف الهامش السفلي — والفرق ليس تجميلاً:
@@ -75,9 +98,9 @@ def scale_of(w, plo=1.45, pt=0.08):
     return lo - pad * plo, hi + pad
 
 
-def geo(w, plo=1.45, pt=0.08):
+def geo(w, plo=1.45, pt=0.08, vis=None):
     ymin, ymax = scale_of(w, plo, pt)
-    slot = PW / len(w)
+    slot = PW / (vis or len(w))
     return (lambda i: PL + slot * i + slot / 2,
             lambda p: PT + (ymax - p) / (ymax - ymin) * PH, slot, ymin, ymax)
 
@@ -232,11 +255,14 @@ def chip(xr, yc, txt, col, fs=30):
 # وبالنافذة الكاملة صار امتدادُه إلى الحافة يبتلع ربع اللوحة الأيمن ويغطّي
 # خمس عشرة شمعة. وأداة الصفقة في المنصّة تنتهي حيث تنتهي الصفقة.
 BOXJ = min(HIT + 3, len(M5) - 1)
+# الطبقة تنزلق يساراً حتى `RSHIFT`، فخطٌّ ينتهي عند حافة المحور اليوم
+# يقصر عنها غداً. يُمدّ بمقدار الانزلاق الأقصى، وما فاض يقصّه القصّ.
+RSHIFT = PW / VIS * (len(M5) - VIS)
 
 
 def m5_svg():
-    x, y, slot, *_ = geo(M5)
-    R = CVW - PR
+    x, y, slot, *_ = geo(M5, vis=VIS)
+    R = CVW - PR + RSHIFT                # يبلغ حافة المحور بعد الانزلاق كذلك
     BR = x(BOXJ) + slot * .5             # حافة صندوق الصفقة اليمنى
     L4, L5 = LAY[3], LAY[4]
     lvl, eq, sw = L4["lvl"], L4["eq"], L4["sw"]
@@ -298,6 +324,10 @@ def m5_svg():
 
 
 EX5, X5, Y5, SLOT5 = m5_svg()
+# الأثاث في طبقتين: محور السعر والعلامة المائية يسكنان، ومحور الوقت
+# ينزلق مع الشموع — وإلا مشت الشموع فوق ساعاتٍ واقفة.
+_FURN = tv_chart.furniture(M5, dec=2, sym=D["sym"], tf=EXEC,
+                           tlabels=[c["d"][11:] for c in M5], split=True)
 
 # ═════════ الواجهة والملاحظات ═════════
 # العنوان العائم ٥٢px والـCTA كانا أكثر ما يجعل المشهد ريلاً — ومهارة
@@ -417,7 +447,7 @@ BASE_HTML = (TV.shell_html(D["sym"], EXEC, tfs=TFS, foot=f'{D["sym"]} · {TF_AR.
 # هامشاً يمينياً فارغاً حتى تصل الشموع — فكلّها تُفتح من البداية، وهو ما
 # يبدو عليه جارتٌ مفتوح على الكمبيوتر فعلاً. الأنيميشن نصف ثانية يفي
 # بقاعدة §12 «فريم-0 شموع تتحرك»، والقصّة يرويها الماركب لا التكشّف.
-BASE = len(M5) - 1
+BASE = RP_BASE - 1                     # ما قبل الريبلاي حاضر من الإطار صفر
 STORY = []
 
 MARKS = [
@@ -531,11 +561,12 @@ DOM += [[nid, ta, tb, td, 0.26, "type"]
 cfg = dict(
     w=M5, dark=DK, extra_css=BASE_CSS, extra_html=BASE_HTML,
     grid=False,
-    pre_svg=tv_chart.furniture(M5, dec=2, sym=D["sym"], tf=EXEC,
-                               tlabels=[c["d"][11:] for c in M5]),
+    pre_svg=_FURN[0], scroll_svg=_FURN[1],
+    replay={"kf": RP_KF, "vis": VIS - 1},
     lp_pill=True, lp_dec=2, lp_col=tv_chart.T["PILL"], lp_txt=tv_chart.T["PILLTX"],
-    base=BASE, openmax=len(M5), open_t=[[BASE, 0.45]], story=STORY,
-    extra_svg=EX5 + p_4h() + p_1d() + p_1h(),
+    base=BASE, openmax=BASE, open_t=[[BASE, 0.45]], story=STORY,
+    extra_svg=EX5,                          # ماركب فريم التنفيذ — ينزلق معه
+    overlay_svg=p_4h() + p_1d() + p_1h(),   # لوحات الفريمات الأعلى — ثابتة
     marks=MARKS, fullset=FULLSET, drawset=["lvl"],
     dom_marks=DOM, cursor=CUR, crosshair=True, chart_at=(CX, CY),
     # من أول هيكل ٤س إلى رفع هيكل الساعة: الكروسهير يقرأ مقياس التنفيذ،

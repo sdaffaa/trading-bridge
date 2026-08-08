@@ -42,8 +42,13 @@ def _step(span, target=6):
     return mag * 10
 
 
-def furniture(W, dec=2, sym="GC=F", tf="15m", tlabels=None, ticks=6):
-    """يعيد (pre_svg, legend_svg). الأول تحت الشموع، والثاني فوقها للأرقام العلوية."""
+def furniture(W, dec=2, sym="GC=F", tf="15m", tlabels=None, ticks=6, split=False):
+    """أثاث اللوحة تحت الشموع.
+
+    `split=True` يُرجع (ثابت، متحرّك) بدل نصٍّ واحد: محور السعر والشبكة
+    الأفقية والعلامة المائية لا تتحرّك، أمّا خطوط الوقت الرأسية ووسومها
+    فتنزلق مع الشموع. يلزم هذا في وضع الريبلاي (تمرير الجارت أفقياً)،
+    وإلا بقيت الساعات ثابتة تحت شموعٍ تمشي — وهو ما لا يقع في منصّة."""
     pl, pr, pt, pb, pw, ph = plot_box()
     CW, CH = _K.CW, _K.CH
     ymin, ymax = price_scale(W)
@@ -52,6 +57,7 @@ def furniture(W, dec=2, sym="GC=F", tf="15m", tlabels=None, ticks=6):
     py = lambda v: pt + (ymax - v) / (ymax - ymin) * ph
 
     g = [f'<rect x="0" y="0" width="{CW}" height="{CH}" fill="{BG}"/>']
+    tg = []                                   # الطبقة المنزلقة (محور الوقت)
 
     # ── الشبكة وأرقام السعر ──
     st = _step(ymax - ymin, ticks)
@@ -66,16 +72,17 @@ def furniture(W, dec=2, sym="GC=F", tf="15m", tlabels=None, ticks=6):
     # ── الوقت أسفل ──
     if tlabels:
         every = max(1, len(tlabels) // 6)
-        slot = pw / len(W)
+        slot = pw / _K.vis_n(len(W))
         for i in range(0, len(tlabels), every):
             xx = x0 + slot * i + slot / 2
             if xx < x0 + 34:          # أول وسم يفيض عن الحافة اليسرى
                 continue
             if xx > x1 - 30:
                 break
-            g.append(f'<line x1="{xx:.1f}" y1="{ytop}" x2="{xx:.1f}" y2="{ybot}" stroke="{GRID}" stroke-width="1.4"/>')
-            g.append(f'<text x="{xx:.1f}" y="{ybot + 30:.1f}" fill="{AXTX}" font-size="19" font-weight="600" '
-                     f'text-anchor="middle" font-family="system-ui,sans-serif" direction="ltr">{tlabels[i]}</text>')
+            (tg if split else g).append(
+                f'<line x1="{xx:.1f}" y1="{ytop}" x2="{xx:.1f}" y2="{ybot}" stroke="{GRID}" stroke-width="1.4"/>'
+                f'<text x="{xx:.1f}" y="{ybot + 30:.1f}" fill="{AXTX}" font-size="19" font-weight="600" '
+                f'text-anchor="middle" font-family="system-ui,sans-serif" direction="ltr">{tlabels[i]}</text>')
 
     # ── حدّا المحورين ──
     g.append(f'<line x1="{x1}" y1="{ytop}" x2="{x1}" y2="{ybot}" stroke="{AXBD}" stroke-width="1.6"/>')
@@ -86,7 +93,7 @@ def furniture(W, dec=2, sym="GC=F", tf="15m", tlabels=None, ticks=6):
              f'text-anchor="middle" font-family="system-ui,sans-serif" direction="ltr">{sym}</text>')
     g.append(f'<text x="{(x0 + x1) / 2:.0f}" y="{pt + ph * 0.46 + 62:.0f}" fill="{WMK}" font-size="46" font-weight="800" '
              f'text-anchor="middle" letter-spacing="6" font-family="system-ui,sans-serif" direction="ltr">@LIQUIDITY.STATE</text>')
-    return "".join(g)
+    return ("".join(g), "".join(tg)) if split else "".join(g)
 
 
 def legend(W, sym="GC=F", tf="15m", dec=2, up=None, dn=None):
