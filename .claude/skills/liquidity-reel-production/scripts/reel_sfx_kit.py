@@ -194,8 +194,12 @@ def build_reel(cfg, out_html):
                f'stroke="{INK}" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.4"/>'
                f'<circle id="lpd" cx="{CW-20}" cy="0" r="4.5" fill="{INK}"/>'
                + (f'<rect id="lpp" x="{CW-_pr+3}" y="0" width="{_pr-7}" height="30" rx="3" fill="{cfg.get("lp_col", INK)}"/>'
+                  # `direction="ltr"` ليست زينة: الصفحة كلها rtl، والنصّ
+                  # يرث الاتجاه فيرتكز على يمين `x` بدل يساره — فيخرج
+                  # الرقم من البطاقة إلى يسارها ويظهر شريطٌ ملوّن فارغ.
                   f'<text id="lpv" x="{CW-_pr+9}" y="0" fill="{cfg.get("lp_txt", "#08131C")}" '
-                  f'font-size="19" font-weight="800" font-family="system-ui,sans-serif">0</text>'
+                  f'font-size="19" font-weight="800" direction="ltr" text-anchor="start" '
+                  f'font-family="system-ui,sans-serif">0</text>'
                   if cfg.get("lp_pill") else '') + '</g>')
     if not RP:
         svg.append(LP_G)
