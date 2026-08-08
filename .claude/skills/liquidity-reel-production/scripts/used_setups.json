@@ -72,5 +72,10 @@
   "file": "sol-usd_sc_2026-08-05_1015.json",
   "sym": "SOL-USD",
   "anchor": "2026-08-05 10:15"
+ },
+ {
+  "file": "sol-usd_sc_2026-08-05_1200.json",
+  "sym": "SOL-USD",
+  "anchor": "2026-08-05 12:00"
  }
 ]

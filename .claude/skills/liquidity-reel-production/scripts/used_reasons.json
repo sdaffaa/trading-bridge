@@ -70,6 +70,16 @@
     "sweep.pool",
     "signal.range"
    ]
+  },
+  {
+   "tag": "sol-usd_sc_2026-08-05_1200",
+   "keys": [
+    "4H.ma_run",
+    "1D.pd_low",
+    "1h.room",
+    "sweep.depth",
+    "signal.close_top"
+   ]
   }
  ]
 }
