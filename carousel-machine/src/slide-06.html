@@ -7,45 +7,37 @@
 <title>slide-06-reframe</title>
 </head>
 <body>
-<!-- ==== SLIDE 6 · REFRAME (quote / screenshot slide) ==== -->
+<!-- ==== SLIDE 6 · REFRAME (standalone screenshot slide) ==== ≤14 words -->
 <div class="slide">
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-    <linearGradient id="gemFace" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#F4F8F8"/><stop offset=".5" stop-color="#C7D6D9"/><stop offset="1" stop-color="#98AEB4"/>
-    </linearGradient>
-    <linearGradient id="gemEdge" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2FBF95"/><stop offset="1" stop-color="#0E1E24"/>
-    </linearGradient>
-    <symbol id="gem" viewBox="0 0 120 120">
-      <polygon points="60,4 108,32 108,88 60,116 12,88 12,32" fill="url(#gemFace)" stroke="url(#gemEdge)" stroke-width="2.5"/>
-      <polygon points="60,4 108,32 60,50 12,32" fill="#FFFFFF" opacity=".5"/>
-      <polygon points="60,50 108,32 108,88 60,70" fill="#17A97F" opacity=".12"/>
-      <polygon points="60,50 12,32 12,88 60,70" fill="#0E1E24" opacity=".06"/>
-      <g stroke="#0E1E24" stroke-width="1.1" opacity=".34" fill="none">
-        <path d="M12,32 L60,50 L108,32"/><path d="M60,4 L60,50 M60,50 L60,116"/>
-        <path d="M12,88 L60,70 L108,88"/><path d="M60,50 L12,88 M60,50 L108,88"/>
+  <div class="pagebox">6 / 7</div>
+
+  <div class="brandmark">
+    <svg class="gem" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="gm" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#EDF1F3"/><stop offset="1" stop-color="#9CB0B9"/>
+      </linearGradient></defs>
+      <polygon points="32,3 58,18 58,46 32,61 6,46 6,18" fill="url(#gm)" stroke="#7E939D" stroke-width="1.6"/>
+      <polygon points="32,3 58,18 32,27 6,18" fill="#F6F9FA"/>
+      <polygon points="32,27 58,18 58,46 32,37" fill="#B9C8CF" opacity=".85"/>
+      <polygon points="32,27 6,18 6,46 32,37" fill="#DAE2E6" opacity=".9"/>
+      <g stroke="#8299A3" stroke-width="1" fill="none" opacity=".75">
+        <path d="M6,18 L32,27 L58,18"/><path d="M32,3 L32,27 M32,37 L32,61"/>
+        <path d="M6,46 L32,37 L58,46"/><path d="M32,27 L32,37 M6,46 L32,37 M58,46 L32,37"/>
       </g>
-      <path d="M60,10 L101,34" stroke="#FFFFFF" stroke-width="2" opacity=".6" fill="none"/>
-    </symbol>
-  </defs></svg>
-  <svg class="bg-gem" aria-hidden="true"><use href="#gem"/></svg>
-
-  <div class="stage center" style="align-items:center; text-align:center; gap:34px">
-    <div style="font-family:Georgia,serif; font-size:200px; line-height:.55; color:var(--bull); opacity:.22; height:110px">”</div>
-    <div class="g" style="width:104px; height:104px; filter:drop-shadow(0 14px 26px #0E1E2426)"><svg class="gem" aria-hidden="true"><use href="#gem"/></svg></div>
-    <p class="quote">المحترف ما يسأل «چم بربح؟»<br>يسأل «چم أتحمّل أخسر؟»</p>
-    <div class="rule" style="align-self:center"></div>
-    <div class="wordmark">LIQUIDITY&nbsp;STATE</div>
-  </div>
-
-  <div class="band">
-    <div class="brand">
-      <div class="gem-wrap"><svg class="gem" aria-hidden="true"><use href="#gem"/></svg></div>
-      <span class="handle">@liquidity.state</span>
+    </svg>
+    <div class="wordline">
+      <span class="r"></span><span class="wordmark">LIQUIDITY STATE</span><span class="r"></span>
     </div>
-    <span class="spacer"></span>
-    <span class="counter">6/7</span>
   </div>
+
+  <div class="stage center" style="gap:46px">
+    <div class="hair" style="width:120px"></div>
+    <p class="quote">المحترف ما يسأل «چم بربح؟»<br><span style="color:var(--accent)">يسأل «چم أتحمّل أخسر؟»</span></p>
+    <div class="hair" style="width:120px"></div>
+  </div>
+
+  <div class="foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+  <div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div>
 </div>
 </body>
 </html>

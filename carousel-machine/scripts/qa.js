@@ -38,18 +38,49 @@ function pngSize(file) {
   return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
 }
 
+/* ---- Remove whole elements whose class matches, nesting included ----------
+ * A non-greedy regex stops at the first inner </tag> and leaks the parent's
+ * remaining text, so walk tag depth to find the real closing tag instead. */
+function stripExcluded(html, classRe) {
+  const open = /<([a-z][\w-]*)\b([^>]*)>/gi;
+  for (let guard = 0; guard < 500; guard++) {
+    open.lastIndex = 0;
+    let m, hit = null;
+    while ((m = open.exec(html))) {
+      const attrs = m[2];
+      const cls = /class\s*=\s*"([^"]*)"/i.exec(attrs);
+      if (cls && classRe.test(cls[1]) && !/\/$/.test(attrs)) {
+        hit = { tag: m[1], start: m.index, after: open.lastIndex };
+        break;
+      }
+    }
+    if (!hit) return html;
+
+    // walk forward, tracking depth of same-named tags, to the matching close
+    const scan = new RegExp(`<(/?)${hit.tag}\\b[^>]*>`, 'gi');
+    scan.lastIndex = hit.after;
+    let depth = 1, end = html.length, t;
+    while ((t = scan.exec(html))) {
+      depth += t[1] ? -1 : 1;
+      if (depth === 0) { end = scan.lastIndex; break; }
+    }
+    html = html.slice(0, hit.start) + ' ' + html.slice(end);
+  }
+  return html;
+}
+
 /* ---- Visible-text word count per slide -----------------------------------
  * Counts CONTENT words only (headline + body + steps + quote + CTA), per the
  * §6 caps. Excludes: brand chrome, category kicker, meta labels, the mandatory
  * legal disclaimer, the "توضيحي" tag, and chart annotation callouts. Also
  * excludes pure numeric / currency / R tokens — they are data, not reading load. */
 function words(html) {
-  const EXCLUDE = 'band|kicker|kchip|idx|wordmark|label|disclaimer|schematic-tag|callout|counter|handle|ghost';
-  let s = html
-    .replace(/<!--[\s\S]*?-->/g, ' ')
-    .replace(/<svg[\s\S]*?<\/svg>/gi, ' ') // charts/logos are not words
-    .replace(/<span class="dot"[^>]*><\/span>/gi, ' ') // strip decorative dot so kchip removes cleanly
-    .replace(new RegExp(`<[^>]*class="[^"]*\\b(?:${EXCLUDE})\\b[^"]*"[^>]*>[\\s\\S]*?<\\/[^>]+>`, 'gi'), ' ')
+  const EXCLUDE = 'band|kicker|kchip|chip|idx|wordmark|pagebox|foot|dots|label|disclaimer|'
+                + 'schematic-tag|callout|clab|axis-note|counter|handle|ghost';
+  let s = stripExcluded(
+      html.replace(/<!--[\s\S]*?-->/g, ' ')
+          .replace(/<svg[\s\S]*?<\/svg>/gi, ' '), // charts/logos are not words
+      new RegExp(`\\b(?:${EXCLUDE})\\b`))
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&[a-z]+;/gi, ' ')
@@ -93,18 +124,28 @@ const proof = fs.existsSync(path.join(SRC, 'slide-05.html'))
   ? fs.readFileSync(path.join(SRC, 'slide-05.html'), 'utf8') : '';
 check(/لغرض تعليمي/.test(proof), 'سطر المخاطر على سلايد الصفقة', 'slide-05');
 
-// 4) light palette only — no dark hero backgrounds in brand.css slide bg
+// 4) light palette only — assert the slide ground tokens are genuinely light.
+// Computed from the tokens themselves so a palette change can't silently pass.
 const css = fs.readFileSync(path.join(SRC, 'brand.css'), 'utf8');
-const lightBg = /--bg-top:\s*#F6F9F9/i.test(css) && /--bg-bottom:\s*#E9F1F0/i.test(css);
-check(lightBg, 'لوحة فاتحة فقط (لا خلفيات داكنة للسلايد)', 'tokens verified');
+function token(name) {
+  const m = css.match(new RegExp(`--${name}:\\s*(#[0-9A-Fa-f]{6})`));
+  return m ? m[1] : null;
+}
+const grounds = ['bg-top', 'bg-bottom'].map((n) => token(n));
+const lightBg = grounds.every((c) => c && lum(c) > 0.6); // clearly light, never a dark hero
+check(lightBg, 'لوحة فاتحة فقط (لا خلفيات داكنة للسلايد)', grounds.join(' → '));
 
 // 5) contrast on the key text/background pairs (target ≥ 4.5:1)
+// Colors are read from brand.css tokens so the check tracks the real palette.
+const CREAM = token('bg-top') || '#F4EFE8';
 const pairs = [
-  ['ink on bg-top', '#0E1E24', '#F6F9F9'],
-  ['ink on surface', '#0E1E24', '#FFFFFF'],
-  ['ink-2 body on bg', '#37525A', '#F6F9F9'],
-  ['ink-3 label on bg', '#5C7278', '#F6F9F9'],
-  ['handle on brand band', '#EAF2F1', '#0E1E24'],
+  ['ink on cream', token('ink'), CREAM],
+  ['ink on surface', token('ink'), token('surface')],
+  ['ink-2 body on cream', token('ink-2'), CREAM],
+  ['ink-3 label on cream', token('ink-3'), CREAM],
+  ['accent (wordmark/keyword) on cream', token('accent'), CREAM],
+  ['accent on tint box', token('accent'), token('surface-alt')],
+  ['bear text on cream', token('bear'), CREAM],
 ];
 for (const [name, fg, bg] of pairs) {
   const r = contrast(fg, bg);

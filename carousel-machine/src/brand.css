@@ -1,208 +1,189 @@
 /* ============================================================================
-   brand.css — Liquidity State Carousel Machine · Light Edition · Premium
-   Light-only, editorial, layered. Dark backgrounds intentionally undefined.
-   Token names (--bg-top/--bg-bottom/--ink-3) are kept stable for scripts/qa.js.
+   brand.css — Liquidity State Carousel Machine · Editorial Cream
+   Flat, print-editorial system: warm cream ground, navy-teal ink, hairline
+   rules, square corners. No gradients, no glows, no heavy shadows.
+   Token names (--bg-top/--bg-bottom/--ink-3) kept stable for scripts/qa.js.
    ========================================================================== */
 
 :root{
-  /* Surfaces */
-  --bg-top:      #F6F9F9;
-  --bg-bottom:   #E9F1F0;
-  --surface:     #FFFFFF;
-  --surface-alt: #F0F5F5;
-  --border:      #D6E3E2;
-  --border-soft: #17A97F26;
+  /* Ground */
+  --bg-top:      #F4EFE8;   /* warm cream, top of the very soft wash */
+  --bg-bottom:   #EFE9E0;   /* warm cream, bottom                    */
+  --paper:       #F2EDE5;   /* flat reference cream                  */
+  --surface:     #FAF8F4;   /* panel / card                          */
+  --surface-alt: #E7F0F5;   /* tinted callout box                    */
+  --border:      #DCD5CA;   /* hairline on cream                     */
+  --border-ink:  #C3D3DA;   /* hairline with a teal cast             */
 
   /* Ink */
-  --ink:         #0E1E24;
-  --ink-2:       #37525A;
-  --ink-3:       #5C7278;   /* ≥4.5:1 on light bg (§7.2) */
+  --ink:         #12303B;   /* headlines, primary text     11.9:1    */
+  --ink-2:       #4A6470;   /* secondary text               5.4:1    */
+  --ink-3:       #4F6975;   /* small labels                 ≥4.5:1   */
 
   /* Accents */
-  --bull:        #17A97F;
-  --bull-2:      #0E8E6A;   /* deeper teal for gradients/edges */
-  --bear:        #C94A4A;
-  --bull-fill:   #17A97F1F;
-  --bear-fill:   #C94A4A1F;
-  --highlight:   #DFF4EC;
-  --brand-band:  #0E1E24;
-  --metal-1:     #F4F8F8;
-  --metal-2:     #A9BCC2;
-  --glow:        #17A97F;
+  --accent:      #1B6980;   /* teal — wordmark, numerals, keyword    */
+  --accent-2:    #2A7F9E;   /* brighter teal — hairlines only        */
+  --bull:        #1B6980;   /* winning curves (line art)             */
+  --bear:        #B93A3A;   /* losing curves, alert chip (text-safe) */
+  --bear-line:   #D14A4A;   /* bearish stroke (non-text)             */
 
   /* Chart */
-  --chart-bg:    #FFFFFF;
-  --chart-grid:  #EAF1F0;
-  --axis:        #5C7278;
+  --chart-grid:  #E2DACE;
+  --axis:        #4F6975;
 
   /* Geometry */
   --canvas-w: 1080px;
   --canvas-h: 1350px;
-  --margin:   88px;
-  --ig-safe:  120px;
-  --band-h:   104px;
-  --radius:   26px;
-  --card-pad: 40px;
-  --shadow:   0 18px 44px #0E1E2412, 0 3px 10px #0E1E240A;
-  --shadow-sm:0 8px 20px #0E1E240D;
+  --margin:   96px;
+  --ig-safe:  120px;        /* no text/CTA inside the last 120px */
+  --radius:   3px;          /* essentially square */
+  --shadow:   0 12px 34px #12303B12;
+  --shadow-sm:0 6px 18px #12303B0D;
 }
 
 *{ margin:0; padding:0; box-sizing:border-box; }
-html,body{ background:var(--bg-bottom); }
+html,body{ background:var(--paper); }
 body{
   font-family:'Tajawal', system-ui, sans-serif;
   font-weight:500; color:var(--ink);
   -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
 }
 
-/* ---- Canvas + layered background ----------------------------------------- */
+/* ---- Canvas -------------------------------------------------------------- */
 .slide{
   position:relative; width:var(--canvas-w); height:var(--canvas-h); overflow:hidden;
   direction:rtl; text-align:right; line-height:1.5; letter-spacing:0;
-  background:
-    radial-gradient(1100px 700px at 82% -8%, #17A97F14, transparent 60%),
-    radial-gradient(900px 640px at -12% 108%, #0E1E240D, transparent 60%),
-    linear-gradient(168deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+  background:linear-gradient(178deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
 }
-/* fine engineering grid + constellation dots */
-.slide::before{
-  content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
-  background-image:
-    linear-gradient(#0E1E2408 1px, transparent 1px),
-    linear-gradient(90deg, #0E1E2408 1px, transparent 1px),
-    radial-gradient(circle at 12% 22%, #17A97F1A 0 2px, transparent 3px),
-    radial-gradient(circle at 90% 78%, #0E1E2412 0 2px, transparent 3px);
-  background-size:120px 120px, 120px 120px, 100% 100%, 100% 100%;
-  mask-image:linear-gradient(180deg, #000 0%, #0000 42%, #0000 62%, #000 100%);
+/* barely-there vignette so the cream has body without looking dirty */
+.slide::after{
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
+  background:radial-gradient(130% 95% at 50% 38%, #FFFFFF00 55%, #12303B0F 100%);
 }
-/* large ghost gem watermark */
-.bg-gem{
-  position:absolute; z-index:0; pointer-events:none;
-  width:760px; height:760px; left:-190px; bottom:-150px; opacity:.06;
-  transform:rotate(-8deg);
-}
-.bg-gem use{ } /* uses #gem symbol */
 
-/* ---- Content stage ------------------------------------------------------- */
+/* ---- Stage --------------------------------------------------------------- */
 .stage{
   position:absolute; z-index:2;
-  top:var(--margin); right:var(--margin); left:var(--margin);
-  bottom:calc(var(--band-h) + 56px);
-  display:flex; flex-direction:column; gap:30px;
+  top:210px; right:var(--margin); left:var(--margin);
+  bottom:200px;                       /* clears foot + dots + IG safe zone */
+  display:flex; flex-direction:column; gap:34px;
 }
-.stage.center{ justify-content:center; }
+.stage.center{ justify-content:center; align-items:center; text-align:center; }
 .stage.between{ justify-content:space-between; }
+/* cluster content in the optical middle, keep RTL right-alignment and
+   full-width blocks — avoids the dead voids that space-between creates */
+.stage.mid{ justify-content:center; }
+/* a chip as a direct flex child would stretch full width; keep it content-sized */
+.stage > .chip, .stage > .alertchip{ align-self:flex-start; }
 
-/* ---- Header row (index tag + kicker chip) -------------------------------- */
-.head{ display:flex; align-items:center; justify-content:space-between; }
-.kchip{
-  display:inline-flex; align-items:center; gap:12px;
-  background:var(--surface); border:1px solid var(--border-soft);
-  border-radius:999px; padding:12px 22px 12px 18px;
-  font-weight:800; font-size:28px; color:var(--ink);
-  box-shadow:var(--shadow-sm);
+/* ---- Top furniture: page box + brand mark -------------------------------- */
+.pagebox{
+  position:absolute; top:70px; left:var(--margin); z-index:3;
+  border:1px solid var(--border-ink); border-radius:var(--radius);
+  padding:12px 26px; background:#FBF9F600;
+  font-weight:800; font-style:italic; font-size:30px; color:var(--ink);
+  direction:ltr; letter-spacing:1px;
 }
-.kchip .dot{ width:14px; height:14px; border-radius:50%;
-  background:radial-gradient(circle at 35% 30%, #37E3B0, var(--bull)); box-shadow:0 0 0 5px #17A97F1A; }
-.idx{ font-weight:800; font-size:26px; color:var(--ink-3); letter-spacing:2px; direction:ltr; }
 
-/* accent rule under a title */
-.rule{ height:5px; width:96px; border-radius:6px;
-  background:linear-gradient(90deg, var(--bull), var(--bull-2)); }
+/* centered lockup: gem over wordmark with flanking rules (cover / CTA) */
+.brandmark{
+  position:absolute; top:64px; left:0; right:0; z-index:3;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+}
+.brandmark .gem{ width:58px; height:58px; }
+.wordline{ display:flex; align-items:center; gap:22px; }
+.wordline .r{ width:74px; height:1px; background:var(--accent-2); opacity:.75; }
+.wordmark{
+  font-weight:700; font-size:29px; letter-spacing:.34em; color:var(--accent);
+  direction:ltr; white-space:nowrap;
+}
+
+/* small wordmark, top-right (content slides) */
+.brandmark-sm{
+  position:absolute; top:78px; right:var(--margin); z-index:3;
+  font-weight:700; font-size:26px; letter-spacing:.32em; color:var(--accent);
+  direction:ltr; opacity:.85;
+}
 
 /* ---- Typography ---------------------------------------------------------- */
-.kicker{ font-weight:800; font-size:30px; color:var(--bull-2); }
-.cover-title{ font-weight:800; font-size:100px; line-height:1.1; color:var(--ink); letter-spacing:-1px; }
-.cover-sub{ font-weight:500; font-size:44px; color:var(--ink-2); }
-.title{ font-weight:800; font-size:66px; line-height:1.18; color:var(--ink); letter-spacing:-.5px; }
-.body{ font-weight:500; font-size:43px; color:var(--ink-2); }
-.lead{ font-weight:700; font-size:50px; color:var(--ink); }
-.label{ font-weight:600; font-size:30px; color:var(--ink-3); }
+.h1{ font-weight:800; font-size:92px; line-height:1.16; color:var(--ink); letter-spacing:-1px; }
+.h1 .alt{ color:var(--accent); }         /* second line in teal */
+.h2{ font-weight:800; font-size:64px; line-height:1.2; color:var(--ink); letter-spacing:-.5px; }
+.sub{ font-weight:400; font-size:42px; color:var(--ink-2); }
+.body{ font-weight:500; font-size:40px; color:var(--ink-2); }
+.strong{ font-weight:800; font-size:40px; color:var(--ink); }
+.label{ font-weight:600; font-size:28px; color:var(--ink-3); }
 .quote{ font-weight:800; font-size:62px; line-height:1.34; color:var(--ink); letter-spacing:-.5px; }
+.hair{ height:1px; background:var(--border); }
 
-.mark{ background:linear-gradient(180deg, transparent 55%, var(--highlight) 55%); padding:0 8px; }
-.bull{ color:var(--bull-2); }
+.num{ unicode-bidi:isolate; direction:ltr; }   /* keep digits/math un-mirrored */
+.bull{ color:var(--accent); }
 .bear{ color:var(--bear); }
 
-/* ---- Cards (premium) ----------------------------------------------------- */
-.card{
-  position:relative; background:linear-gradient(180deg, #FFFFFF, #F7FBFA);
-  border:1px solid var(--border); border-radius:var(--radius);
-  padding:var(--card-pad); box-shadow:var(--shadow); overflow:hidden;
+/* ---- Chips --------------------------------------------------------------- */
+.chip{
+  display:inline-block; border:1px solid var(--border-ink); border-radius:var(--radius);
+  padding:10px 22px; font-weight:800; font-size:29px; color:var(--ink); background:#FBFAF700;
 }
-.card::before{ content:""; position:absolute; top:0; right:0; left:0; height:5px;
-  background:linear-gradient(90deg, var(--bull), var(--bull-2)); opacity:.9; }
-.card.alt{ background:linear-gradient(180deg, #F4F9F8, #EEF5F4); }
+.alertchip{
+  display:inline-block; border:1.5px solid var(--bear); border-radius:var(--radius);
+  padding:10px 24px; font-weight:800; font-size:29px; color:var(--bear); background:#B93A3A0F;
+}
 
-/* ---- Steps with ghost index numerals ------------------------------------- */
-.steps{ display:flex; flex-direction:column; gap:26px; }
-.step{ position:relative; display:flex; gap:24px; align-items:flex-start;
-  background:var(--surface); border:1px solid var(--border); border-radius:20px;
-  padding:26px 30px; box-shadow:var(--shadow-sm); overflow:hidden; }
-.step .ghost{ position:absolute; left:18px; bottom:-26px; font-weight:800; font-size:150px;
-  color:#0E1E24; opacity:.05; line-height:1; direction:ltr; }
-.step .n{ flex:0 0 auto; width:70px; height:70px; border-radius:18px;
+/* ---- Panel with hairline-separated numbered rows -------------------------- */
+.panel{
+  background:var(--surface); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:14px 44px;
+}
+.row{ display:flex; align-items:center; gap:26px; padding:34px 0; }
+.row + .row{ border-top:1px solid var(--border); }
+.rnum{
+  flex:0 0 auto; width:54px; height:54px; border-radius:50%;
+  border:1.5px solid var(--accent-2); color:var(--accent);
   display:flex; align-items:center; justify-content:center;
-  background:linear-gradient(160deg, #17A97F, var(--bull-2)); color:#fff;
-  font-weight:800; font-size:38px; box-shadow:0 8px 18px #17A97F3D; }
-.step .t{ font-weight:600; font-size:40px; color:var(--ink); line-height:1.45; padding-top:4px; }
+  font-weight:800; font-size:26px; direction:ltr;
+}
+.rtext{ font-weight:800; font-size:37px; color:var(--ink); line-height:1.4; }
 
-/* ---- Comparison rows (bidi-safe) ----------------------------------------- */
-.cmp{ display:flex; flex-direction:column; gap:20px; }
-.cmp-row{ display:flex; align-items:center; justify-content:space-between; gap:24px;
-  background:var(--surface); border:1px solid var(--border); border-radius:20px;
-  padding:26px 32px; box-shadow:var(--shadow-sm); }
-.cmp-row.hot{ border-color:#C94A4A55; background:linear-gradient(90deg,#FFF, #FDF3F3); }
-.cmp-row.cool{ border-color:#17A97F55; background:linear-gradient(90deg,#FFF, #F1FBF7); }
-.cmp-label{ font-weight:700; font-size:42px; color:var(--ink); }
-.cmp-val{ font-weight:800; font-size:60px; unicode-bidi:isolate; direction:ltr; }
+/* plain flat panel for prose */
+.note{ background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow-sm); padding:40px 44px; }
 
-/* ---- Numeric isolation --------------------------------------------------- */
-.num{ unicode-bidi:isolate; direction:ltr; }
+/* ---- Two-column stat rows ------------------------------------------------ */
+.stats{ display:flex; flex-direction:column; }
+.stat-row{ display:flex; align-items:center; justify-content:space-between; gap:28px; padding:32px 4px; }
+.stat-row + .stat-row{ border-top:1px solid var(--border); }
+.statlabel{ font-weight:700; font-size:40px; color:var(--ink); }
+.stat-val{ font-weight:800; font-size:56px; unicode-bidi:isolate; direction:ltr; letter-spacing:-1px; }
 
-/* ---- Big stat block ------------------------------------------------------ */
-.stat{ font-weight:800; line-height:.9; unicode-bidi:isolate; direction:ltr; letter-spacing:-2px; }
+/* ---- Keyword CTA box ----------------------------------------------------- */
+.keybox{
+  align-self:center; text-align:center;
+  border:1.5px solid var(--border-ink); border-radius:var(--radius);
+  background:var(--surface-alt); padding:26px 66px;
+}
+.keybox .k-label{ font-weight:700; font-size:28px; color:var(--ink-2); }
+.keybox .k-word{ font-weight:800; font-size:54px; color:var(--accent); margin-top:6px; }
 
-/* ---- Chart card + callouts ---------------------------------------------- */
-.chart-wrap{ position:relative; }
-.callout{ position:absolute; background:var(--surface); border:1px solid var(--border);
-  border-radius:14px; padding:14px 20px; box-shadow:var(--shadow-sm);
-  font-weight:800; font-size:31px; color:var(--ink); z-index:3; }
-.schematic-tag{ position:absolute; top:18px; left:18px; font-weight:800; font-size:24px;
-  color:var(--ink-3); background:var(--surface-alt); border:1px solid var(--border);
-  border-radius:999px; padding:6px 18px; z-index:3; }
+/* ---- Chart --------------------------------------------------------------- */
+.chartwrap{ position:relative; }
+/* flat chart annotation: text on cream, no card, no shadow */
+.clab{
+  position:absolute; z-index:3; font-weight:800; font-size:29px; color:var(--ink);
+  background:var(--bg-top); padding:2px 12px;
+}
+.axis-note{ font-weight:700; font-size:27px; color:var(--ink-3); }
 .disclaimer{ font-weight:600; font-size:27px; color:var(--ink-3); }
 
-/* ---- Gem symbol + lockup + brand band ----------------------------------- */
-.gem{ display:block; width:100%; height:100%; }
-
-.band{ position:absolute; left:0; right:0; bottom:0; height:var(--band-h);
-  background:linear-gradient(180deg, #12262E, var(--brand-band));
-  display:flex; align-items:center; padding:0 var(--margin); z-index:4; direction:rtl;
-  box-shadow:0 -10px 30px #0E1E2412; }
-.band::before{ content:""; position:absolute; top:0; left:0; right:0; height:2px;
-  background:linear-gradient(90deg, transparent, #17A97F, transparent); opacity:.7; }
-.band .brand{ display:flex; align-items:center; gap:16px; }
-.band .gem-wrap{ width:46px; height:46px; }
-.band .handle{ color:#EAF2F1; font-weight:800; font-size:33px; direction:ltr; unicode-bidi:isolate; }
-.band .spacer{ flex:1; }
-.counter{ display:flex; align-items:center; justify-content:center; width:84px; height:92px;
-  color:#EAF2F1; font-weight:800; font-size:30px; direction:ltr;
-  clip-path:polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-  background:linear-gradient(160deg, #17A97F40, #17A97F14);
-  border:0; }
-
-/* cover / centered gem lockup */
-.lockup{ display:flex; flex-direction:column; align-items:center; gap:18px; }
-.lockup .g{ width:132px; height:132px; filter:drop-shadow(0 16px 30px #0E1E2426); }
-.wordmark{ font-weight:800; font-size:34px; letter-spacing:3px; color:var(--ink-2); direction:ltr; }
-
-/* CTA */
-.cta-pill{ align-self:center; display:inline-flex; align-items:center; gap:14px;
-  background:linear-gradient(160deg, #17A97F, var(--bull-2)); color:#fff;
-  font-weight:800; font-size:46px; padding:28px 54px; border-radius:999px;
-  box-shadow:0 16px 34px #17A97F45; }
-.cta-keyword{ align-self:center; display:inline-flex; align-items:center; gap:12px;
-  background:var(--surface); color:var(--ink); font-weight:700; font-size:40px;
-  padding:24px 40px; border-radius:18px; border:1px solid var(--border); box-shadow:var(--shadow-sm); }
-.cta-keyword b{ color:var(--bull-2); }
+/* ---- Foot: handle line + dot pagination ---------------------------------- */
+.foot{
+  position:absolute; left:0; right:0; bottom:126px; z-index:3;
+  text-align:center; font-weight:700; font-size:28px; color:var(--ink-3);
+  letter-spacing:.02em;
+}
+.foot .h{ color:var(--accent); direction:ltr; unicode-bidi:isolate; }
+.dots{
+  position:absolute; left:0; right:0; bottom:66px; z-index:3;
+  display:flex; justify-content:center; align-items:center; gap:12px;
+}
+.dots i{ width:11px; height:11px; border-radius:50%; background:#12303B26; display:block; }
+.dots i.on{ width:34px; border-radius:99px; background:var(--accent); }
