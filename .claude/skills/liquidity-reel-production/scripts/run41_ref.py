@@ -59,7 +59,14 @@ DP = PLAN["dp"]
 FILL, HIT = PLAN["fill"], PLAN["hit"]
 EXEC = D.get("exec_tf", "5m")
 W = D[EXEC]["w"]
-SYM = D["sym"]
+# اسم الأداة كما يعرفه المتداول، لا رمز مزوّد البيانات. `SI=F` و`^GSPC`
+# رموز ياهو الداخلية — ظهورها في العنوان يكشف المصدر ويربك القارئ.
+_NAME = {"GC=F": "GOLD", "SI=F": "SILVER", "CL=F": "WTI", "BZ=F": "BRENT",
+         "NG=F": "NATGAS", "HG=F": "COPPER", "BTC-USD": "BTCUSD",
+         "ETH-USD": "ETHUSD", "EURUSD=X": "EURUSD", "GBPUSD=X": "GBPUSD",
+         "USDJPY=X": "USDJPY", "^GSPC": "SPX500"}
+SYM = _NAME.get(D["sym"], D["sym"].replace("=F", "").replace("=X", "")
+                .replace("^", "").replace("-", ""))
 TF_EN = {"3m": "M3", "5m": "M5", "15m": "M15", "1h": "H1", "4H": "H4",
          "1D": "D1"}.get(EXEC, EXEC.upper())
 assert HIT < len(W), "الهدف خارج النافذة المرسومة"
@@ -160,6 +167,7 @@ if _T1 <= _T0:
 # حدّا الأوردر بلوك هما موضع التفاعل، وإزاحتُهما ثمانية بكسلات تجعل
 # اللوحة تقول سعراً لم تلمسه الشمعة.
 _HI = max(c["h"] for c in W); _LO = min(c["l"] for c in W)
+BOXW = PW * 0.33                       # عرض الصندوق — وسط مدى المرجع
 
 OB_T, OB_B = Y(OB_HI), Y(OB_LO)            # جسم شمعة الأوردر بلوك بالضبط
 OB_X0 = X(IOB) - SLOT * 0.6
@@ -251,8 +259,6 @@ if FVG:
 # (٢٨٪) و`Fibo Zone` من ١٨٤ إلى ٦٦٧ (٣٧٪). وكنتُ أمدّ كلَّ شيء إلى حافة
 # اللوحة، فيضيع الفرق بين شريطٍ يمتدّ إلى المستقبل وصندوقٍ يصف نطاقاً
 # منتهياً — وتصير كل الأطراف على خطٍّ واحد، وهو ما يُرى «غير دقيق».
-BOXW = PW * 0.33                       # عرض الصندوق — وسط مدى المرجع
-
 FB_T, FB_B = Y(FIB618), Y(FIB5)
 FB_X0 = X(_LEG_LO if SELL else _LEG_HI) - SLOT * 0.6
 FB_X1 = min(FB_X0 + BOXW, XR)
