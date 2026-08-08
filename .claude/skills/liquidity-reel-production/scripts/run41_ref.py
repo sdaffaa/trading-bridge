@@ -550,32 +550,41 @@ RP_KF = [[0.0, RP_BASE], [T_RUN, RP_BASE], [T_RUN_E, len(W) - 1], [DUR, len(W) -
 # حاضرٌ طوال الوقت، ينتقل بين العناصر ويسحب كلاً بيده. تيسير `ss` على
 # كل ساق كي يبقى تحت رأس ما يُرسم — الخطوط تُرسم بالتيسير نفسه.
 _P = _proj_pts()
-CURSOR = [
-    # يدخل المؤشّر من خارج اللوحة إلى نقطة الإمساك: بلا هذه الساق تبقى
-    # الثانية الأولى إطاراً ساكناً، والمرجع لا يترك إطاراً ساكناً واحداً.
-    [0.00, SUP_X0 - 150, SUP_T - 120, "ss"],
-    [T_SUP, SUP_X0, SUP_T, "ss"],
-    [T_SUP + _D1, XR, SUP_B, "ss"],
-    [T_OB, OB_X0, OB_T, "ss"],
-    [T_OB + _DR, XR, OB_B, "ss"],
-    [T_CHOCH, X(ICH) if ICH is not None else OB_X0,
-     Y(W[ICH]["c"]) if ICH is not None else OB_B, "ss", "down"],
-    [T_FVG, FV_X0 if FVG else FB_X0, FV_T if FVG else FB_T, "ss"],
-    [T_FVG + _DR, FV_X1 if FVG else FB_X1, FV_B if FVG else FB_B, "ss"],
-    [T_FIB, FB_X0, FB_T, "ss"],
-    [T_FIB + _DR, FB_X1, FB_B, "ss"],
-    [T_DEM, DM_X0, DM_T, "ss"],
-    [T_DEM + _DR, XR, DM_B, "ss"],
-    [T_TRD, TR_X0, TR_Y0, "ss"],
-    [T_TRD + _DR, TR_X1, TR_Y1, "ss"],
-    [T_LIQ, LQ_X0, LQ_Y, "ss"],
-    [T_LIQ + _DR, XR, LQ_Y, "ss"],
-    [T_SWG, SWINGS[0][1], SWINGS[0][2], "ss", "down"],
-    [T_SWG + 0.7, SWINGS[-1][1], SWINGS[-1][2], "ss", "down"],
-    [T_PROJ, _P[0][0], _P[0][1], "ss"],
-    [T_PROJ + 2.60, _P[-1][0], _P[-1][1], "ss"],
-    [DUR, SUP_X0 - 150, SUP_T - 120, "creep"],   # يعود لموضع الإطار صفر
-]
+# كيفريمات المؤشّر تُبنى من **المرسوم فعلاً** لا من الخانات كلّها.
+#
+# كانت مكتوبةً لتسعة عناصر ثابتة، فإذا سقط عنصرٌ (خطُّ اتّجاه بلا ثلاث
+# لمسات، أو منطقةٌ اندمجت في `OB`) بقيت خانته الزمنية وكيفريماه عند
+# نقطةٍ واحدة — فيقف المؤشّر ساكناً ثانيةً وربعاً. أمسكته البوابة على
+# نافذة الفضة ٢٠٢٦-٠٧-٣١، وهو عيبٌ كان سيمرّ لو لم تكن البوابة تقيس
+# المؤشّر مع الماركب معاً.
+#
+# فحين يسقط عنصر تُحذف ساقاه، ويمتدّ انتقال المؤشّر من العنصر السابق
+# إلى التالي عبر الفجوة كلّها — حركةٌ متّصلة بلا وقوف.
+_LEGS = []
+if SUP_I is not None:
+    _LEGS += [(T_SUP, SUP_X0, SUP_T), (T_SUP + _D1, XR, SUP_B)]
+_LEGS += [(T_OB, OB_X0, OB_T), (T_OB + _DR, XR, OB_B)]
+if ICH is not None:
+    _LEGS.append((T_CHOCH, X(ICH), Y(W[ICH]["c"]), "down"))
+if FVG:
+    _LEGS += [(T_FVG, FV_X0, FV_T), (T_FVG + _DR, FV_X1, FV_B)]
+_LEGS += [(T_FIB, FB_X0, FB_T), (T_FIB + _DR, FB_X1, FB_B)]
+if SHOW_DM:
+    _LEGS += [(T_DEM, DM_X0, DM_T), (T_DEM + _DR, XR, DM_B)]
+if _TR:
+    _LEGS += [(T_TRD, TR_X0, TR_Y0), (T_TRD + _DR, TR_X1, TR_Y1)]
+_LEGS += [(T_LIQ, LQ_X0, LQ_Y), (T_LIQ + _DR, XR, LQ_Y),
+          (T_SWG, SWINGS[0][1], SWINGS[0][2], "down"),
+          (T_SWG + 0.7, SWINGS[-1][1], SWINGS[-1][2], "down"),
+          (T_PROJ, _P[0][0], _P[0][1]),
+          (T_PROJ + 2.60, _P[-1][0], _P[-1][1])]
+
+CURSOR = [[0.00, SUP_X0 - 150 if SUP_I is not None else OB_X0 - 150,
+           (SUP_T if SUP_I is not None else OB_T) - 120, "ss"]]
+for _lg in sorted(_LEGS, key=lambda g: g[0]):
+    CURSOR.append([_lg[0], _lg[1], _lg[2], "ss"]
+                  + (["down"] if len(_lg) > 3 else []))
+CURSOR.append([DUR, CURSOR[0][1], CURSOR[0][2], "creep"])  # عودةٌ للإطار صفر
 
 
 def _gate():
