@@ -150,11 +150,79 @@ _HI = max(c["h"] for c in W); _LO = min(c["l"] for c in W)
 OB_T, OB_B = Y(OB_HI), Y(OB_LO)            # جسم شمعة الأوردر بلوك بالضبط
 OB_X0 = X(IOB) - SLOT * 0.6
 
-_iHI = max(range(len(W)), key=lambda j: W[j]["h"])
-_iLO = min(range(len(W)), key=lambda j: W[j]["l"])
-SUP_T, SUP_B = Y(_HI), Y(max(W[_iHI]["o"], W[_iHI]["c"]))
-DM_T, DM_B = Y(min(W[_iLO]["o"], W[_iLO]["c"])), Y(_LO)
-SUP_X0, DM_X0 = X(_iHI) - SLOT * 0.6, X(_iLO) - SLOT * 0.6
+# 🔒 «الرسم عشوائي» — أمر فهد 2026-08-08. وكان محقّاً: ستّة من تسعة
+# عناصر لم تكن ناتجةً عن الصفقة، إنما عن **حدود النافذة**:
+#   · `BSL` كان أعلى قمّةٍ في النافذة — وقعت شمعة ٤٧، أي **بعد** الدخول
+#     والهدف. سيولةٌ هدفاً لصفقةٍ انتهت قبل أن تتكوّن.
+#   · `Demand Zone` كان أدنى قاعٍ في النافذة — شمعة ٣، قبل الصفقة بسبعٍ
+#     وثلاثين شمعة.
+#   · `Trendline` من شمعة الدخول إلى آخر النافذة، بلا لمساتٍ تسنده.
+#   · السوينقات ٥١ و٥٣ و٥٦ — كلّها بعد انتهاء الصفقة.
+# الدقّة في الإحداثيات لا تنفع إن كان الاختيار عشوائياً. فكل عنصرٍ الآن
+# **يُشتقّ من سلسلة الصفقة**: سيولة ← كنس ← انقلاب ← أوردر بلوك ← فجوة
+# ← ارتداد ← هدف. وما لا يوجد منها لا يُرسم.
+
+# منطقة الطلب/العرض: القاعدة التي ارتدّ منها السعر عند الكنس — لا طرف
+# النافذة. قاعُها أدنى قيعان شمعات الكنس، وسقفُها جسم شمعة الارتداد.
+_dl = range(max(0, SW - 1), min(len(W), SW + 2))
+_dr = range(SW, min(len(W), SW + 3))
+if SELL:
+    DM_A = max(c["h"] for c in (W[j] for j in _dl))
+    DM_B_P = min(min(W[j]["o"], W[j]["c"]) for j in _dr)
+else:
+    DM_A = max(max(W[j]["o"], W[j]["c"]) for j in _dr)
+    DM_B_P = min(c["l"] for c in (W[j] for j in _dl))
+DM_T, DM_B = Y(DM_A), Y(DM_B_P)
+DM_X0 = X(min(_dl)) - SLOT * 0.6
+
+# الأوردر بلوك غالباً **هو** قاعدة الطلب نفسها في نافذةٍ قصيرة: الشمعة
+# المعاكسة التي ارتدّ منها السعر. فرسمُ منطقتين متطابقتين وتسميتهما
+# باسمين ليس دقّةً بل حشو. فإن احتوت إحداهما الأخرى بأكثر من نصفها
+# يبقى `OB` — وهو الأخصّ — وتُسقَط الأخرى.
+def _ov(a0, a1, b0, b1):
+    lo, hi = max(min(a0, a1), min(b0, b1)), min(max(a0, a1), max(b0, b1))
+    inter = max(0.0, hi - lo)
+    return inter / max(min(abs(a1 - a0), abs(b1 - b0)), 1e-9)
+
+
+SHOW_DM = _ov(OB_T, OB_B, DM_T, DM_B) < 0.5
+
+
+ENT, TGT = PLAN["ENT"], PLAN["TGT"]
+
+
+def _pivots(k=3):
+    """قممٌ وقيعانٌ محورية حقيقية: أدنى/أعلى نقطةٍ في نافذة ٧ شمعات."""
+    out = []
+    for i in range(k, len(W) - k):
+        seg = W[i - k:i + k + 1]
+        if W[i]["l"] == min(c["l"] for c in seg):
+            out.append((i, "l"))
+        elif W[i]["h"] == max(c["h"] for c in seg):
+            out.append((i, "h"))
+    return out
+
+
+def _target_liq():
+    """السيولة التي تقصدها الصفقة: قمّةٌ محورية **قبل الدخول** يقع
+    طرفها بين الدخول والهدف — وهي ما يسعى إليه السعر فعلاً.
+
+    وإن لم تُوجد فلا يُرسم الوسم أصلاً؛ لا يُستبدل بأعلى قمّةٍ في
+    النافذة كما كان. عنصرٌ لا سند له في الصفقة هو الرسم العشوائي."""
+    lo, hi = min(ENT, TGT), max(ENT, TGT)
+    want = "h" if not SELL else "l"
+    cands = [(i, W[i][want]) for i, k in _pivots()
+             if i < FILL and k == want and lo <= W[i][want] <= hi]
+    if not cands:
+        return None
+    i, _ = min(cands, key=lambda t: abs(t[1] - TGT))
+    if SELL:
+        return i, Y(min(W[i]["o"], W[i]["c"])), Y(W[i]["l"]), X(i) - SLOT * 0.6
+    return i, Y(W[i]["h"]), Y(max(W[i]["o"], W[i]["c"])), X(i) - SLOT * 0.6
+
+
+_TL = _target_liq()
+SUP_I, SUP_T, SUP_B, SUP_X0 = _TL if _TL else (None, 0.0, 0.0, 0.0)
 
 FV_X0 = FV_T = FV_B = 0.0
 if FVG:
@@ -165,9 +233,6 @@ if FVG:
 FB_T, FB_B = Y(FIB618), Y(FIB5)
 FB_X0 = X(_LEG_LO if SELL else _LEG_HI) - SLOT * 0.6
 
-TR_X0, TR_Y0 = X(_T0), Y(W[_T0]["h"] if SELL else W[_T0]["l"])
-TR_X1, TR_Y1 = X(_T1), Y(W[_T1]["h"] if SELL else W[_T1]["l"])
-LQ_Y = Y(LVL)
 
 # موضع اسم كل عنصر: نسبةٌ من عرضه. أداةُ فضّ التصادم في هذا الطراز.
 LX = {"sup": 0.50, "ob": 0.74, "fvg": 0.58, "fib": 0.30, "dem": 0.50}
@@ -189,20 +254,49 @@ def _choch():
 ICH = _choch()
 
 
-def _pivots(k=3):
-    """قممٌ وقيعانٌ محورية حقيقية: أدنى/أعلى نقطةٍ في نافذة ٧ شمعات."""
-    out = []
-    for i in range(k, len(W) - k):
-        seg = W[i - k:i + k + 1]
-        if W[i]["l"] == min(c["l"] for c in seg):
-            out.append((i, "l"))
-        elif W[i]["h"] == max(c["h"] for c in seg):
-            out.append((i, "h"))
-    return out
+# السوينقات ترقّم **قصّة الصفقة** لا آخر ثلاث نقاطٍ في النافذة:
+#   (1) الطرف الذي كُسر لاحقاً   (2) شمعة الكنس   (3) شمعة الانقلاب
+_REF_I = (min(range(max(0, SW - 8), SW + 1), key=lambda j: W[j]["l"]) if SELL
+          else max(range(max(0, SW - 8), SW + 1), key=lambda j: W[j]["h"]))
+_STORY = [(_REF_I, "h" if not SELL else "l"), (SW, "l" if not SELL else "h")]
+if ICH is not None:
+    _STORY.append((ICH, "h" if not SELL else "l"))
+SWINGS = [(n, X(i), (Y(W[i]["h"]) - 18) if k == "h" else (Y(W[i]["l"]) + 34))
+          for n, (i, k) in enumerate(_STORY, start=1)]
 
 
-SWINGS = [(n, X(i), Y(W[i]["l"]) + 34 if k == "l" else Y(W[i]["h"]) - 18)
-          for n, (i, k) in enumerate(_pivots()[-3:], start=1)]
+def _trend():
+    """خطّ اتّجاه لا يُرسم إلا إذا سنده **ثلاث لمسات** محورية.
+
+    كان يُرسم من شمعة الدخول إلى آخر النافذة بلا سند — خطٌّ يقول إن
+    ثمّة اتّجاهاً ولا شيء يثبته. فإن لم تجتمع ثلاث نقاطٍ على استقامةٍ
+    واحدة فلا خطّ."""
+    want = "l" if not SELL else "h"
+    pv = [(i, W[i][want]) for i, k in _pivots() if k == want]
+    if len(pv) < 3:
+        return None
+    best = None
+    for a in range(len(pv) - 2):
+        for b in range(len(pv) - 1, a + 1, -1):
+            (i0, p0), (i1, p1) = pv[a], pv[b]
+            if i1 - i0 < 8:
+                continue
+            m = (p1 - p0) / (i1 - i0)
+            tol = (_HI - _LO) * 0.012
+            hits = [j for j, pj in pv
+                    if i0 <= j <= i1 and abs(pj - (p0 + m * (j - i0))) <= tol]
+            if len(hits) >= 3 and (best is None or len(hits) > best[0]):
+                best = (len(hits), i0, p0, i1, p1)
+    if best is None:
+        return None
+    _, i0, p0, i1, p1 = best
+    return X(i0), Y(p0), X(i1), Y(p1), best[0]
+
+
+_TR = _trend()
+
+TR_X0, TR_Y0, TR_X1, TR_Y1 = (_TR[:4] if _TR else (0.0, 0.0, 0.0, 0.0))
+LQ_Y = Y(LVL)
 
 # ═══════════ الخط الزمني — إيقاع المرجع ≈٣ث للعنصر ═══════════
 _D1, _DR = 2.30, 1.20                  # سحبة أولى ثم ما بعدها
@@ -225,9 +319,11 @@ T_RUN = T_RUN_E = 0.0                   # لا ريبلاي — الجارت س�
 def markup():
     """الست أب كما يبنيه المرجع: أشرطة ثم صناديق ثم خطوط ثم توقّع."""
     ex = []
-    ex.append(R.zone_bar(SUP_X0, XR, SUP_T, SUP_B, gid="sup"))
-    ex.append(R.shape_label(SUP_X0, SUP_T, XR, SUP_B, "BSL",
-                            gid="sup_l", at=_lx("sup", SUP_X0)))
+    if SUP_I is not None:
+        ex.append(R.zone_bar(SUP_X0, XR, SUP_T, SUP_B, gid="sup"))
+        ex.append(R.shape_label(SUP_X0, SUP_T, XR, SUP_B,
+                                "SSL" if SELL else "BSL",
+                                gid="sup_l", at=_lx("sup", SUP_X0)))
     ex.append(R.zone_bar(OB_X0, XR, OB_T, OB_B, gid="ob"))
     ex.append(R.shape_label(OB_X0, OB_T, XR, OB_B, "OB",
                             gid="ob_l", at=_lx("ob", OB_X0)))
@@ -242,11 +338,13 @@ def markup():
                             gid="fib_l", at=_lx("fib", FB_X0)))
     ex.append(R.fib_mark(FB_X0, FB_T, "0.618", gid="f618"))
     ex.append(R.fib_mark(FB_X0, FB_B, "0.5", gid="f5"))
-    ex.append(R.zone_bar(DM_X0, XR, DM_T, DM_B, gid="dem"))
-    ex.append(R.shape_label(DM_X0, DM_T, XR, DM_B,
-                            "Supply Zone" if SELL else "Demand Zone",
-                            gid="dem_l", at=_lx("dem", DM_X0)))
-    ex.append(R.trend_line(TR_X0, TR_Y0, TR_X1, TR_Y1, "Trendline", gid="trd"))
+    if SHOW_DM:
+        ex.append(R.zone_bar(DM_X0, XR, DM_T, DM_B, gid="dem"))
+        ex.append(R.shape_label(DM_X0, DM_T, XR, DM_B,
+                                "Supply Zone" if SELL else "Demand Zone",
+                                gid="dem_l", at=_lx("dem", DM_X0)))
+    if _TR:
+        ex.append(R.trend_line(TR_X0, TR_Y0, TR_X1, TR_Y1, "Trendline", gid="trd"))
     # جهة السيولة تتبع الاتجاه: الشراء يكنس سيولة البيع (SSL) والعكس.
     # تسميةٌ مقلوبة تجعل اللوحة تقول غير ما تصفه الشموع.
     ex.append(R.level_line(XL, XR, LQ_Y, "BSL" if SELL else "SSL", gid="liq"))
@@ -291,13 +389,16 @@ def overlay():
     ax0, ay0 = p[0][0] + 40, min(max(p[0][1] - _s * 190, PT + 60), CVH - PB - 60)
     ax1, ay1 = p[-1][0] - 30, min(max(p[-1][1] + _s * 30, PT + 60), CVH - PB - 60)
     o.append(R.big_arrow(ax0, ay0, ax1, ay1, gid="arw"))
-    o.append(R.handles("box", SUP_X0, SUP_T, XR, SUP_B, gid="h_sup"))
+    if SUP_I is not None:
+        o.append(R.handles("box", SUP_X0, SUP_T, XR, SUP_B, gid="h_sup"))
     o.append(R.handles("box", OB_X0, OB_T, XR, OB_B, gid="h_ob"))
     if FVG:
         o.append(R.handles("box", FV_X0, FV_T, XR, FV_B, gid="h_fvg"))
     o.append(R.handles("box", FB_X0, FB_T, XR, FB_B, gid="h_fib"))
-    o.append(R.handles("box", DM_X0, DM_T, XR, DM_B, gid="h_dem"))
-    o.append(R.handles("line", TR_X0, TR_Y0, TR_X1, TR_Y1, gid="h_trd"))
+    if SHOW_DM:
+        o.append(R.handles("box", DM_X0, DM_T, XR, DM_B, gid="h_dem"))
+    if _TR:
+        o.append(R.handles("line", TR_X0, TR_Y0, TR_X1, TR_Y1, gid="h_trd"))
     o.append(R.handles("line", XL, LQ_Y, XR, LQ_Y, gid="h_liq"))
     return "".join(o)
 
@@ -318,15 +419,15 @@ def _el(draw_id, t0, dur, mode="zonedrag", lbl=True):
 
 
 MARKS = (
-    _el("sup", T_SUP, _D1)
+    (_el("sup", T_SUP, _D1) if SUP_I is not None else [])
     + _el("ob", T_OB, _DR)
     + ([("ch", T_CHOCH, T_CHOCH + CUT, "cut")] if ICH is not None else [])
     + (_el("fvg", T_FVG, _DR) if FVG else [])
     + _el("fib", T_FIB, _DR)
     + [("f618", T_FIB + _DR + _HOLD + 0.20, T_FIB + _DR + _HOLD + 0.20 + CUT, "cut"),
        ("f5", T_FIB + _DR + _HOLD + 0.40, T_FIB + _DR + _HOLD + 0.40 + CUT, "cut")]
-    + _el("dem", T_DEM, _DR)
-    + _el("trd", T_TRD, _DR, mode="draw", lbl=False)
+    + (_el("dem", T_DEM, _DR) if SHOW_DM else [])
+    + (_el("trd", T_TRD, _DR, mode="draw", lbl=False) if _TR else [])
     + _el("liq", T_LIQ, _DR, mode="draw", lbl=False)
     + [("swp", T_LIQ + _DR + _HOLD, T_LIQ + _DR + _HOLD + CUT, "cut")]
     + [(f"sw{n}", T_SWG + 0.24 * (n - 1), T_SWG + 0.24 * (n - 1) + CUT, "cut")
@@ -334,15 +435,20 @@ MARKS = (
     + [("prj", T_PROJ, T_PROJ + 2.60, "draw"),
        ("arw", T_ARROW, T_ARROW + 0.45, "pop")]
 )
-FULLSET = ["sup", "sup_l", "ob", "ob_l", "fib", "fib_l", "dem", "dem_l",
-           "arw", "f618", "f5", "swp",
-           "h_sup", "h_ob", "h_fib", "h_dem", "h_trd", "h_liq"]
+FULLSET = ["ob", "ob_l", "fib", "fib_l", "arw", "f618", "f5", "swp",
+           "h_ob", "h_fib", "h_liq"]
+if SHOW_DM:
+    FULLSET += ["dem", "dem_l", "h_dem"]
+if SUP_I is not None:
+    FULLSET += ["sup", "sup_l", "h_sup"]
+if _TR:
+    FULLSET.append("h_trd")
 FULLSET += [f"sw{n}" for n, _, _ in SWINGS]
 if ICH is not None:
     FULLSET.append("ch")
 if FVG:
     FULLSET += ["fvg", "fvg_l", "h_fvg"]
-DRAWSET = ["trd", "liq", "prj"]
+DRAWSET = ["liq", "prj"] + (["trd"] if _TR else [])
 
 RP_KF = [[0.0, RP_BASE], [T_RUN, RP_BASE], [T_RUN_E, len(W) - 1], [DUR, len(W) - 1]]
 
@@ -414,16 +520,18 @@ def _gate():
     # لا يتراكب وسمان. البناء الأول أوقع `FVG` على `Fibo Zone` و`CHoCH`
     # على `Demand Zone`، ولم يكن في البوابة ما يمسكه — فالفحص البصري
     # وحده كشفه. وهذا الشرط يمسكه قبل الرندر.
-    lb = [("BSL", _lx("sup", SUP_X0), (SUP_T + SUP_B) / 2),
-          ("OB", _lx("ob", OB_X0), (OB_T + OB_B) / 2),
+    lb = [("OB", _lx("ob", OB_X0), (OB_T + OB_B) / 2),
           ("Fibo Zone", _lx("fib", FB_X0), (FB_T + FB_B) / 2),
-          ("Demand Zone", _lx("dem", DM_X0), (DM_T + DM_B) / 2),
           ("Sweep", X(SW), LQ_Y - 32),
           ("SSL", XR - 120 - (3 * 26 * 0.56 + 22) / 2, LQ_Y)]
     if FVG:
         lb.append(("FVG", _lx("fvg", FV_X0), (FV_T + FV_B) / 2))
     if ICH is not None:
         lb.append(("CHoCH", X(ICH), Y(W[ICH]["c"])))
+    if SUP_I is not None:
+        lb.append(("BSL", _lx("sup", SUP_X0), (SUP_T + SUP_B) / 2))
+    if SHOW_DM:
+        lb.append(("Demand Zone", _lx("dem", DM_X0), (DM_T + DM_B) / 2))
     for i in range(len(lb)):
         for j in range(i + 1, len(lb)):
             (na, xa, ya), (nb, xb, yb) = lb[i], lb[j]
@@ -440,10 +548,8 @@ def _gate():
     # يُقاس **كل حدٍّ على حدة** لا المركز: مركزٌ صحيح وحافّتان مزاحتان
     # يمرّ من فحص المركز، وهو بالضبط الخطأ الذي وقع في البناء الأول.
     edges = [("OB علوي", OB_T, OB_HI), ("OB سفلي", OB_B, OB_LO),
-             ("BSL علوي", SUP_T, _HI),
-             ("BSL سفلي", SUP_B, max(W[_iHI]["o"], W[_iHI]["c"])),
-             ("القاع علوي", DM_T, min(W[_iLO]["o"], W[_iLO]["c"])),
-             ("القاع سفلي", DM_B, _LO),
+             *((("المنطقة علوي", DM_T, DM_A),
+                ("المنطقة سفلي", DM_B, DM_B_P)) if SHOW_DM else ()),
              ("فيبو ٠٫٦١٨", FB_T, FIB618), ("فيبو ٠٫٥", FB_B, FIB5),
              ("السيولة", LQ_Y, LVL)]
     if FVG:
