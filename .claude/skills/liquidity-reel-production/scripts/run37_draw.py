@@ -25,7 +25,7 @@ import sys
 
 from reel_build import INK, TEAL, TEAL_D, RED, htext
 from reel_sfx_kit import (build_reel, line_el, set_canvas, set_pad,
-                          set_price_pad, set_vis)
+                          set_price_pad, set_vis, zone_drag_el)
 import tv_flat as TVF
 import xau_load
 from car_common import GEM
@@ -80,7 +80,10 @@ DP = 2 if max(c["h"] for c in W) > 100 else 4
 # ═══════════ الهندسة ═══════════
 # الشموع تتحرّك آخر ثلاث ثوانٍ (18→21)، فالنافذة أطول من المعروض
 # والإزاحة اليمنى عشرة سلوتات كما ضُبطت في ريل التحليل (أمر فهد).
-BARS_LIVE = 8                          # شمعات تُطبع في نافذة الحركة
+# ثلاث عشرة شمعة على ٦٫٥ث ≈ نصف ثانية للشمعة — وهو معدّل المرجع الأول
+# (حبر الشموع فيه ينمو بلا انقطاع من ١٧٫٢ث إلى نهايته). ثمانٍ على ثلاث
+# ثوانٍ كانت تعطي طبعاً متقطّعاً يُرى «أقلّ دقّة».
+BARS_LIVE = 13                         # شمعات تُطبع في نافذة الحركة
 RP_OFF = 10                            # مدرَج فارغ يمين اللوحة (أمر فهد)
 # **الجارت لا ينزلق في هذا الريل.** البريف يوجب أن يطابق الإطارُ الأخير
 # الصفرَ زاويةً وتكبيراً، والانزلاق يغيّر التأطير فيكسر اللوب. والمخرج
@@ -120,17 +123,43 @@ HIT = next((i for i in range(FILL + 1, len(W))
             if (W[i]["l"] <= TGT if SELL else W[i]["h"] >= TGT)), len(W) - 1)
 
 
-# ═══════════ الخط الزمني — سطراً بسطر من جدول البريف ═══════════
-T_LIQ, T_LIQ_E = 0.50, 3.00
-T_DOL = 3.00
-T_BOX, T_BOX_E = 4.50, 8.00
-T_OBL = 8.00
-T_SIDE = 9.50
-T_STP, T_STP_E = 11.50, 14.50
-T_TGT, T_TGT_E = 14.50, 18.00
-T_RUN, T_RUN_E = 18.00, 21.00
+# ═══════════ الخط الزمني — مقيسٌ من الفيديوين لا مقدَّر ═══════════
+# فهد: «الرسم ليس بنفس دقّة الفيديوات المرسلة… اتبع نفس خطوات بداية
+# ونهاية الرسم وسرعة الرسم وطريقة التحديد». فقيست الفيديوات إطاراً
+# بإطار (٦٦٠ و٦٨٠ إطاراً) بدل التقدير بالنظر، وهذه حصيلتها:
+#
+#   · **الجارت يظهر مكتملاً في الإطار صفر** — لا تلاشٍ ولا بناء. (كان
+#     كذلك عندنا أصلاً.)
+#   · **أول سحبة تبدأ عند ٠٫٠٧ث** لا بعد نصف ثانية.
+#   · **السحبة الأولى ٢٫٩٣ث** تعبر ٨٩٪ من العرض، والسحبات التالية أسرع
+#     (١٫١٣ث لِ٨١٪ من العرض) — إيقاعٌ يبدأ متمهّلاً ثم ينشط.
+#   · **التيسير `u²(3−2u)`**: قيست حافة الخطّ فبلغت ١٠٪ من الطول عند
+#     ٢٠٪ من الزمن، و٥١٪ عند ٥٠٪، و٨٩٪ عند ٨٠٪ — والفارق عن سموثستِب
+#     لا يتجاوز نقطتين ونصف. أي أن الرسم **ليس خطّياً** كما كان عندنا.
+#   · **الوسوم تظهر في إطارٍ واحد** (قفزة حبرٍ من ١٠٨٣ إلى ٢١٦٧ بكسل
+#     بين إطارين) لا بتكبيرٍ وتلاشٍ في نصف ثانية كما كنّا نفعل.
+#   · **بين العناصر سكونٌ حقيقي ١٫٠–١٫٤ث** ينتقل فيه المؤشّر وحده.
+#   · **مقابض التحديد** تلازم العنصر من تمام سحبه حتى بعد كتابة اسمه
+#     (المرجع الثاني: ١٣٫٩٠ ← ١٥٫٢٠ث) — وهي أظهر ما كان ينقصنا.
+#   · **الشموع تمشي ٦–٧ ثوانٍ** لا ثلاثاً، طبعاً متّصلاً بلا وقفات.
+_DRAW1, _DRAW = 2.50, 1.15             # مدّة السحبة الأولى ثم ما بعدها
+_HOLD = 0.35                           # من تمام السحبة إلى ظهور الاسم
+_DESEL = 0.85                          # من ظهور الاسم إلى رفع المقابض
+
+T_LIQ, T_LIQ_E = 0.10, 0.10 + _DRAW1                   # 0.10 → 2.60
+T_DOL = T_LIQ_E + _HOLD                                # 2.95
+T_BOX, T_BOX_E = 4.00, 4.00 + 1.30                     # 4.00 → 5.30
+T_OBL = T_BOX_E + _HOLD                                # 5.65
+T_ENT, T_ENT_E = 6.70, 6.70 + _DRAW                    # 6.70 → 7.85
+T_SIDE = T_ENT_E + _HOLD                               # 8.20
+T_STP, T_STP_E = 9.30, 9.30 + _DRAW                    # 9.30 → 10.45
+T_STPL = T_STP_E + _HOLD                               # 10.80
+T_TGT, T_TGT_E = 11.90, 11.90 + 1.20                   # 11.90 → 13.10
+T_TGTL = T_TGT_E + _HOLD                               # 13.45
+T_RUN, T_RUN_E = 14.50, 21.00                          # ٦٫٥ث حركة متّصلة
 T_ARR = 21.00
 T_CTA = 19.00                          # البريف: لا CTA قبل ١٦
+CUT = 0.02                             # نافذة القصّ الصلب — إطارٌ واحد
 
 
 def markup():
@@ -150,9 +179,13 @@ def markup():
     # ١) خطّ السيولة يعبر العرض، واسمه يقطعه في وسطه
     ex.append(line_el(0, Y(LIQ), XR, Y(LIQ), INK, 2.2, id="liq"))
     ex.append(TVF.line_label(mid * 0.62, Y(LIQ), "$$$", INK, gid="dol"))
-    # ٢) الأوردر بلوك: مستطيل موسوم من الداخل يمتدّ إلى حافة المحور
+    # ٢) الأوردر بلوك يُسحب أفقياً من حافته اليسرى — لا يُرسم محيطه ثم
+    #    يُملأ. هكذا في المرجع الثاني: المربّع ينمو تحت المؤشّر من نقطة
+    #    الإمساك، ثم يُكتب اسمه داخله بعد استقراره.
+    ex.append(zone_drag_el("obz", bx0, yt, XR, yb, "",
+                           fill="rgba(46,125,150,0.10)", stroke=TEAL_D))
     ex.append(TVF.zone_box(bx0, yt, XR, yb, "ORDER BLOCK", TEAL_D,
-                           fill="rgba(46,125,150,0.10)", gid="obz"))
+                           gid="obz_l", box=False))
     # ٣) خطّ الدخول واسم الاتجاه يقطعه
     ex.append(line_el(bx0, ey, XR, ey, INK, 2.2, id="entl"))
     ex.append(TVF.line_label(mid, ey, DIRN, RED if SELL else TEAL_D, gid="side"))
@@ -172,6 +205,23 @@ def markup():
     return "".join(ex)
 
 
+def sel_handles():
+    """مقابض التحديد لكل عنصر — في الطبقة العليا كي لا يقصّها مربّع الرسم.
+
+    تظهر لحظةَ تمام السحبة وترتفع بعد ظهور الاسم، تماماً كما في المرجع
+    الثاني. وهي في `overlay_svg` لا في المنزلقة: القصّ الأفقي ينتهي عند
+    حافة المربّع، ومقبض الطرف الأيمن يجلس عليها بالضبط."""
+    XR = CVW - PR
+    bx0 = X(IOB) - SLOT * .6
+    return "".join([
+        TVF.handles("line", 0, Y(LIQ), XR, Y(LIQ), gid="hliq"),
+        TVF.handles("box", bx0, Y(OB_HI), XR, Y(OB_LO), gid="hobz"),
+        TVF.handles("line", bx0, Y(ENT), XR, Y(ENT), gid="hent"),
+        TVF.handles("line", bx0, Y(STP), XR, Y(STP), gid="hstp"),
+        TVF.handles("line", bx0, Y(TGT), XR, Y(TGT), gid="htgt"),
+    ])
+
+
 def axis_chips():
     """بطاقات السعر تُرسم في الطبقة العليا لا في المنزلقة.
 
@@ -186,28 +236,38 @@ def axis_chips():
     ])
 
 
-MARKS = [
-    ("liq", T_LIQ, T_LIQ_E, "draw"),
-    ("dol", T_DOL, T_DOL + 0.55, "pop"),
-    ("sw1", T_DOL + 0.60, T_DOL + 1.00, "pop"),
-    ("obz", T_BOX, T_BOX_E, "fade"),
-    ("entl", T_SIDE - 0.55, T_SIDE, "draw"),
-    ("side", T_SIDE, T_SIDE + 0.60, "pop"),
-    ("sw2", T_SIDE + 0.55, T_SIDE + 0.95, "pop"),
-    ("che", T_SIDE + 0.25, T_SIDE + 0.70, "fade"),
-    ("stp", T_STP, T_STP + 1.60, "draw"), ("stpl", T_STP + 1.55, T_STP + 2.15, "pop"),
-    ("zloss", T_STP + 1.70, T_STP + 2.40, "fade"),
-    ("chs", T_STP + 2.10, T_STP + 2.50, "fade"),
-    ("tgt", T_TGT, T_TGT + 2.00, "draw"), ("tgtl", T_TGT + 1.95, T_TGT + 2.60, "pop"),
-    ("zwin", T_TGT + 2.10, T_TGT + 2.95, "fade"),
-    ("cht", T_TGT + 2.55, T_TGT + 2.95, "fade"),
-    ("sw3", T_ARR, T_ARR + 0.45, "pop"),
-]
-FULLSET = ["dol", "obz", "side", "stpl", "tgtl", "zloss", "zwin",
-           "chs", "che", "cht", "sw1", "sw2", "sw3"]
+def _elem(draw_id, h_id, lbl_id, t0, t1, t_lbl, extra=(), mode="draw"):
+    """دورة عنصرٍ واحد كما في المرجع: سحبة مُيسَّرة ← مقابض ← اسم بقصّة
+    صلبة ← رفع المقابض. و`extra` لما يتبع الاسم (منطقة أو بطاقة محور)."""
+    m = [(draw_id, t0, t1, mode),
+         (h_id, t1, t1 + CUT, "cut", t_lbl + _DESEL, CUT),
+         (lbl_id, t_lbl, t_lbl + CUT, "cut")]
+    return m + list(extra)
+
+
+MARKS = (
+    _elem("liq", "hliq", "dol", T_LIQ, T_LIQ_E, T_DOL,
+          [("sw1", T_DOL + 0.40, T_DOL + 0.40 + CUT, "cut")])
+    # المنطقة تُسحب قطرياً كالمربّع في المرجع الثاني، فحدّها ينمو معها
+    + _elem("obz", "hobz", "obz_l", T_BOX, T_BOX_E, T_OBL, mode="zonedrag")
+    + _elem("entl", "hent", "side", T_ENT, T_ENT_E, T_SIDE,
+            [("che", T_SIDE, T_SIDE + CUT, "cut"),
+             ("sw2", T_SIDE + 0.40, T_SIDE + 0.40 + CUT, "cut")])
+    + _elem("stp", "hstp", "stpl", T_STP, T_STP_E, T_STPL,
+            [("chs", T_STPL, T_STPL + CUT, "cut"),
+             ("zloss", T_STPL + 0.05, T_STPL + 0.70, "fade")])
+    + _elem("tgt", "htgt", "tgtl", T_TGT, T_TGT_E, T_TGTL,
+            [("cht", T_TGTL, T_TGTL + CUT, "cut"),
+             ("zwin", T_TGTL + 0.05, T_TGTL + 0.70, "fade")])
+    + [("sw3", T_ARR, T_ARR + CUT, "cut")]
+)
+FULLSET = ["dol", "obz", "obz_l", "side", "stpl", "tgtl", "zloss", "zwin",
+           "chs", "che", "cht", "sw1", "sw2", "sw3",
+           "hliq", "hobz", "hent", "hstp", "htgt"]
 DRAWSET = ["liq", "entl", "stp", "tgt"]
 
-# الشموع: ساكنة حتى ١٨ ثم تُطبع ثمانٍ حتى ٢١، ثم تثبت للوب
+# الشموع: ساكنة حتى ١٤٫٥ ثم تُطبع متّصلةً حتى ٢١، ثم تثبت.
+# ستّ ثوانٍ ونصف كما في المرجع الأول (١٤٫٦ ← ٢١٫٥) لا ثلاثاً.
 RP_KF = [[0.0, RP_BASE], [T_RUN, RP_BASE], [T_RUN_E, len(W) - 1], [DUR, len(W) - 1]]
 
 # ═══════════ المؤثرات — سبع سحبات قلم بالضبط + تِك لكل شمعة + ضربة ═══════════
@@ -216,6 +276,8 @@ RP_KF = [[0.0, RP_BASE], [T_RUN, RP_BASE], [T_RUN_E, len(W) - 1], [DUR, len(W) -
 SFX = [("pen_l", T_LIQ, -2), ("pen_s", T_DOL, -5), ("pen_l", T_BOX, -3),
        ("pen_s", T_OBL, -5), ("pen_s", T_SIDE, -5),
        ("pen_m", T_STP, -3), ("pen_m", T_TGT, -3)]
+assert all(a < b for (_, a, _), (_, b, _) in zip(SFX, SFX[1:])), \
+    "المؤثرات غير مرتّبة زمنياً"
 assert len(SFX) == 7, "البريف: سبعة مؤثرات قلم بالضبط"
 _STEP = (T_RUN_E - T_RUN) / BARS_LIVE
 SFX += [("tick", round(T_RUN + _STEP * (i + 1), 2), -9) for i in range(BARS_LIVE)]
@@ -231,20 +293,23 @@ FX = lambda i: CX + X(i)
 FY = lambda p: CY + Y(p)
 _bx0, _bx1 = FX(IOB) - SLOT * .6, FX(min(HIT + 2, len(W) - 1))
 _yt, _yb = FY(OB_HI), FY(OB_LO)
+_XE = CX + R - RSHIFT
 CURSOR = [
-    [0.00, CX + PL - 40, FY(LIQ) - 26, "ss"],
-    [T_LIQ, CX + PL, FY(LIQ), "ss"],
-    [T_LIQ_E, CX + R - RSHIFT, FY(LIQ), "lin"],           # سحب خط السيولة
+    [0.00, CX + PL, FY(LIQ), "ss"],                       # اليد على نقطة البدء
+    [T_LIQ_E, _XE, FY(LIQ), "ss"],                        # سحب خط السيولة
     [T_DOL, FX(max(0, FILL - 16)), FY(LIQ) + (34 if SELL else -18), "ss", "down"],
     [T_BOX, _bx0, _yt, "ss"],
-    [T_BOX_E, CX + CVW - PR, _yb, "lin"],                 # سحب المنطقة قطرياً
+    [T_BOX_E, CX + CVW - PR, _yb, "ss"],                  # سحب المنطقة قطرياً
+    [T_OBL, (_bx0 + _XE) / 2, (_yt + _yb) / 2, "ss", "down"],
+    [T_ENT, _bx0, FY(ENT), "ss"],
+    [T_ENT_E, _XE, FY(ENT), "ss"],                        # سحب خط الدخول
     [T_SIDE, _bx0 - 97, FY(ENT), "ss", "down"],
     [T_STP, _bx0, FY(STP), "ss"],
-    [T_STP + 1.60, CX + R - RSHIFT, FY(STP), "lin"],      # سحب خط الوقف
+    [T_STP_E, _XE, FY(STP), "ss"],                        # سحب خط الوقف
     [T_TGT, _bx0, FY(TGT), "ss"],
-    [T_TGT + 2.00, CX + R - RSHIFT, FY(TGT), "lin"],      # سحب خط الهدف
+    [T_TGT_E, _XE, FY(TGT), "ss"],                        # سحب خط الهدف
     [T_RUN, CX + PL + 60, FY(LIQ) - 60, "creep"],         # يبتعد فتبقى الشموع وحدها
-    [DUR, CX + PL - 40, FY(LIQ) - 26, "creep"],           # ويعود لموضع الإطار صفر — لوب
+    [DUR, CX + PL, FY(LIQ), "creep"],                     # ويعود لموضع الإطار صفر — لوب
 ]
 
 
@@ -294,7 +359,10 @@ cfg = dict(
     pre_svg=None, scroll_svg=None,          # يُملآن أدناه
     lp_pill=False,
     base=RP_BASE - 1, openmax=RP_BASE - 1, open_t=[[RP_BASE - 1, 0.3]], story=[],
-    extra_svg=markup(), overlay_svg=axis_chips(),
+    extra_svg=markup(), overlay_svg=axis_chips() + sel_handles(),
+    # التيسير المقيس من المرجع: `u²(3−2u)` على كل ما يُسحب باليد —
+    # الخطوط والمنطقة والمؤشّر معاً، فيبقى رأس القلم تحت السهم بالضبط.
+    draw_ease="ss",
     replay={"kf": RP_KF, "vis": ANCHOR},
     marks=MARKS, fullset=FULLSET, drawset=DRAWSET, dom_marks=[],
     cursor=CURSOR, crosshair=False, chart_at=(CX, CY),

@@ -178,11 +178,15 @@ def line_label(x, y, txt, col, fs=27, gid=None):
     return f'<g id="{gid}" opacity="0">{o}</g>' if gid else o
 
 
-def zone_box(x0, y0, x1, y1, txt, col, fill=None, fs=27, gid=None):
+def zone_box(x0, y0, x1, y1, txt, col, fill=None, fs=27, gid=None, box=True):
     """منطقة موسومة: مستطيل بحدٍّ ٢٫٥ وحشوٍ شفّاف، واسمها **داخله** موسَّطاً.
 
     هذا شكل الأوردر بلوك و«Small OB» و«FVG» في المرجع: لا بطاقة معلّقة
-    على الحافة، إنما اسمٌ يجلس في قلب المنطقة."""
+    على الحافة، إنما اسمٌ يجلس في قلب المنطقة.
+
+    و`box=False` يعطي الاسمَ وحده بلا مستطيل — يُحتاج حين يُسحب المستطيل
+    بحركة منفصلة (`zonedrag`) ويُكتب اسمه بعدها بقصّةٍ صلبة، وهو ترتيب
+    المرجع الثاني: يستقرّ المربّع أولاً ثم يُكتب فيه."""
     h = abs(y1 - y0)
     top = min(y0, y1)
     # الاسم داخل المنطقة ما دامت تتّسع له، وإلا فوقها. منطقة الأوردر بلوك
@@ -193,12 +197,49 @@ def zone_box(x0, y0, x1, y1, txt, col, fill=None, fs=27, gid=None):
     lbl = (f'<rect x="{(x0+x1)/2-(len(txt)*fs*0.58+22)/2:.1f}" '
            f'y="{ty_-fs*1.02:.1f}" width="{len(txt)*fs*0.58+22:.1f}" '
            f'height="{fs*1.42:.1f}" fill="{BG}"/>' if not inside else "")
-    o = (f'<rect x="{x0:.1f}" y="{top:.1f}" width="{x1-x0:.1f}" '
-         f'height="{h:.1f}" fill="{fill or ZONE_WIN}" '
-         f'stroke="{col}" stroke-width="2.5"/>' + lbl +
+    o = ((f'<rect x="{x0:.1f}" y="{top:.1f}" width="{x1-x0:.1f}" '
+          f'height="{h:.1f}" fill="{fill or ZONE_WIN}" '
+          f'stroke="{col}" stroke-width="2.5"/>' if box else "") + lbl +
          f'<text x="{(x0+x1)/2:.1f}" y="{ty_:.1f}" fill="{col}" '
          f'font-size="{fs}" font-weight="600" text-anchor="middle" '
          f'font-family="system-ui,Segoe UI,sans-serif" direction="ltr">{_esc(txt)}</text>')
+    return f'<g id="{gid}" opacity="0">{o}</g>' if gid else o
+
+
+SEL = "#2C6BD6"                  # أزرق التحديد في المنصّة
+
+
+def handles(kind, x0, y0, x1, y1, gid=None, r=9):
+    """مقابض التحديد — «طريقة التحديد» التي سأل عنها فهد.
+
+    قيست من المرجع الثاني إطاراً بإطار عند رسم مربّع الأوردر بلوك:
+
+      ١٣٫٤٠ث  يبدأ السحب فيظهر مقبضان عند نقطة الإمساك والعرض صفر
+      ١٣٫٩٠ث  اكتمل السحب: **ستّة مقابض** — أربع دوائر في الأركان
+              ومربّعان في منتصف الضلعين الأفقيين — وحدٌّ أزرق يعلو الحدّ
+              الأصلي، والحشو أزرق شفيف
+      ١٤٫٣٠ث  يُكتب الاسم داخله
+      ١٥٫٢٠ث  يُلغى التحديد: تختفي المقابض ويعود الحدّ إلى لون الحبر
+
+    فالمقابض ليست زينة: هي التي تجعل الرسم يبدو **يداً تمسك أداة** لا
+    شكلاً يتلاشى ظاهراً. وغيابها هو أظهر فرق بين رسمنا والمرجع.
+
+    ولا يؤخذ من المرجع نصّ العنصر النائب `+ Add text`: بريف فهد يمنع أي
+    لغة على الشاشة خلا خمسة توكنز، والمقابض هندسةٌ لا لغة."""
+    c = (lambda x, y: f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r}" '
+                      f'fill="{TAGBG}" stroke="{SEL}" stroke-width="2.6"/>')
+    s = (lambda x, y: f'<rect x="{x-r:.1f}" y="{y-r:.1f}" width="{2*r}" '
+                      f'height="{2*r}" fill="{TAGBG}" stroke="{SEL}" '
+                      f'stroke-width="2.6"/>')
+    if kind == "line":
+        o = c(x0, y0) + c(x1, y1)
+    else:
+        yt, yb = min(y0, y1), max(y0, y1)
+        o = (f'<rect x="{min(x0,x1):.1f}" y="{yt:.1f}" '
+             f'width="{abs(x1-x0):.1f}" height="{yb-yt:.1f}" '
+             f'fill="rgba(44,107,214,0.10)" stroke="{SEL}" stroke-width="2.5"/>'
+             + c(x0, yt) + c(x1, yt) + c(x0, yb) + c(x1, yb)
+             + s((x0 + x1) / 2, yt) + s((x0 + x1) / 2, yb))
     return f'<g id="{gid}" opacity="0">{o}</g>' if gid else o
 
 

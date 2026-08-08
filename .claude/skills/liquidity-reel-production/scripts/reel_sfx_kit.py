@@ -430,6 +430,13 @@ const $ = id => document.getElementById(id);
 const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 const oc = t => 1 - Math.pow(1-t, 3);
 const ob = t => {{ const c1=1.70158, c3=c1+1; return 1 + c3*Math.pow(t-1,3) + c1*Math.pow(t-1,2); }};
+// تيسير السحب باليد. قيس من الفيديو المرجعي إطاراً بإطار: حافة الخطّ
+// عند ٢٠٪ من الزمن بلغت ١٠٪ من الطول، وعند ٥٠٪ بلغت ٥١٪، وعند ٨٠٪ بلغت
+// ٨٩٪ — وهو `u²(3−2u)` بفارق أقصاه نقطتان ونصف. فاليد لا تتحرّك بسرعة
+// ثابتة: تتردّد ثم تسرع ثم تهدأ عند الطرف.
+const ss = u => u * u * (3 - 2 * u);
+const DEZ = {json.dumps(cfg.get("draw_ease", "lin"))};
+const dez = u => DEZ === "ss" ? ss(u) : u;
 function seg(t,a,b){{ return clamp((t-a)/(b-a), 0, 1); }}
 const BASE = {cfg["base"]};
 const OPEN = {json.dumps(cfg["open_t"])};
@@ -572,7 +579,13 @@ window.__setFrame = function(t) {{
     }}
     if (!m) {{ el.style.opacity = 0; continue; }}
     const k = seg(t, m[1], m[2]);
-    if (m[3] === "pop") {{
+    if (m[3] === "cut") {{
+      // قصٌّ صلب: الوسم يظهر كاملاً في إطارٍ واحد. قيس من المرجع: قفزة
+      // الحبر عند ظهور كل وسم تقع في إطارٍ واحد (+١٠٨٤ بكسل بين إطارين
+      // متتاليين) — لا تكبيرٌ ولا شفافيةٌ متدرّجة. و`pop` المتدرّج هو ما
+      // جعل رسمَنا يبدو «أقل دقّة» من المرجع.
+      el.style.opacity = k > 0 ? 1 : 0;
+    }} else if (m[3] === "pop") {{
       el.style.opacity = oc(k);
       el.style.transformBox = "fill-box"; el.style.transformOrigin = "50% 50%";
       el.style.transform = `translateY(${{((1-ob(k))*14).toFixed(2)}}px) scale(${{(0.6 + 0.4*ob(k)).toFixed(4)}})`;
@@ -605,7 +618,7 @@ window.__setFrame = function(t) {{
       // في العنصر نفسه، فيبقى طرفها الأيسر ساكناً تحت نقطة بدء السحب.
       el.style.opacity = k > 0 ? 1 : 0;
       const zw = el.querySelector(".zw");
-      if (zw) zw.style.transform = `scaleX(${{Math.max(k, 0.001).toFixed(4)}})`;
+      if (zw) zw.style.transform = `scaleX(${{Math.max(dez(k), 0.001).toFixed(4)}})`;
       el.querySelector(".zf").style.opacity = clamp(k, 0, 1) * 0.16;
       const zl2 = el.querySelector(".zl");
       if (zl2) zl2.style.opacity = clamp((k - 0.82) / 0.18, 0, 1);
@@ -626,7 +639,7 @@ window.__setFrame = function(t) {{
     const el = $(id);
     if (P0 || t < {cfg.get("preview_b", 2.35)}) {{ setLine(el, 1); el.style.opacity = 1 - TR; continue; }}
     const m = MARKS.find(m => m[0] === id);
-    setLine(el, m ? seg(t, m[1], m[2]) : 0);
+    setLine(el, m ? dez(seg(t, m[1], m[2])) : 0);
     // `setLine` تُعيد الشفافية إلى ١، وهي تلي حلقة الوسوم — فزمن اختفاء
     // الخط المرسوم (mark[4]) كان يُمحى ويبقى الخط إلى آخر الريل.
     if (m && m.length > 4 && m[4]) {{
