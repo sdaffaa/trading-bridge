@@ -1,0 +1,249 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="brand.css">
+<title>Liquidity State — Carousel</title>
+<style>
+  /* Single-page authoring view: stack the slides with a gap so the whole
+     carousel can be reviewed in one scroll. The renderer screenshots each
+     .slide element individually, so this gap never reaches the PNGs. */
+  body{ display:flex; flex-direction:column; align-items:center; gap:40px; padding:40px 0; background:#DED8CE; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ ASSETS ====
+     Gem symbol defined ONCE for the whole carousel. Every slide references
+     it with <use href="#gem">, so the logo can never drift between slides. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="gm" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#EDF1F3"/><stop offset="1" stop-color="#9CB0B9"/>
+  </linearGradient>
+  <symbol id="gem" viewBox="0 0 64 64">
+    <polygon points="32,3 58,18 58,46 32,61 6,46 6,18" fill="url(#gm)" stroke="#7E939D" stroke-width="1.6"/>
+    <polygon points="32,3 58,18 32,27 6,18" fill="#F6F9FA"/>
+    <polygon points="32,27 58,18 58,46 32,37" fill="#B9C8CF" opacity=".85"/>
+    <polygon points="32,27 6,18 6,46 32,37" fill="#DAE2E6" opacity=".9"/>
+    <g stroke="#8299A3" stroke-width="1" fill="none" opacity=".75">
+      <path d="M6,18 L32,27 L58,18"/><path d="M32,3 L32,27 M32,37 L32,61"/>
+      <path d="M6,46 L32,37 L58,46"/><path d="M32,27 L32,37 M6,46 L32,37 M58,46 L32,37"/>
+    </g>
+  </symbol>
+</defs></svg>
+
+
+<!-- ============================================================ SLIDE 1 ====
+     COVER / HOOK · ≤12 content words -->
+<section class="slide" data-role="cover">
+  <div class="pagebox">1 / 7</div>
+  <div class="brandmark">
+    <svg class="gem" aria-hidden="true"><use href="#gem"/></svg>
+    <div class="wordline"><span class="r"></span><span class="wordmark">LIQUIDITY STATE</span><span class="r"></span></div>
+  </div>
+
+  <div class="stage center" style="gap:40px">
+    <div class="chip">إدارة المخاطر</div>
+    <h1 class="h1">ليش حسابك يتبخّر<br><span class="alt">وانت تربح أكثر ممّا تخسر؟</span></h1>
+    <p class="sub">مو بتحليلك… بحجم مخاطرتك.</p>
+    <div class="label" style="letter-spacing:2px">اسحب ←</div>
+  </div>
+
+  <div class="foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+  <div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+</section>
+
+
+<!-- ============================================================ SLIDE 2 ====
+     STAKES · ≤25 content words -->
+<section class="slide" data-role="stakes">
+  <div class="pagebox">2 / 7</div>
+  <div class="brandmark-sm">LIQUIDITY STATE</div>
+
+  <div class="stage mid" style="gap:64px">
+    <div>
+      <h2 class="h2">بعد <span class="num">10</span> خسائر ورا بعض…<br>چم ينزل حسابك؟</h2>
+      <div class="alertchip" style="margin-top:30px"><span class="num">10</span> خسائر متتالية</div>
+    </div>
+
+    <div>
+      <div class="hair"></div>
+      <div class="stats">
+        <div class="stat-row">
+          <span class="statlabel">مخاطرة <span class="num">1%</span> بالصفقة</span>
+          <span class="stat-val bull">−9.6%</span>
+        </div>
+        <div class="stat-row">
+          <span class="statlabel">مخاطرة <span class="num">5%</span> بالصفقة</span>
+          <span class="stat-val bear">−40.1%</span>
+        </div>
+      </div>
+      <div class="hair"></div>
+    </div>
+
+    <div>
+      <p class="strong">نفس الخسائر — فرق كبير.</p>
+      <p class="body" style="margin-top:16px">حساب <span class="num">$10,000</span> · نسبة ثابتة.</p>
+    </div>
+  </div>
+
+  <div class="foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+  <div class="dots"><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+</section>
+
+
+<!-- ============================================================ SLIDE 3 ====
+     TURN · ≤25 content words -->
+<section class="slide" data-role="turn">
+  <div class="pagebox">3 / 7</div>
+  <div class="brandmark-sm">LIQUIDITY STATE</div>
+
+  <div class="stage mid" style="gap:52px">
+    <div class="chip">لكن بالواقع؟</div>
+    <div>
+      <h2 class="h2" style="font-size:70px">ما تخسر لأن تحليلك غلط…<br><span style="color:var(--accent)">تخسر لأن حجمك أكبر من حسابك.</span></h2>
+      <div class="hair" style="margin-top:44px"></div>
+    </div>
+    <div class="note">
+      <p class="body">اللي يحمي حسابك اهو <b class="strong">حجم المخاطرة الثابت</b> — مو نسبة النجاح.</p>
+    </div>
+  </div>
+
+  <div class="foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+  <div class="dots"><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
+</section>
+
+
+<!-- ============================================================ SLIDE 4 ====
+     RULE · ≤35 content words -->
+<section class="slide" data-role="rule">
+  <div class="pagebox">4 / 7</div>
+  <div class="brandmark-sm">LIQUIDITY STATE</div>
+
+  <div class="stage mid" style="gap:60px">
+    <div>
+      <div class="chip">المعادلة</div>
+      <h2 class="h2" style="margin-top:28px">حجم الصفقة بثلاث خطوات</h2>
+    </div>
+
+    <div class="panel">
+      <div class="row">
+        <span class="rnum">1</span>
+        <span class="rtext">حدّد مخاطرتك · <span class="num">1% × $10,000 = $100</span></span>
+      </div>
+      <div class="row">
+        <span class="rnum">2</span>
+        <span class="rtext">قيس المسافة للستوب · <span class="num">3400 − 3390 = 10</span></span>
+      </div>
+      <div class="row">
+        <span class="rnum">3</span>
+        <span class="rtext">وحجمك الصحيح · <span class="num">$100 ÷ 10 = 10</span> وحدات</span>
+      </div>
+    </div>
+
+    <p class="label" style="text-align:center">الستوب يحدّد الحجم — مو رغبتك بالربح.</p>
+  </div>
+
+  <div class="foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+  <div class="dots"><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div>
+</section>
+
+
+<!-- ============================================================ SLIDE 5 ====
+     PROOF · line-art chart · SCHEMATIC -> "توضيحي" (§7.5) · ≤20 words -->
+<section class="slide" data-role="proof">
+  <div class="pagebox">5 / 7</div>
+  <div class="brandmark-sm">LIQUIDITY STATE</div>
+
+  <div class="stage between">
+    <div>
+      <h2 class="h2">مخاطرة <span class="num">$100</span> مقابل هدف <span class="num">$200</span></h2>
+      <div class="chip" style="margin-top:26px">توضيحي · رسم تخطيطي</div>
+    </div>
+
+    <div class="chartwrap">
+      <div class="hair"></div>
+      <svg viewBox="0 0 888 430" width="100%" style="display:block; margin:26px 0" aria-hidden="true">
+        <g stroke="#E2DACE" stroke-width="1">
+          <line x1="0" y1="60"  x2="888" y2="60"/><line x1="0" y1="160" x2="888" y2="160"/>
+          <line x1="0" y1="270" x2="888" y2="270"/><line x1="0" y1="370" x2="888" y2="370"/>
+        </g>
+        <line x1="0" y1="92"  x2="888" y2="92"  stroke="#1B6980" stroke-width="1.6" stroke-dasharray="9 8"/>
+        <line x1="0" y1="238" x2="888" y2="238" stroke="#12303B" stroke-width="2"/>
+        <line x1="0" y1="330" x2="888" y2="330" stroke="#D14A4A" stroke-width="1.6" stroke-dasharray="9 8"/>
+        <polyline fill="none" stroke="#12303B" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"
+          points="24,300 92,282 150,316 214,290 276,262 330,286 388,244 436,238 494,206 556,214 612,168 668,132 726,140 784,104 840,92"/>
+        <circle cx="436" cy="238" r="7" fill="#F4EFE8" stroke="#12303B" stroke-width="2.6"/>
+      </svg>
+      <div class="hair"></div>
+
+      <div class="clab" style="top:38px;  right:0; color:#1B6980">هدف <span class="num">3420</span> · <span class="num">+$200</span></div>
+      <div class="clab" style="top:184px; right:0">دخول <span class="num">3400</span></div>
+      <div class="clab" style="top:276px; right:0; color:#B93A3A">ستوب <span class="num">3390</span> · <span class="num">−$100</span></div>
+    </div>
+
+    <div>
+      <p class="strong">الستوب يحدّد الحجم — والهدف يحدّد الـ <span class="num">R</span>.</p>
+      <p class="body" style="margin-top:14px">طق الستوب = خسارة <span class="num">1R</span> · وصل الهدف = ربح <span class="num">2R</span>.</p>
+      <p class="disclaimer" style="margin-top:20px">التداول ينطوي على مخاطر — المحتوى لغرض تعليمي فقط.</p>
+    </div>
+  </div>
+
+  <div class="foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+  <div class="dots"><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i></div>
+</section>
+
+
+<!-- ============================================================ SLIDE 6 ====
+     REFRAME · standalone screenshot slide · ≤14 words -->
+<section class="slide" data-role="reframe">
+  <div class="pagebox">6 / 7</div>
+  <div class="brandmark">
+    <svg class="gem" aria-hidden="true"><use href="#gem"/></svg>
+    <div class="wordline"><span class="r"></span><span class="wordmark">LIQUIDITY STATE</span><span class="r"></span></div>
+  </div>
+
+  <div class="stage center" style="gap:46px">
+    <div class="hair" style="width:120px"></div>
+    <p class="quote">المحترف ما يسأل «چم بربح؟»<br><span style="color:var(--accent)">يسأل «چم أتحمّل أخسر؟»</span></p>
+    <div class="hair" style="width:120px"></div>
+  </div>
+
+  <div class="foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+  <div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div>
+</section>
+
+
+<!-- ============================================================ SLIDE 7 ====
+     CTA · one primary action · ≤18 content words -->
+<section class="slide" data-role="cta">
+  <div class="pagebox">7 / 7</div>
+  <div class="brandmark">
+    <svg class="gem" aria-hidden="true"><use href="#gem"/></svg>
+    <div class="wordline"><span class="r"></span><span class="wordmark">LIQUIDITY STATE</span><span class="r"></span></div>
+  </div>
+
+  <div class="stage center" style="gap:44px">
+    <h1 class="h1" style="font-size:82px">حجم صفقتك…<br><span class="alt">محسوب ولا إحساس؟</span></h1>
+
+    <div class="panel" style="align-self:stretch">
+      <div class="row"><span class="rnum">1</span><span class="rtext">احفظ المنشور قبل صفقتك</span></div>
+      <div class="row"><span class="rnum">2</span><span class="rtext">أرسله لمن يخاطر بدون حساب</span></div>
+      <div class="row"><span class="rnum">3</span><span class="rtext">دليل المخاطرة بملف <span class="num">PDF</span></span></div>
+    </div>
+
+    <div class="keybox">
+      <div class="k-label">اكتب في التعليقات</div>
+      <div class="k-word">«حجم»</div>
+    </div>
+
+    <p class="label">لغرض تعليمي · أرقام محسوبة لا توصية</p>
+  </div>
+
+  <div class="foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+  <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i></div>
+</section>
+
+</body>
+</html>

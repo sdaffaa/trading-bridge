@@ -1,14 +1,16 @@
 {
   "name": "liquidity-state-carousel-machine",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Liquidity State (@liquidity.state) carousel production machine — HTML slide templates rendered to 1080x1350 PNGs. Light Edition.",
+  "description": "Liquidity State (@liquidity.state) carousel machine — one source page renders 7 carousel PNGs at 1080x1350, plus a brand-matched explanatory PDF lead magnet.",
   "type": "commonjs",
   "scripts": {
     "fonts": "python3 scripts/build-fonts.py",
     "render": "node scripts/render.js",
+    "pdf": "node scripts/pdf.js",
+    "pdf:all": "node scripts/pdf.js --carousel --preview",
     "qa": "node scripts/qa.js",
-    "build": "node scripts/render.js && node scripts/qa.js"
+    "build": "node scripts/render.js && node scripts/pdf.js && node scripts/qa.js"
   },
   "engines": {
     "node": ">=18"
@@ -16,5 +18,5 @@
   "peerDependencies": {
     "playwright": ">=1.40"
   },
-  "notes": "Playwright + Chromium are provided by the environment (global). scripts/render.js resolves the global install; no local install or browser download is needed."
+  "notes": "Playwright + Chromium are provided by the environment (global). render.js and pdf.js resolve the global install; no local install or browser download is needed."
 }

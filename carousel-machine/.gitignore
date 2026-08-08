@@ -1,6 +1,8 @@
 # Playwright is provided by the environment (global); no local install committed.
 node_modules/
 
-# Keep the demo PNGs (render-test proof). Delete this section if you'd rather
-# treat out/*.png as disposable build artifacts:
-# out/*.png
+# Page previews of the PDF guide — regenerate with `node scripts/pdf.js --preview`.
+# The PDF itself is the deliverable and IS committed.
+out/guide-p*.png
+
+# The carousel PNGs and PDFs are kept in the repo as the shipped deliverables.

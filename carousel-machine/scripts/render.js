@@ -1,21 +1,23 @@
 /* ============================================================================
- * render.js — HTML slides -> PNG at exactly 1080x1350.
+ * render.js — one source page -> one PNG per slide, at exactly 1080x1350.
  *
- * Renders at deviceScaleFactor 2 (2160x2700) then downscales to 1080x1350 for
- * a sharper result (master prompt §8.4). Fonts are base64-embedded in
- * fonts.css so the headless browser never waits on a network font.
+ * Source: src/carousel.html, a single page holding every <section class="slide">
+ * (shared gem symbol, shared chrome — the logo can't drift between slides).
+ * Each slide is screenshotted at deviceScaleFactor 2 then downscaled to
+ * 1080x1350 for a sharper result. Fonts are base64-embedded in fonts.css so
+ * the headless browser never waits on a network font.
  *
  * Usage:
- *   node scripts/render.js                 # render every src/slide-*.html
- *   node scripts/render.js src/slide-01.html src/slide-05.html
+ *   node scripts/render.js               # every slide in src/carousel.html
+ *   node scripts/render.js 5             # only slide 5
+ *   node scripts/render.js 2 5 7         # a subset
+ *   node scripts/render.js --page other.html
  * ==========================================================================*/
 'use strict';
 
 const path = require('path');
 const fs = require('fs');
 
-// Resolve Playwright locally if installed, else fall back to the environment's
-// pre-installed global install (Chromium is provided at PLAYWRIGHT_BROWSERS_PATH).
 const { chromium } = requirePlaywright();
 function requirePlaywright() {
   try {
@@ -27,47 +29,34 @@ function requirePlaywright() {
         return createRequire(base + 'x.js')('playwright');
       } catch (_) {}
     }
-    throw new Error('playwright not found — see carousel-machine/README.md (Setup).');
+    throw new Error('playwright not found — see carousel-machine/README.md (المتطلبات).');
   }
 }
 
 const ROOT = path.resolve(__dirname, '..');
-const SRC = path.join(ROOT, 'src');
 const OUT = path.join(ROOT, 'out');
 
 const CANVAS_W = 1080;
 const CANVAS_H = 1350;
 const SCALE = 2;
 
-// slide-01.html -> 01-cover.png  (role names for nicer filenames)
-const ROLE = {
-  '01': 'cover', '02': 'stakes', '03': 'turn', '04': 'rule',
-  '05': 'proof', '06': 'reframe', '07': 'cta',
-};
-
-function slideFiles(argv) {
-  if (argv.length) return argv.map((a) => path.resolve(a));
-  return fs
-    .readdirSync(SRC)
-    .filter((f) => /^slide-\d+\.html$/.test(f))
-    .sort()
-    .map((f) => path.join(SRC, f));
-}
-
-function outName(file) {
-  const m = path.basename(file).match(/slide-(\d+)\.html$/);
-  const num = m ? m[1] : '00';
-  const role = ROLE[num] ? `-${ROLE[num]}` : '';
-  return `${num}${role}.png`;
+function parseArgs(argv) {
+  const only = [];
+  let page = path.join(ROOT, 'src', 'carousel.html');
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === '--page') page = path.resolve(argv[++i]);
+    else if (/^\d+$/.test(argv[i])) only.push(Number(argv[i]));
+  }
+  return { page, only };
 }
 
 (async () => {
-  fs.mkdirSync(OUT, { recursive: true });
-  const files = slideFiles(process.argv.slice(2));
-  if (!files.length) {
-    console.error('no slides found in src/');
+  const { page: pagePath, only } = parseArgs(process.argv.slice(2));
+  if (!fs.existsSync(pagePath)) {
+    console.error(`source page not found: ${path.relative(ROOT, pagePath)}`);
     process.exit(1);
   }
+  fs.mkdirSync(OUT, { recursive: true });
 
   const browser = await chromium.launch({
     args: ['--force-color-profile=srgb', '--font-render-hinting=none'],
@@ -78,41 +67,47 @@ function outName(file) {
   });
   const page = await context.newPage();
 
-  for (const file of files) {
-    await page.goto('file://' + file, { waitUntil: 'networkidle' });
-    // Ensure the embedded font is fully parsed before shooting.
-    await page.evaluate(() => document.fonts.ready);
-    const el = await page.$('.slide');
-    if (!el) {
-      console.error(`  ! no .slide element in ${path.basename(file)} — skipped`);
-      continue;
-    }
-    const dest = path.join(OUT, outName(file));
-    await el.screenshot({ path: dest }); // clips to the .slide box at 2160x2700
-    console.log(`  ✓ ${path.basename(file)} -> out/${path.basename(dest)}`);
+  await page.goto('file://' + pagePath, { waitUntil: 'networkidle' });
+  await page.evaluate(() => document.fonts.ready);
+
+  const slides = await page.$$('.slide');
+  if (!slides.length) {
+    console.error('no .slide sections found in the source page');
+    process.exit(1);
+  }
+
+  const written = [];
+  for (let i = 0; i < slides.length; i++) {
+    const n = i + 1;
+    if (only.length && !only.includes(n)) continue;
+    const role = (await slides[i].getAttribute('data-role')) || 'slide';
+    const name = `${String(n).padStart(2, '0')}-${role}.png`;
+    const dest = path.join(OUT, name);
+    await slides[i].screenshot({ path: dest }); // clips to the slide box, 2x
+    written.push(dest);
+    console.log(`  ✓ slide ${n} (${role}) -> out/${name}`);
   }
 
   await browser.close();
 
-  // Downscale 2x captures to exactly 1080x1350 using Chromium itself (no extra deps).
-  await downscaleAll(files);
-  console.log('done.');
+  // Downscale the 2x captures to exactly 1080x1350 using Chromium itself.
+  await downscale(written);
+  console.log(`done — ${written.length} slide(s).`);
 })().catch((e) => {
   console.error(e);
   process.exit(1);
 });
 
-async function downscaleAll(files) {
+async function downscale(files) {
+  if (!files.length) return;
   const browser = await chromium.launch();
   const page = await browser.newPage();
-  for (const file of files) {
-    const p = path.join(OUT, outName(file));
-    if (!fs.existsSync(p)) continue;
+  await page.setViewportSize({ width: CANVAS_W, height: CANVAS_H });
+  for (const p of files) {
     const b64 = fs.readFileSync(p).toString('base64');
-    await page.setViewportSize({ width: CANVAS_W, height: CANVAS_H });
     await page.setContent(
       `<style>*{margin:0}html,body{width:${CANVAS_W}px;height:${CANVAS_H}px}` +
-        `img{width:${CANVAS_W}px;height:${CANVAS_H}px;display:block;image-rendering:auto}</style>` +
+        `img{width:${CANVAS_W}px;height:${CANVAS_H}px;display:block}</style>` +
         `<img src="data:image/png;base64,${b64}">`,
       { waitUntil: 'load' }
     );

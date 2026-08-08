@@ -1,0 +1,318 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="brand.css">
+<link rel="stylesheet" href="guide.css">
+<title>دليل حجم الصفقة — Liquidity State</title>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="gm" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#EDF1F3"/><stop offset="1" stop-color="#9CB0B9"/>
+  </linearGradient>
+  <symbol id="gem" viewBox="0 0 64 64">
+    <polygon points="32,3 58,18 58,46 32,61 6,46 6,18" fill="url(#gm)" stroke="#7E939D" stroke-width="1.6"/>
+    <polygon points="32,3 58,18 32,27 6,18" fill="#F6F9FA"/>
+    <polygon points="32,27 58,18 58,46 32,37" fill="#B9C8CF" opacity=".85"/>
+    <polygon points="32,27 6,18 6,46 32,37" fill="#DAE2E6" opacity=".9"/>
+    <g stroke="#8299A3" stroke-width="1" fill="none" opacity=".75">
+      <path d="M6,18 L32,27 L58,18"/><path d="M32,3 L32,27 M32,37 L32,61"/>
+      <path d="M6,46 L32,37 L58,46"/><path d="M32,27 L32,37 M6,46 L32,37 M58,46 L32,37"/>
+    </g>
+  </symbol>
+</defs></svg>
+
+
+<!-- ======================================================== PAGE 1 · COVER -->
+<section class="page">
+  <div class="cover">
+    <svg class="gem" aria-hidden="true"><use href="#gem"/></svg>
+    <div class="wordline"><span class="r"></span><span class="wm">LIQUIDITY STATE</span><span class="r"></span></div>
+    <h1>حجم الصفقة<br><span class="alt">الدليل الكامل</span></h1>
+    <p class="tag">شلون تحسب حجم صفقتك — وليش هو اللي يحمي حسابك مو نسبة النجاح.</p>
+    <p class="meta">دليل مرافق · <span class="num">8</span> صفحات · لغرض تعليمي</p>
+  </div>
+  <div class="p-foot"><span class="h">@liquidity.state</span> · التداول ينطوي على مخاطر — المحتوى لغرض تعليمي فقط.</div>
+</section>
+
+
+<!-- ==================================================== PAGE 2 · THE PROBLEM -->
+<section class="page">
+  <div class="p-head"><span class="pnum">2</span><span class="wm">LIQUIDITY STATE</span></div>
+
+  <div class="g-kicker">أولاً · المشكلة</div>
+  <h2 class="g-h2">ليش الحساب يتبخّر مع إن التحليل صح؟</h2>
+  <div class="g-rule"></div>
+
+  <p class="g-p">أكثر متداول يخسر حسابه، ما خسره لأنه ما يعرف يقرأ الجارت. خسره لأنه دخل
+  بحجم أكبر من اللي يتحمّله حسابه. الفرق بين اللي يستمر واللي يطلع من السوق مو نسبة
+  الصفقات الرابحة — اهو <b>حجم الخسارة الوحدة</b>.</p>
+
+  <p class="g-p">أي منهج تداول — مهما كان قوي — بيعطيك <b>سلسلة خسائر متتالية</b> في
+  وقت ما. هذا مو عيب بالمنهج، هذا طبيعة الاحتمالات. السؤال الوحيد المهم:
+  <b>هل حسابك يصمد لين تعدي السلسلة؟</b></p>
+
+  <div class="g-box">
+    <div class="t">الفكرة بجملة وحدة</div>
+    <p class="g-p" style="margin:0">المنهج يحدّد <b>متى</b> تدخل. إدارة المخاطر تحدّد
+    <b>هل تبقى موجود</b> عشان تستفيد منه.</p>
+  </div>
+
+  <p class="g-lead">نفس عدد الخسائر… ونتيجة مختلفة تماماً.</p>
+  <p class="g-p">خذ متداولين، كلهم خسروا <span class="num">10</span> صفقات ورا بعض
+  بنفس المنهج. الفرق الوحيد بينهم: نسبة المخاطرة بالصفقة الوحدة.</p>
+
+  <table class="g-table">
+    <thead><tr><th>المخاطرة بالصفقة</th><th style="text-align:left">حسابك بعد <span class="num">10</span> خسائر</th></tr></thead>
+    <tbody>
+      <tr><td class="k">‎0.5%</td><td class="v bull">−4.9%</td></tr>
+      <tr><td class="k">‎1%</td><td class="v bull">−9.6%</td></tr>
+      <tr><td class="k">‎2%</td><td class="v">−18.3%</td></tr>
+      <tr><td class="k">‎3%</td><td class="v">−26.3%</td></tr>
+      <tr class="hot"><td class="k">‎5%</td><td class="v bear">−40.1%</td></tr>
+    </tbody>
+  </table>
+  <p class="g-small">محسوبة من <span class="num">(1 − r)<sup>10</sup></span> — مخاطرة نسبة ثابتة من رأس المال الحالي.</p>
+
+  <div class="p-foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+</section>
+
+
+<!-- ==================================================== PAGE 3 · RECOVERY MATH -->
+<section class="page">
+  <div class="p-head"><span class="pnum">3</span><span class="wm">LIQUIDITY STATE</span></div>
+
+  <div class="g-kicker">ثانياً · الرياضيات اللي ما ترحم</div>
+  <h2 class="g-h2">الخسارة تكبر أسرع ممّا يعوّضها الربح</h2>
+  <div class="g-rule"></div>
+
+  <p class="g-p">هذي أهم نقطة بالدليل كله. لمّا تخسر نسبة من حسابك، النسبة اللي
+  تحتاجها عشان ترجع لنقطة البداية <b>أكبر</b> من اللي خسرته — لأنك تحسبها على
+  رأس مال أصغر.</p>
+
+  <div class="g-formula">Recovery % = 1 ÷ (1 − Loss) − 1</div>
+
+  <table class="g-table">
+    <thead><tr><th>خسرت من حسابك</th><th style="text-align:left">تحتاج ربح عشان ترجع</th></tr></thead>
+    <tbody>
+      <tr><td class="k">‎5%</td>  <td class="v bull">+5.3%</td></tr>
+      <tr><td class="k">‎10%</td> <td class="v bull">+11.1%</td></tr>
+      <tr><td class="k">‎20%</td> <td class="v">+25.0%</td></tr>
+      <tr><td class="k">‎30%</td> <td class="v">+42.9%</td></tr>
+      <tr><td class="k">‎40%</td> <td class="v bear">+66.7%</td></tr>
+      <tr class="hot"><td class="k">‎50%</td> <td class="v bear">+100.0%</td></tr>
+      <tr class="hot"><td class="k">‎70%</td> <td class="v bear">+233.3%</td></tr>
+    </tbody>
+  </table>
+
+  <div class="g-box tint">
+    <div class="t">اقرأ السطر الأخير مرة ثانية</div>
+    <p class="g-p" style="margin:0">لو نزل حسابك <b>‎70%</b>، تحتاج تضاعف اللي بقى
+    <b>أكثر من ثلاث مرات</b> عشان ترجع لنقطة الصفر. هذا ليش الحفاظ على رأس المال
+    يجي قبل تنمية رأس المال.</p>
+  </div>
+
+  <p class="g-lead">الخلاصة: كل ما بقيت مخاطرتك صغيرة، بقى الطريق للرجوع قصير.</p>
+
+  <div class="p-foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+</section>
+
+
+<!-- ==================================================== PAGE 4 · THE FORMULA -->
+<section class="page">
+  <div class="p-head"><span class="pnum">4</span><span class="wm">LIQUIDITY STATE</span></div>
+
+  <div class="g-kicker">ثالثاً · المعادلة</div>
+  <h2 class="g-h2">حجم الصفقة بثلاث خطوات</h2>
+  <div class="g-rule"></div>
+
+  <p class="g-p">القاعدة الأساسية: <b>الستوب هو اللي يحدّد حجمك</b> — مو رغبتك بالربح،
+  ولا ثقتك بالصفقة، ولا الرافعة المتاحة.</p>
+
+  <div class="g-formula">Size = (Account × Risk %) ÷ Stop Distance</div>
+
+  <div class="g-rows">
+    <div class="g-row">
+      <span class="n">1</span>
+      <span class="t">حدّد مخاطرتك النقدية
+        <span class="d">نسبة ثابتة من حسابك. مثال: <span class="num">1% × $10,000 = $100</span></span></span>
+    </div>
+    <div class="g-row">
+      <span class="n">2</span>
+      <span class="t">قيس المسافة للستوب
+        <span class="d">من الدخول للستوب. مثال: <span class="num">3400 − 3390 = 10</span></span></span>
+    </div>
+    <div class="g-row">
+      <span class="n">3</span>
+      <span class="t">اقسم الأولى على الثانية
+        <span class="d">وهذا حجمك الصحيح: <span class="num">$100 ÷ 10 = 10</span> وحدات</span></span>
+    </div>
+  </div>
+
+  <p class="g-lead">أمثلة محسوبة بالكامل</p>
+  <table class="g-table">
+    <thead><tr><th>الحساب</th><th>المخاطرة</th><th>مسافة الستوب</th><th style="text-align:left">الحجم</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><span class="num">$10,000</span></td><td><span class="num">1% = $100</span></td><td><span class="num">10</span></td><td class="v bull">10.00</td></tr>
+      <tr><td class="k"><span class="num">$5,000</span></td> <td><span class="num">1% = $50</span></td> <td><span class="num">8</span></td> <td class="v bull">6.25</td></tr>
+      <tr><td class="k"><span class="num">$25,000</span></td><td><span class="num">0.5% = $125</span></td><td><span class="num">15</span></td><td class="v bull">8.33</td></tr>
+    </tbody>
+  </table>
+  <p class="g-small">لاحظ: كل ما بعُد الستوب، صغّر الحجم — عشان تبقى الخسارة نفس المبلغ.</p>
+
+  <div class="p-foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+</section>
+
+
+<!-- ==================================================== PAGE 5 · R MULTIPLE -->
+<section class="page">
+  <div class="p-head"><span class="pnum">5</span><span class="wm">LIQUIDITY STATE</span></div>
+
+  <div class="g-kicker">رابعاً · وحدة القياس</div>
+  <h2 class="g-h2">فكّر بالـ <span class="num">R</span> — لا بالدولار</h2>
+  <div class="g-rule"></div>
+
+  <p class="g-p">الـ <span class="num">R</span> اهي مخاطرتك بالصفقة الوحدة. لو تخاطر
+  <span class="num">$100</span>، فـ <span class="num">1R = $100</span>. لمّا تقيس
+  نتائجك بالـ <span class="num">R</span> بدل الدولار، تقدر تقارن صفقاتك مع بعض
+  مهما اختلف حجم الحساب.</p>
+
+  <div class="g-box">
+    <div class="t">مثال</div>
+    <p class="g-p" style="margin:0">دخول <span class="num">3400</span> · ستوب
+    <span class="num">3390</span> · هدف <span class="num">3420</span>.<br>
+    المخاطرة <span class="num">10</span> نقاط = <span class="num">$100</span> =
+    <b><span class="num">1R</span></b>. الهدف <span class="num">20</span> نقطة =
+    <span class="num">$200</span> = <b><span class="num">2R</span></b>.</p>
+  </div>
+
+  <p class="g-lead">التوقع الرياضي (Expectancy)</p>
+  <p class="g-p">هذي المعادلة تقول لك: هل منهجك رابح على المدى الطويل ولا لا؟
+  وتوضّح ليش نسبة نجاح منخفضة ممكن تكون رابحة.</p>
+
+  <div class="g-formula">E = (Win% × AvgWin) − (Loss% × AvgLoss)</div>
+
+  <table class="g-table">
+    <thead><tr><th>نسبة النجاح</th><th>متوسط الربح</th><th style="text-align:left">التوقع لكل صفقة</th></tr></thead>
+    <tbody>
+      <tr><td class="k">‎35%</td><td><span class="num">3R</span></td><td class="v bull">+0.40R</td></tr>
+      <tr><td class="k">‎40%</td><td><span class="num">2R</span></td><td class="v bull">+0.20R</td></tr>
+      <tr><td class="k">‎50%</td><td><span class="num">1.5R</span></td><td class="v bull">+0.25R</td></tr>
+      <tr><td class="k">‎60%</td><td><span class="num">1R</span></td><td class="v bull">+0.20R</td></tr>
+      <tr class="hot"><td class="k">‎30%</td><td><span class="num">2R</span></td><td class="v bear">−0.10R</td></tr>
+    </tbody>
+  </table>
+  <p class="g-small">متوسط الخسارة <span class="num">1R</span> في كل الصفوف. لاحظ الصف
+  الأخير: نسبة نجاح <span class="num">30%</span> مع هدف <span class="num">2R</span> = منهج خاسر.</p>
+
+  <div class="p-foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+</section>
+
+
+<!-- ==================================================== PAGE 6 · LOSING STREAKS -->
+<section class="page">
+  <div class="p-head"><span class="pnum">6</span><span class="wm">LIQUIDITY STATE</span></div>
+
+  <div class="g-kicker">خامساً · السيناريوهات</div>
+  <h2 class="g-h2">جدول سلسلة الخسائر</h2>
+  <div class="g-rule"></div>
+
+  <p class="g-p">استخدم هذا الجدول قبل ما تختار نسبة مخاطرتك. اسأل نفسك سؤال واحد:
+  <b>أي رقم من هذي الأرقام أقدر أشوفه بحسابي وأكمل بنفس المنهج بدون ما أغيّر شي؟</b>
+  ذاك هو سقف مخاطرتك.</p>
+
+  <table class="g-table">
+    <thead><tr>
+      <th>المخاطرة</th>
+      <th style="text-align:left"><span class="num">5</span> خسائر</th>
+      <th style="text-align:left"><span class="num">10</span> خسائر</th>
+      <th style="text-align:left"><span class="num">20</span> خسارة</th>
+    </tr></thead>
+    <tbody>
+      <tr><td class="k">‎0.5%</td><td class="v bull">−2.5%</td> <td class="v bull">−4.9%</td> <td class="v bull">−9.5%</td></tr>
+      <tr><td class="k">‎1%</td>  <td class="v bull">−4.9%</td> <td class="v bull">−9.6%</td> <td class="v">−18.2%</td></tr>
+      <tr><td class="k">‎2%</td>  <td class="v">−9.6%</td>      <td class="v">−18.3%</td>     <td class="v bear">−33.2%</td></tr>
+      <tr><td class="k">‎3%</td>  <td class="v">−14.1%</td>     <td class="v bear">−26.3%</td><td class="v bear">−45.6%</td></tr>
+      <tr class="hot"><td class="k">‎5%</td><td class="v bear">−22.6%</td><td class="v bear">−40.1%</td><td class="v bear">−64.2%</td></tr>
+    </tbody>
+  </table>
+
+  <div class="g-box tint">
+    <div class="t">اربطه بجدول التعافي</div>
+    <p class="g-p" style="margin:0">مخاطرة <b>‎5%</b> مع <span class="num">20</span> خسارة
+    تنزّلك <b>‎64.2%</b> — وترجيعها يحتاج أكثر من <b>‎+179%</b>. نفس السلسلة بمخاطرة
+    <b>‎1%</b> تنزّلك <b>‎18.2%</b> بس، وترجيعها يحتاج <b>‎+22.2%</b>.</p>
+  </div>
+
+  <p class="g-lead">نفس المنهج · نفس الخسائر · مصيران مختلفان.</p>
+
+  <div class="p-foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+</section>
+
+
+<!-- ==================================================== PAGE 7 · CHECKLIST -->
+<section class="page">
+  <div class="p-head"><span class="pnum">7</span><span class="wm">LIQUIDITY STATE</span></div>
+
+  <div class="g-kicker">سادساً · التطبيق</div>
+  <h2 class="g-h2">قائمة قبل كل صفقة</h2>
+  <div class="g-rule"></div>
+
+  <p class="g-p">مرّ على هالقائمة قبل ما تضغط زر الدخول. إذا في بند ما تقدر تعلّم
+  عليه — لا تدخل الصفقة.</p>
+
+  <ul class="g-check">
+    <li><span class="bx"></span><span class="t">حدّدت نسبة مخاطرتي الثابتة وما غيّرتها لهالصفقة</span></li>
+    <li><span class="bx"></span><span class="t">حطّيت الستوب على مستوى فنّي — مو على مبلغ أتحمّله</span></li>
+    <li><span class="bx"></span><span class="t">حسبت الحجم من المعادلة، ما اخترته بالإحساس</span></li>
+    <li><span class="bx"></span><span class="t">أعرف چم <span class="num">R</span> هدفي قبل الدخول</span></li>
+    <li><span class="bx"></span><span class="t">لو طق الستوب، خسارتي ما تأثر على صفقتي الجاية</span></li>
+    <li><span class="bx"></span><span class="t">ما عندي صفقات ثانية مرتبطة بنفس الاتجاه تضاعف مخاطرتي</span></li>
+    <li><span class="bx"></span><span class="t">سجّلت الصفقة بالـ <span class="num">R</span> — مو بالدولار</span></li>
+  </ul>
+
+  <div class="g-box">
+    <div class="t">قاعدة الأسبوع</div>
+    <p class="g-p" style="margin:0">ثبّت نسبة مخاطرتك <b>عشرين صفقة كاملة</b> بدون ما
+    تغيّرها. بعدها بس، قيّم النتيجة بالـ <span class="num">R</span>. تغيير المخاطرة
+    كل صفقة يخليك ما تعرف أبداً إذا منهجك رابح ولا لا.</p>
+  </div>
+
+  <div class="p-foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+</section>
+
+
+<!-- ==================================================== PAGE 8 · CLOSE -->
+<section class="page">
+  <div class="p-head"><span class="pnum">8</span><span class="wm">LIQUIDITY STATE</span></div>
+
+  <div class="g-kicker">أخيراً</div>
+  <h2 class="g-h2">اللي تطلع فيه من هالدليل</h2>
+  <div class="g-rule"></div>
+
+  <div class="g-rows">
+    <div class="g-row"><span class="n">1</span><span class="t">الستوب يحدّد الحجم — مو رغبتك بالربح</span></div>
+    <div class="g-row"><span class="n">2</span><span class="t">الخسارة أصعب بالتعويض ممّا تتوقع — احمِ رأس مالك أولاً</span></div>
+    <div class="g-row"><span class="n">3</span><span class="t">قيس بالـ <span class="num">R</span>، وقيّم منهجك بالتوقع الرياضي</span></div>
+    <div class="g-row"><span class="n">4</span><span class="t">اختر مخاطرتك من جدول سلسلة الخسائر — لا من طموحك</span></div>
+  </div>
+
+  <div class="g-box tint" style="text-align:center">
+    <div class="t">المحترف ما يسأل «چم بربح؟» — يسأل «چم أتحمّل أخسر؟»</div>
+  </div>
+
+  <p class="g-p">إذا وصلك هالدليل ونفعك، ارجع للمنشور واحفظه — بترجع له كل ما تفتح
+  صفقة جديدة. وإذا تعرف أحد يخاطر بدون حساب، أرسله له.</p>
+
+  <p class="g-small" style="margin-top:8mm">جميع الأرقام في هذا الدليل محسوبة من المعادلات
+  المذكورة نفسها، ويقدر أي قارئ يعيد حسابها. الرسوم التوضيحية تخطيطية.
+  <b>التداول ينطوي على مخاطر — المحتوى لغرض تعليمي فقط، وليس توصية استثمارية.</b></p>
+
+  <div class="p-foot"><span class="h">@liquidity.state</span> · لغرض تعليمي</div>
+</section>
+
+</body>
+</html>

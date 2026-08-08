@@ -1,8 +1,12 @@
 # Liquidity State — Carousel Machine (Editorial Cream)
 
 آلة إنتاج كاروسيلات إنستقرام لحساب **@liquidity.state**.
-كل كاروسيل = تعبئة نص + شارت في القوالب → رندر PNG بمقاس **1080×1350** → بوابة QA → تسليم.
+كل الكاروسيل يُكتب في **صفحة مصدر واحدة** (`src/carousel.html`) → رندر PNG بمقاس
+**1080×1350** لكل سلايد → **دليل PDF شرحي** بنفس الهوية → بوابة QA → تسليم.
 هذا **ليس** تصميم بوست واحد — هو قالب واحد يُعاد استخدامه لكل كاروسيل قادم (master prompt §14).
+
+**المخرجات:** ٧ صور كاروسيل · ملف `liquidity-state-guide.pdf` (المغناطيس اللي يوصل
+بكلمة ManyChat) · واختيارياً `carousel.pdf` (الكاروسيل كامل بملف واحد للمراجعة).
 
 **اللغة البصرية:** تحريرية مسطّحة — أرضية كريمية دافئة، حبر تيل داكن، خطوط فاصلة شعرية،
 زوايا حادة، ورسوم خطية. **ممنوع** التدرجات والتوهج والظلال الثقيلة والخلفيات الداكنة.
@@ -11,14 +15,23 @@
 ## شجرة المشروع
 ```
 carousel-machine/
-├── content/   brief.md · copy.json        # النص المعتمد لكل كاروسيل
-├── data/      chart.csv · sources.md       # بيانات حقيقية + مصادر كل رقم
-├── src/       slide-01..07.html · brand.css · fonts.css
-├── scripts/   build-fonts.py · render.js · qa.js
+├── content/   brief.md · copy.json          # النص المعتمد لكل كاروسيل
+├── data/      chart.csv · sources.md         # بيانات حقيقية + مصادر كل رقم
+├── src/       carousel.html                  # ★ صفحة المصدر الواحدة (٧ سلايدات)
+│              guide.html · guide.css         # ★ الدليل PDF الشرحي
+│              brand.css · fonts.css          # الهوية + الخط المضمّن
+├── scripts/   build-fonts.py · render.js · pdf.js · qa.js
 ├── assets/    fonts/Tajawal-*.ttf
-├── out/       01-cover.png … 07-cta.png · caption.txt · qa-report.md
-└── content-registry.md                     # سجل منع التكرار (§11)
+├── out/       01-cover.png … 07-cta.png      # صور الكاروسيل
+│              liquidity-state-guide.pdf      # المغناطيس (ManyChat)
+│              carousel.pdf · caption.txt · qa-report.md
+└── content-registry.md                       # سجل منع التكرار (§11)
 ```
+
+> **صفحة واحدة، لا سبع ملفات.** كل السلايدات في `src/carousel.html` كـ
+> `<section class="slide" data-role="…">`. شعار الجوهرة معرّف **مرة وحدة**
+> ويُستدعى بـ `<use href="#gem">` — فما يقدر يختلف بين سلايد وسلايد
+> (وبوابة الجودة تتحقق من هذا).
 
 ## المتطلبات
 - **Node ≥ 18** و **Python 3**.
@@ -32,14 +45,19 @@ carousel-machine/
 # 1) (مرة واحدة) ابنِ الخط Base64 من الـ TTFs — الخط مضمّن حتى لا يعلّق المتصفح المخفي
 python3 scripts/build-fonts.py            # -> src/fonts.css
 
-# 2) رندر كل السلايدات إلى PNG (2x ثم تصغير إلى 1080×1350)
-node scripts/render.js                     # كل src/slide-*.html
-node scripts/render.js src/slide-05.html   # سلايد واحد
+# 2) رندر السلايدات إلى PNG (2x ثم تصغير إلى 1080×1350)
+node scripts/render.js          # كل السلايدات من src/carousel.html
+node scripts/render.js 5        # سلايد واحد بالرقم
+node scripts/render.js 2 5 7    # مجموعة
 
-# 3) بوابة الجودة الآلية (تكتب out/qa-report.md)
+# 3) بناء الدليل PDF (المغناطيس)
+node scripts/pdf.js                          # -> out/liquidity-state-guide.pdf
+node scripts/pdf.js --carousel --preview     # + carousel.pdf + صور معاينة للدليل
+
+# 4) بوابة الجودة الآلية (تكتب out/qa-report.md)
 node scripts/qa.js
 
-# مختصر: رندر + QA
+# مختصر: رندر + PDF + QA
 npm run build
 ```
 
@@ -49,13 +67,25 @@ npm run build
 1. عبّي `content/brief.md` بجدول الإدخال (§2) واعرضه على فهد. **الموضوع من فهد، لا تخترع.**
 2. اكتب النص في `content/copy.json` بصوت فهد (skill: `fahad-script-voice`).
 3. طابق `content-registry.md` — لو الموضوع/الهوك مكرر، **اسأل فهد** (§11/§12).
-4. عدّل نص السلايدات في `src/slide-01..07.html` (ثوابت الهوية في `brand.css`).
+4. عدّل نص السلايدات في `src/carousel.html` — كل سلايد `<section class="slide">`
+   (ثوابت الهوية في `brand.css`، ما تنلمس).
 5. للشارت الحقيقي: صدّر OHLC إلى `data/chart.csv` وارسمه، **وأزل وسم «توضيحي»**.
    المخططات المرسومة يدوياً تبقى موسومة `توضيحي` (§7.5).
 6. سجّل مصدر كل رقم في `data/sources.md`. **صفر أرقام مخترعة** (§4).
-7. `node scripts/render.js && node scripts/qa.js`.
-8. **الفحص البصري الإلزامي**: افتح كل PNG وتأكد — العربي متصل؟ الأرقام غير معكوسة؟
-   ما في نص مقصوص؟ الهوامش مطبّقة؟ (هذا لا يُؤتمت — §8.5).
+   وينطبق نفس الشي على الدليل: كل رقم فيه لازم يكون محسوباً ويقدر القارئ يعيد حسابه.
+7. حدّث الدليل في `src/guide.html` (نفس الموضوع، بعمق أكبر) وحطّ كلمة ManyChat.
+8. `npm run build` (رندر + PDF + QA).
+9. **الفحص البصري الإلزامي**: افتح كل PNG وكل صفحة من الدليل وتأكد — العربي متصل؟
+   الأرقام غير معكوسة؟ ما في نص مقصوص؟ الهوامش مطبّقة؟ (لا يُؤتمت — §8.5).
+   لمعاينة الدليل كصور: `node scripts/pdf.js --preview`.
+
+## الدليل PDF (المغناطيس)
+- المصدر `src/guide.html` + `src/guide.css` (طبقة طباعة A4 فوق نفس رموز `brand.css`)،
+  فما يقدر ينحرف عن هوية الكاروسيل.
+- الحالي: **٨ صفحات** — الغلاف · المشكلة · رياضيات التعافي · المعادلة ·
+  الـ R والتوقع الرياضي · جدول سلسلة الخسائر · قائمة قبل كل صفقة · الخلاصة.
+- كل أرقامه محسوبة من المعادلات المذكورة نفسها (موثّقة في `data/sources.md`)،
+  و`qa.js` يتحقق أن عدد الصفحات المعلن على الغلاف يطابق الملف فعلاً.
 
 ## قواعد بصرية مثبّتة في القالب
 - مقاس **1080×1350**، هوامش آمنة **96px**، آخر **120px** فاضية من النص (واجهة إنستقرام).

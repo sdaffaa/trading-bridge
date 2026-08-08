@@ -1,0 +1,130 @@
+/* ============================================================================
+   guide.css — print layer for the PDF lead magnet.
+   Reuses the brand.css tokens (same palette and ink), re-scaled for A4 print.
+   Load AFTER brand.css.
+   ========================================================================== */
+
+@page{ size:A4; margin:0; }
+
+html,body{ background:var(--paper); }
+body{
+  font-family:'Tajawal', system-ui, sans-serif;
+  color:var(--ink); direction:rtl; text-align:right;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+
+/* ---- Page ---------------------------------------------------------------- */
+.page{
+  position:relative;
+  width:210mm; height:297mm;
+  padding:24mm 20mm 22mm;
+  background:linear-gradient(178deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+  overflow:hidden;
+  page-break-after:always;
+  break-after:page;
+}
+.page:last-child{ page-break-after:auto; break-after:auto; }
+
+/* screen preview only — never affects the PDF itself */
+@media screen{
+  body{ background:#DED8CE; display:flex; flex-direction:column; align-items:center; gap:10mm; padding:10mm 0; }
+  .page{ box-shadow:0 6px 24px #12303B24; }
+}
+
+/* ---- Page furniture ------------------------------------------------------ */
+.p-head{
+  position:absolute; top:12mm; left:20mm; right:20mm;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.p-head .wm{ font-weight:700; font-size:9pt; letter-spacing:.3em; color:var(--accent); direction:ltr; }
+.p-head .pnum{
+  border:1px solid var(--border-ink); border-radius:3px; padding:2mm 4mm;
+  font-weight:800; font-style:italic; font-size:10pt; color:var(--ink); direction:ltr;
+}
+.p-foot{
+  position:absolute; bottom:12mm; left:20mm; right:20mm;
+  text-align:center; font-weight:700; font-size:8.5pt; color:var(--ink-3);
+}
+.p-foot .h{ color:var(--accent); direction:ltr; unicode-bidi:isolate; }
+
+/* ---- Cover --------------------------------------------------------------- */
+.cover{ display:flex; flex-direction:column; align-items:center; justify-content:center;
+        text-align:center; height:100%; gap:9mm; }
+.cover .gem{ width:26mm; height:26mm; }
+.cover .wordline{ display:flex; align-items:center; gap:6mm; }
+.cover .wordline .r{ width:18mm; height:1px; background:var(--accent-2); opacity:.75; }
+.cover .wm{ font-weight:700; font-size:12pt; letter-spacing:.34em; color:var(--accent); direction:ltr; }
+.cover h1{ font-weight:800; font-size:34pt; line-height:1.2; letter-spacing:-.5pt; }
+.cover h1 .alt{ color:var(--accent); }
+.cover .tag{ font-weight:500; font-size:14pt; color:var(--ink-2); }
+.cover .meta{ font-weight:700; font-size:10pt; color:var(--ink-3); letter-spacing:.04em; }
+
+/* ---- Content ------------------------------------------------------------- */
+.g-kicker{ font-weight:800; font-size:10pt; color:var(--accent); letter-spacing:.06em; }
+.g-h2{ font-weight:800; font-size:22pt; line-height:1.25; margin-top:3mm; letter-spacing:-.4pt; }
+.g-rule{ height:3px; width:22mm; background:var(--accent); margin:5mm 0 7mm; border-radius:3px; }
+.g-p{ font-weight:500; font-size:12pt; line-height:1.85; color:var(--ink-2); margin-bottom:4mm; }
+.g-p b{ color:var(--ink); font-weight:800; }
+.g-lead{ font-weight:800; font-size:14pt; line-height:1.6; color:var(--ink); margin-bottom:4mm; }
+.g-small{ font-weight:600; font-size:9.5pt; color:var(--ink-3); }
+
+/* callout box */
+.g-box{
+  background:var(--surface); border-radius:3px; box-shadow:0 4px 14px #12303B12;
+  padding:7mm 8mm; margin:5mm 0;
+}
+.g-box.tint{ background:var(--surface-alt); box-shadow:none; border:1px solid var(--border-ink); }
+.g-box .t{ font-weight:800; font-size:12.5pt; color:var(--ink); margin-bottom:2mm; }
+
+/* formula strip */
+.g-formula{
+  background:var(--surface); border:1px solid var(--border-ink); border-radius:3px;
+  padding:6mm; text-align:center; margin:5mm 0;
+  font-weight:800; font-size:15pt; color:var(--ink);
+  direction:ltr; unicode-bidi:isolate;
+}
+
+/* numbered rows (same language as the carousel panel) */
+.g-rows{ background:var(--surface); border-radius:3px; box-shadow:0 4px 14px #12303B12; padding:2mm 7mm; margin:5mm 0; }
+.g-row{ display:flex; gap:5mm; align-items:flex-start; padding:5mm 0; }
+.g-row + .g-row{ border-top:1px solid var(--border); }
+.g-row .n{
+  flex:0 0 auto; width:8mm; height:8mm; border-radius:50%;
+  border:1.2px solid var(--accent-2); color:var(--accent);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:9pt; direction:ltr;
+}
+.g-row .t{ font-weight:700; font-size:11.5pt; color:var(--ink); line-height:1.55; }
+.g-row .t span.d{ display:block; font-weight:500; font-size:10.5pt; color:var(--ink-2); margin-top:1mm; }
+
+/* ---- Tables -------------------------------------------------------------- */
+table.g-table{
+  width:100%; border-collapse:collapse; margin:4mm 0;
+  background:var(--surface); border-radius:3px; overflow:hidden;
+  box-shadow:0 4px 14px #12303B12;
+}
+.g-table th, .g-table td{ padding:4mm 5mm; text-align:right; font-size:11pt; }
+.g-table thead th{
+  background:var(--surface-alt); font-weight:800; font-size:10pt; color:var(--ink);
+  border-bottom:1px solid var(--border-ink);
+}
+.g-table tbody tr + tr td{ border-top:1px solid var(--border); }
+.g-table td{ font-weight:600; color:var(--ink-2); }
+.g-table td.k{ font-weight:800; color:var(--ink); }
+.g-table td.v{ font-weight:800; direction:ltr; unicode-bidi:isolate; text-align:left; }
+.g-table td.v.bull{ color:var(--accent); }
+.g-table td.v.bear{ color:var(--bear); }
+.g-table tr.hot td{ background:#B93A3A0A; }
+
+/* ---- Checklist ----------------------------------------------------------- */
+.g-check{ margin:4mm 0; }
+.g-check li{ list-style:none; display:flex; gap:4mm; align-items:flex-start; padding:3.5mm 0; }
+.g-check li + li{ border-top:1px solid var(--border); }
+.g-check .bx{
+  flex:0 0 auto; width:5.5mm; height:5.5mm; border:1.4px solid var(--accent-2);
+  border-radius:2px; margin-top:.6mm;
+}
+.g-check .t{ font-weight:700; font-size:11.5pt; color:var(--ink); line-height:1.5; }
+
+/* ---- Numeric isolation (shared with the carousel) ------------------------ */
+.num{ unicode-bidi:isolate; direction:ltr; }
