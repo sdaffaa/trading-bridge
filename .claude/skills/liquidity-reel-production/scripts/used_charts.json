@@ -7445,6 +7445,30 @@
    "end": "2026-05-10 03:00",
    "label": "run31-saqf",
    "video": "run36-daily-2026-08-08"
+  },
+  {
+   "symbol": "NQ=F",
+   "timeframe": "30m",
+   "start": "2026-07-23 05:00",
+   "end": "2026-07-23 05:00",
+   "label": "run42-omq",
+   "video": "run42-single-2026-08-08"
+  },
+  {
+   "symbol": "YM=F",
+   "timeframe": "1h",
+   "start": "2026-07-02 15:00",
+   "end": "2026-07-02 18:00",
+   "label": "run42-mustahlaka",
+   "video": "run42-single-2026-08-08"
+  },
+  {
+   "symbol": "YM=F",
+   "timeframe": "1h",
+   "start": "2025-10-29 18:00",
+   "end": "2025-10-29 16:00",
+   "label": "run42-amal",
+   "video": "run42-single-2026-08-08"
   }
  ]
 }

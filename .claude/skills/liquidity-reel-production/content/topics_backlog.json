@@ -610,10 +610,14 @@
    "pillar": "علم نفس التداول",
    "topic": "الأمل بديلاً عن الوقف: تأجيل قبول الخسارة الصغيرة",
    "keyword": "أمل",
-   "status": "queued",
+   "status": "done",
    "cat": "نفسية",
    "added": "2026-08-06",
-   "source": "تجديد البنك run31"
+   "source": "تجديد البنك run31",
+   "done_date": "2026-08-08",
+   "run": 42,
+   "media": "carousel",
+   "slug": "amal"
   },
   {
    "id": 60,
@@ -745,20 +749,28 @@
    "pillar": "هيكل السوق",
    "topic": "عمق اللمسة: كم يجب أن يدخل السعر في المنطقة قبل أن ترتدّ",
    "keyword": "عمق",
-   "status": "queued",
+   "status": "done",
    "cat": "فنية",
    "added": "2026-08-08",
-   "source": "تجديد البنك run36"
+   "source": "تجديد البنك run36",
+   "done_date": "2026-08-08",
+   "run": 42,
+   "media": "carousel",
+   "slug": "omq"
   },
   {
    "id": 72,
    "pillar": "SMC",
    "topic": "المنطقة المستهلَكة: لماذا اللمسة الثانية أضعف من الأولى",
    "keyword": "مستهلكة",
-   "status": "queued",
+   "status": "done",
    "cat": "فنية",
    "added": "2026-08-08",
-   "source": "تجديد البنك run36"
+   "source": "تجديد البنك run36",
+   "done_date": "2026-08-08",
+   "run": 42,
+   "media": "carousel",
+   "slug": "mustahlaka"
   },
   {
    "id": 73,
