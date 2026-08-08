@@ -44,10 +44,11 @@ function pngSize(file) {
  * legal disclaimer, the "توضيحي" tag, and chart annotation callouts. Also
  * excludes pure numeric / currency / R tokens — they are data, not reading load. */
 function words(html) {
-  const EXCLUDE = 'band|kicker|label|disclaimer|schematic-tag|callout|counter|handle';
+  const EXCLUDE = 'band|kicker|kchip|idx|wordmark|label|disclaimer|schematic-tag|callout|counter|handle|ghost';
   let s = html
     .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/<svg[\s\S]*?<\/svg>/gi, ' ') // charts/logos are not words
+    .replace(/<span class="dot"[^>]*><\/span>/gi, ' ') // strip decorative dot so kchip removes cleanly
     .replace(new RegExp(`<[^>]*class="[^"]*\\b(?:${EXCLUDE})\\b[^"]*"[^>]*>[\\s\\S]*?<\\/[^>]+>`, 'gi'), ' ')
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')

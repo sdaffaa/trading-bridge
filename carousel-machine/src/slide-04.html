@@ -7,46 +7,61 @@
 <title>slide-04-rule</title>
 </head>
 <body>
-<!-- ==== SLIDE 4 · RULE ====
-     The numbered framework (١، ٢، ٣). ≤35 on-screen words. -->
+<!-- ==== SLIDE 4 · RULE ==== -->
 <div class="slide">
-  <svg width="0" height="0" aria-hidden="true"><defs>
-    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#E8EDEE"/><stop offset="1" stop-color="#A9BCC2"/>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <linearGradient id="gemFace" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F4F8F8"/><stop offset=".5" stop-color="#C7D6D9"/><stop offset="1" stop-color="#98AEB4"/>
     </linearGradient>
+    <linearGradient id="gemEdge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2FBF95"/><stop offset="1" stop-color="#0E1E24"/>
+    </linearGradient>
+    <symbol id="gem" viewBox="0 0 120 120">
+      <polygon points="60,4 108,32 108,88 60,116 12,88 12,32" fill="url(#gemFace)" stroke="url(#gemEdge)" stroke-width="2.5"/>
+      <polygon points="60,4 108,32 60,50 12,32" fill="#FFFFFF" opacity=".5"/>
+      <polygon points="60,50 108,32 108,88 60,70" fill="#17A97F" opacity=".12"/>
+      <polygon points="60,50 12,32 12,88 60,70" fill="#0E1E24" opacity=".06"/>
+      <g stroke="#0E1E24" stroke-width="1.1" opacity=".34" fill="none">
+        <path d="M12,32 L60,50 L108,32"/><path d="M60,4 L60,50 M60,50 L60,116"/>
+        <path d="M12,88 L60,70 L108,88"/><path d="M60,50 L12,88 M60,50 L108,88"/>
+      </g>
+      <path d="M60,10 L101,34" stroke="#FFFFFF" stroke-width="2" opacity=".6" fill="none"/>
+    </symbol>
   </defs></svg>
+  <svg class="bg-gem" aria-hidden="true"><use href="#gem"/></svg>
 
-  <div class="stage">
-    <div>
-      <div class="kicker">المعادلة</div>
-      <h2 class="title">حجم الصفقة بثلاث خطوات</h2>
+  <div class="stage between">
+    <div class="head">
+      <div class="kchip"><span class="dot"></span> المعادلة</div>
+      <div class="idx">RISK · 04</div>
     </div>
 
-    <div class="card">
-      <div class="steps">
-        <div class="step">
-          <span class="n">١</span>
-          <span class="t">حدّد مخاطرتك: <span class="num">1% × $10,000 = $100</span></span>
-        </div>
-        <div class="step">
-          <span class="n">٢</span>
-          <span class="t">قيس المسافة للستوب: <span class="num">3400 − 3390 = 10</span> نقاط.</span>
-        </div>
-        <div class="step">
-          <span class="n">٣</span>
-          <span class="t">وحجمك الصحيح: <span class="num bull">$100 ÷ 10 = 10</span> وحدات.</span>
-        </div>
+    <h2 class="title">حجم الصفقة بثلاث خطوات</h2>
+
+    <div class="steps">
+      <div class="step">
+        <span class="ghost">1</span>
+        <span class="n">١</span>
+        <span class="t">حدّد مخاطرتك: <b><span class="num">1% × $10,000 = $100</span></b></span>
+      </div>
+      <div class="step">
+        <span class="ghost">2</span>
+        <span class="n">٢</span>
+        <span class="t">قيس المسافة للستوب: <b><span class="num">3400 − 3390 = 10</span></b> نقاط.</span>
+      </div>
+      <div class="step">
+        <span class="ghost">3</span>
+        <span class="n">٣</span>
+        <span class="t">وحجمك الصحيح: <b class="bull"><span class="num">$100 ÷ 10 = 10</span> وحدات.</b></span>
       </div>
     </div>
 
-    <p class="label">القاعدة: الستوب يحدّد الحجم — مو رغبتك بالربح.</p>
+    <p class="label" style="text-align:center">القاعدة: الستوب يحدّد الحجم — مو رغبتك بالربح.</p>
   </div>
 
   <div class="band">
     <div class="brand">
-      <div class="gem-wrap"><svg viewBox="0 0 100 100" class="gem" aria-hidden="true">
-        <polygon points="50,5 90,28 90,72 50,95 10,72 10,28" fill="url(#metal)" stroke="#0E1E24" stroke-width="3"/>
-      </svg></div>
+      <div class="gem-wrap"><svg class="gem" aria-hidden="true"><use href="#gem"/></svg></div>
       <span class="handle">@liquidity.state</span>
     </div>
     <span class="spacer"></span>
