@@ -1,0 +1,52 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="brand.css">
+<title>slide-01-cover</title>
+</head>
+<body>
+<!-- ==== SLIDE 1 · COVER / HOOK ====
+     Rule (§6): one huge hook line + one small paradox line. NO paragraph.
+     Must be readable at 150px thumbnail width. ≤12 words. -->
+<div class="slide">
+
+  <!-- shared metallic gradient def (used by every gem on this slide) -->
+  <svg width="0" height="0" aria-hidden="true"><defs>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E8EDEE"/><stop offset="1" stop-color="#A9BCC2"/>
+    </linearGradient>
+  </defs></svg>
+
+  <!-- cover gem (larger, top corner) -->
+  <div class="cover-gem">
+    <svg viewBox="0 0 100 100" class="gem" aria-hidden="true">
+      <polygon points="50,5 90,28 90,72 50,95 10,72 10,28" fill="url(#metal)" stroke="#0E1E24" stroke-width="2.5"/>
+      <path d="M50,5 L50,95 M10,28 L90,72 M90,28 L10,72" stroke="#0E1E24" stroke-width="1.4" opacity=".55"/>
+      <polygon points="50,5 90,28 50,50 10,28" fill="#FFFFFF" opacity=".35"/>
+    </svg>
+  </div>
+
+  <div class="stage center">
+    <div class="kicker">إدارة المخاطر</div>
+    <h1 class="cover-title">ليش حسابك يتبخّر<br>وانت تربح أكثر ممّا تخسر؟</h1>
+    <p class="cover-sub">مو بتحليلك… بحجم مخاطرتك.</p>
+    <div class="label" style="margin-top:14px">اسحب ←</div>
+  </div>
+
+  <!-- standing brand band -->
+  <div class="band">
+    <div class="brand">
+      <div class="gem-wrap"><svg viewBox="0 0 100 100" class="gem" aria-hidden="true">
+        <polygon points="50,5 90,28 90,72 50,95 10,72 10,28" fill="url(#metal)" stroke="#0E1E24" stroke-width="3"/>
+      </svg></div>
+      <span class="handle">@liquidity.state</span>
+    </div>
+    <span class="spacer"></span>
+    <span class="counter">1/7</span>
+  </div>
+
+</div>
+</body>
+</html>

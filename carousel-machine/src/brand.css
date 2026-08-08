@@ -1,0 +1,227 @@
+/* ============================================================================
+   brand.css — Liquidity State Carousel Machine · Light Edition
+   Single source of truth for the reusable carousel template.
+   Design tokens follow the master prompt §7 (Light Edition). Dark backgrounds
+   are intentionally NOT defined here — this system is light-only.
+   ========================================================================== */
+
+/* ---- 1. Design tokens (master prompt §7.1) -------------------------------- */
+:root{
+  /* Surfaces */
+  --bg-top:      #F6F9F9;   /* top of the page gradient        */
+  --bg-bottom:   #E9F1F0;   /* bottom of the page gradient     */
+  --surface:     #FFFFFF;   /* cards                           */
+  --surface-alt: #F0F5F5;   /* secondary card                  */
+  --border:      #D6E3E2;   /* 1px hairline border             */
+  --border-soft: #17A97F1F; /* border with a teal tint         */
+
+  /* Ink */
+  --ink:         #0E1E24;   /* primary text — brand dark teal  */
+  --ink-2:       #37525A;   /* secondary text                  */
+  --ink-3:       #5C7278;   /* small labels — ≥4.5:1 on light bg (§7.2) */
+
+  /* Accents */
+  --bull:        #17A97F;   /* bullish — safe on light         */
+  --bear:        #C94A4A;   /* bearish — safe on light         */
+  --bull-fill:   #17A97F1F; /* bullish zone fill 12%           */
+  --bear-fill:   #C94A4A1F; /* bearish zone fill 12%           */
+  --highlight:   #DFF4EC;   /* marker behind the keyword       */
+  --brand-band:  #0E1E24;   /* dark bottom band                */
+  --metal-1:     #E8EDEE;   /* metallic gem gradient stop 1    */
+  --metal-2:     #A9BCC2;   /* metallic gem gradient stop 2    */
+
+  /* Chart tokens (master prompt §7.5) */
+  --chart-bg:    #FFFFFF;
+  --chart-grid:  #EAF1F0;
+  --axis:        #7B939A;
+
+  /* Geometry */
+  --canvas-w: 1080px;
+  --canvas-h: 1350px;
+  --margin:   90px;         /* safe margin all sides           */
+  --ig-safe:  120px;        /* bottom zone covered by IG UI     */
+  --band-h:   96px;         /* bottom brand band height         */
+  --radius:   22px;         /* card corner radius               */
+  --card-pad: 36px;         /* card inner padding (32–40)       */
+  --shadow:   0 8px 24px #0E1E240D;  /* only allowed shadow     */
+}
+
+/* ---- 2. Reset & canvas ---------------------------------------------------- */
+*{ margin:0; padding:0; box-sizing:border-box; }
+
+html,body{ background:var(--bg-bottom); }
+
+body{
+  font-family:'Tajawal', system-ui, sans-serif;
+  font-weight:500;
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* The slide is a fixed-size box; the renderer screenshots exactly this. */
+.slide{
+  position:relative;
+  width:var(--canvas-w);
+  height:var(--canvas-h);
+  overflow:hidden;
+  background:linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+  /* Arabic: right-to-left, right aligned by default. */
+  direction:rtl;
+  text-align:right;
+  line-height:1.55;
+  letter-spacing:0;               /* never letter-space Arabic */
+}
+
+/* Faint geometric texture (≤8% opacity) — optional atmosphere, never crowds. */
+.slide::before{
+  content:"";
+  position:absolute; inset:0;
+  background-image:
+    radial-gradient(circle at 85% 12%, #17A97F14 0 1.5px, transparent 2px),
+    radial-gradient(circle at 15% 80%, #0E1E240A 0 1.5px, transparent 2px);
+  background-size:140px 140px, 190px 190px;
+  opacity:.5;
+  pointer-events:none;
+}
+
+/* ---- 3. Content grid (top 25% / middle 50% / bottom 25%) ------------------ */
+.stage{
+  position:absolute;
+  top:var(--margin);
+  right:var(--margin);
+  left:var(--margin);
+  /* leave the IG-unsafe zone + brand band free at the bottom */
+  bottom:calc(var(--band-h) + var(--ig-safe));
+  display:flex;
+  flex-direction:column;
+  gap:28px;
+  z-index:2;
+}
+.stage.center{ justify-content:center; align-items:stretch; text-align:center; }
+.stage.between{ justify-content:space-between; }
+
+/* ---- 4. Typography (master prompt §7.3) ---------------------------------- */
+.kicker{ font-weight:700; font-size:30px; color:var(--ink-3); letter-spacing:0; }
+.cover-title{ font-weight:800; font-size:104px; line-height:1.12; color:var(--ink); }
+.cover-sub{ font-weight:500; font-size:44px; color:var(--ink-2); }
+.title{ font-weight:800; font-size:68px; line-height:1.2; color:var(--ink); }
+.body{ font-weight:500; font-size:44px; color:var(--ink-2); }
+.lead{ font-weight:700; font-size:52px; color:var(--ink); }
+.label{ font-weight:500; font-size:30px; color:var(--ink-3); }
+.quote{ font-weight:800; font-size:64px; line-height:1.35; color:var(--ink); }
+
+/* Numeric / mixed-script isolation. Prices, %, R, and equations must be LTR
+   and isolated, or RTL bidi reorders their digits and signs. Use for every
+   number/currency/math run inside Arabic text (see arabic-video-text). */
+.num{ unicode-bidi:isolate; direction:ltr; }
+
+/* Keyword marker — teal highlight behind an inline phrase. */
+.mark{ background:var(--highlight); padding:2px 14px; border-radius:10px; box-decoration-break:clone; }
+
+/* Accent colors: reserved for numbers/arrows/icons ≥40px, never body text. */
+.bull{ color:var(--bull); }
+.bear{ color:var(--bear); }
+.stat{ font-weight:800; font-size:120px; line-height:1; }
+
+/* ---- 5. Cards ------------------------------------------------------------- */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:var(--card-pad);
+  box-shadow:var(--shadow);
+}
+.card.alt{ background:var(--surface-alt); box-shadow:none; }
+
+/* Numbered framework rows (١، ٢، ٣ …) */
+.steps{ display:flex; flex-direction:column; gap:20px; }
+.step{ display:flex; gap:22px; align-items:flex-start; }
+.step .n{
+  flex:0 0 auto;
+  width:64px; height:64px; border-radius:16px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--bull-fill); color:var(--bull);
+  font-weight:800; font-size:38px;
+}
+.step .t{ font-weight:500; font-size:42px; color:var(--ink); line-height:1.5; }
+
+/* Label / value comparison rows (bidi-safe: text right, isolated number left) */
+.cmp{ display:flex; flex-direction:column; gap:22px; }
+.cmp-row{ display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.cmp-label{ font-weight:500; font-size:44px; color:var(--ink); }
+.cmp-val{ font-weight:800; font-size:56px; unicode-bidi:isolate; direction:ltr; }
+
+/* Floating annotation card for charts */
+.callout{
+  position:absolute;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px 22px;
+  box-shadow:var(--shadow);
+  font-weight:700; font-size:32px; color:var(--ink);
+  z-index:3;
+}
+
+/* "توضيحي" schematic badge (master prompt §3.3 / §7.5) */
+.schematic-tag{
+  position:absolute; top:16px; left:16px;
+  font-weight:700; font-size:26px; color:var(--ink-3);
+  background:var(--surface-alt); border:1px solid var(--border);
+  border-radius:10px; padding:4px 14px;
+}
+
+/* Disclaimer line for any slide showing a trade (master prompt §4.4) */
+.disclaimer{ font-weight:500; font-size:28px; color:var(--ink-3); }
+
+/* ---- 6. Standing chrome: gem logo, brand band, hex page counter ---------- */
+
+/* Gem logo — a small faceted icosahedron, same position on every slide. */
+.gem{ width:100%; height:100%; display:block; }
+
+/* Bottom brand band: logo + handle + page counter, identical every slide. */
+.band{
+  position:absolute; left:0; right:0; bottom:0;
+  height:var(--band-h);
+  background:var(--brand-band);
+  display:flex; align-items:center;
+  padding:0 var(--margin);
+  z-index:4;
+  direction:rtl;
+}
+.band .brand{ display:flex; align-items:center; gap:16px; }
+.band .brand .gem-wrap{ width:40px; height:40px; }
+.band .handle{ color:#EAF2F1; font-weight:700; font-size:32px; letter-spacing:0;
+  direction:ltr; unicode-bidi:isolate; }  /* keep "@liquidity.state" un-mirrored */
+.band .spacer{ flex:1; }
+
+/* Hexagon page counter ٣/٧ */
+.counter{
+  display:flex; align-items:center; justify-content:center;
+  width:78px; height:88px;
+  color:#EAF2F1; font-weight:800; font-size:30px;
+  /* six-sided clip */
+  clip-path:polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  background:#17A97F26;
+  direction:ltr;                     /* keep "3/7" from mirroring */
+}
+
+/* Cover slide places a larger gem near the title. */
+.cover-gem{ position:absolute; top:var(--margin); left:var(--margin); width:96px; height:96px; z-index:3; }
+
+/* Big centered CTA action pill (slide 7) */
+.cta-pill{
+  align-self:center;
+  background:var(--ink);
+  color:#EAF2F1;
+  font-weight:800; font-size:46px;
+  padding:26px 48px; border-radius:999px;
+}
+.cta-keyword{
+  align-self:center;
+  background:var(--highlight);
+  color:var(--bull);
+  font-weight:800; font-size:44px;
+  padding:22px 40px; border-radius:16px; border:1px solid var(--border-soft);
+}

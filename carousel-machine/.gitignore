@@ -1,0 +1,6 @@
+# Playwright is provided by the environment (global); no local install committed.
+node_modules/
+
+# Keep the demo PNGs (render-test proof). Delete this section if you'd rather
+# treat out/*.png as disposable build artifacts:
+# out/*.png

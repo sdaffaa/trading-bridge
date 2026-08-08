@@ -1,0 +1,84 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="brand.css">
+<title>slide-05-proof</title>
+</head>
+<body>
+<!-- ==== SLIDE 5 · PROOF ====
+     Chart + floating annotation cards. ≤20 on-screen words.
+     This demo chart is a SCHEMATIC, so it carries the "توضيحي" tag (§7.5).
+     For a real carousel: replace with real TradingView OHLC from data/chart.csv. -->
+<div class="slide">
+  <svg width="0" height="0" aria-hidden="true"><defs>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E8EDEE"/><stop offset="1" stop-color="#A9BCC2"/>
+    </linearGradient>
+  </defs></svg>
+
+  <div class="stage between">
+    <div>
+      <div class="kicker">مثال محسوب</div>
+      <h2 class="title">مخاطرة <span class="num">$100</span> مقابل هدف <span class="num">$200</span> = <b class="bull"><span class="num">2R</span></b></h2>
+    </div>
+
+    <div class="card" style="position:relative; padding:24px">
+      <span class="schematic-tag">توضيحي</span>
+      <svg viewBox="0 0 852 560" width="100%" style="display:block" aria-hidden="true">
+        <rect x="0" y="0" width="852" height="560" fill="#FFFFFF"/>
+        <!-- grid -->
+        <g stroke="#EAF1F0" stroke-width="1">
+          <line x1="0" y1="90"  x2="852" y2="90"/>
+          <line x1="0" y1="200" x2="852" y2="200"/>
+          <line x1="0" y1="310" x2="852" y2="310"/>
+          <line x1="0" y1="430" x2="852" y2="430"/>
+        </g>
+
+        <!-- TP / Entry / SL zones -->
+        <rect x="0" y="90"  width="852" height="110" fill="#17A97F1F"/>
+        <rect x="0" y="310" width="852" height="120" fill="#C94A4A1F"/>
+
+        <!-- candles (schematic) -->
+        <g stroke-width="3">
+          <!-- x, wick top/bottom, body top/bottom, color -->
+          <g stroke="#17A97F" fill="#17A97F"><line x1="90"  y1="360" x2="90"  y2="300"/><rect x="78"  y="315" width="24" height="35"/></g>
+          <g stroke="#C94A4A" fill="#C94A4A"><line x1="160" y1="380" x2="160" y2="330"/><rect x="148" y="345" width="24" height="28"/></g>
+          <g stroke="#17A97F" fill="#17A97F"><line x1="230" y1="360" x2="230" y2="290"/><rect x="218" y="300" width="24" height="45"/></g>
+          <g stroke="#17A97F" fill="#17A97F"><line x1="300" y1="330" x2="300" y2="250"/><rect x="288" y="262" width="24" height="55"/></g>
+          <g stroke="#C94A4A" fill="#C94A4A"><line x1="370" y1="300" x2="370" y2="240"/><rect x="358" y="250" width="24" height="30"/></g>
+          <!-- entry candle at the level -->
+          <g stroke="#17A97F" fill="#17A97F"><line x1="440" y1="290" x2="440" y2="205"/><rect x="428" y="215" width="24" height="60"/></g>
+          <g stroke="#17A97F" fill="#17A97F"><line x1="510" y1="230" x2="510" y2="150"/><rect x="498" y="160" width="24" height="55"/></g>
+          <g stroke="#17A97F" fill="#17A97F"><line x1="580" y1="180" x2="580" y2="110"/><rect x="568" y="120" width="24" height="50"/></g>
+          <g stroke="#17A97F" fill="#17A97F"><line x1="650" y1="150" x2="650" y2="95"/> <rect x="638" y="100" width="24" height="40"/></g>
+        </g>
+
+        <!-- levels: Entry solid dark, SL dashed red, TP dashed green -->
+        <line x1="0" y1="255" x2="852" y2="255" stroke="#0E1E24" stroke-width="2.5"/>
+        <line x1="0" y1="360" x2="852" y2="360" stroke="#C94A4A" stroke-width="2.5" stroke-dasharray="10 8"/>
+        <line x1="0" y1="150" x2="852" y2="150" stroke="#17A97F" stroke-width="2.5" stroke-dasharray="10 8"/>
+      </svg>
+
+      <div class="callout" style="top:210px; right:36px">دخول <span class="num">3400</span></div>
+      <div class="callout" style="top:330px; right:36px; color:var(--bear)">ستوب <span class="num">3390</span> · <span class="num">−$100</span></div>
+      <div class="callout" style="top:120px; right:36px; color:var(--bull)">هدف <span class="num">3420</span> · <span class="num">+$200</span></div>
+    </div>
+
+    <p class="disclaimer">التداول ينطوي على مخاطر — المحتوى لغرض تعليمي فقط.</p>
+  </div>
+
+  <div class="band">
+    <div class="brand">
+      <div class="gem-wrap"><svg viewBox="0 0 100 100" class="gem" aria-hidden="true">
+        <polygon points="50,5 90,28 90,72 50,95 10,72 10,28" fill="url(#metal)" stroke="#0E1E24" stroke-width="3"/>
+      </svg></div>
+      <span class="handle">@liquidity.state</span>
+    </div>
+    <span class="spacer"></span>
+    <span class="counter">5/7</span>
+  </div>
+</div>
+</body>
+</html>
