@@ -6,7 +6,9 @@ import imageio_ffmpeg
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CHROME = glob.glob("/opt/pw-browsers/chromium-*/chrome-linux/chrome")[0]
-FPS = 30
+# ٦٠ إطاراً متاحة بمتغيّر البيئة: بريف الريل الصامت يطلبها، وبقية
+# الريلات تبقى على ٣٠ (الرندر يتضاعف زمنه، فلا تُفرض على الكل).
+FPS = int(os.environ.get("LS_FPS", "30"))
 
 def render(html_in, mp4_out):
     fr = os.path.join(HERE, "frames_any")
