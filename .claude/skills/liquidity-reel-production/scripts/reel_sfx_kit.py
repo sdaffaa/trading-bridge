@@ -246,7 +246,20 @@ def build_reel(cfg, out_html):
         if cfg.get("crosshair"):
             CURSOR_HTML += ('<div id="xh"><div class="xhv"></div><div class="xhh"></div>'
                             '<div class="xhp"></div><div class="xht"></div></div>')
-        CURSOR_HTML += ('<div id="cur"><div class="cc"></div><svg class="cp" width="26" height="34" '
+        # شكل المؤشّر: سهمٌ أو صليب. المرجعان الثاني والثالث يرسمان
+        # **صليباً** — وهو مؤشّر أدوات الرسم في المنصّة، والسهم مؤشّر
+        # التصفّح. ونقطة الإمساك في الصليب مركزُه لا ركنُه، فيُزاح
+        # نصفَ حجمه كي تقع تحت الإحداثي المطلوب.
+        if cfg.get("cursor_style") == "cross":
+            CURSOR_HTML += (
+                '<div id="cur"><div class="cc"></div><svg class="cp" width="34" height="34" '
+                'viewBox="0 0 34 34" style="left:-17px;top:-17px">'
+                '<path d="M17 3 V31 M3 17 H31" stroke="#FBF9F5" stroke-width="6" '
+                'stroke-linecap="round"/>'
+                '<path d="M17 3 V31 M3 17 H31" stroke="#0F2E3C" stroke-width="2.6" '
+                'stroke-linecap="round"/></svg></div>')
+        else:
+            CURSOR_HTML += ('<div id="cur"><div class="cc"></div><svg class="cp" width="26" height="34" '
                        'viewBox="0 0 26 34"><path d="M2 2 L2 26 L8.5 20.5 L12.5 30 L16.5 28.2 '
                        'L12.8 19 L21 18.5 Z" fill="#0F2E3C" stroke="#FBF9F5" stroke-width="1.6" '
                        'stroke-linejoin="round"/></svg></div>')
@@ -568,7 +581,8 @@ window.__setFrame = function(t) {{
       if (m && m[3] === "zonedrag") {{
         // بدون هذا يظهر الزون في لقطة النتيجة بمقياس آخر إطار مرسوم
         const zw0 = el.querySelector(".zw"); if (zw0) zw0.style.transform = "scaleX(1)";
-        el.querySelector(".zf").style.opacity = 0.16;
+        const zf0 = el.querySelector(".zf");
+        if (zf0) zf0.style.opacity = zf0.dataset.fo !== undefined ? +zf0.dataset.fo : 0.16;
         const zl0 = el.querySelector(".zl"); if (zl0) zl0.style.opacity = 1;
       }}
       if (m && m[3] === "drawx") el.querySelectorAll("line").forEach(l => setLine(l, 1));
@@ -623,7 +637,12 @@ window.__setFrame = function(t) {{
       el.style.opacity = k > 0 ? 1 : 0;
       const zw = el.querySelector(".zw");
       if (zw) zw.style.transform = `scaleX(${{Math.max(dez(k), 0.001).toFixed(4)}})`;
-      el.querySelector(".zf").style.opacity = clamp(k, 0, 1) * 0.16;
+      // `data-fo` تُبقي شفافية الحشو للعنصر لا للمحرّك: أشكال الطراز
+      // المرجعي تحمل شفافيتها في لونها نفسه (rgba)، وضربُها في ٠٫١٦
+      // كان يمحوها. وغياب `.zf` لم يعد يُسقط الإطار كلّه.
+      const zf = el.querySelector(".zf");
+      if (zf) zf.style.opacity = clamp(k, 0, 1) *
+        (zf.dataset.fo !== undefined ? +zf.dataset.fo : 0.16);
       const zl2 = el.querySelector(".zl");
       if (zl2) zl2.style.opacity = clamp((k - 0.82) / 0.18, 0, 1);
     }} else if (m[3] === "drawx") {{
