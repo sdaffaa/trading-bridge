@@ -212,12 +212,24 @@ if __name__ == "__main__":
     print(f"\nالمرشّحون: {len(found)} — يُعرضون على الطبقات الخمس بالترتيب",
           file=sys.stderr)
 
+    # النوافذ المنشورة سابقاً تُسقَط هنا لا في `scan_setups.accept` فحسب.
+    # الحكم واحد — المفتاح (الرمز، المرساة) نفسه — لكن إسقاطها مبكراً يمنع
+    # أن تستهلك حصّة القبول كلها فيعود الصندوق بأربع نوافذ منشورة.
+    # الملف اختياري: إن غاب لم يُسقَط شيء، والغربلة تبقى في المستودع.
+    used = set()
+    if os.path.exists("used.json"):
+        with open("used.json", encoding="utf-8") as f:
+            used = {(u["sym"], u["anchor"]) for u in json.load(f)}
+
     ok, seen, why = [], 0, {}
     for c in found:
         if len(ok) >= top:
             break
         w = window(c["sym"], c["_h1"], c["_m5"], c["sw"])
         if not w:
+            continue
+        if (w["sym"], w["anchor_utc"]) in used:
+            why["منشور سابقاً"] = why.get("منشور سابقاً", 0) + 1
             continue
         seen += 1
         r, err = gate(w)

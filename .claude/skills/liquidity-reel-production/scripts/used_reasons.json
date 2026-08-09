@@ -90,6 +90,16 @@
     "sweep.pool",
     "signal.range"
    ]
+  },
+  {
+   "tag": "si_sc_2026-08-04_0639",
+   "keys": [
+    "4H.ma_gap",
+    "1D.pd_low",
+    "1h.struct",
+    "sweep.sweep",
+    "signal.wick"
+   ]
   }
  ]
 }
