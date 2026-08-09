@@ -19,7 +19,7 @@
 import json, os
 from reel_build import INK, TEAL, TEAL_D, RED, GREY, htext, gen
 from reel_sfx_kit import (build_reel, line_el, zone_el, xmark, checkmark, pos_box,
-                          set_canvas, set_pad, plot_box, set_price_pad, set_vis)
+                          set_canvas, set_pad, plot_box, set_price_pad, set_vis, us)
 import tv_chart, topdown
 import tv_shell as TV
 import reason_pool
@@ -28,6 +28,15 @@ from car_common import GEM
 THEME = os.environ.get("LS_THEME", "light")
 tv_chart.set_theme(THEME)
 DK = THEME == "dark"
+
+# 🔒 أمر فهد 2026-08-09: ألوان شموع التسجيل. ليست تقديراً بالنظر —
+# استُخرج إطارٌ بصيغة PNG بلا فقد وقيست منه أطولُ الأشرطة الأفقية داخل
+# الأجساد: الصاعدة `#008C9E` والهابطة `#636363` بحدٍّ `#595959`.
+# والهابطة رماديةٌ لا حمراء ولا كحلية — وهذا اختيارُ لوحته، فيُنقل كما هو.
+# (شموع الكاروسيلات تبقى على `#2E8CA6`/`#122F3E` في `reel_build` — هذا
+# التسجيل عن جارتٍ متحرّك، ولم يُطلب تعميمُه على المطبوع.)
+CBULL, CBEAR = "#008C9E", "#636363"
+CBULL_DK, CBEAR_DK = "#43D4DC", "#5E7A88"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # 🔒 أمر فهد 2026-08-06: «اريد الجارت وكأني داخل تريدنق فيو وأقوم بماركب،
@@ -99,6 +108,14 @@ def _rp_p(t):
     return RP_KF[-1][1]
 
 
+def shift_at(t):
+    """انزلاق الطبقة يساراً عند اللحظة t — نسخة بايثون من حساب المحرّك.
+
+    يلزم عند البناء لا عند العرض فقط: مواضع اليد ونهاية ما ترسمه تُحسب
+    في فضاء الجارت، والشاشة تريها بعد طرح هذا المقدار."""
+    return max(0.0, _rp_p(t) - RP_BASE) * (PW / VIS)
+
+
 # الوسم لا يُرسم على شمعة لم تُطبع بعد: خطّ القيعان يُرسم عند 4.05 من أول
 # قاع متساوٍ، وعلامة السحب عند 18.1 على شمعة السحب. يُفحص لا يُقدَّر.
 assert _rp_p(4.05) >= min(LAY[3]["eq"]), "خطّ القيعان يسبق طباعة قاعه"
@@ -115,17 +132,35 @@ def _fit_pad(lo=1.45, hi=3.2):
     بعضها على بعض، وأدناها يجب أن يبقى داخل اللوحة. وموضعها يتبع أسعار
     النافذة: على سول ٢٠٢٦-٠٨-٠٥ ١٢:٠٠ كان الوقف تحت المستوى بسنت واحد
     فانزاح الصفّ الأول لأسفل ودفع الثالث خارج اللوحة (أمسكه `assert`).
-    فبدل تثبيت ١٫٤٥ يُرفع الهامش حتى يتّسع — وهو أصدق من قصّ وسم."""
-    _lo = min(c["l"] for c in M5); _hi = max(c["h"] for c in M5)
-    L4 = LAY[3]
+    فبدل تثبيت ١٫٤٥ يُرفع الهامش حتى يتّسع — وهو أصدق من قصّ وسم.
+
+    ومع محور السعر المتنفّس لم يعد الفحص على مقياسٍ واحد يكفي: المقياس
+    يُحسب على المرئيّ وحده فيتضخّم حتى ١٫٢٤×، وتتضخّم معه الإزاحاتُ
+    البكسلية بين الصفوف. فيُفحص كلُّ موضع ريبلاي، ويُقبل الهامش الذي
+    يصمد عند أسوأها — لا عند الأوّل. (بلا هذا خرج صفّ «سحب سيولة» ٢٥
+    بكسلاً تحت حدّ اللوحة عند أول موضع.)"""
+    L4, sw = LAY[3], LAY[3]["sw"]
     for k in range(int((hi - lo) / 0.05) + 1):
         plo = lo + k * 0.05
-        pad = (_hi - _lo) * 0.08
-        ymin, ymax = _lo - pad * plo, _hi + pad
-        yy = lambda p: PT + (ymax - p) / (ymax - ymin) * PH
-        yl = max(yy(L4["lvl"]), yy(PLAN["STP"])) + 34
-        yw = max(yy(M5[L4["sw"]]["l"]) + 30, yl + 40)
-        if yw + 52 + 14 <= CVH - PB:
+
+        def rows(w):
+            """أدنى الصفوف بمقياس نافذةٍ بعينها. الإزاحات تُضرب في مُعامل
+            المقياس لأن الطبقة كلها تُضرب فيه قبل أن تُنزَع عن الحروف."""
+            _l = min(c["l"] for c in w); _h = max(c["h"] for c in w)
+            pad = (_h - _l) * 0.08
+            ymin, ymax = _l - pad * plo, _h + pad
+            yy = lambda p: PT + (ymax - p) / (ymax - ymin) * PH
+            a = (YB1 - YB0) / (ymax - ymin)
+            yl = max(yy(L4["lvl"]), yy(PLAN["STP"])) + 34 * a
+            yw = max(yy(M5[sw]["l"]) + 30 * a, yl + 40 * a)
+            return yw + 52 * a
+
+        _pl = min(c["l"] for c in M5); _ph = max(c["h"] for c in M5)
+        _pd = (_ph - _pl) * 0.08
+        YB0, YB1 = _pl - _pd * plo, _ph + _pd          # المقياس الأساس بهذا الهامش
+        worst = max(rows(M5[max(0, p - RP_BASE):p + 1])
+                    for p in range(RP_BASE, len(M5)))
+        if max(worst, rows(M5)) + 14 <= CVH - PB:
             return plo
     raise SystemExit("✗ لا يتّسع هامش لصفوف الوسوم على هذه النافذة")
 
@@ -151,6 +186,40 @@ def geo(w, plo=None, pt=0.08, vis=None):
     slot = PW / (vis or len(w))
     return (lambda i: PL + slot * i + slot / 2,
             lambda p: PT + (ymax - p) / (ymax - ymin) * PH, slot, ymin, ymax)
+
+
+# ═════════ محور السعر المتنفّس ═════════
+# 🔒 أمر فهد 2026-08-09 (تسجيل شاشة صامت من تريدنق فيو على الجوال): محور
+# السعر **يعيد قياس نفسه** مع حركة الجارت. وهذا يصحّح البند ٢ أعلاه:
+# قراءتُنا لتسجيل ٠٨-٠٨ قالت «محور ثابت»، والتسجيل الجديد يُظهره يتنفّس —
+# مقيسٌ عليه لا مقدَّر: المدى ضاق من ٧٢ نقطة (4,048–4,120) إلى ٤٧
+# (4,010–4,057) خلال عشرين ثانية من السحب.
+#
+# المقياس عند كل موضع ريبلاي يُحسب على **الشموع الظاهرة وحدها**: النافذة
+# المنزلقة تعرض `VIS` سلوتاً آخرها `RP_OFF` فارغة، فالمرئيّ من الشمعة
+# `p-RP_BASE` إلى `p` — تسعٌ وثلاثون شمعة في كل لحظة، تدخل واحدة من
+# اليمين وتخرج واحدة من اليسار، كما في المنصّة.
+def vis_slice(p):
+    return M5[max(0, p - RP_BASE):p + 1]
+
+
+AS_MIN, AS_MAX = [], []
+for _p in range(len(M5)):
+    _lo, _hi = scale_of(vis_slice(max(_p, RP_BASE)))
+    AS_MIN.append(round(_lo, 8)); AS_MAX.append(round(_hi, 8))
+YMIN0, YMAX0 = scale_of(M5)                  # المقياس الأساس الذي تُرسم به الشموع
+AF = [(YMAX0 - YMIN0) / (b - a) for a, b in zip(AS_MIN, AS_MAX)]
+# المرئيّ جزءٌ من الكلّ، فمداه أضيق أو مساوٍ — ومُعاملٌ دون الواحد يعني
+# خطأً في القطع لا خاصيةً في السوق.
+assert min(AF) >= 0.999, f"مُعامل مقياس دون الواحد ({min(AF):.4f}) — القطع المرئي أوسع من النافذة"
+
+
+def mapy(yb, p):
+    """موضع نقطةٍ من المقياس الأساس إلى مقياس اللحظة — نسخة بايثون من
+    `asApply` في المحرّك، تُفحص بها حدود الوسوم قبل الرندر لا بعده."""
+    lo, hi = AS_MIN[p], AS_MAX[p]
+    a = (YMAX0 - YMIN0) / (hi - lo)
+    return a * yb + (PT * (1 - a) + PH * (hi - YMAX0) / (hi - lo))
 
 
 def panel(gid, w, sym, tf, extra="", dec=2, plo=0.55):
@@ -198,7 +267,7 @@ def panel(gid, w, sym, tf, extra="", dec=2, plo=0.55):
     o.append(f'</g><g id="{gid}" opacity="0">')
     # شموع
     bw = slot * 0.6
-    BULL, BEAR = ("#43D4DC", "#5E7A88") if DK else ("#2E8CA6", "#122F3E")
+    BULL, BEAR = (CBULL_DK, CBEAR_DK) if DK else (CBULL, CBEAR)
     for i, c in enumerate(w):
         cx = x(i); up = c["c"] >= c["o"]; col = BULL if up else BEAR
         top, bot = y(max(c["o"], c["c"])), y(min(c["o"], c["c"]))
@@ -353,18 +422,33 @@ def m5_svg():
         f'وسم «قيعان متساوية» يُقصّ يساراً بعد الانزلاق ({LVL_X - LVL_W:.0f} < {PL + RSHIFT:.0f})')
     assert LVL_X <= R - 10, f'وسم «قيعان متساوية» يتجاوز حافة المحور ({LVL_X:.0f} > {R - 10:.0f})'
     assert LVL_X <= XM_L or LVL_X - LVL_W >= XM_R, 'وسم «قيعان متساوية» يلامس علامة السحب'
-    ex = [line_el(x(min(eq)) - slot, y(lvl), R, y(lvl), tv_chart.T["LVL"], 3.0, id="lvl"),
+    # `lvl` و`wick` وحدهما يبقيان في مقياس الطبقة: الأول خطٌّ على سعر
+    # والثاني يمتدّ بين سعرين، فتمدّدهما مع المحور هو الصواب. وكل ما
+    # عداهما رمزٌ يُعزل بـ`us` عند سعره فينتقل معه ولا يُمطّ.
+    # الخطّ عنصران لا عنصر واحد. السبب أن `R` ممدودٌ بمقدار الانزلاق
+    # الأقصى كي يبلغ حافة المحور بعد أن ينزلق الجارت — فلو رُسم كلّه
+    # بحركةٍ واحدة لسبق رأسُه اليدَ نحو ١٣٠ بكسلاً قبل نهاية السحب، لأن
+    # الكشف يتناسب مع الطول الهندسي واليد تمشي إلى حافة الشاشة فقط.
+    # فالمرسوم باليد ينتهي حيث تنتهي اليد (`LVL_END`)، والامتداد الباقي
+    # يظهر بعدها في عُشر ثانية — ولونهما وسماكتهما واحدة فيُقرآن خطّاً واحداً.
+    global LVL_END5
+    LVL_END5 = LVL_END = CVW - PR + shift_at(4.85)
+    ex = [line_el(x(min(eq)) - slot, y(lvl), LVL_END, y(lvl), tv_chart.T["LVL"], 3.0, id="lvl"),
+          f'<g id="lvlx" opacity="0">'
+          + line_el(LVL_END, y(lvl), R, y(lvl), tv_chart.T["LVL"], 3.0) + '</g>',
           # تحت الخطّ لا فوقه: الدوائر مركزها الخطّ نفسه، وقد يبعد الدخول
           # عن المستوى ٢٢ نقطة فقط فلا يتّسع ما بينهما لسطر. وممتدّاً
           # يساراً من أول قاع (الارتساء `start` في العربية هو الحافة
           # اليمنى) فينتهي قبل الدوائر. ولا يُدفع يمين آخر قاع: الكاميرا
           # لا تؤطّر ما لم يتكشّف بعدُ، فوسمٌ هناك يُقصّ.
           f'<g id="lvllbl" opacity="0">'
-          f'{htext(LVL_X, YL_ROW, LVL_TXT, tv_chart.T["LVL"], 28, anchor="start")}</g>']
+          f'{us(htext(LVL_X, YL_ROW, LVL_TXT, tv_chart.T["LVL"], 28, anchor="start"), YL_ROW)}</g>']
     for n, j in enumerate(eq):
-        ex.append(f'<g id="eq{n}" opacity="0"><circle cx="{x(j):.1f}" cy="{y(M5[j]["l"]):.1f}" '
-                  f'r="13" fill="none" stroke="{tv_chart.T["LVL"]}" stroke-width="3.6"/></g>')
-    ex.append(xmark(x(sw), y(M5[sw]["l"]) + 34, id="swp", r=22))
+        _cy = y(M5[j]["l"])
+        ex.append(f'<g id="eq{n}" opacity="0">'
+                  + us(f'<circle cx="{x(j):.1f}" cy="{_cy:.1f}" r="13" fill="none" '
+                       f'stroke="{tv_chart.T["LVL"]}" stroke-width="3.6"/>', _cy) + '</g>')
+    ex.append(xmark(x(sw), y(M5[sw]["l"]) + 34, id="swp", r=22, ya=True))
     # «سحب سيولة» و«ذيل رفض» و«الوقف» تتزاحم كلها حول قاع شمعة واحدة.
     # تُفرَّق رأسياً وأفقياً: السحب تحت العلامة يساراً، والذيل فوقه.
     # واللفظ «سحب السيولة» لا «كنس» — §6 يمنع الثاني في كل ما يُنشر.
@@ -373,7 +457,8 @@ def m5_svg():
     # الحدّ الأدنى ١٦٥ لا ١٢٦: علامة الـ✕ نصف قطرها ٢٢، ونصف عرض «ذيل رفض
     # ٨٣٪» نحو ١١٠ — فما دون ذلك يلامس النصُّ العلامة (وقع على سول).
     LX = x(sw) - max(slot * 7.4, 165)
-    ex.append(f'<g id="swplbl" opacity="0">{htext(LX, Y_SWP, "سحب سيولة", RED, 32)}</g>')
+    ex.append(f'<g id="swplbl" opacity="0">'
+              + us(htext(LX, Y_SWP, "سحب سيولة", RED, 32), Y_SWP) + '</g>')
     # ذيل الرفض: خط رأسي يبرز الذيل نفسه
     c = M5[sw]
     wick_txt = "ذيل رفض " + str(round(L5["wick"] * 100)) + "٪"
@@ -386,19 +471,21 @@ def m5_svg():
     wy = Y_WICK
     # يميناً كان يصطدم بـ«الوقف»: صندوق الصفقة يشغل يمين شمعة الدخول كله.
     # وبلا زوم (تشغيلة ٢٩) يضيق ما تبقّى، فأُبعدت الوسوم إلى يسار الصندوق.
-    ex.append(f'<g id="wicklbl" opacity="0">{htext(LX, wy, wick_txt, RED, 30)}</g>')
+    ex.append(f'<g id="wicklbl" opacity="0">'
+              + us(htext(LX, wy, wick_txt, RED, 30), wy) + '</g>')
     ex.append(pos_box("box", x(FILL) - slot * .6, BR, y(PLAN["ENT"]), y(PLAN["STP"]), y(PLAN["TGT"]),
                       lbl_e=f'الدخول {PLAN["ENT"]:,.{DP}f}', lbl_s=f'الوقف {PLAN["STP"]:,.{DP}f}',
                       lbl_t=f'الهدف ٢R  {PLAN["TGT"]:,.{DP}f}', anchor_e="start",
-                      col_e="#ECF3F6" if DK else INK, fs=28))
+                      col_e="#ECF3F6" if DK else INK, fs=28, ya=True))
     t = 13
+    YE = y(PLAN["ENT"])
     ex.append(f'<g id="ex" opacity="0">'
-              f'<path d="M {x(FILL)-t*2.2:.1f} {y(PLAN["ENT"])-t:.1f} L {x(FILL)-t*.5:.1f} {y(PLAN["ENT"]):.1f} '
-              f'L {x(FILL)-t*2.2:.1f} {y(PLAN["ENT"])+t:.1f} Z" fill="{TEAL_D}"/>'
-              f'<circle cx="{x(FILL):.1f}" cy="{y(PLAN["ENT"]):.1f}" r="5.5" fill="{TEAL_D}"/>'
-              # ملاصقٌ للسهم: مركزه على سعر الدخول ويمينه عند رأس السهم.
-              + chip(x(FILL) - t * 2.4, y(PLAN["ENT"]), "تنفيذ", TEAL_D) + '</g>')
-    ex.append(checkmark(x(HIT), y(PLAN["TGT"]) - 42, id="ck"))
+              + us(f'<path d="M {x(FILL)-t*2.2:.1f} {YE-t:.1f} L {x(FILL)-t*.5:.1f} {YE:.1f} '
+                   f'L {x(FILL)-t*2.2:.1f} {YE+t:.1f} Z" fill="{TEAL_D}"/>'
+                   f'<circle cx="{x(FILL):.1f}" cy="{YE:.1f}" r="5.5" fill="{TEAL_D}"/>'
+                   # ملاصقٌ للسهم: مركزه على سعر الدخول ويمينه عند رأس السهم.
+                   + chip(x(FILL) - t * 2.4, YE, "تنفيذ", TEAL_D), YE) + '</g>')
+    ex.append(checkmark(x(HIT), y(PLAN["TGT"]) - 42, id="ck", ya=True))
     return "".join(ex), x, y, slot
 
 
@@ -406,7 +493,7 @@ EX5, X5, Y5, SLOT5 = m5_svg()
 # الأثاث في طبقتين: محور السعر والعلامة المائية يسكنان، ومحور الوقت
 # ينزلق مع الشموع — وإلا مشت الشموع فوق ساعاتٍ واقفة.
 _FURN = tv_chart.furniture(M5, dec=2, sym=D["sym"], tf=EXEC,
-                           tlabels=[c["d"][11:] for c in M5], split=True)
+                           tlabels=[c["d"][11:] for c in M5], split=True, autoscale=True)
 
 # ═════════ الواجهة والملاحظات ═════════
 # العنوان العائم ٥٢px والـCTA كانا أكثر ما يجعل المشهد ريلاً — ومهارة
@@ -533,6 +620,7 @@ MARKS = [
     # بلا زوم تصير الثواني الأولى جارتاً ساكناً مع نصّ — فيُقدَّم أول
     # ماركب إلى داخل الهوك، وهو يصف ما يقوله الهوك نفسه.
     ("lvl", 4.05, 4.85, "draw"),
+    ("lvlx", 4.85, 4.95, "fade"),        # الامتداد خلف حافة الشاشة
     ("eq0", 4.90, 5.15, "pop"), ("eq1", 5.05, 5.30, "pop"),
     ("lvllbl", 5.20, 5.50, "pop"),
     # ═══ تبديل الفريمات: قطعٌ لا مزج ═══
@@ -561,7 +649,7 @@ MARKS = [
     ("box", 22.40, 24.20, "posbox"),
     ("ck", 26.90, 27.25, "pop"),
 ]
-FULLSET = ["eq0", "eq1", "lvllbl", "tf4hs", "tf4h", "tf1ds", "tf1d",
+FULLSET = ["lvlx", "eq0", "eq1", "lvllbl", "tf4hs", "tf4h", "tf1ds", "tf1d",
            "tf1hs", "tf1h", "swp", "swplbl",
            "wick", "wicklbl", "ex", "box", "ck"]
 
@@ -569,6 +657,20 @@ FULLSET = ["eq0", "eq1", "lvllbl", "tf4hs", "tf4h", "tf1ds", "tf1d",
 # قاعدة `tradingview-platform-pov`: «أداة رسم تظهر بلا نقرة في الشريط
 # اليساري» عيبٌ يكسر الإيهام. فكل حدث هنا له سببه المرئي.
 CUR, DOM, WIN = [[0.10, 700, 980]], [], []
+
+
+def in_chart(kfs):
+    """يوسم كيفريمات المؤشر بأن إحداثيّيها **مكانٌ في الجارت** لا في الشاشة.
+
+    اليد التي ترسم تمسك بسعرٍ وبشمعة، والجارت يتحرّك تحتها في الاتجاهين:
+    ينزلق يساراً مع كل شمعة جديدة، ويتنفّس محوره فيرتفع الرسم أو يهبط.
+    فبإحداثيات الشاشة تقف اليد ويسيل الرسم من تحتها — وقد كان رأس الخطّ
+    يسبق المؤشر نحو ٧٥ بكسلاً عند منتصف الرسم. والمحرّك يردّ الانزلاق
+    ويمرّر الرأسيّ عبر مقياس اللحظة، فتلتصق اليد بما ترسمه.
+
+    الخانة الخامسة هي الحالة (`move`/`down`) — تُملأ إن غابت كي لا تنزلق
+    الخانات، ثم السادسة للرأسيّ والسابعة للأفقيّ."""
+    return [list(k) + [""] * (5 - len(k)) + [1, 1] for k in kfs]
 
 
 def _do(pair, label=""):
@@ -597,8 +699,13 @@ for nid, x, y, _t, _d, tc, ta, tb, td in NOTE_ROWS[:1]:
     _click_at(x + NOTE_W - 30, y + 30, tc, until=tb)
 
 _do(TV.click_tool(TV.HLINE, 3.75, until=5.30))            # أداة الخط الأفقي
-CUR += TV.draw_path(4.05, 4.85, FX(min(LAY[3]["eq"])) - SLOT5,
-                    FY(LAY[3]["lvl"]), CX + CVW - PR, FY(LAY[3]["lvl"]))
+# نهاية السحب بإحداثي الجارت لا بحافة الشاشة: اليد تنتهي عند النقطة التي
+# **تقع** على الحافة اليمنى لحظةَ انتهاء الرسم، فيُضاف إليها انزلاق تلك
+# اللحظة. (الخطّ نفسه ممدودٌ أبعد ليصمد على الانزلاق الأقصى، والقصّ يأكل
+# ما فاض — فلا تُلاحقه اليد إلى خارج اللوحة.)
+CUR += in_chart(TV.draw_path(4.05, 4.85, FX(min(LAY[3]["eq"])) - SLOT5,
+                             FY(LAY[3]["lvl"]),
+                             CX + LVL_END5, FY(LAY[3]["lvl"])))
 WIN.append((4.05, 4.85, "رسم الخط"))
 
 _do(TV.click_tool(TV.TEXT, 5.60, until=22.05))            # ويعود للنصّ
@@ -610,8 +717,8 @@ for nid, x, y, _t, _d, tc, ta, tb, td in NOTE_ROWS[1:6]:
 _do(TV.click_tool(TV.TRADE, 22.10, until=24.70))          # أداة الصفقة
 # السحب ينتهي حيث ينتهي الصندوق: يدٌ تسحب أداة الصفقة إلى ما بعد الهدف
 # بثلاث شمعات، لا إلى نقطة على بعد ١٢٠ بكسل لا يقابلها شيء في الرسم.
-CUR += TV.draw_path(22.40, 24.20, FX(FILL), FY(PLAN["ENT"]),
-                    FX(BOXJ) + SLOT5 * .5, FY(PLAN["TGT"]))
+CUR += in_chart(TV.draw_path(22.40, 24.20, FX(FILL), FY(PLAN["ENT"]),
+                             FX(BOXJ) + SLOT5 * .5, FY(PLAN["TGT"])))
 WIN.append((22.40, 24.20, "سحب الصفقة"))
 _do(TV.click_tool(TV.TEXT, 24.90, until=29.00))
 for nid, x, y, _t, _d, tc, ta, tb, td in NOTE_ROWS[6:]:
@@ -642,6 +749,11 @@ cfg = dict(
     grid=False,
     pre_svg=_FURN[0], scroll_svg=_FURN[1],
     replay={"kf": RP_KF, "vis": RP_BASE},
+    bull=CBULL_DK if DK else CBULL, bear=CBEAR_DK if DK else CBEAR,
+    # المحور يتنفّس: حدوده عند كل موضع ريبلاي، وألوان أرقامه وشبكته من
+    # لوحة الثيم نفسها لأن المحرّك يعيد رسمها كل إطار.
+    autoscale=dict(ymin=AS_MIN, ymax=AS_MAX, ticks=7, dec=DP,
+                   col={"grid": tv_chart.T["GRID"], "tx": tv_chart.T["AXTX"]}),
     lp_pill=True, lp_dec=2, lp_col=tv_chart.T["PILL"], lp_txt=tv_chart.T["PILLTX"],
     base=BASE, openmax=BASE, open_t=[[BASE, 0.45]], story=STORY,
     extra_svg=EX5,                          # ماركب فريم التنفيذ — ينزلق معه

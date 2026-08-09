@@ -42,7 +42,8 @@ def _step(span, target=6):
     return mag * 10
 
 
-def furniture(W, dec=2, sym="GC=F", tf="15m", tlabels=None, ticks=6, split=False):
+def furniture(W, dec=2, sym="GC=F", tf="15m", tlabels=None, ticks=6, split=False,
+              autoscale=False):
     """أثاث اللوحة تحت الشموع.
 
     `split=True` يُرجع (ثابت، متحرّك) بدل نصٍّ واحد: محور السعر والشبكة
@@ -60,14 +61,20 @@ def furniture(W, dec=2, sym="GC=F", tf="15m", tlabels=None, ticks=6, split=False
     tg = []                                   # الطبقة المنزلقة (محور الوقت)
 
     # ── الشبكة وأرقام السعر ──
-    st = _step(ymax - ymin, ticks)
-    v = (int(ymin / st) + 1) * st
-    while v < ymax:
-        yy = py(v)
-        g.append(f'<line x1="{x0}" y1="{yy:.1f}" x2="{x1}" y2="{yy:.1f}" stroke="{GRID}" stroke-width="1.4"/>')
-        g.append(f'<text x="{x1 + 9}" y="{yy + 6:.1f}" fill="{AXTX}" font-size="19" font-weight="600" '
-                 f'font-family="system-ui,sans-serif" direction="ltr">{v:,.{dec}f}</text>')
-        v += st
+    # مع `autoscale` لا تُرسم هنا: حدود المحور تتغيّر كل إطار، فأرقامٌ
+    # مطبوعة مرّةً واحدة تكذب بعد أول شمعة. تُترك مجموعة فارغة يملؤها
+    # المحرّك من حدود اللحظة (`asApply` في `reel_sfx_kit`).
+    if autoscale:
+        g.append('<g id="pax"></g>')
+    else:
+        st = _step(ymax - ymin, ticks)
+        v = (int(ymin / st) + 1) * st
+        while v < ymax:
+            yy = py(v)
+            g.append(f'<line x1="{x0}" y1="{yy:.1f}" x2="{x1}" y2="{yy:.1f}" stroke="{GRID}" stroke-width="1.4"/>')
+            g.append(f'<text x="{x1 + 9}" y="{yy + 6:.1f}" fill="{AXTX}" font-size="19" font-weight="600" '
+                     f'font-family="system-ui,sans-serif" direction="ltr">{v:,.{dec}f}</text>')
+            v += st
 
     # ── الوقت أسفل ──
     if tlabels:

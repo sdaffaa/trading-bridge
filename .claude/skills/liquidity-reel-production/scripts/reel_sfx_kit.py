@@ -69,11 +69,15 @@ def line_el(x1, y1, x2, y2, col, w=2.4, dash=None, id=""):
     return (f'<line{i} data-len="{ln:.0f}" x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" '
             f'stroke="{col}" stroke-width="{w}"{d}/>')
 
-def xmark(cx, cy, col=RED, r=16, id="x1"):
+def xmark(cx, cy, col=RED, r=16, id="x1", ya=False):
+    """`ya=True` يعزل العلامة عن تمدّد طبقة المقياس: قطراها يُرسمان بطول
+    ثابت مهما تنفّس المحور — علامةٌ ممطوطة تكشف أن الرسم مطّاط.
+    والغلاف **داخل** المجموعة لا حولها، لأن حركة الظهور تُمسك بـtransform
+    المجموعة نفسها فيلغي أحدهما الآخر."""
     ln = math.hypot(2*r, 2*r)
-    return (f'<g id="{id}" opacity="0">'
-            f'<line data-len="{ln:.0f}" x1="{cx-r}" y1="{cy-r}" x2="{cx+r}" y2="{cy+r}" stroke="{col}" stroke-width="5" stroke-linecap="round"/>'
-            f'<line data-len="{ln:.0f}" x1="{cx-r}" y1="{cy+r}" x2="{cx+r}" y2="{cy-r}" stroke="{col}" stroke-width="5" stroke-linecap="round"/></g>')
+    body = (f'<line data-len="{ln:.0f}" x1="{cx-r}" y1="{cy-r}" x2="{cx+r}" y2="{cy+r}" stroke="{col}" stroke-width="5" stroke-linecap="round"/>'
+            f'<line data-len="{ln:.0f}" x1="{cx-r}" y1="{cy+r}" x2="{cx+r}" y2="{cy-r}" stroke="{col}" stroke-width="5" stroke-linecap="round"/>')
+    return f'<g id="{id}" opacity="0">{us(body, cy) if ya else body}</g>'
 
 def zone_el(id, x0, y0, x1, y1, label_html="", fill=TEAL, stroke=TEAL_D):
     """زون احترافي: الإطار يترسم حول المحيط ثم التعبئة والوسم يتنفسان — mode «zone»."""
@@ -111,11 +115,17 @@ def ring(id, cx, cy, r=15, col=TEAL_D, label_html=""):
 
 
 def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", lbl_t="الهدف",
-            col_t=TEAL_D, col_s=RED, col_e="#ECF3F6", anchor_e="end", fs=22):
+            col_t=TEAL_D, col_s=RED, col_e="#ECF3F6", anchor_e="end", fs=22, ya=False):
     """بوكس هدف/ستوب بستايل TradingView: خط دخول يترسم ← الستوب يتمدد لتحت ← الهدف يتمدد لفوق.
 
     `fs` حجم وسوم الهدف/الستوب/الدخول: افتراضه ٢٢ كما كان، ويكبر في الريلات
-    الثابتة (بلا زوم) لأن النصّ هناك يُرى بحجمه الحقيقي لا مكبَّراً."""
+    الثابتة (بلا زوم) لأن النصّ هناك يُرى بحجمه الحقيقي لا مكبَّراً.
+
+    `ya=True` (مع محور متنفّس): المستطيلان يتمدّدان مع المقياس — وهذا
+    صوابه، فهما يمثّلان مسافتي المخاطرة والهدف — أمّا الوسوم الثلاثة
+    فيبقى كلٌّ منها ملاصقاً لحافّته بحجمه: كلٌّ يُعزل عند سعره هو، لا
+    عند سعرٍ واحد، وإلا انفصل وسم الهدف عن حافة الصندوق العليا."""
+    _u = (lambda s, a: us(s, a)) if ya else (lambda s, a: s)
     w = x1 - x0
     ln = w
     return (f'<g id="{id}" opacity="0">'
@@ -126,21 +136,36 @@ def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", 
             f'<line class="pe" data-len="{ln:.0f}" x1="{x0:.1f}" y1="{ye:.1f}" x2="{x1:.1f}" y2="{ye:.1f}" '
             f'stroke="{col_e}" stroke-width="2.2"/>'
             f'<g class="pl" opacity="0">'
-            + htext((x0+x1)/2, yt + 8 + fs, lbl_t, col_t, fs)
-            + htext((x0+x1)/2, ys - fs, lbl_s, col_s, fs)
-            + htext(x1 - 12, ye - 12, lbl_e, col_e, fs - 1, anchor=anchor_e)
+            + _u(htext((x0+x1)/2, yt + 8 + fs, lbl_t, col_t, fs), yt)
+            + _u(htext((x0+x1)/2, ys - fs, lbl_s, col_s, fs), ys)
+            + _u(htext(x1 - 12, ye - 12, lbl_e, col_e, fs - 1, anchor=anchor_e), ye)
             + '</g></g>')
 
-def checkmark(cx, cy, col=TEAL_D, id="ck1"):
-    return (f'<g id="{id}" opacity="0"><circle cx="{cx}" cy="{cy}" r="19" fill="none" stroke="{col}" stroke-width="4"/>'
+def checkmark(cx, cy, col=TEAL_D, id="ck1", ya=False):
+    body = (f'<circle cx="{cx}" cy="{cy}" r="19" fill="none" stroke="{col}" stroke-width="4"/>'
             f'<polyline points="{cx-9},{cy} {cx-2},{cy+8} {cx+11},{cy-8}" fill="none" stroke="{col}" stroke-width="4.5" '
-            f'stroke-linecap="round" stroke-linejoin="round"/></g>')
+            f'stroke-linecap="round" stroke-linejoin="round"/>')
+    return f'<g id="{id}" opacity="0">{us(body, cy) if ya else body}</g>'
 
-def candles_svg(W_, x, y, slot):
+def us(inner, ya):
+    """غلافٌ يُبطل التمدّد الرأسي داخل طبقة المقياس المتحرّك (`#ysc`).
+
+    الطبقة تُطبَّق عليها `scale(1,A)` كي تتبع الشموعُ محورَ سعرٍ يعيد
+    قياسه — والشموع تريد ذلك، أمّا الحروف والدوائر والعلامات فلا: نصٌّ
+    ممدود ٤٠٪ رأسياً يقول إن الرسم مطّاط. فيُلفّ كلُّ رمزٍ بهذا الغلاف
+    ويحمل `ya` = موضعه الرأسي في المقياس الأساس، فينتقل مع سعره ولا يتمدّد.
+
+    الحساب في المحرّك: `translate(0, ya·(A-1)/A) scale(1, 1/A)` — فيُلغي
+    مقياسَ الأب ويُبقي الرمز ملتصقاً بالنقطة التي يصفها بالضبط."""
+    return f'<g class="us" data-ya="{ya:.2f}">{inner}</g>'
+
+
+def candles_svg(W_, x, y, slot, bull=None, bear=None):
     bw = slot * 0.6
     out = []
+    BU, BE = bull or BULL, bear or BEAR
     for i, c in enumerate(W_):
-        cx = x(i); up = c["c"] >= c["o"]; col = BULL if up else BEAR
+        cx = x(i); up = c["c"] >= c["o"]; col = BU if up else BE
         yh, yl, yo, yc = y(c["h"]), y(c["l"]), y(c["o"]), y(c["c"])
         top, bot = min(yo, yc), max(yo, yc); bh = max(bot - top, 2.6)
         # فتيل .cw يرسم من المنتصف + جسم .cb ينمو باتجاه الإغلاق (صاعد: من تحت، هابط: من فوق)
@@ -188,7 +213,24 @@ def build_reel(cfg, out_html):
                    f'width="{CW-_pr-_pl}" height="{CH}"/></clipPath></defs>'
                    f'<g clip-path="url(#rpclip)"><g id="wrl">')
         svg.append(cfg.get("scroll_svg", ""))   # محور الوقت ينزلق مع الشموع
-    svg.append(candles_svg(W_, x, y, slot))
+    # ═══ محور سعر يعيد قياسه (autoscale) ═══
+    # 🔒 أمر فهد 2026-08-09 (تسجيل شاشة صامت من تريدنق فيو على الجوال):
+    # المحور في المنصّة **يتنفّس** — يعيد قياس نفسه على الشموع الظاهرة كلما
+    # تحرّك الجارت. وقراءتنا السابقة لتسجيل ٠٨-٠٨ قالت إنه ثابت، وهذا
+    # التسجيل يصحّحها: قِيس على نافذته أن المدى ضاق من ٧٢ نقطة إلى ٤٧.
+    #
+    # فتُفصل طبقة `#ysc`: تحمل الشموع والماركب وتُطبَّق عليها تحويلة رأسية
+    # `translate(0,B) scale(1,A)` تنقل الرسم من المقياس الأساس إلى مقياس
+    # اللحظة. والتحويلة أفينية (`y ↦ A·y + B`) فتصحّ على كل عنصر هندسي
+    # دفعةً واحدة — الشمعة والخطّ وصندوق الصفقة — بلا إعادة حساب.
+    # والحروف تُستثنى بغلاف `us()` وإلا تمدّدت معها.
+    AS = cfg.get("autoscale")
+    if AS:
+        # المقياس يتبع موضع الريبلاي، فبلا ريبلاي لا لحظة يُقاس عليها.
+        assert RP, "autoscale يحتاج replay — المقياس يتبع موضع الشمعة الجارية"
+        assert len(AS["ymin"]) == len(AS["ymax"]) == N, "مصفوفتا المقياس لا تطابقان النافذة"
+        svg.append('<g id="ysc">')
+    svg.append(candles_svg(W_, x, y, slot, cfg.get("bull"), cfg.get("bear")))
     # خط السعر الحي (ستايل TradingView) — يتبع إغلاق آخر شمعة مكشوفة
     LP_G = (f'<g id="lp" opacity="0"><line id="lpl" x1="16" y1="0" x2="{CW-20}" y2="0" '
                f'stroke="{INK}" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.4"/>'
@@ -204,6 +246,8 @@ def build_reel(cfg, out_html):
     if not RP:
         svg.append(LP_G)
     svg.append(cfg["extra_svg"])
+    if AS:
+        svg.append('</g>')
     if RP:
         svg.append('</g></g>')
         svg.append(LP_G)               # خارج الانزلاق: يعلو الماركب ويثبت أفقياً
@@ -275,7 +319,14 @@ def build_reel(cfg, out_html):
     if (t >= CUR[CUR.length-1][0]) p0 = p1 = CUR[CUR.length-1];
     const ez = EASE[p1[3] || "ss"] || EASE.ss;
     const u = p1[0] > p0[0] ? ez(seg(t, p0[0], p1[0])) : 1;
-    const cx = p0[1] + (p1[1] - p0[1]) * u, cy = p0[2] + (p1[2] - p0[2]) * u;
+    // الخانتان السادسة والسابعة تقولان إن الإحداثي **مكانٌ في الجارت** لا
+    // بقعةٌ في الشاشة. والفرق ليس دقّةً زائدة: الجارت ينزلق يساراً ويتنفّس
+    // محوره، فيدٌ محسوبةٌ بإحداثيات الشاشة تقف بينما ينساب الرسم من تحتها
+    // — وهو أول ما يكشف أن اللقطة ليست تسجيلاً. فيُطرح الانزلاق ويُمرَّر
+    // الرأسيُّ عبر مقياس اللحظة، فتلتصق اليد برأس ما ترسمه.
+    const fy = p => p[5] ? ASA * (p[2] - CYO) + ASB + CYO : p[2];
+    const fx = p => p[6] ? p[1] - CURSHIFT : p[1];
+    const cx = fx(p0) + (fx(p1) - fx(p0)) * u, cy = fy(p0) + (fy(p1) - fy(p0)) * u;
     el.style.transform = `translate(${cx.toFixed(1)}px, ${cy.toFixed(1)}px)`;
     el.style.opacity = oc(seg(t, CUR[0][0], CUR[0][0] + 0.3)) *
                        (1 - seg(t, CUR[CUR.length-1][0], CUR[CUR.length-1][0] + 0.35));
@@ -309,11 +360,16 @@ def build_reel(cfg, out_html):
         if (inside) {
           xh.querySelector(".xhv").style.transform = `translateX(${cx.toFixed(1)}px)`;
           xh.querySelector(".xhh").style.transform = `translateY(${cy.toFixed(1)}px)`;
-          const pv = YMAX - (ly - PT) / PH * (YMAX - YMIN);
+          // من مقياس اللحظة لا من الأساس: مع محورٍ يتنفّس صار الرقمان
+          // مختلفين، وقراءةُ الأساس تكتب على الشاشة سعراً لا يقابله شيء.
+          const pv = ASHI - (ly - PT) / PH * (ASHI - ASLO);
           const pp = xh.querySelector(".xhp");
           pp.style.transform = `translateY(${(cy - 20).toFixed(1)}px)`;
           pp.textContent = pv.toFixed(LPD);
-          const bi = Math.max(0, Math.min(NB - 1, Math.round((lx - PLx - SLOTW / 2) / SLOTW)));
+          // الشمعة تحت المؤشر تُقاس بعد ردّ الانزلاق: بدونه يُكتب وقتُ
+          // شمعةٍ أقدم بمقدار ما انزلق الجارت.
+          const bi = Math.max(0, Math.min(NB - 1,
+            Math.round((lx + CURSHIFT - PLx - SLOTW / 2) / SLOTW)));
           const tt = xh.querySelector(".xht");
           tt.style.transform = `translateX(${(cx - 52).toFixed(1)}px)`;
           tt.textContent = TLAB[bi] || "";
@@ -323,7 +379,9 @@ def build_reel(cfg, out_html):
   }
 """ % json.dumps([[round(float(p[0]), 3), round(float(p[1]), 1), round(float(p[2]), 1),
                    (p[3] if len(p) > 3 and p[3] else "ss"),
-                   (p[4] if len(p) > 4 and p[4] else "move")] for p in cur])
+                   (p[4] if len(p) > 4 and p[4] else "move"),
+                   (1 if len(p) > 5 and p[5] else 0),
+                   (1 if len(p) > 6 and p[6] else 0)] for p in cur])
         CURSOR_JS = CURSOR_JS.replace("__XHMUTE__",
                                       json.dumps(cfg.get("xh_mute", [])))
 
@@ -424,6 +482,10 @@ def build_reel(cfg, out_html):
   background:linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.75) 45%, rgba(67,212,220,0.25) 55%, transparent 100%);
   transform:skewX(-14deg)}}
 {INTRO_CSS}
+/* سماكة الحبر لا تتمدّد مع المقياس: خطٌّ أفقي داخل `#ysc` يُضرب عرضه في
+   `A` فيغلُظ كلما ضاق المدى. المنصّة ترسم حبرها بسماكة الشاشة لا بسماكة
+   الإحداثيات — فتُثبَّت هنا كذلك. */
+#ysc *{{vector-effect:non-scaling-stroke}}
 {cfg.get('extra_css','')}
 </style></head><body><div id="stage">
 {cfg.get('extra_html','')}
@@ -484,6 +546,65 @@ function rpP(t) {{
       return K[i][1] + (K[i+1][1] - K[i][1]) * seg(t, K[i][0], K[i+1][0]);
   return K[K.length-1][1];
 }}
+// ── محور السعر المتنفّس ──
+// `ASMIN/ASMAX` حدّا المقياس عند كل موضع ريبلاي، محسوبةً على الشموع
+// الظاهرة وحدها كما تفعل المنصّة. وبينهما يُدرَّج خطّياً فيتحرّك المحور
+// بانسياب لا بقفزات عند كل شمعة.
+const ASMIN = {json.dumps(AS["ymin"]) if AS else "null"};
+const ASMAX = {json.dumps(AS["ymax"]) if AS else "null"};
+const ASGRID = {json.dumps(AS.get("ticks", 7)) if AS else 7};
+const ASDEC = {json.dumps(AS.get("dec", 2)) if AS else 2};
+const ASCOL = {json.dumps(AS.get("col", {})) if AS else "{}"};
+// حالة المقياس الجارية: يقرؤها الكروسهير وخطّ السعر الحيّ. تبدأ عند
+// المقياس الأساس فلا يقرأ أحدٌ رقماً قبل أول نداء.
+let ASA = 1, ASB = 0, ASLO = YMIN, ASHI = YMAX;
+// انزلاق الطبقة الأفقي في اللحظة الجارية — يقرؤه المؤشر والكروسهير كي
+// يحسبا مواضعهما في الجارت لا في الشاشة.
+let CURSHIFT = 0;
+function asStep(span, target) {{
+  const raw = span / Math.max(target, 1);
+  if (!(raw > 0)) return 1;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  for (const m of [1, 2, 2.5, 5, 10]) if (raw <= mag * m) return mag * m;
+  return mag * 10;
+}}
+function asApply(p) {{
+  if (!ASMIN) return;
+  const i = Math.max(0, Math.min(ASMIN.length - 1, Math.floor(p)));
+  const j = Math.min(ASMIN.length - 1, i + 1), f = Math.max(0, Math.min(1, p - i));
+  ASLO = ASMIN[i] + (ASMIN[j] - ASMIN[i]) * f;
+  ASHI = ASMAX[i] + (ASMAX[j] - ASMAX[i]) * f;
+  const span = ASHI - ASLO;
+  ASA = (YMAX - YMIN) / span;
+  ASB = PT * (1 - ASA) + PH * (ASHI - YMAX) / span;
+  $("ysc").setAttribute("transform",
+    `translate(0,${{ASB.toFixed(3)}}) scale(1,${{ASA.toFixed(5)}})`);
+  // الرموز تنتقل مع سعرها ولا تتمدّد معه
+  const iv = 1 / ASA;
+  for (const g of USG) {{
+    const ya = +g.dataset.ya;
+    g.setAttribute("transform",
+      `translate(0,${{(ya * (ASA - 1) / ASA).toFixed(3)}}) scale(1,${{iv.toFixed(5)}})`);
+  }}
+  // ── إعادة رسم أرقام المحور وشبكته ──
+  // بلا هذا يمشي السعر تحت أرقامٍ واقفة، فيكذب المحور — وهو أسوأ من
+  // محورٍ ثابتٍ صادق. يُرسم من حدود اللحظة بنفس خطوة `tv_chart._step`.
+  const px = $("pax");
+  if (px) {{
+    const st = asStep(span, ASGRID);
+    let v = (Math.floor(ASLO / st) + 1) * st, s = "";
+    while (v < ASHI) {{
+      const yy = PT + (ASHI - v) / span * PH;
+      s += `<line x1="${{PLx}}" y1="${{yy.toFixed(1)}}" x2="${{CWc - PRx}}" y2="${{yy.toFixed(1)}}" `
+        +  `stroke="${{ASCOL.grid}}" stroke-width="1.4"/>`
+        +  `<text x="${{CWc - PRx + 9}}" y="${{(yy + 6).toFixed(1)}}" fill="${{ASCOL.tx}}" `
+        +  `font-size="19" font-weight="600" font-family="system-ui,sans-serif" `
+        +  `direction="ltr">${{v.toLocaleString('en-US', {{minimumFractionDigits: ASDEC, maximumFractionDigits: ASDEC}})}}</text>`;
+      v += st;
+    }}
+    px.innerHTML = s;
+  }}
+}}
 const YO = {json.dumps([round(y(c["o"]), 1) for c in W_])};
 const CDUR = {json.dumps([round(0.4 + 0.18*((i*37)%10)/10, 3) for i in range(N)])};
 const YC = {json.dumps([round(y(c["c"]), 1) for c in W_])};
@@ -493,6 +614,7 @@ function setLine(el, k){{
   el.style.strokeDashoffset = len * (1 - k);
   el.style.opacity = k > 0 ? 1 : 0;
 }}
+const USG = ASMIN ? Array.from(document.querySelectorAll("#ysc .us")) : [];
 const CND = [];
 for (let i = 0; i < {N}; i++) {{
   const g = $("c"+i);
@@ -516,7 +638,9 @@ window.__setFrame = function(t) {{
     // الفهرس الجاري رقمٌ كسري: صحيحُه الشمعة المكتملة الأخيرة، وكسرُه
     // نسبةُ تشكّل الشمعة الحيّة. الانزلاق يتبعه فيمشي بسلاسة لا بقفزات.
     const p = rpP(t);
+    asApply(p);                                // المحور يتنفّس قبل أن يُقرأ منه رقم
     const shift = Math.max(0, p - RPL.vis) * SLOTW;
+    CURSHIFT = shift;
     $("wrl").setAttribute("transform", `translate(${{(-shift).toFixed(2)}},0)`);
     const cur = Math.floor(p);
     for (let i = 0; i < NB; i++) {{
@@ -526,12 +650,15 @@ window.__setFrame = function(t) {{
     }}
     // خط السعر الحيّ يلاحق إغلاق الشمعة الجارية، ويبقى في محلّه أفقياً
     // لأنه خارج الطبقة المنزلقة — كما هو في المنصّة تماماً.
-    const ly2 = YO[li] + (YC[li] - YO[li]) * Math.min(lk * 1.6, 1);
+    const ly2b = YO[li] + (YC[li] - YO[li]) * Math.min(lk * 1.6, 1);
+    // `#lp` خارج طبقة المقياس (يثبت أفقياً)، فيُنقل رأسياً بيده: قيمته
+    // تُقرأ من المقياس الأساس، وموضعه يُرسم بمقياس اللحظة.
+    const ly2 = ASA * ly2b + ASB;
     $("lp").style.opacity = 0.9;
     $("lpl").setAttribute("y1", ly2); $("lpl").setAttribute("y2", ly2);
     $("lpd").setAttribute("cy", ly2);
     if (LPP) {{
-      const pv2 = YMAX - (ly2 - PT) / PH * (YMAX - YMIN);
+      const pv2 = YMAX - (ly2b - PT) / PH * (YMAX - YMIN);
       $("lpp").setAttribute("y", ly2 - 15);
       $("lpv").setAttribute("y", ly2 + 6);
       $("lpv").textContent = pv2.toFixed(LPD);
