@@ -7477,6 +7477,14 @@
    "end": "2026-06-26 10:00",
    "label": "run43-mata",
    "video": "run43-carousel-2026-08-09"
+  },
+  {
+   "symbol": "USDJPY=X",
+   "timeframe": "1h",
+   "start": "2026-01-09 00:00",
+   "end": "2026-01-09 07:00",
+   "label": "run44-barkatain",
+   "video": "run44-factory-2026-08-09"
   }
  ]
 }
