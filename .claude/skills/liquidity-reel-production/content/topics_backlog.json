@@ -891,6 +891,18 @@
    "cat": "مالية",
    "added": "2026-08-08",
    "source": "تجديد البنك run36"
+  },
+  {
+   "id": 85,
+   "pillar": "التنفيذ",
+   "topic": "متى تدخل بالضبط: بدري · بالوقت · متأخر — نفس المنطقة وثلاث نتايج",
+   "keyword": "متى",
+   "status": "done",
+   "cat": "فنية",
+   "done_date": "2026-08-09",
+   "run": 43,
+   "media": "carousel",
+   "slug": "mata"
   }
  ],
  "covered_before_backlog": [

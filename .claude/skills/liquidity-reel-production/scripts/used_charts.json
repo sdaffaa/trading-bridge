@@ -7469,6 +7469,14 @@
    "end": "2025-10-29 16:00",
    "label": "run42-amal",
    "video": "run42-single-2026-08-08"
+  },
+  {
+   "symbol": "GC=F",
+   "timeframe": "30m",
+   "start": "2026-06-26 09:00",
+   "end": "2026-06-26 10:00",
+   "label": "run43-mata",
+   "video": "run43-carousel-2026-08-09"
   }
  ]
 }
