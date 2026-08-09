@@ -110,6 +110,16 @@
     "sweep.depth",
     "signal.wick"
    ]
+  },
+  {
+   "tag": "cl_sc_2026-08-06_1809",
+   "keys": [
+    "4H.expand_4h",
+    "1D.pd_mid",
+    "1h.hl",
+    "sweep.pool",
+    "signal.close_top"
+   ]
   }
  ]
 }
