@@ -100,6 +100,16 @@
     "sweep.sweep",
     "signal.wick"
    ]
+  },
+  {
+   "tag": "btc_sc_2026-08-07_1412",
+   "keys": [
+    "4H.ma_run",
+    "1D.pd_room",
+    "1h.room",
+    "sweep.depth",
+    "signal.wick"
+   ]
   }
  ]
 }
