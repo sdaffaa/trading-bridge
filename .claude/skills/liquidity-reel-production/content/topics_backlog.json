@@ -895,10 +895,15 @@
    "pillar": "التنفيذ",
    "topic": "الانزلاق السعري: الفرق بين سعرك المخطَّط وسعرك المنفَّذ",
    "keyword": "انزلاق",
-   "status": "queued",
+   "status": "done",
    "cat": "مالية",
    "added": "2026-08-08",
-   "source": "تجديد البنك run36"
+   "source": "تجديد البنك run36",
+   "done_date": "2026-08-09",
+   "run": 45,
+   "media": "carousel-single",
+   "slug": "inzilaq",
+   "note": "بلا دليل PDF — أمر فهد"
   },
   {
    "id": 84,
