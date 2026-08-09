@@ -7493,6 +7493,14 @@
    "end": "2025-10-01 11:00",
    "label": "run46-dukhool",
    "video": "run46-guide-2026-08-09"
+  },
+  {
+   "symbol": "GBPUSD=X",
+   "timeframe": "1d",
+   "start": "2023-02-22",
+   "end": "2023-04-28",
+   "label": "نموذج السيولة — ريل ٤٨",
+   "video": "run48-model-2026-08-09"
   }
  ]
 }

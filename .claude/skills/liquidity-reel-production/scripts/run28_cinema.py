@@ -17,7 +17,7 @@
 منها ما لم يُستعمل في الريلات السابقة.
 """
 import json, os
-from reel_build import INK, TEAL, TEAL_D, RED, GREY, htext, gen
+from reel_build import INK, TEAL, TEAL_D, RED, GREY, RBULL, RBEAR, htext, gen
 from reel_sfx_kit import (build_reel, line_el, zone_el, xmark, checkmark, pos_box,
                           set_canvas, set_pad, plot_box, set_price_pad, set_vis, us)
 import tv_chart, topdown
@@ -29,13 +29,8 @@ THEME = os.environ.get("LS_THEME", "light")
 tv_chart.set_theme(THEME)
 DK = THEME == "dark"
 
-# 🔒 أمر فهد 2026-08-09: ألوان شموع التسجيل. ليست تقديراً بالنظر —
-# استُخرج إطارٌ بصيغة PNG بلا فقد وقيست منه أطولُ الأشرطة الأفقية داخل
-# الأجساد: الصاعدة `#008C9E` والهابطة `#636363` بحدٍّ `#595959`.
-# والهابطة رماديةٌ لا حمراء ولا كحلية — وهذا اختيارُ لوحته، فيُنقل كما هو.
-# (شموع الكاروسيلات تبقى على `#2E8CA6`/`#122F3E` في `reel_build` — هذا
-# التسجيل عن جارتٍ متحرّك، ولم يُطلب تعميمُه على المطبوع.)
-CBULL, CBEAR = "#008C9E", "#636363"
+# ألوان شموع الريل — تعريفها الوحيد في `reel_build` (أمر فهد 2026-08-09).
+CBULL, CBEAR = RBULL, RBEAR
 CBULL_DK, CBEAR_DK = "#43D4DC", "#5E7A88"
 
 HERE = os.path.dirname(os.path.abspath(__file__))

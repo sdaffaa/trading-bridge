@@ -6,6 +6,10 @@ CREAM="#F2EEE7"; CREAM2="#ECE6DB"; INK="#0F2E3C"; TEAL="#2E7D96"; TEAL_D="#1E627
 TEAL_L="#5AA6BC"; BULL="#2E8CA6"; BEAR="#122F3E"; RED="#D24B4B"; GREY="#5C6C73"
 MUTE="#93A2A8"; LINE="#7C8C93"; CARDBD="#DED8CC"
 CYAN="#43D4DC"; CYANG="rgba(67,212,220,0.55)"  # brand poster cyan glow
+# 🔒 أمر فهد 2026-08-09: ألوان شموع **الريلات** مقيسة من تسجيل شاشة لتريدنق
+# فيو (إطار PNG بلا فقد): صاعدة `#008C9E` وهابطة `#636363` رمادية لا كحلية.
+# مفصولة عن `BULL`/`BEAR` عمداً — تلك تخصّ الكاروسيلات والأدلة ولم تُطلب.
+RBULL="#008C9E"; RBEAR="#636363"
 
 def ff(name,fn,w):
     with open(os.path.join(FONTS,fn),"rb") as f: b=base64.b64encode(f.read()).decode()
