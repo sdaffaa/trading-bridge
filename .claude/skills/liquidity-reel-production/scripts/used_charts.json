@@ -7548,6 +7548,46 @@
    "end": "2023-10-31",
    "label": "تشريح حركة السيولة — صورة ٤٩",
    "video": "run49-anatomy-2026-08-09"
+  },
+  {
+   "symbol": "ES=F",
+   "timeframe": "1d",
+   "start": "2019-03-14",
+   "end": "2019-05-21",
+   "label": "run51-jumaa",
+   "video": "run51-factory-2026-08-10"
+  },
+  {
+   "symbol": "ETH-USD",
+   "timeframe": "1d",
+   "start": "2020-10-07",
+   "end": "2020-11-09",
+   "label": "run51-naqis",
+   "video": "run51-factory-2026-08-10"
+  },
+  {
+   "symbol": "SPY",
+   "timeframe": "1d",
+   "start": "2024-02-15",
+   "end": "2024-03-21",
+   "label": "run51-omr",
+   "video": "run51-factory-2026-08-10"
+  },
+  {
+   "symbol": "YM=F",
+   "timeframe": "1d",
+   "start": "2017-03-29",
+   "end": "2017-05-30",
+   "label": "run51-sawab",
+   "video": "run51-factory-2026-08-10"
+  },
+  {
+   "symbol": "NG=F",
+   "timeframe": "1d",
+   "start": "2023-09-22",
+   "end": "2023-10-31",
+   "label": "run51-takbir",
+   "video": "run51-factory-2026-08-10"
   }
  ]
 }

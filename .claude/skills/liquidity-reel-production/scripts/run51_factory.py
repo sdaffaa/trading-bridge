@@ -51,15 +51,17 @@ def hero_page(idx, body):
             f'<div class="cont hero">{body}</div>{dots(idx, TOTAL)}</div>')
 
 
-def cta_page(cta, title_html):
+def cta_page(cta, head_html):
     """صفحة نداء الفعل — تقبل صيغتَي النصّ: المقتبَسة والمسطورة.
 
     الملفات القديمة تكتب `quote_a`/`quote_b`/`items`، والجديدة تكتب `line`
-    وحدها. فمن لم يكتب اقتباساً يأخذ عنوان الوحدة عنواناً، ومن لم يكتب
-    بنوداً لا يُرسَم له صندوقٌ فارغ."""
+    وحدها؛ ومن لم يكتب بنوداً لا يُرسَم له صندوقٌ فارغ. وعنوان الصفحة
+    الأخيرة **ليس** عنوان الغلاف: في كاروسيلٍ من ثلاث صفحات يصير الهوك
+    نفسه على صفحتين من ثلاث. فيؤخذ خاتمة الدليل عنواناً — جملةٌ مكتوبة
+    للختام أصلاً."""
     qa = cta.get("quote_a")
     head = (f'{qa}<br><span style="color:{TEAL_D}">{cta.get("quote_b","")}</span>'
-            if qa else title_html)
+            if qa else head_html)
     items = "".join(f'<div class="cti"><span class="ck8">{i+1}</span><p>{t}</p></div>'
                     for i, t in enumerate(cta.get("items", [])))
     box = f'<div class="ctabox">{items}</div>' if items else ""
@@ -103,7 +105,8 @@ def build_car(slug, C, r, ok):
     slides.append(hero_page(2, f'<h1 class="ttl9">{pg["title"]}</h1>'
                                f'<div class="chartwrap">{svg}</div>{pts}'))
 
-    slides.append(cta_page(car["cta"], car["title"]))
+    # خاتمة الدليل عنواناً للصفحة الأخيرة، وعنوان الغلاف احتياطاً
+    slides.append(cta_page(car["cta"], C.get("guide", {}).get("outro_title") or car["title"]))
     assert len(slides) == TOTAL, f"{len(slides)} صفحة والمعلن {TOTAL}"
     out = os.path.join(HERE, f"car51_{slug}.html")
     build_carousel(slides, f'{C["keyword"]} — Liquidity State', out,
