@@ -120,6 +120,16 @@
     "sweep.pool",
     "signal.close_top"
    ]
+  },
+  {
+   "tag": "ng_sc_2026-08-10_1651",
+   "keys": [
+    "4H.ma_gap",
+    "1D.pd_low",
+    "1h.struct",
+    "sweep.sweep",
+    "signal.close_top"
+   ]
   }
  ]
 }

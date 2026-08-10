@@ -18,7 +18,7 @@
 تشغيلة. لذلك يفصل `queue` بين المرحلتين: المسح يملأ المخزون حين يستطيع،
 والإنتاج يسحب منه حين لا يستطيع. فلا تتوقّف السلسلة لأن الجلب تعذّر.
 """
-import datetime as dt, json, os, sys
+import datetime as dt, json, os, subprocess, sys
 
 import topdown
 
@@ -32,6 +32,27 @@ SLUG = {"GC=F": "gc", "SI=F": "si", "CL=F": "cl", "BZ=F": "bz", "NG=F": "ng",
 
 def reg():
     return json.load(open(REG, encoding="utf-8")) if os.path.exists(REG) else []
+
+
+def fits(f):
+    """هل يستطيع المحرّك رسم هذه النافذة؟ يُسأل المحرّك نفسه لا نسخةٌ عنه.
+
+    نافذة الغاز 2026-08-10 12:00 اجتازت الطبقات الخمس كلها ثم تعذّر بناؤها:
+    مدى النافذة 0.037 وبعض شرائح الريبلاي أضيق منه بكثير، فمُعامل المحور
+    المتنفّس بلغ 2.64× وأنزل صفّ الوسوم الأول 282 بكسلاً تحت اللوحة —
+    أمسكه `assert` في `run28_cinema._fit_pad`. ولولا هذا الفحص لظلّ
+    المخزون يعرضها كل صباح ويموت البناء عندها كل صباح.
+
+    ولا يُعاد حساب المقياس هنا: تُستدعى `run28_cinema` بنفسها في عملية
+    مستقلّة ويُقرأ خروجها. نسخةٌ ثانية من الحساب تنحرف عن الأصل بصمت،
+    والحكم يجب أن يكون حكم من سيرسم."""
+    r = subprocess.run([sys.executable, os.path.join(HERE, "run28_cinema.py")],
+                       cwd=HERE, env={**os.environ, "LS_SET": f, "LS_FIT_ONLY": "1"},
+                       capture_output=True, text=True, timeout=180)
+    if r.returncode == 0:
+        return None
+    tail = [ln for ln in (r.stdout + r.stderr).strip().splitlines() if ln.strip()]
+    return tail[-1].lstrip("✗ ").strip() if tail else f"البناء فشل ({r.returncode})"
 
 
 def save_reg(r):
@@ -118,21 +139,26 @@ if __name__ == "__main__":
             g = gaps(json.load(open(os.path.join(RAW, f), encoding="utf-8")))
             # النوافذ المقبولة قبل بوابة التتابع قد تحمل فجوات — تُعلَن ولا
             # تُبنى: جارتٌ ينقصه بوكت يكذب على العين وإن صحّ تحليله.
+            why = None if g else fits(f)      # الفجوة تُغني عن سؤال المحرّك
             rows.append((len(L[3]["eq"]), L[4]["wick"], -(P["hit"] - P["fill"]),
-                         f, D, L, P, g))
+                         f, D, L, P, g, why))
         rows.sort(key=lambda r: r[:3], reverse=True)
-        clean = [r for r in rows if not r[7]]
-        for _, _, _, f, D, L, P, g in rows:
+        clean = [r for r in rows if not r[7] and not r[8]]
+        for _, _, _, f, D, L, P, g, why in rows:
             DP = P["dp"]
             print(f'\n{f}   {D["sym"]} · {D["anchor_utc"]}'
                   + (f'\n   ⚠ {len(g)} فجوة زمنية ({g[0][0]} ← {g[0][1]}) — لا يُبنى'
-                     if g else ''))
+                     if g else '')
+                  + (f'\n   ⚠ المحرّك لا يرسمها: {why} — لا يُبنى' if why else ''))
             for x in L:
                 print(f'   · {x["title"]}: {x["detail"]}')
             print(f'   ← دخول {P["ENT"]:,.{DP}f} · وقف {P["STP"]:,.{DP}f} · هدف '
                   f'{P["TGT"]:,.{DP}f} · تحقّق بعد {P["hit"] - P["fill"]} شمعة')
+        ng_ = sum(1 for r in rows if r[7])
+        nf_ = sum(1 for r in rows if not r[7] and r[8])
         print(f'\nفي المخزون: {len(clean)} صالح'
-              + (f' · {len(rows)-len(clean)} بفجوات زمنية' if len(rows) > len(clean) else ''))
+              + (f' · {ng_} بفجوات زمنية' if ng_ else '')
+              + (f' · {nf_} لا يرسمها المحرّك' if nf_ else ''))
         rows = clean
         if rows:
             print(f'LS_SET={rows[0][3]}')

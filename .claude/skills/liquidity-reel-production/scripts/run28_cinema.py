@@ -161,6 +161,11 @@ def _fit_pad(lo=1.45, hi=3.2):
 
 
 PLO = _fit_pad()
+# فحصٌ فقط: `scan_setups.queue` ينادي هذا الملف ليسأله «أتستطيع رسمها؟»
+# ولا يريد ريلاً. الخروج هنا بعد اجتياز الهامش يجعل الجواب ثانيةً واحدة
+# بدل بناءٍ كامل — والسؤال يُوجَّه للمحرّك نفسه لا لنسخةٍ عنه.
+if os.environ.get("LS_FIT_ONLY"):
+    raise SystemExit(0)
 set_price_pad(PLO, 0.08)              # مقياس واحد للمحرّك والماركب معاً
 
 
@@ -487,7 +492,7 @@ def m5_svg():
 EX5, X5, Y5, SLOT5 = m5_svg()
 # الأثاث في طبقتين: محور السعر والعلامة المائية يسكنان، ومحور الوقت
 # ينزلق مع الشموع — وإلا مشت الشموع فوق ساعاتٍ واقفة.
-_FURN = tv_chart.furniture(M5, dec=2, sym=D["sym"], tf=EXEC,
+_FURN = tv_chart.furniture(M5, dec=DP, sym=D["sym"], tf=EXEC,
                            tlabels=[c["d"][11:] for c in M5], split=True, autoscale=True)
 
 # ═════════ الواجهة والملاحظات ═════════
@@ -749,7 +754,10 @@ cfg = dict(
     # لوحة الثيم نفسها لأن المحرّك يعيد رسمها كل إطار.
     autoscale=dict(ymin=AS_MIN, ymax=AS_MAX, ticks=7, dec=DP,
                    col={"grid": tv_chart.T["GRID"], "tx": tv_chart.T["AXTX"]}),
-    lp_pill=True, lp_dec=2, lp_col=tv_chart.T["PILL"], lp_txt=tv_chart.T["PILLTX"],
+    # بطاقة السعر الحيّ بمنزلة الأداة لا بمنزلتين ثابتتين: على الغاز
+    # (2.782 دخولاً و2.779 وقفاً) كانت «2.78» تُخفي الفرق كلَّه، وتتساوى
+    # بطاقتان مختلفتان نصّاً فتبدوان بطاقةً مكرّرة على المحور.
+    lp_pill=True, lp_dec=DP, lp_col=tv_chart.T["PILL"], lp_txt=tv_chart.T["PILLTX"],
     base=BASE, openmax=BASE, open_t=[[BASE, 0.45]], story=STORY,
     extra_svg=EX5,                          # ماركب فريم التنفيذ — ينزلق معه
     overlay_svg=p_4h() + p_1d() + p_1h(),   # لوحات الفريمات الأعلى — ثابتة

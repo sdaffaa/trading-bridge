@@ -374,6 +374,24 @@ def build_reel(cfg, out_html):
           tt.style.transform = `translateX(${(cx - 52).toFixed(1)}px)`;
           tt.textContent = TLAB[bi] || "";
         }
+        // بطاقتان على المحور عند السعر نفسه تُقرآن بطاقةً مكرّرة: بطاقة
+        // الكروسهير وبطاقة السعر الحيّ (على الغاز التقتا عند 2.784 فبدت
+        // البطاقة مطبوعة مرّتين). فتُخفى بطاقة السعر الحيّ عند التراكب —
+        // الكروسهير هو ما يتبعه نظر المشاهد. والقياس على المستطيلين
+        // **بعد** وضع تحويلة هذا الإطار لا قبلها، وإلا حُكم بموضع الإطار
+        // السابق فارتجفت البطاقة عند الحدّ.
+        const _lpp = document.getElementById("lpp");
+        if (_lpp) {
+          let hide = false;
+          if (inside) {
+            const a = xh.querySelector(".xhp").getBoundingClientRect();
+            const b = _lpp.getBoundingClientRect();
+            hide = b.width > 0 && !(b.bottom < a.top - 1 || b.top > a.bottom + 1);
+          }
+          _lpp.style.opacity = hide ? 0 : 1;
+          const _lpv = document.getElementById("lpv");
+          if (_lpv) _lpv.style.opacity = hide ? 0 : 1;
+        }
       }
     }
   }
