@@ -108,7 +108,7 @@ def fetch_daily(sym):
 
     (ستوك يردّ صفحة تحقّق جافاسكربت للعميل غير المتصفّح، فلا CSV منه.)"""
     url = (f"https://query1.finance.yahoo.com/v8/finance/chart/"
-           f"{urllib.parse.quote(sym)}?interval=1d&range=max")
+           f"{urllib.parse.quote(sym)}?interval=1d&range=10y")
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "*/*"})
     d = json.load(urllib.request.urlopen(req, timeout=60))
     r = d["chart"]["result"][0]
@@ -147,15 +147,23 @@ MAXW = 52
 MIN_AFTER = 4
 MIN_RISK_BP = 0.0006
 PER_CLS = 12
+# أدنى وسيطٍ لنسبة الجسم إلى المدى في النافذة. سببه مقيس: أزواج الفوركس
+# الفورية عند هذا المصدر تكتب الإغلاق اليومي مساوياً للافتتاح تقريباً،
+# فوسيط النسبة 0.02 — تسعٌ وعشرون شمعة دوجي متتالية. ورسمُها يكذب مرّتين:
+# الشكل يقول إن السوق لم يقرّر شيئاً طوال شهر، والتحليل يبني «إغلاقاً فوق
+# الحدّ» على إغلاقٍ لا يفرقه عن افتتاحه شيء. والعقود الآجلة والعملات
+# المشفّرة تعطي 0.34–0.52 فتمرّ.
+MIN_BODY = 0.15
 
 # أدواتٌ لم يمسّها السجل على الفريم اليومي، وأخرى مسّها في مدىً بعيد
 # فبقيّة عقودها حرّة — والبوابة `overlaps` هي التي تفصل لا هذه القائمة.
-PAIRS = ["USDCAD=X", "NZDUSD=X", "EURJPY=X", "GBPJPY=X", "EURGBP=X",
-         "AUDJPY=X", "USDCHF=X", "EURCAD=X", "GBPCHF=X", "CADJPY=X",
-         "CHFJPY=X", "AUDNZD=X", "GBPAUD=X", "EURAUD=X", "EURCHF=X",
-         "USDJPY=X", "GBPUSD=X", "AUDUSD=X", "EURUSD=X", "USDSEK=X",
-         "GC=F", "SI=F", "HG=F", "CL=F", "NG=F", "ZC=F", "ZW=F",
-         "NQ=F", "ES=F", "YM=F", "RTY=F", "DX=F", "BTC-USD", "ETH-USD"]
+PAIRS = ["GC=F", "SI=F", "HG=F", "PL=F", "PA=F",
+         "CL=F", "NG=F", "RB=F", "HO=F", "BZ=F",
+         "ZC=F", "ZW=F", "ZS=F", "KC=F", "CT=F", "SB=F", "CC=F",
+         "NQ=F", "ES=F", "YM=F", "RTY=F", "ZN=F", "ZB=F",
+         "6E=F", "6B=F", "6A=F", "6J=F", "6C=F", "6S=F",
+         "BTC-USD", "ETH-USD", "SOL-USD", "LTC-USD", "XRP-USD",
+         "SPY", "QQQ", "IWM", "GLD", "SLV", "TLT", "USO"]
 
 used = []
 if os.path.exists("used.json"):
@@ -214,6 +222,10 @@ for c in chosen:
     ds = lambda i: dt.datetime.fromtimestamp(cs[i]["ts"], dt.timezone.utc).strftime("%Y-%m-%d")
     if overlaps(c["sym"], ds(ws), ds(we), used):
         rejected.append(f'{lbl} {ds(ws)}: منشورة سابقاً'); continue
+    bod = sorted(abs(x["c"] - x["o"]) / (x["h"] - x["l"]) for x in cs[ws:we + 1])
+    med = bod[len(bod) // 2]
+    if med < MIN_BODY:
+        rejected.append(f'{lbl} {ds(ws)}: وسيط الجسم/المدى {med:.2f} < {MIN_BODY}'); continue
     w = []
     for cd in cs[ws:we+1]:
         k = dt.datetime.fromtimestamp(cd["ts"], dt.timezone.utc)
