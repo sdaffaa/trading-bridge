@@ -199,4 +199,14 @@ if __name__ == "__main__":
             print(f'    · {t}: {d}')
         print(f'    ← دخول {r["ent"]:,.{DP}f} · وقف {r["stp"]:,.{DP}f} · هدف '
               f'{r["tgt"]:,.{DP}f} · تحقّق بعد {r["bars"]} شمعة')
-    print(f'\nLS_SET={ok[0]["file"]}')
+    # سطر `LS_SET` هنا يمرّ ببوابة الرسم نفسها التي في `queue`: نافذةٌ
+    # اجتازت الطبقات الخمس ولا يستطيع المحرّك رسمها لا تُقدَّم للبناء،
+    # وإلّا اختلف جواب `accept` عن جواب `queue` على النافذة نفسها.
+    for r in ok:
+        why = fits(r["file"])
+        if why is None:
+            print(f'\nLS_SET={r["file"]}')
+            break
+        print(f'\n⚠ {r["file"]}: المحرّك لا يرسمها — {why}')
+    else:
+        raise SystemExit(3)
