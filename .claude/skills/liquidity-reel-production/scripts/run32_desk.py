@@ -410,9 +410,14 @@ def beats_for(C, A, P):
     return out
 
 
+# مُحمِّل المحتوى — قابل للتبديل. الافتراضي خطّة `run31_build`، وتشغيلةٌ
+# بملفّاتها الخاصّة تضع دالّتها هنا بدل نسخ المحرّك كلّه لأجل مسار ملف.
+LOAD = None
+
+
 def build(slug, win_idx=None, arch=None):
     import run31_build                       # خطة النوافذ والصيغ لكل وحدة
-    C = run31_build.load(slug)
+    C = (LOAD or run31_build.load)(slug)
     r = RC.win(C["window"] if win_idx is None else win_idx)
     W = r["w"]; x, y, slot = geo(W)
     iob, ir = r["iob"], r["ir"]

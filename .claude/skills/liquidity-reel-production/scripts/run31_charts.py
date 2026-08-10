@@ -21,11 +21,15 @@ CAND = json.load(open(os.path.join(HERE, "sheet_candidates.json"), encoding="utf
 
 AR_SYM = {"GC=F": "الذهب", "NQ=F": "الناسداك", "YM=F": "الداو جونز",
           "AUDUSD=X": "الأسترالي/الدولار", "GBPUSD=X": "الجنيه/الدولار",
-          "EURUSD=X": "اليورو/الدولار", "USDJPY=X": "الدولار/ين"}
-AR_TF = {"15m": "١٥ دقيقة", "30m": "٣٠ دقيقة", "1h": "ساعة"}
+          "EURUSD=X": "اليورو/الدولار", "USDJPY=X": "الدولار/ين",
+          "AUDJPY=X": "الأسترالي/ين", "NG=F": "الغاز الطبيعي",
+          "ES=F": "إس آند بي ٥٠٠", "ETH-USD": "الإيثيريوم"}
+AR_TF = {"15m": "١٥ دقيقة", "30m": "٣٠ دقيقة", "1h": "ساعة", "1d": "يومي"}
 # وحدة النقطة لكل أداة (§4): فوركس 0.0001، ين 0.01، ذهب 0.1، مؤشرات 1.0
 PIP = {"GC=F": 0.1, "NQ=F": 1.0, "YM=F": 1.0,
-       "AUDUSD=X": 0.0001, "GBPUSD=X": 0.0001, "EURUSD=X": 0.0001}
+       "AUDUSD=X": 0.0001, "GBPUSD=X": 0.0001, "EURUSD=X": 0.0001,
+       "USDJPY=X": 0.01, "AUDJPY=X": 0.01, "NG=F": 0.001,
+       "ES=F": 0.25, "ETH-USD": 1.0}
 
 
 def win(idx):
@@ -41,18 +45,28 @@ def win(idx):
     return r
 
 
-def claim_fresh(r, label):
+def _span(r):
+    """طرفا النافذة كما يقرأهما السجل.
+
+    نوافذ الفريم اليومي تحمل تاريخيها الكاملين في `su`/`eu`، وحقل `d`
+    فيها شهرٌ ويوم — فتركيب `date + d` كما تفعل نوافذ الدقائق يُنتج نصّاً
+    لا معنى له. أما نوافذ الدقائق فتبقى على تركيبها الأصلي حرفياً، لأن
+    السجل مكتوبٌ به: تبديلُه إلى `su`/`eu` يجعل نافذةً منشورة لا تُطابق
+    قيدها فتمرّ كأنها حرّة."""
     w = r["w"]
-    chart_registry.assert_fresh_real(r["sym"], r["tf"],
-                                     f'{r["date"]} {w[0]["d"]}',
-                                     f'{r["date"]} {w[-1]["d"]}', label=label)
+    if str(r.get("tf", "")).lower() in ("1d", "d1", "d", "daily"):
+        return r["su"], r["eu"]
+    return f'{r["date"]} {w[0]["d"]}', f'{r["date"]} {w[-1]["d"]}'
+
+
+def claim_fresh(r, label):
+    a, b = _span(r)
+    chart_registry.assert_fresh_real(r["sym"], r["tf"], a, b, label=label)
 
 
 def register(video, r, label):
-    w = r["w"]
-    chart_registry.register_real(video, r["sym"], r["tf"],
-                                 f'{r["date"]} {w[0]["d"]}',
-                                 f'{r["date"]} {w[-1]["d"]}', label=label)
+    a, b = _span(r)
+    chart_registry.register_real(video, r["sym"], r["tf"], a, b, label=label)
 
 
 # ═══════════ أدوات القياس على الشموع الحقيقية ═══════════
