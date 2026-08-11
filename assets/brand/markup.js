@@ -136,6 +136,11 @@
       priceRange = null,
       candleWidth = null,
       barsRight = 6,           // empty bars kept at the right for projections
+      barsVisible = null,      /* how many bars fill the plot. Set this for replay:
+                                  otherwise pitch is derived from the whole series,
+                                  so a long series draws hair-thin candles and the
+                                  replay reads as half speed even at the right rate —
+                                  perceived speed is pitch x rate, not rate alone. */
       anim = null,             // pass {} for defaults, or override any CADENCE key
       autoTerminate = false,   // end levels/zones at the candle that broke them
       snapToCandle = false,    // pull levels onto wick tips, expand boxes to full candles
@@ -183,7 +188,13 @@
     const gCandle  = el('g', { class: 'ls-layer-candle' });
     const gStruct  = el('g', { class: 'ls-layer-struct' });
     const gLabel   = el('g', { class: 'ls-layer-label' });
-    [gGrid, gZone, gCandle, gStruct, gLabel].forEach(g => svg.appendChild(g));
+    /* Everything anchored to a bar index lives inside gPan so replay can jump
+       the viewport by whole candle pitches. Grid and price scale stay outside:
+       they are horizontal and must not travel with the bars. */
+    const gPan = el('g', { class: 'ls-layer-pan' });
+    svg.appendChild(gGrid);
+    [gZone, gCandle, gStruct, gLabel].forEach(g => gPan.appendChild(g));
+    svg.appendChild(gPan);
 
     // ---- scales -----------------------------------------------------------
     let lo, hi;
@@ -196,13 +207,14 @@
     }
     const plotL = padding.left, plotR = width - padding.right;
     const plotT = padding.top,  plotB = height - padding.bottom;
-    const n = candles.length + barsRight;
+    const n = barsVisible ? barsVisible : candles.length + barsRight;
     const step = (plotR - plotL) / n;
     const cw = candleWidth || Math.max(3, step * 0.58);
 
     const X = i => plotL + step * (i + 0.5);
     const Y = p => plotB - ((p - lo) / (hi - lo)) * (plotB - plotT);
 
+    const candleNodes = [];  // one per bar, for replay reveal
     const jobs = [];        // deferred text measurement, run in layout()
     const track = [];       // animation entries
     let cursor = A ? A.start : 0;
@@ -240,6 +252,7 @@
           width: cw, height: Math.max(1.5, Math.abs(yc - yo))
         }));
         gCandle.appendChild(g);
+        candleNodes.push(g);
       });
       return api;
     }
@@ -683,6 +696,23 @@
       return api;
     }
 
+    // ---- 14. bar replay ---------------------------------------------------
+    /* Print the candles forward the way TradingView's bar replay does.
+
+       Measured from the reference recording: 4.71 candles/sec (one bar every
+       ~212ms), which matches the 5x setting shown in its toolbar. The viewport
+       does NOT scroll smoothly — when a bar prints, the chart jumps by exactly
+       one candle pitch. That discreteness is the whole feel of it; interpolating
+       the pan turns a replay into a camera move and reads as a different thing.
+
+       `window` is how many bars stay on screen before the jumping starts. */
+    function replay({ rate = 4.71, window: win = 40, at = 0, start = 1 } = {}) {
+      if (!A) return api;
+      track.push({ kind: 'replay', t0: at, dur: candles.length / rate,
+                   rate, win, start, nodes: candleNodes, pan: gPan });
+      return api;
+    }
+
     // ---- gridlines --------------------------------------------------------
     function grid(count = 4) {
       for (let k = 1; k < count; k++) {
@@ -717,6 +747,15 @@
        and frame-accurate capture. */
     function seek(t) {
       track.forEach(e => {
+        if (e.kind === 'replay') {
+          // integer bar count → the pan lands on whole pitches by construction
+          const n = Math.max(0, Math.min(candles.length,
+                     Math.floor((t - e.t0) * e.rate) + e.start));
+          e.nodes.forEach((nd, i) => { nd.style.display = i < n ? '' : 'none'; });
+          e.pan.setAttribute('transform',
+            `translate(${-Math.max(0, n - e.win) * step},0)`);
+          return;
+        }
         const p = easeOut(clamp01(e.dur > 0 ? (t - e.t0) / e.dur : (t >= e.t0 ? 1 : 0)));
         if (e.kind === 'stroke') {
           e.nodes.forEach((nd, k) => {
@@ -747,7 +786,7 @@
     const api = {
       svg, X, Y, drawCandles, grid, level, zone, structure,
       swing, fib, trend, invalid, volumeProfile, poc, position,
-      anchor, sticker, priceScale,
+      anchor, sticker, priceScale, replay,
       layout, seek, play, duration,
       get violations() { return violations; },
       get corrections() { return corrections; },

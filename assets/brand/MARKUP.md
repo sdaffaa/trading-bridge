@@ -129,6 +129,37 @@ swings.forEach(([i, price, label, place], k) =>
   ch.swing({ i, price, label, place, at: 9.8 + k * 0.18 }));
 ```
 
+### Bar replay — printing the candles forward
+
+Measured from the reference recording (TradingView bar replay, XAUUSD M15, its toolbar showing 5×):
+
+| Quantity | Measured | Adopted |
+|---|---|---|
+| Print rate | **4.71 candles/sec** (one bar every ~212ms) | `rate: 4.71` |
+| Candle pitch | **14.0 px** | `barsVisible` sized to give 14px |
+| Viewport step | **exactly one pitch per printed bar** | discrete, never interpolated |
+| Resulting scroll | **66 px/sec** | emergent |
+
+Two things matter more than the rate itself:
+
+1. **The viewport jumps, it does not glide.** When a bar prints, the chart moves exactly one candle
+   pitch and stops. Interpolating that pan turns a replay into a camera move — it reads as a
+   different thing entirely, however correct the bar rate is.
+2. **Perceived speed is pitch × rate, not rate alone.** Set `barsVisible` so the pitch is right;
+   without it the pitch comes from the whole series, so a 120-bar series draws hair-thin candles
+   and the replay feels half speed while printing at exactly the correct rate. This is the mistake
+   worth knowing about — the number is right and the result still looks wrong.
+
+```js
+const ch = LSChart({ …, candles, barsVisible: 58, anim: {} });
+ch.priceScale({ step: 20 }).drawCandles();
+ch.replay({ rate: 4.71, window: 56 });   // window = bars on screen before it starts jumping
+ch.layout();
+```
+
+Reference render: `replay-demo.html` → **`replay-demo.mp4`**. Verified against the source with the
+same measurement pipeline: pitch 14.0px, one-pitch jumps, 64.5 px/s, 4.61 candles/sec.
+
 ### Rendering to video
 
 `capture-motion.py` drives the page over the Chrome DevTools Protocol, stepping `seek(t)` frame by

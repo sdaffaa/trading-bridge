@@ -1,0 +1,79 @@
+<meta charset="utf-8">
+<title>Liquidity State — إعادة تشغيل الشموع</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; }
+  .slide { width:1080px; height:1920px; box-sizing:border-box; padding:64px 60px 52px;
+           background:var(--ls-bg); font-family:var(--ls-font-ar); color:var(--ls-text);
+           direction:rtl; display:flex; flex-direction:column; }
+  .eyebrow { font-size:26px; font-weight:700; letter-spacing:.22em; color:var(--ls-text-accent);
+             text-align:left; direction:ltr; text-transform:uppercase; }
+  h1  { font-size:60px; font-weight:800; margin:16px 0 10px; text-align:left; line-height:1.25; }
+  .sub{ font-size:29px; font-weight:500; color:var(--ls-text-secondary); text-align:left;
+        margin:0 0 24px; }
+  .rule { height:1px; background:var(--ls-gridline); margin:0 0 20px; }
+  .meta { font-size:25px; font-weight:500; color:var(--ls-text-secondary);
+          text-align:left; margin-bottom:14px; }
+  .card { border:1.5px solid #CFDDE2; border-radius:22px; padding:18px 10px 10px;
+          background:var(--ls-bg-grad-top); overflow:hidden; }
+  .foot { margin-top:auto; display:flex; justify-content:space-between; align-items:center;
+          gap:24px; border-top:1px solid var(--ls-gridline); padding-top:18px; }
+  .foot .lm { font-family:var(--ls-font-wordmark); font-size:19px; letter-spacing:.2em;
+              color:var(--ls-text-secondary); direction:ltr; text-transform:uppercase;
+              white-space:nowrap; }
+  .foot .dc { font-size:19px; font-weight:500; color:var(--ls-text-secondary); white-space:nowrap; }
+</style>
+
+<div class="slide">
+  <div class="eyebrow">Bar Replay · 5×</div>
+  <h1>الشموع تُطبع، ما تنزلق</h1>
+  <div class="sub">شمعة كل ٢١٢ ملّي ثانية، والشارت يقفز عرض شمعة كاملة — لا انزلاق ناعم.</div>
+  <div class="rule"></div>
+  <div class="meta">XAUUSD · M15 · مثال تعليمي</div>
+
+  <div class="card"><div id="chart"></div></div>
+
+  <div class="foot">
+    <div class="lm">Liquidity State · Markup System</div>
+    <div class="dc">لغرض تعليمي — ليست توصية</div>
+  </div>
+</div>
+
+<script src="./markup.js"></script>
+<script>
+function series(n) {
+  let s = 90210;
+  const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
+  let p = 4238, out = [];
+  for (let i = 0; i < n; i++) {
+    const drift = 0.30 + Math.sin(i / 17) * 0.22;      // a climbing session
+    const o = p, c = p + drift + rnd() * 3.1;
+    const w = 0.8 + Math.abs(rnd()) * 2.4;
+    out.push({ o, c, h: Math.max(o, c) + Math.abs(rnd()) * w,
+                     l: Math.min(o, c) - Math.abs(rnd()) * w });
+    p = c;
+  }
+  return out;
+}
+
+const candles = series(120);
+const ch = LSChart({
+  mount: '#chart', width: 940, height: 1130, candles,
+  padding: { top: 46, right: 104, bottom: 40, left: 22 },
+  barsRight: 2, barsVisible: 58,   /* 814px plot / 58 = 14px pitch, as measured */
+  anim: {}
+});
+
+ch.priceScale({ step: 20, decimals: 0 });
+ch.drawCandles();
+
+/* The measured cadence: 4.71 bars/sec, viewport holding 44 bars before it
+   starts jumping one pitch per print. */
+ch.replay({ rate: 4.71, window: 56 });
+ch.layout();
+
+window.LS_DURATION = ch.duration() + 0.8;
+window.seekTo = t => { ch.seek(t); return true; };
+window.LS_READY = true;
+if (!location.search.includes('static')) ch.play();
+</script>
