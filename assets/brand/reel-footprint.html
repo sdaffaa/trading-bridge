@@ -1,0 +1,302 @@
+<meta charset="utf-8">
+<title>Liquidity State — ريل الفوتبرينت</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#000; }
+
+  /* 1080×1920. The bands are fixed so the Instagram chrome never eats a word:
+     top 140px and bottom 130px are left empty on purpose. */
+  .reel { width:1080px; height:1920px; position:relative; overflow:hidden;
+          font-family:var(--ls-font-ar); direction:rtl; color:var(--ls-text);
+          background:radial-gradient(120% 58% at 50% 30%, #06202E 0%, #010C17 74%); }
+
+  .ticker { position:absolute; top:152px; left:60px; direction:ltr;
+            font-size:26px; font-weight:700; letter-spacing:.10em;
+            color:var(--ls-text-secondary); }
+  .wm     { position:absolute; top:152px; right:60px; direction:ltr;
+            font-family:var(--ls-font-wordmark); font-size:24px; letter-spacing:.28em;
+            text-transform:uppercase; color:var(--ls-watermark); }
+
+  /* Vertical budget. Instagram's own chrome sits over roughly the top 220px
+     and the bottom 400px, so every word and every candle lives between
+     240 and 1560 — the empty band underneath is deliberate, not slack. */
+  .chart  { position:absolute; top:238px; left:24px; width:1032px; }
+
+  /* The headline sits ON the chart, never above it: frame 0 has to be moving
+     candles with words over them, not a title card. */
+  .beat   { position:absolute; left:64px; right:64px; text-align:center;
+            font-weight:800; line-height:1.24; letter-spacing:-.01em;
+            text-shadow:0 6px 30px rgba(1,12,23,.85); }
+  #hook   { top:352px;  font-size:86px; }
+  #verdict{ top:420px;  font-size:74px; }
+  .beat em{ font-style:normal; color:var(--ls-text-accent); }
+  /* mask-wipe entry — the text is uncovered, it does not fade up */
+  .beat > span { display:block; clip-path:inset(0 0 0 100%); }
+
+  /* The verdict lands while the chart is at its busiest, and a headline over
+     a tall candle is unreadable. The chart recedes for those two seconds
+     instead of the text fighting it. */
+  .scrim  { position:absolute; top:200px; left:0; right:0; height:740px;
+            background:linear-gradient(180deg,rgba(1,12,23,0) 0%,rgba(1,12,23,.86) 22%,
+                       rgba(1,12,23,.86) 78%,rgba(1,12,23,0) 100%); opacity:0; }
+
+  /* Markup on a reel is read at arm's length: the same scale-up the
+     split-screen format applies, scoped to this page's own container. */
+  .reel .ls-mk-label     { font-size: 30px; }
+  .reel .ls-mk-sticker-t { font-size: 34px; }
+  .reel .ls-mk-line      { stroke-width: 2.4; }
+  .reel .ls-mk-marker    { stroke-width: 4; }
+  .reel .ls-grid         { opacity: .5; }
+
+  .fpcard { position:absolute; top:952px; left:80px; width:920px; height:412px;
+            border:1.5px solid var(--ls-card-border); border-radius:22px;
+            background:rgba(4,23,35,.88); box-sizing:border-box;
+            padding:10px 30px; display:flex; align-items:center; gap:16px; }
+  .fpcard .lede { flex:1; text-align:center; }
+  .fpcard .lede .t { font-size:34px; font-weight:800; color:var(--ls-text-accent);
+                     line-height:1.4; }
+  .fpcard .lede .d { margin-top:22px; font-size:64px; font-weight:800;
+                     direction:ltr; color:#fff; }
+  .fpcard .lede .n { margin-top:12px; font-size:26px; font-weight:700;
+                     color:var(--ls-text-secondary); }
+
+  /* captions.js emits .ls-reel-caption, which is absolutely positioned for the
+     split-screen format — pinned here to this reel's own band instead */
+  .caps .ls-reel-caption {
+    position:absolute; top:1400px; left:70px; right:70px; transform:none;
+    font-size:58px; line-height:1.2; padding:0;
+  }
+  .caps .ls-reel-caption em { color:var(--ls-text-accent); }
+
+  .disc   { position:absolute; top:1524px; left:0; right:0; text-align:center;
+            font-size:23px; font-weight:500; color:var(--ls-text-secondary); opacity:.7; }
+</style>
+
+<div class="reel" data-ls-theme="cover">
+  <div class="ticker">XAUUSD · M5</div>
+  <div class="wm">Liquidity State</div>
+
+  <div class="chart"><div id="chart"></div></div>
+
+  <div class="scrim" id="scrim"></div>
+  <div class="beat" id="hook"><span>ليش شريت...<br>والسعر نزل؟</span></div>
+  <div class="beat" id="verdict"><span>اهي الشمعة اللي<br>تشتري فيها والسعر <em>ينزل</em></span></div>
+
+  <div class="fpcard" id="fpcard">
+    <div id="fp"></div>
+    <div class="lede">
+      <div class="t">داخل نفس الشمعة</div>
+      <div class="d" id="delta">Delta +3.9K</div>
+      <div class="n">شراء عدواني · بلا تقدّم</div>
+    </div>
+  </div>
+
+  <div class="caps" id="caps"></div>
+  <div class="disc">لغرض تعليمي — ليست توصية</div>
+</div>
+
+<script src="./markup.js"></script>
+<script src="./footprint.js"></script>
+<script src="./captions.js"></script>
+<script>
+/* ==========================================================================
+   THE SCRIPT — 11 beats, compressed for a 20.6s runtime
+   Runtime comes from the account's measured average watch (14s × 1.5). Beats
+   1 / 7 / 8 / 11 are never dropped; 5+6 are merged into one line and 9+10 are
+   carried visually with no spoken line.
+
+     1  HOOK      تبي تعرف ليش شريت والسعر نزل؟
+     2  PARADOX   الشمعة كانت قوية... وستوبك طق
+     3  PIVOT     شلون؟
+     4  INVITE    تعال اقولك
+     5+6 BELIEF   الناس تشوف الشمعة من برّه بس
+     7  TURN      لكن بالواقع؟ داخل الشمعة شراء عدواني، والسعر ما تقدّم ولا نقطة
+     8  VERDICT   اهي الشمعة اللي تشتري فيها والسعر ينزل     ← reuses beat 1
+     9+10 PROOF   (visual: the lit row, then the trapped entry)
+     11 LOOP      تعرف تقراها من داخلها؟ تابع البوست الجاي
+
+   The VO is meant to be recorded over this timeline — the caption track below
+   is cut to the spoken lines, so a recording that follows the captions lands
+   frame-accurate with no re-timing.
+   ========================================================================== */
+
+const TOTAL = 20.6;
+const SEAM  = 19.4;          // last 1.2s rewinds the chart back to frame 0
+
+/* ---- the series -------------------------------------------------------
+   Generated, then bars 20 / 26 / 30-33 are written by hand: the level has to
+   be a real wick tip that is tested twice and closed through exactly once,
+   and that cannot be left to a random walk. */
+function series() {
+  let s = 41071;
+  const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
+  const out = [];
+  let p = 92.4;
+  for (let i = 0; i < 34; i++) {
+    const drift = i < 20 ? 0.28 : -0.1;
+    const o = p, c = p + drift + rnd() * 1.9;
+    const w = 0.5 + Math.abs(rnd()) * 1.3;
+    let h = Math.max(o, c) + Math.abs(rnd()) * w;
+    let l = Math.min(o, c) - Math.abs(rnd()) * w;
+    h = Math.min(h, 99.3);                 // nothing reaches the level early
+    l = Math.min(l, Math.min(o, c));
+    out.push({ o, c: Math.min(c, 98.9), h, l });
+    p = out[i].c;
+  }
+  out[20] = { o: 97.10, c: 98.60, h: 100.00, l: 96.40 };   // the high itself
+  out[26] = { o: 94.20, c: 97.80, h: 100.00, l: 93.60 };   // tested again, same tip
+  out[30] = { o: 96.20, c: 105.00, h: 106.50, l: 95.80 };  // the sweep
+  out[31] = { o: 105.00, c: 96.50, h: 105.40, l: 95.60 };  // straight back
+  out[32] = { o: 96.50, c: 92.00, h: 97.00, l: 91.20 };
+  out[33] = { o: 92.00, c: 88.50, h: 92.60, l: 87.80 };
+  for (let i = 21; i < 30; i++) if (i !== 26) out[i].h = Math.min(out[i].h, 99.2);
+  return out;
+}
+
+const candles = series();
+const ch = LSChart({
+  mount: '#chart', width: 1032, height: 694, candles,
+  padding: { top: 40, right: 40, bottom: 30, left: 20 },
+  barsRight: 2, barsVisible: 26,
+  autoTerminate: true, tolerance: 0.01, anim: {}
+});
+
+/* No price scale. These are illustrative candles, and printing an axis of
+   prices next to them claims a precision they do not have — and it puts
+   numbers where the level's own label needs to sit. */
+ch.grid(4).drawCandles();
+
+/* ---- the chart clock --------------------------------------------------
+   Bars print at 4/s. Holds are where the story gets told; every hold is
+   placed on the beat whose words land over it, so the picture and the
+   sentence arrive together.
+
+     t=0.00  bars already printing         ← frame 0 is motion, never a card
+     t=2.50  hold on the prior high        → the level, then its label
+     t=6.40  hold on the sweep             → the footprint builds
+     t=11.8  hold on the reversal          → the verdict
+     t=14.1  hold on the collapse          → the trapped entry
+
+   A hold's atBar is the bar the replay stops BEFORE, so holding to look at
+   bar N means holding at N+1 — otherwise every pause lands on the bar before
+   the one being talked about. */
+const HOLDS = [
+  { atBar: 21, seconds: 1.4 },   // stop with the prior high just printed
+  { atBar: 31, seconds: 5.4 },   // stop with the sweep just printed
+  { atBar: 32, seconds: 1.8 },   // the reversal
+  { atBar: 33, seconds: 1.5 }    // the collapse
+];
+ch.replay({ rate: 4.0, window: 26, start: 10, at: 0, holds: HOLDS });
+const H = Object.fromEntries(HOLDS.map(h => [h.atBar, h.t]));
+
+/* mode:'close' — the wick through the level is the sweep; the close is the
+   break. That distinction is the whole reel, so the drawing is built on it.
+   autoTerminate then ends the line on bar 30 without it being typed here. */
+ch.level({ price: 100, from: 20, label: 'سحب السيولة', dashed: true,
+           mode: 'close', at: H[21] + 0.1, dur: 0.55 });
+/* The only red in the reel, and it is the one thing red is for: the price a
+   breakout buyer paid, marked at the bar that proved it wrong. It lands after
+   the verdict clears, so the tail still gets a visual state change instead of
+   coasting to the CTA on a frozen chart. */
+ch.invalid({ i: 31, price: 104.0, at: 16.0 });
+ch.sticker({ i: 31, price: 104.0, text: 'دخل هني', dy: -86, at: 16.3 });
+ch.layout();
+
+const CHART_END = ch.duration();
+
+/* ---- the footprint of that one candle ---------------------------------
+   Real numbers for the claim being made: the ask side outweighs the bid at
+   every price above 102, and the totals peak at 104.7 — which is why 104.7
+   is the lit row and not one chosen for being in a nice place.
+       Σask 9,140 − Σbid 5,250 = +3,890 → the +3.9K on the card. */
+const ROWS = [
+  [106.5,  120,  980], [105.6,  240, 1450], [104.7,  310, 2100],
+  [103.8,  520, 1240], [102.9,  610,  880], [102.0,  740,  690],
+  [101.1,  820,  540], [100.2,  690,  430], [ 99.3,  480,  320],
+  [ 98.4,  350,  240], [ 97.5,  230,  160], [ 96.6,  140,  110]
+].map(([price, bid, ask], i) => ({ price, bid, ask, hi: i === 2 }));
+
+const FP_IN = H[31] + 0.35;
+/* No callout on the ladder: the lit row and the Delta beside it already say
+   it, and a third label in a 412px card is clutter, not emphasis. */
+const fp = LSFootprint({
+  mount: '#fp', variant: 'ladder', width: 420, height: 392,
+  rows: ROWS, compact: true, heatKey: 'total',
+  anim: { at: FP_IN, panel: 0.4, rowStagger: 0.19, rowDur: 0.34 }
+});
+
+/* ---- the caption track ------------------------------------------------
+   Sound-off viewers read this; the recorded VO follows it line for line. */
+const caps = LSCaptions({
+  mount: '#caps',
+  track: LSCaptions.pace([
+    ['تبي تعرف', 0.65], ['ليش شريت', 0.70], ['والسعر نزل؟', 0.90],
+    ['الشمعة كانت قوية', 1.00], ['وستوبك طق', 0.90],
+    ['شلون؟', 0.70], ['تعال اقولك', 0.80],
+    ['الناس تشوف الشمعة', 0.95], ['من برّه بس', 0.95],
+    ['لكن بالواقع؟', 1.05],
+    ['داخل الشمعة', 0.85], ['<em>شراء عدواني</em>', 1.15],
+    ['والسعر', 0.60], ['ما تقدّم ولا نقطة', 1.25],
+    ['اهي الشمعة', 0.90], ['اللي تشتري فيها', 1.00], ['والسعر ينزل', 1.10],
+    ['تعرف تقراها', 0.90], ['من داخلها؟', 1.00],
+    ['تابع البوست الجاي', 1.40]
+  ], { start: 0.1 })
+});
+
+/* ---- the overlay clock ------------------------------------------------ */
+const hookEl = document.getElementById('hook');
+const verdEl = document.getElementById('verdict');
+const cardEl = document.getElementById('fpcard');
+const ease   = k => k * k * (3 - 2 * k);
+const seg    = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
+
+/* A wipe, not a fade: the words are uncovered left-to-right so they arrive
+   with the motion already on screen instead of materialising over it. */
+function wipe(el, p) {
+  el.firstElementChild.style.clipPath = `inset(0 0 0 ${(1 - p) * 100}%)`;
+}
+
+function seekAll(t) {
+  /* The seam rewinds the replay rather than cutting: the final frame is
+     literally frame 0, so the loop has no seam to see. */
+  let ct = t;
+  if (t > SEAM) ct = CHART_END * (1 - ease(seg(t, SEAM, TOTAL - SEAM)));
+  ch.seek(Math.min(ct, CHART_END));
+  fp.seek(t);
+  caps.seek(t > SEAM ? -1 : t);
+
+  // HOOK: in at 0.35, out once the paradox has landed
+  const hIn = ease(seg(t, 0.35, 0.55));
+  wipe(hookEl, hIn);
+  hookEl.style.opacity = hIn * (1 - ease(seg(t, 3.5, 0.4)));
+
+  // VERDICT: the emotional peak, at 66% of runtime
+  const vIn = ease(seg(t, 13.6, 0.5));
+  wipe(verdEl, vIn);
+  const vOut = ease(seg(t, 15.5, 0.45));
+  verdEl.style.opacity = vIn * (1 - vOut);
+  document.getElementById('scrim').style.opacity = (vIn * (1 - vOut) * 0.96).toFixed(3);
+
+  // the footprint card rises with the ladder and leaves before the seam
+  const cIn = ease(seg(t, FP_IN - 0.25, 0.45)) * (1 - ease(seg(t, SEAM - 0.7, 0.5)));
+  cardEl.style.opacity = cIn;
+  cardEl.style.transform = `translateY(${(1 - cIn) * 52}px)`;
+}
+
+window.LS_SIZE = [1080, 1920];
+window.LS_DURATION = TOTAL;
+window.LS_TAIL = 0;              // the last frame is the loop seam — nothing after it
+window.LS_VIOLATIONS = ch.violations;
+window.seekTo = t => { seekAll(t); return true; };
+seekAll(0);
+document.fonts.ready.then(() => { seekAll(0); window.LS_READY = true; });
+
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now) {
+    const t = ((now - t0) / 1000) % TOTAL;     // preview loops, to check the seam
+    seekAll(t);
+    requestAnimationFrame(loop);
+  })(t0);
+}
+</script>

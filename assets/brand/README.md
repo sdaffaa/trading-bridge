@@ -147,6 +147,16 @@ Pass `autoTerminate: true` and every level and box ends itself at the candle tha
 |---|---|---|
 | Static markup slide / slow-draw reel | `MARKUP.md` | `markup-demo.html`, `markup-motion.html` |
 | Split-screen: face + chart + captions | `FORMAT-REEL-SPLIT.md` | `reel-split-demo.html` |
+| Full-frame chart + footprint (faceless) | `reel-footprint.md` | `reel-footprint.html` |
+
+The footprint reel is the worked example of the whole system on one clock: bar replay, markup,
+a footprint that builds price by price, and captions all driven by the same `seek(t)`. Runtime
+(20.6s) comes from the account's measured average watch, and its recording sheet — the 11-beat
+script with per-beat timings and the skip-risk score — is in
+[`reel-footprint.md`](reel-footprint.md). **It ships without a voiceover; record the lines on
+their timings before posting.** Its last frame is pixel-identical to frame 0, so it loops seamlessly.
+
+![Footprint reel](reel-footprint-poster.png)
 
 The split-screen format runs **two clocks**: captions change every ~0.6s while the chart changes
 every ~3.5s — roughly six captions per chart beat. Uses the `terminal` dark theme.

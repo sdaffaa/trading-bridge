@@ -10,6 +10,8 @@ PORT = 9333
 PAGE = sys.argv[1]
 OUT = sys.argv[2]
 FPS = int(sys.argv[3]) if len(sys.argv) > 3 else 30
+# Default is the 4:5 post canvas; a page that is a different shape says so in
+# window.LS_SIZE and the viewport is re-fitted to it after load.
 W, H = 1080, 1350
 
 frames = os.path.join(os.path.dirname(OUT), "_frames")
@@ -69,8 +71,28 @@ for _ in range(120):
 else:
     proc.kill(); sys.exit("page never signalled LS_READY")
 
+size = ev("JSON.stringify(window.LS_SIZE || null)")
+if size:
+    W, H = json.loads(size)
+    cmd("Emulation.setDeviceMetricsOverride",
+        {"width": W, "height": H, "deviceScaleFactor": 1, "mobile": False})
+    print(f"canvas {W}x{H}")
+
+viol = json.loads(ev("JSON.stringify(window.LS_VIOLATIONS || [])"))
+if viol:
+    # A drawing that broke its own rule is a bug in the page. Say it before
+    # spending two minutes rendering it into something that looks finished.
+    for v in viol:
+        print("  ✗", json.dumps(v, ensure_ascii=False))
+    proc.kill(); sys.exit(f"{len(viol)} drawing violation(s) — fix the page first")
+
 dur = float(ev("window.LS_DURATION") or 0)
-total = dur + 1.5                      # hold the finished chart for a beat
+# A markup page holds on its finished chart for a beat. A looping reel must
+# not: the last frame is engineered to match the first, and a tail after it
+# is a visible stutter every time the reel repeats.
+tail = ev("window.LS_TAIL")
+tail = 1.5 if tail is None else float(tail)
+total = dur + tail
 n = int(total * FPS)
 print(f"timeline {dur:.2f}s → capturing {n} frames at {FPS}fps ({total:.2f}s)")
 

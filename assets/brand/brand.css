@@ -321,7 +321,11 @@
   --ls-watermark:      #7FA9B4;
 
   --ls-bullish:        #22D3DC;
-  --ls-bearish:        #041723;
+  /* On the light identity a down candle is the near-black navy. On this
+     background that navy IS the background, so the down candle becomes a
+     muted steel: still the quiet one of the pair, still not red — red is
+     reserved for invalidation here as everywhere. */
+  --ls-bearish:        #4E7182;
   --ls-structure:      #22D3DC;
   --ls-gridline:       #0E2430;
   --ls-invalid:        #E15A5A;
