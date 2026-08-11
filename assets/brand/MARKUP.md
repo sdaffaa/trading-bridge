@@ -208,6 +208,23 @@ ch.level({ price: 62, label: 'Liquidity', from: 30, to: 'edge' }); // untapped t
 A drawing that is **never broken runs to the right edge**, because it is still live — an
 unmitigated order block or an untested level genuinely does extend forward.
 
+### Snapping to the candle
+
+`snapToCandle: true` also enforces the geometry: a level lands on the nearer wick tip of its anchor
+candle, and a box expands to wrap that candle whole. A line drawn mid-candle marks a price the
+candle merely passed through, and a box cropped to the body hides the wick that did the sweeping.
+
+Snapping edits your numbers, so it never does it silently — every change lands in
+`ch.corrections` with the old value, the new one, and why. Targets opt out entirely:
+
+```js
+ch.level({ price: 62, label: 'Liquidity', from: 30, target: true, dashed: true });
+```
+
+A target has no anchor candle and cannot be broken, so it is exempt from snapping and termination
+alike — it only has to stay untouched. Mark it and the engine leaves it alone; forget to, and it
+gets snapped onto whatever candle happens to sit at its anchor bar.
+
 Anchors are checked too, but not silently corrected: a level starting on a candle that never
 traded at its price is a judgement call about which candle you meant, so the engine records it and
 leaves it to you. Read `ch.violations` after `layout()` — the demo prints them to the console and

@@ -64,6 +64,7 @@ const ch = LSChart({
   mount: '#chart', width: 960, height: 880, candles: series(),
   padding: { top: 34, right: 120, bottom: 54, left: 14 }, barsRight: 7,
   autoTerminate: true,     // every level/box ends at the candle that broke it
+  snapToCandle: true,      // levels land on wick tips, boxes wrap candles whole
   tolerance: 0.05          // levels are drawn at rounded prices — allow a tick
 });
 
@@ -77,34 +78,36 @@ ch.zone({ from: 12, top: 91.5, bottom: 88.5, label: 'Internal BSL', align: 'righ
 ch.zone({ from: 41, top: 87, bottom: 83.5, label: 'Small OB', tone: 'accent', align: 'right' });
 
 /* 3 — the diagonal, labelled along its own angle */
-ch.trend({ i1: 4, p1: 100, i2: 30, p2: 90, label: 'Trendline' });
+ch.trend({ i1: 4, p1: 101.19, i2: 30, p2: 89.41, label: 'Trendline' });
 
 /* 4 — structure zigzag through the swings, then the swing tags */
 ch.structure([
-  { i: 4, price: 100 }, { i: 22, price: 77 }, { i: 30, price: 90 },
-  { i: 50, price: 70 }, { i: 56, price: 77 }, { i: 62, price: 65 }
+  { i: 4, price: 101.19 }, { i: 22, price: 77.21 }, { i: 30, price: 89.41 },
+  { i: 50, price: 70.59 }, { i: 56, price: 78.41 }, { i: 61, price: 64.32 }
 ]);
-[[4,100,'(0)','above'],[22,77,'(1)','below'],[30,90,'(2)','above'],
- [50,70,'(3)','below'],[62,65,'(5)','below']]
+[[4,101.19,'(0)','above'],[22,77.21,'(1)','below'],[30,89.41,'(2)','above'],
+ [50,70.59,'(3)','below'],[61,64.32,'(5)','below']]
   .forEach(([i,price,label,place]) => ch.swing({ i, price, label, place }));
 
 /* 5 — the explanation lines: what happened, in order */
 ch.level({ price: 77.2136, label: 'Sweep',  from: 22 });   /* = the low of bar 22 */
 ch.level({ price: 83.5,  label: 'CHoCH',    from: 19 });
 ch.level({ price: 70.5916, label: 'BOS',    from: 50 });   /* = the low of bar 50 */
-ch.level({ price: 62,   label: 'Liquidity', from: 30, to: 'edge', dashed: true, tone: 'muted' });
+ch.level({ price: 62,   label: 'Liquidity', from: 30, target: true, dashed: true, tone: 'muted' });
 
 /* 6 — fib rail on the impulse leg, and where the idea dies */
-ch.fib({ i: 36, priceFrom: 70, priceTo: 90, levels: [0, 0.618, 1], width: 46 });
-ch.invalid({ i: 60, price: 87.8 });
+ch.fib({ i: 36, priceFrom: 70.59, priceTo: 89.41, levels: [0, 0.618, 1], width: 46 });
+ch.invalid({ i: 58, price: 86.07 });
 
 /* 7 — expected path */
-ch.structure([{ i: 61, price: 65 }, { i: 68, price: 62 }],
+ch.structure([{ i: 61, price: 64.32 }, { i: 68, price: 61 }],
              { tone: 'accent', projection: true });
 
 ch.layout();   /* measure labels, then break the lines around them */
 
 /* surfaced so a bad anchor can't ship silently */
 if (ch.violations.length) console.warn('drawing violations:', ch.violations);
-document.title = 'violations: ' + ch.violations.length;
+if (ch.corrections.length) console.info('snapped:', ch.corrections);
+document.title = 'violations: ' + ch.violations.length +
+                 ' · snapped: ' + ch.corrections.length;
 </script>

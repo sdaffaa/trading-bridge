@@ -16,16 +16,22 @@ This skill enforces two rules and gives you a script that checks them against re
 *Left: the same chart before checking — the liquidity band runs to the edge past the candle that
 re-entered it, and three levels are anchored to bars that never traded at their price. Right: after.*
 
-## The two rules
+## The rules
 
-**1. A drawing starts on the candle that created it.**
-A resistance line is the high of a specific candle. An order block is the range of a specific
-candle. If the anchor bar never traded at that price, the drawing is decoration floating in
-space — and every conclusion drawn from it is unearned.
+**1. A drawing is anchored to the candle that created it — exactly.**
+
+- **A line sits on a wick tip.** A level is the high or the low of a specific candle. Drawn
+  somewhere in the middle it marks a price the candle merely passed through — and a candle passes
+  through every price in its range, so the line says nothing in particular.
+- **A box wraps its candle whole, wick to wick.** Cropped to the body it hides the wick, and the
+  wick is the part that did the sweeping. An order block that excludes its own wick will show price
+  "missing" a zone it actually traded into.
+- If the anchor bar never traded at that price at all, the drawing is decoration floating in space,
+  and every conclusion drawn from it is unearned.
 
 **2. A drawing ends on the candle that broke it.**
-Once price trades through a level or back into a zone, that drawing's life is over. Extending
-it further asserts it was still acting as a level while price was already on the other side.
+Once price trades through a level or back into a zone, that drawing's life is over. Extending it
+further asserts it was still acting as a level while price was already on the other side.
 
 Everything else here is the detail of applying those two rules honestly.
 
@@ -136,9 +142,12 @@ Findings are not all equally serious, and the order matters:
 2. **`LONG`** — the headline error. Pull the endpoint back to the breaking bar.
 3. **`SHRT`** — the line stops before price actually broke it, which understates a level that was
    still working. Less visually offensive, equally untrue.
-4. **`FLOAT`** — a line running to the edge that price never returned to. Either it is a target
+4. **`EDGE` / `PART`** — the line is mid-candle instead of on a wick tip, or the box crops its
+   candle instead of wrapping it. `--snap` fixes both: it pulls the line onto the nearer tip and
+   expands the box to the candle's full range.
+5. **`FLOAT`** — a line running to the edge that price never returned to. Either it is a target
    (mark it as one) or it should not be on the chart.
-5. **`BAD`** — indices outside the series, inverted boxes, zero-height zones. Structural bugs.
+6. **`BAD`** — indices outside the series, inverted boxes, zero-height zones. Structural bugs.
 
 ## Reading levels off a screenshot
 

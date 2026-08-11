@@ -108,6 +108,24 @@
 
   const levelHolds = (price, tol) => c => c.l - tol <= price && price <= c.h + tol;
 
+  /* A level is a wick tip, not a price somewhere inside the candle: drawn
+     mid-candle it marks a price the candle merely passed through, which is
+     every price in its range. Returns the tip it should sit on. */
+  const nearestTip = (c, price) =>
+    Math.abs(c.h - price) <= Math.abs(c.l - price) ? c.h : c.l;
+  const onTip = (c, price, tol) =>
+    Math.min(Math.abs(price - c.h), Math.abs(price - c.l)) <= tol;
+
+  /* A box wraps its candles whole — cropped to the body it hides the wick,
+     which is the part that did the sweeping. */
+  function zoneExtent(candles, start, span) {
+    let hi = -Infinity, lo = Infinity;
+    for (let k = start; k < start + Math.max(1, span || 1) && k < candles.length; k++) {
+      hi = Math.max(hi, candles[k].h); lo = Math.min(lo, candles[k].l);
+    }
+    return { hi, lo };
+  }
+
   function LSChart(opts) {
     const {
       mount,
@@ -120,12 +138,16 @@
       barsRight = 6,           // empty bars kept at the right for projections
       anim = null,             // pass {} for defaults, or override any CADENCE key
       autoTerminate = false,   // end levels/zones at the candle that broke them
+      snapToCandle = false,    // pull levels onto wick tips, expand boxes to full candles
       tolerance = 0
     } = opts;
 
-    /* Drawings that were asked to run to the edge but shouldn't have, and
-       anchors that don't hold up. Read chart.violations after layout(). */
+    /* Drawings that don't hold up. Read chart.violations after layout(). */
     const violations = [];
+    /* Everything snapToCandle silently changed. Snapping edits your numbers,
+       so it reports what it did — a correction you can't see is a correction
+       you can't check. */
+    const corrections = [];
 
     /* Resolve a drawing's right edge.
          to: <number>  use it verbatim
@@ -226,7 +248,24 @@
     // The line breaks around the text — the signature of this markup method.
     function level({ price, label, from = 0, to, tone = 'primary',
                      dashed = false, at, dur, mode = 'touch', side = 'auto',
-                     tol = tolerance }) {
+                     tol = tolerance, edge = true, target = false }) {
+      /* A target marks price that hasn't happened yet — untapped liquidity, a
+         take-profit. It has no anchor candle, cannot be broken, and must never
+         be snapped onto one. It only has to stay untouched. */
+      if (target) { edge = false; to = 'edge'; }
+
+      const c0 = candles[from];
+      if (c0 && edge && !onTip(c0, price, tol)) {
+        const tip = nearestTip(c0, price);
+        if (snapToCandle) {
+          corrections.push({ id: label || 'level', kind: 'level', field: 'price',
+            from: price, to: tip, why: 'pulled onto the wick tip of bar ' + from });
+          price = tip;
+        }
+        else violations.push({ id: label || `level@${price}`, kind: 'level', status: 'edge',
+          message: `sits mid-candle at ${price}; bar ${from} runs ${c0.l}–${c0.h}, ` +
+                   `so the level is ${tip}` });
+      }
       const end = resolveEnd(to, () => {
         if (!candles[from]) return null;
         if (!levelHolds(price, tol)(candles[from])) {
@@ -277,7 +316,22 @@
 
     // ---- 2. zone / order block -------------------------------------------
     function zone({ from, to, top, bottom, label, tone = 'primary',
-                    align = 'center', at, dur, mode = 'touch', tol = tolerance }) {
+                    align = 'center', at, dur, mode = 'touch', tol = tolerance,
+                    whole = true, spanBars = 1 }) {
+      if (candles[from] && whole) {
+        const { hi, lo } = zoneExtent(candles, from, spanBars);
+        if (Math.abs(top - hi) > tol || Math.abs(bottom - lo) > tol) {
+          if (snapToCandle) {
+            corrections.push({ id: label || 'zone', kind: 'zone', field: 'extent',
+              from: [bottom, top], to: [lo, hi],
+              why: 'expanded to wrap bar ' + from + ' wick to wick' });
+            top = hi; bottom = lo;
+          }
+          else violations.push({ id: label || 'zone', kind: 'zone', status: 'partial',
+            message: `is ${bottom}–${top} but the candle(s) it wraps run ${lo}–${hi}; ` +
+                     `the box must cover them wick to wick` });
+        }
+      }
       const end = resolveEnd(to, () => {
         if (!candles[from]) return null;
         if (!zoneOverlap(top, bottom, tol)(candles[from])) {
@@ -605,6 +659,7 @@
       swing, fib, trend, invalid, volumeProfile, poc, position,
       layout, seek, play, duration,
       get violations() { return violations; },
+      get corrections() { return corrections; },
       get timeline() { return track; }
     };
     return api;
@@ -647,11 +702,19 @@
         if (d.top <= d.bottom) return F('invalid', `top must be above bottom`);
         if (!zoneOverlap(d.top, d.bottom, tol)(candles[start]))
           return F('anchor', `bar ${start} never trades in ${d.bottom}–${d.top}`);
+        if (d.whole !== false) {
+          const { hi, lo } = zoneExtent(candles, start, d.spanBars || 1);
+          if (Math.abs(d.top - hi) > tol || Math.abs(d.bottom - lo) > tol)
+            return F('partial', `is ${d.bottom}–${d.top} but the candle(s) run ${lo}–${hi}`);
+        }
         ({ brk, dep } = zoneBreakBar(candles, d.top, d.bottom, start, mode, tol));
         if (dep === null) return F('invalid', `price never leaves the zone after bar ${start}`);
       } else {
         if (!levelHolds(d.price, tol)(candles[start]))
           return F('anchor', `bar ${start} never reaches ${d.price}`);
+        if (d.edge !== false && !onTip(candles[start], d.price, tol))
+          return F('edge', `sits mid-candle at ${d.price}; bar ${start} runs ` +
+                           `${candles[start].l}–${candles[start].h}`);
         ({ brk, dep } = levelBreak(candles, d.price, start, mode, d.side || 'auto', tol));
         if (dep === null) return F('invalid', `price never leaves ${d.price} after bar ${start}`);
         if (brk === null) {

@@ -23,6 +23,9 @@ Spec format:
 Per-drawing options:
   mode   "touch" (default) | "close" | "fill"   — what counts as breaking it
   side   "above" | "below" | "auto" (default)   — levels only; which way price must go
+  edge   true (default)                         — levels only; must sit on a wick tip
+  whole  true (default)                         — zones only; must wrap the candle entirely
+  spanBars  int, default 1                      — zones only; how many candles the box wraps
   tolerance  float, default 0                   — absolute price slack for a touch
 
 Exit code 0 if every drawing is accurate, 1 if any violation was found.
@@ -31,8 +34,14 @@ Exit code 0 if every drawing is accurate, 1 if any violation was found.
 import json
 import sys
 
-OK, TOO_LONG, TOO_SHORT, FLOATING, ANCHOR, INVALID = (
-    "ok", "too_long", "too_short", "floating", "anchor", "invalid")
+OK, TOO_LONG, TOO_SHORT, FLOATING, ANCHOR, EDGE, PARTIAL, INVALID = (
+    "ok", "too_long", "too_short", "floating", "anchor", "edge", "partial", "invalid")
+
+
+def zone_extent(candles, start, span=1):
+    """Full range of the candle(s) the box is anchored to."""
+    seg = candles[start:start + max(1, span)]
+    return max(c["h"] for c in seg), min(c["l"] for c in seg)
 
 
 def nearest_anchor(candles, contains, start, span=8):
@@ -186,6 +195,15 @@ def check_drawing(candles, d):
             return finding(ANCHOR,
                            f"bar {start} never trades in {bottom}–{top}, so the box is "
                            f"anchored to a candle that did not create it{hint}")
+        # The box has to contain the candle whole. Cropped to the body it hides
+        # the wick — which is the part that did the sweeping.
+        if d.get("whole", True):
+            hi, lo = zone_extent(candles, start, d.get("spanBars", 1))
+            if abs(top - hi) > tol or abs(bottom - lo) > tol:
+                return finding(PARTIAL,
+                               f"is {bottom:.4g}–{top:.4g} but the candle(s) it wraps run "
+                               f"{lo:.4g}–{hi:.4g}; the box must cover them wick to wick")
+
         brk, dep = zone_break_bar(candles, top, bottom, start, mode, tol, dep_required)
         if dep is None:
             return finding(INVALID,
@@ -203,6 +221,17 @@ def check_drawing(candles, d):
                            f"bar {start} never reaches {price}, so the line starts from a "
                            f"candle that did not make that level{hint}",
                            None)
+        # A level is a wick tip. Drawn mid-candle it marks a price the candle
+        # merely passed through, which is every price in its range — the line
+        # then means nothing in particular.
+        if d.get("edge", True):
+            c0 = candles[start]
+            if min(abs(price - c0["h"]), abs(price - c0["l"])) > tol:
+                near = c0["h"] if abs(price - c0["h"]) <= abs(price - c0["l"]) else c0["l"]
+                return finding(EDGE,
+                               f"sits mid-candle at {price}; bar {start} runs "
+                               f"{c0['l']:.4g}–{c0['h']:.4g}, so the level is {near:.4g}")
+
         brk, dep = level_break_bar(candles, price, start, mode, side, tol, dep_required)
         if dep is None:
             return finding(INVALID,
@@ -262,21 +291,20 @@ def apply_fixes(spec, findings, snap=False):
             continue
         if f["status"] in (TOO_LONG, TOO_SHORT) and f["should_end_at"] is not None:
             d["to"] = f["should_end_at"]
-        elif f["status"] == ANCHOR and snap:
+        elif f["status"] in (ANCHOR, EDGE, PARTIAL) and snap:
             c = candles[d["from"]]
             if d.get("kind") == "level":
+                # pull the line onto whichever wick tip it was closest to
                 d["price"] = c["h"] if abs(c["h"] - d["price"]) <= abs(c["l"] - d["price"]) else c["l"]
             elif d.get("kind") == "zone":
-                h = d["top"] - d["bottom"]
-                mid = (c["h"] + c["l"]) / 2
-                d["top"], d["bottom"] = mid + h / 2, mid - h / 2
+                d["top"], d["bottom"] = zone_extent(candles, d["from"], d.get("spanBars", 1))
     return out
 
 
 # --------------------------------------------------------------------------
 
 ICON = {OK: "ok  ", TOO_LONG: "LONG", TOO_SHORT: "SHRT", FLOATING: "FLOAT",
-        ANCHOR: "ANCH", INVALID: "BAD "}
+        ANCHOR: "ANCH", EDGE: "EDGE", PARTIAL: "PART", INVALID: "BAD "}
 
 
 def main():
