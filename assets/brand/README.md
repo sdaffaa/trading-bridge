@@ -149,6 +149,7 @@ Pass `autoTerminate: true` and every level and box ends itself at the candle tha
 | Split-screen: face + chart + captions | `FORMAT-REEL-SPLIT.md` | `reel-split-demo.html` |
 | Full-frame chart + footprint (faceless) | `reel-footprint.md` | `reel-footprint.html` |
 | Documented trade, sweep → target | `reel-trade.md` | `reel-trade.html` |
+| Range + volume profile, value-edge entry | `reel-value.md` | `reel-value.html` |
 
 The footprint reel is the worked example of the whole system on one clock: bar replay, markup,
 a footprint that builds price by price, and captions all driven by the same `seek(t)`. Runtime
@@ -164,8 +165,21 @@ candles rather than typed, and the result stays hidden until the target is actua
 Each of the five drawings ends on the candle that ended it, so the accuracy rule is what tells
 the story. See [`reel-trade.md`](reel-trade.md).
 
+`reel-value.html` is part three, and a different model on a different chart: a range measured
+with a volume profile, an excursion above the VAH that fails to earn acceptance, entry on the
+close back inside value, stop above the excursion high, and two targets — POC then VAL. Its
+distinguishing claim is that the excursion clears the **value area** edge while staying inside
+the range's own extremes, so a range-breakout trader never sees the setup at all. POC/VAH/VAL
+come out of `volumeProfile()` and everything else is derived from them. See
+[`reel-value.md`](reel-value.md).
+
+> The profile is a **time-at-price approximation built from candle ranges**, not tick or
+> exchange volume — stated on the page itself as well as here. Pass `volumes` to
+> `volumeProfile()` on a feed that has real volume and the values become real.
+
 ![Footprint reel](reel-footprint-poster.png)
 ![Trade reel](reel-trade-poster.png)
+![Value reel](reel-value-poster.png)
 
 The split-screen format runs **two clocks**: captions change every ~0.6s while the chart changes
 every ~3.5s — roughly six captions per chart beat. Uses the `terminal` dark theme.

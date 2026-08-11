@@ -345,6 +345,13 @@
   --ls-fp-panel:       #04161F;
   --ls-fp-hi:          #22D3DC;
   --ls-glow:           rgba(34,211,220,.42);
+
+  /* Value is amber, structure is cyan. Two vocabularies on one chart need two
+     hues, or the reader has to be told which line means what every time. */
+  --ls-vp-bar:         #6E8A96;
+  --ls-vp-va:          #E0A33C;
+  --ls-vp-box:         #143845;
+  --ls-poc:            #E0A33C;
 }
 [data-ls-theme="dark"] {
   --ls-vp-bar: #2E4258;

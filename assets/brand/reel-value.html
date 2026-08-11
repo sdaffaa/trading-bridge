@@ -1,0 +1,349 @@
+<meta charset="utf-8">
+<title>Liquidity State — الدخول من حافة القيمة</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#000; }
+
+  .reel { width:1080px; height:1920px; position:relative; overflow:hidden;
+          font-family:var(--ls-font-ar); direction:rtl; color:var(--ls-text);
+          background:radial-gradient(120% 58% at 50% 28%, #06202E 0%, #010C17 74%); }
+
+  .ticker { position:absolute; top:152px; left:60px; direction:ltr;
+            font-size:26px; font-weight:700; letter-spacing:.10em;
+            color:var(--ls-text-secondary); }
+  .wm     { position:absolute; top:152px; right:60px; direction:ltr;
+            font-family:var(--ls-font-wordmark); font-size:24px; letter-spacing:.28em;
+            text-transform:uppercase; color:var(--ls-watermark); }
+
+  .chart  { position:absolute; top:226px; left:24px; width:1032px; }
+
+  .beat   { position:absolute; left:64px; right:64px; text-align:center;
+            font-weight:800; line-height:1.24; letter-spacing:-.01em;
+            text-shadow:0 6px 30px rgba(1,12,23,.85); }
+  #hook   { top:356px; font-size:86px; }
+  #verdict{ top:400px; font-size:76px; }
+  .beat em{ font-style:normal; color:var(--ls-text-accent); }
+  .beat > span { display:block; clip-path:inset(0 0 0 100%); }
+
+  .scrim  { position:absolute; top:196px; left:0; right:0; height:720px;
+            background:linear-gradient(180deg,rgba(1,12,23,0) 0%,rgba(1,12,23,.88) 22%,
+                       rgba(1,12,23,.88) 78%,rgba(1,12,23,0) 100%); opacity:0; }
+
+  .reel .ls-mk-label     { font-size: 29px; }
+  .reel .ls-mk-sticker-t { font-size: 31px; }
+  .reel .ls-mk-va-t      { font-size: 30px; font-weight: 800; }
+  .reel .ls-mk-poc-t     { font-size: 32px; }
+  .reel .ls-mk-line      { stroke-width: 2.4; }
+  .reel .ls-mk-marker    { stroke-width: 4; }
+  .reel .ls-grid         { opacity: .45; }
+
+  /* Four conditions, two by two. The model is a filter before it is an entry,
+     so the conditions are the interface — not a legend under a chart. Each is
+     on screen from frame 0, unmet, and ticks only when the chart satisfies it. */
+  .conds  { position:absolute; top:926px; left:44px; right:44px;
+            display:grid; grid-template-columns:1fr 1fr; gap:14px; direction:rtl; }
+  .cond   { display:flex; align-items:center; gap:16px;
+            border:1.5px solid #12414D; border-radius:16px; padding:18px 20px;
+            background:rgba(4,23,35,.55); opacity:.36; }
+  .cond i { flex:none; width:44px; height:44px; border-radius:999px;
+            border:2px solid #2A5F6E; color:#2A5F6E; font-style:normal;
+            font-size:24px; font-weight:800; line-height:40px; text-align:center; }
+  .cond span { font-size:30px; font-weight:800; line-height:1.3; color:#8FA8B4; }
+  .cond.on { opacity:1; border-color:var(--ls-text-accent);
+             background:rgba(34,211,220,.10);
+             box-shadow:0 0 26px -10px rgba(34,211,220,.55); }
+  .cond.on i { border-color:var(--ls-text-accent); color:var(--ls-text-accent); }
+  .cond.on span { color:#fff; }
+
+  /* The stop rule gets its own line, because it is the promise the previous
+     reel left open and it is the only arithmetic on screen. */
+  .stoprule { position:absolute; top:1120px; left:44px; right:44px;
+              border:1.5px solid var(--ls-card-border); border-radius:16px;
+              background:rgba(4,23,35,.9); padding:20px 26px;
+              display:flex; align-items:center; justify-content:space-between;
+              direction:rtl; opacity:0; }
+  .stoprule .lbl { font-size:31px; font-weight:800; color:var(--ls-text-accent); }
+  .stoprule .num { font-size:34px; font-weight:800; color:#fff; direction:ltr;
+                   font-variant-numeric:tabular-nums; }
+  .stoprule .num b { color:var(--ls-text-secondary); font-weight:700; }
+
+  /* Two targets, filled in as each is actually reached. Showing both R values
+     from the start would state results the chart has not produced. */
+  .tgts   { position:absolute; top:1214px; left:44px; right:44px;
+            display:grid; grid-template-columns:1fr 1fr; gap:14px; direction:rtl; }
+  .tgt    { border:1.5px solid #12414D; border-radius:16px; padding:16px 10px;
+            background:rgba(4,23,35,.55); text-align:center; opacity:.36; }
+  .tgt .k { font-size:25px; font-weight:700; color:var(--ls-text-secondary); }
+  .tgt .v { margin-top:8px; font-size:40px; font-weight:800; color:#8FA8B4;
+            direction:ltr; font-variant-numeric:tabular-nums; }
+  .tgt.on { opacity:1; border-color:var(--ls-text-accent);
+            background:rgba(34,211,220,.10);
+            box-shadow:0 0 26px -10px rgba(34,211,220,.55); }
+  .tgt.on .k { color:var(--ls-text-accent); }
+  .tgt.on .v { color:#fff; }
+
+  .caps .ls-reel-caption {
+    position:absolute; top:1362px; left:70px; right:70px; transform:none;
+    font-size:56px; line-height:1.2; padding:0;
+  }
+  .caps .ls-reel-caption em { color:var(--ls-text-accent); }
+
+  .disc   { position:absolute; top:1486px; left:0; right:0; text-align:center;
+            font-size:22px; font-weight:500; color:var(--ls-text-secondary); opacity:.7;
+            line-height:1.5; }
+</style>
+
+<div class="reel" data-ls-theme="cover">
+  <div class="ticker">XAUUSD · M15</div>
+  <div class="wm">Liquidity State</div>
+
+  <div class="chart"><div id="chart"></div></div>
+
+  <div class="scrim" id="scrim"></div>
+  <div class="beat" id="hook"><span>وين تحط<br>الستوب؟</span></div>
+  <div class="beat" id="verdict"><span>جذي تحط الستوب<br><em>بدون تخمين</em></span></div>
+
+  <div class="conds" id="conds">
+    <div class="cond"><i>1</i><span>رينج واضح — مو اتجاه</span></div>
+    <div class="cond"><i>2</i><span>خروج فوق الـ VAH</span></div>
+    <div class="cond"><i>3</i><span>إغلاق يرجع داخل القيمة</span></div>
+    <div class="cond"><i>4</i><span>الهدف POC بعدين VAL</span></div>
+  </div>
+
+  <div class="stoprule" id="stoprule">
+    <div class="lbl">الستوب فوق قمة الخروج</div>
+    <div class="num" id="stopnum">—</div>
+  </div>
+
+  <div class="tgts" id="tgts">
+    <div class="tgt" id="tgt-poc"><div class="k">الهدف الأول · POC</div><div class="v">—</div></div>
+    <div class="tgt" id="tgt-val"><div class="k">الهدف الثاني · VAL</div><div class="v">—</div></div>
+  </div>
+
+  <div class="caps" id="caps"></div>
+  <div class="disc">ملف تعريف حجم مبني على مدى الشموع (وقت عند السعر) — لا على حجم تِك<br>مثال تخطيطي لغرض تعليمي — ليست توصية</div>
+</div>
+
+<script src="./markup.js"></script>
+<script src="./captions.js"></script>
+<script>
+/* ==========================================================================
+   الدخول من حافة القيمة — a different model, on a different chart
+   Part three. Part two closed on "تعرف تحسب الستوب صح؟", and the stop rule
+   here is the answer, so the loop that reel opened is the hook of this one.
+
+   This model shares nothing with the sweep model except the brand:
+
+     sweep model                     value model
+     ───────────────                 ───────────────
+     needs a trend                   needs a RANGE — it is a regime filter first
+     entry from an FVG               entry from the close back inside value
+     stop above a swept wick         stop above the high of the failed excursion
+     one target: opposing liquidity  two: POC, then VAL
+
+   Beats (all 11, runtime 29.8s — a documented trade is allowed 25–35s):
+     1 HOOK      تبي تعرف وين تحط الستوب بدون تخمين؟
+     2 PARADOX   تحطه فوق أقرب ظل، وهو نفسه اللي يطقّه
+     3 PIVOT     شلون؟
+     4 INVITE    تعال اقولك
+     5 BELIEF    بالرينج الناس تتداول الاختراق
+     6 WHY       يشوفون شمعة قوية فوق ويشترون
+     7 TURN      لكن بالواقع؟ الرينج له منطقة قيمة …
+     8 VERDICT   جذي تحط الستوب بدون تخمين              ← reuses beat 1
+     9 PROOF     شوف — راح حق POC وبعدها VAL
+     10 CARE     بس لو ما فيه رينج، الطريقة ما تنفع
+     11 LOOP     تفرّق بين الرينج والاتجاه؟ تابع البوست الجاي
+
+   Anchor noun: الستوب. (Part one was الشمعة, part two الصفقة.)
+   ========================================================================== */
+
+const TOTAL = 29.8;
+const SEAM  = 28.6;
+
+/* ---- the range ---------------------------------------------------------
+   A mean-reverting walk, not a sine: a sine spends its time at the turns and
+   would put the POC at the edges of the range, which is the opposite of what
+   a balanced market looks like. Pulling toward the middle is what actually
+   builds a profile with a peak in it. */
+function rangeBars(n) {
+  let s = 20260811, p = 100;
+  const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const o = p;
+    const c = Math.max(93.10, Math.min(106.90, o + (100 - o) * 0.18 + rnd() * 7.0));
+    const w = 0.5 + Math.abs(rnd()) * 1.5;
+    out.push({
+      o, c,
+      h: Math.min(107.50, Math.max(o, c) + Math.abs(rnd()) * w),
+      l: Math.max(92.50, Math.min(o, c) - Math.abs(rnd()) * w)
+    });
+    p = c;
+  }
+  return out;
+}
+
+const C = rangeBars(38).concat([
+  /* The excursion. It clears the VAH but stays well inside the range's own
+     extremes — which is the point: this model trades the edge of VALUE, not
+     the edge of the range. That is exactly what everyone else is not doing. */
+  { o: 101.20, c: 102.30, h: 102.60, l: 101.00 },   // 38 — balance is leaving
+  { o: 102.30, c: 103.60, h: 103.90, l: 102.10 },   // 39
+  { o: 103.60, c: 104.80, h: 105.10, l: 103.40 },   // 40 — above the VAH
+  { o: 104.80, c: 105.40, h: 105.60, l: 104.60 },   // 41
+  { o: 105.40, c: 105.00, h: 105.80, l: 104.80 },   // 42 — the high of the excursion
+  { o: 105.00, c: 104.30, h: 105.20, l: 104.10 },   // 43 — acceptance failing
+  { o: 104.30, c: 103.80, h: 104.60, l: 103.60 },   // 44 — closes back inside value
+  { o: 103.80, c: 103.10, h: 104.10, l: 102.90 },   // 45
+  { o: 103.10, c: 103.50, h: 103.80, l: 102.80 },
+  { o: 103.50, c: 102.20, h: 103.70, l: 101.90 },
+  { o: 102.20, c: 101.30, h: 102.40, l: 101.00 },
+  { o: 101.30, c: 100.40, h: 101.50, l: 100.10 },   // 49 — through the POC
+  { o: 100.40, c: 101.00, h: 101.20, l: 100.20 },
+  { o: 101.00, c:  99.80, h: 101.20, l:  99.50 },
+  { o:  99.80, c:  98.90, h: 100.00, l:  98.60 },
+  { o:  98.90, c:  99.40, h:  99.60, l:  98.70 },
+  { o:  99.40, c:  98.20, h:  99.60, l:  97.90 },
+  { o:  98.20, c:  97.40, h:  98.40, l:  97.10 },   // 55 — through the VAL
+  { o:  97.40, c:  98.00, h:  98.20, l:  97.20 },
+  { o:  98.00, c:  97.60, h:  98.30, l:  97.30 }
+]);
+/* The profile measures the balance only — bar 38 is where price starts to
+   leave, so it is outside the window that defines value. */
+const RANGE_TO = 37;
+
+const ch = LSChart({
+  mount: '#chart', width: 1032, height: 674, candles: C,
+  padding: { top: 40, right: 108, bottom: 30, left: 18 },
+  barsRight: 1, barsVisible: 58,      // the whole range stays on screen: no pan
+  autoTerminate: true, tolerance: 0.01, anim: {}
+});
+ch.grid(4).drawCandles();
+
+const HOLDS = [
+  { atBar: 38, seconds: 3.8 },   // the balance is measured
+  { atBar: 43, seconds: 2.4 },   // it trades above the value area
+  { atBar: 45, seconds: 4.4 },   // it fails and comes back: the entry
+  { atBar: 50, seconds: 2.6 },   // first target
+  { atBar: 56, seconds: 4.2 }    // second target
+];
+ch.replay({ rate: 4.5, window: 58, start: 24, at: 0, holds: HOLDS });
+const H = Object.fromEntries(HOLDS.map(h => [h.atBar, h.t]));
+
+/* Step 1 — measure the balance. Every level in this reel comes out of this
+   one call; none of them is a price anyone chose. */
+ch.volumeProfile({ from: 0, to: RANGE_TO, bins: 30, widthPct: 0.18,
+                   valueArea: 0.70, showVA: true, at: H[38] + 0.2, dur: 1.2 });
+const P = ch.profile;
+const POC = P.poc, VAH = P.vah, VAL = P.val;
+
+ch.poc({ price: POC, from: 0, label: 'POC', at: H[38] + 1.7, dur: 0.6 });
+
+/* ---- the trade, derived ------------------------------------------------
+   ENTRY the close that came back inside value — the failure itself
+   STOP  the high of the excursion, which is the only price that would prove
+         acceptance after all; not the nearest wick
+   TP1   the POC · TP2 the VAL                                              */
+const ENTRY = C[44].c;
+const STOP  = C[42].h;
+const RISK  = STOP - ENTRY;
+const R1 = (ENTRY - POC) / RISK;
+const R2 = (ENTRY - VAL) / RISK;
+
+ch.sticker({ i: 42, price: STOP, text: 'قمة الخروج', dy: -74, at: H[43] + 0.4 });
+ch.sticker({ i: 44, price: ENTRY, text: 'رجع داخل القيمة', dy: 78, dx: 40,
+             at: H[45] + 0.4 });
+ch.position({ from: 44, to: 55, entry: ENTRY, stop: STOP, target: VAL,
+              at: H[45] + 1.1, dur: 1.0 });
+
+ch.layout();
+const CHART_END = ch.duration();
+
+const f2 = v => v.toFixed(2);
+document.getElementById('stopnum').innerHTML =
+  `${f2(STOP)} <b>−</b> ${f2(ENTRY)} <b>=</b> ${f2(RISK)}`;
+
+const caps = LSCaptions({
+  mount: '#caps',
+  track: LSCaptions.pace([
+    ['تبي تعرف', 0.50], ['وين تحط الستوب', 0.90], ['بدون تخمين؟', 0.95],
+    ['تحطه فوق أقرب ظل', 0.95], ['وهو نفسه اللي يطقّه', 1.00],
+    ['شلون؟', 0.62], ['تعال اقولك', 0.75],
+    ['بالرينج الناس تتداول الاختراق', 1.30],
+    ['لكن بالواقع؟', 0.95],
+    ['الرينج له <em>منطقة قيمة</em>', 1.35],
+    ['فوقها VAH وتحتها VAL', 1.30], ['ووسطها POC', 0.95],
+    ['الخروج فوق VAH', 1.00], ['مو اختراق — لين يقبل', 1.25],
+    ['ما قبل', 0.62], ['رجع وصكّر داخل القيمة', 1.30], ['هني الدخول', 0.90],
+    ['والستوب فوق <em>قمة الخروج</em>', 1.45], ['مو فوق أقرب ظل', 1.05],
+    ['شوف — راح حق POC', 1.25], ['وبعدها VAL', 1.05],
+    ['جذي تحط الستوب', 1.00], ['بدون تخمين', 1.00],
+    ['بس لو ما فيه رينج', 1.05], ['الطريقة ما تنفع', 1.00],
+    ['تفرّق بين الرينج والاتجاه؟', 1.35], ['تابع البوست الجاي', 1.35]
+  ], { start: 0.1 })
+});
+
+/* ---- the overlay clock ------------------------------------------------ */
+const hookEl  = document.getElementById('hook');
+const verdEl  = document.getElementById('verdict');
+const scrimEl = document.getElementById('scrim');
+const ruleEl  = document.getElementById('stoprule');
+const tPoc    = document.getElementById('tgt-poc');
+const tVal    = document.getElementById('tgt-val');
+const condEls = [...document.querySelectorAll('.cond')];
+const ease = k => k * k * (3 - 2 * k);
+const seg  = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
+const wipe = (el, p) => { el.firstElementChild.style.clipPath = `inset(0 0 0 ${(1 - p) * 100}%)`; };
+
+/* A condition ticks only when the chart has actually satisfied it — the times
+   come off the same holds the chart runs on, so the two cannot disagree. */
+const COND_AT = [H[38] + 1.4, H[43] + 0.5, H[45] + 0.5, H[50] + 0.4];
+
+function seekAll(t) {
+  let ct = t;
+  if (t > SEAM) ct = CHART_END * (1 - ease(seg(t, SEAM, TOTAL - SEAM)));
+  ch.seek(Math.min(ct, CHART_END));
+  caps.seek(t > SEAM ? -1 : t);
+
+  const past = x => (t > SEAM ? false : t >= x);
+  condEls.forEach((el, i) => el.classList.toggle('on', past(COND_AT[i])));
+
+  const hIn = ease(seg(t, 0.35, 0.55));
+  wipe(hookEl, hIn);
+  hookEl.style.opacity = hIn * (1 - ease(seg(t, 3.7, 0.4)));
+
+  /* Each target fills in only once price has actually traded there. */
+  const gotPoc = past(H[50] + 0.5), gotVal = past(H[56] + 0.6);
+  tPoc.classList.toggle('on', gotPoc);
+  tVal.classList.toggle('on', gotVal);
+  tPoc.lastElementChild.textContent = gotPoc ? '+' + R1.toFixed(2) + 'R' : '—';
+  tVal.lastElementChild.textContent = gotVal ? '+' + R2.toFixed(2) + 'R' : '—';
+
+  const vIn = ease(seg(t, 23.9, 0.5)), vOut = ease(seg(t, 26.9, 0.5));
+  wipe(verdEl, vIn);
+  verdEl.style.opacity = vIn * (1 - vOut);
+  scrimEl.style.opacity = (vIn * (1 - vOut) * 0.96).toFixed(3);
+
+  const rIn = ease(seg(t, H[45] + 1.6, 0.5)) * (1 - ease(seg(t, SEAM - 0.7, 0.5)));
+  ruleEl.style.opacity = rIn;
+  ruleEl.style.transform = `translateY(${(1 - rIn) * 38}px)`;
+}
+
+window.LS_SIZE = [1080, 1920];
+window.LS_DURATION = TOTAL;
+window.LS_TAIL = 0;
+window.LS_VIOLATIONS = ch.violations;
+window.LS_MODEL = {
+  POC, VAH, VAL, ENTRY, STOP, RISK, R1, R2,
+  rangeHi: P.hi, rangeLo: P.lo,
+  chartEnd: CHART_END, caps: caps.duration(), holds: H
+};
+window.seekTo = t => { seekAll(t); return true; };
+seekAll(0);
+document.fonts.ready.then(() => { seekAll(0); window.LS_READY = true; });
+
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now) { seekAll(((now - t0) / 1000) % TOTAL); requestAnimationFrame(loop); })(t0);
+}
+</script>
