@@ -1,0 +1,4 @@
+
+# byte-compiled artifacts from the session hook validation
+__pycache__/
+*.pyc
