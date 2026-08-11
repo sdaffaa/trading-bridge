@@ -140,6 +140,16 @@
     "sweep.depth",
     "signal.range"
    ]
+  },
+  {
+   "tag": "gc_sc_2026-08-11_0554",
+   "keys": [
+    "4H.expand_4h",
+    "1D.pd_room",
+    "1h.hl",
+    "sweep.pool",
+    "signal.wick"
+   ]
   }
  ]
 }
