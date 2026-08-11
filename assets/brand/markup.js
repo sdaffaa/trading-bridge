@@ -107,6 +107,7 @@
       track.push(Object.assign({ nodes: [].concat(nodes), kind, t0, dur }, extra || {}));
     }
     function schedule(type, at, dur) {
+      if (!A) return { t0: 0, dur: 0 };      // static chart — nothing to sequence
       const d = dur != null ? dur : A.dur[type];
       const t0 = at != null ? at : cursor;
       if (at == null) cursor = t0 + d + A.rest;

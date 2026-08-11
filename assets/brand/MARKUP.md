@@ -180,6 +180,19 @@ Render to PNG:
 
 ---
 
+## Accuracy
+
+Drawing it in the right style is half of it; drawing it in the right *place* is the other half.
+Every line and box must be anchored to the candle that created it and must stop at the candle that
+broke it — past that point it is asserting a level held while price was already through it.
+
+Run the `chart-drawing-accuracy` skill before rendering. Its checker takes the candles plus the
+markup calls and reports any drawing that is too long, cut short, or floating:
+
+```bash
+python3 .claude/skills/chart-drawing-accuracy/scripts/verify_drawing.py spec.json
+```
+
 ## Real charts
 
 The demo uses a deterministic synthetic series and is labelled **مثال تخطيطي** on the slide.
