@@ -630,6 +630,19 @@
 [data-ls-theme="cover"] .ls-fp-wick,
 [data-ls-theme="cover"] .ls-fp-body   { filter: drop-shadow(0 0 8px var(--ls-glow)); }
 
+/* Risk and reward have to be legible against a near-black ground, where a 16%
+   tint is invisible. The ratio between the two blocks is the whole point of
+   drawing them, so they are given enough fill to be compared at a glance. */
+[data-ls-theme="cover"] .ls-mk-pos-target {
+  fill: color-mix(in srgb, var(--ls-bullish) 26%, transparent);
+  stroke: color-mix(in srgb, var(--ls-bullish) 55%, transparent); stroke-width: 1.5;
+}
+[data-ls-theme="cover"] .ls-mk-pos-stop {
+  fill: color-mix(in srgb, var(--ls-invalid) 30%, transparent);
+  stroke: color-mix(in srgb, var(--ls-invalid) 65%, transparent); stroke-width: 1.5;
+}
+[data-ls-theme="cover"] .ls-mk-pos-entry { stroke: #FFFFFF; stroke-width: 2.2; }
+
 /* Chart markup inside a carousel page is read on a phone at arm's length.
    The reel scales markup up for the same reason; a page is read a little
    closer, so it lands between the two. */

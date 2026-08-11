@@ -1,0 +1,333 @@
+<meta charset="utf-8">
+<title>Liquidity State — صفقة كاملة</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#000; }
+
+  .reel { width:1080px; height:1920px; position:relative; overflow:hidden;
+          font-family:var(--ls-font-ar); direction:rtl; color:var(--ls-text);
+          background:radial-gradient(120% 58% at 50% 30%, #06202E 0%, #010C17 74%); }
+
+  .ticker { position:absolute; top:152px; left:60px; direction:ltr;
+            font-size:26px; font-weight:700; letter-spacing:.10em;
+            color:var(--ls-text-secondary); }
+  .wm     { position:absolute; top:152px; right:60px; direction:ltr;
+            font-family:var(--ls-font-wordmark); font-size:24px; letter-spacing:.28em;
+            text-transform:uppercase; color:var(--ls-watermark); }
+
+  .chart  { position:absolute; top:230px; left:24px; width:1032px; }
+
+  .beat   { position:absolute; left:64px; right:64px; text-align:center;
+            font-weight:800; line-height:1.24; letter-spacing:-.01em;
+            text-shadow:0 6px 30px rgba(1,12,23,.85); }
+  #hook   { top:360px; font-size:86px; }
+  #verdict{ top:392px; font-size:74px; }
+  .beat em{ font-style:normal; color:var(--ls-text-accent); }
+  .beat > span { display:block; clip-path:inset(0 0 0 100%); }
+
+  .scrim  { position:absolute; top:200px; left:0; right:0; height:720px;
+            background:linear-gradient(180deg,rgba(1,12,23,0) 0%,rgba(1,12,23,.88) 22%,
+                       rgba(1,12,23,.88) 78%,rgba(1,12,23,0) 100%); opacity:0; }
+
+  .reel .ls-mk-label     { font-size: 30px; }
+  .reel .ls-mk-sticker-t { font-size: 32px; }
+  .reel .ls-mk-line      { stroke-width: 2.4; }
+  .reel .ls-mk-marker    { stroke-width: 4; }
+  .reel .ls-grid         { opacity: .5; }
+
+  /* The step strip. It is a progress bar as much as a legend: the viewer can
+     see how many steps are left, which is a reason to stay rather than a
+     decoration. Every chip is on screen from frame 0, dimmed; a step lighting
+     up is the reward for the seconds already spent. */
+  .steps  { position:absolute; top:958px; left:44px; right:44px;
+            display:flex; gap:12px; direction:rtl; }
+  .step   { flex:1; border:1.5px solid #12414D; border-radius:14px;
+            padding:16px 6px; text-align:center; background:rgba(4,23,35,.55);
+            opacity:.34; }
+  .step .n { font-family:var(--ls-font-wordmark); font-size:22px; font-weight:700;
+             color:var(--ls-text-secondary); direction:ltr; }
+  .step .t { margin-top:8px; font-size:30px; font-weight:800; color:#8FA8B4; }
+  .step.on { opacity:1; border-color:var(--ls-text-accent);
+             background:rgba(34,211,220,.10);
+             box-shadow:0 0 26px -8px rgba(34,211,220,.55); }
+  .step.on .n { color:var(--ls-text-accent); }
+  .step.on .t { color:#fff; }
+
+  /* The trade card. Four numbers, none of them typed by hand — every one is
+     read back off the candles, and R is arithmetic on the other three. */
+  .card   { position:absolute; top:1108px; left:80px; width:920px;
+            border:1.5px solid var(--ls-card-border); border-radius:22px;
+            background:rgba(4,23,35,.9); box-sizing:border-box;
+            padding:24px 18px; display:flex; direction:rtl; opacity:0; }
+  .card > div { flex:1; text-align:center; }
+  .card > div + div { border-right:1.5px solid rgba(18,65,77,.9); }
+  .card .k { font-size:25px; font-weight:700; color:var(--ls-text-secondary);
+             letter-spacing:.02em; }
+  .card .v { margin-top:12px; font-size:46px; font-weight:800; color:#fff; direction:ltr; }
+  .card .r .v { color:var(--ls-text-secondary); }
+  .card .r.hit .v { color:var(--ls-text-accent);
+                    text-shadow:0 0 30px rgba(34,211,220,.6); }
+
+  .caps .ls-reel-caption {
+    position:absolute; top:1372px; left:70px; right:70px; transform:none;
+    font-size:56px; line-height:1.2; padding:0;
+  }
+  .caps .ls-reel-caption em { color:var(--ls-text-accent); }
+
+  .disc   { position:absolute; top:1502px; left:0; right:0; text-align:center;
+            font-size:23px; font-weight:500; color:var(--ls-text-secondary); opacity:.7; }
+</style>
+
+<div class="reel" data-ls-theme="cover">
+  <div class="ticker">XAUUSD · M5</div>
+  <div class="wm">Liquidity State</div>
+
+  <div class="chart"><div id="chart"></div></div>
+
+  <div class="scrim" id="scrim"></div>
+  <div class="beat" id="hook"><span>وين كانت<br>الصفقة؟</span></div>
+  <div class="beat" id="verdict"><span>هني كانت الصفقة —<br>من نفس الشمعة<br>اللي <em>طقّت ستوبك</em></span></div>
+
+  <div class="steps" id="steps">
+    <div class="step"><div class="n">1</div><div class="t">سحب</div></div>
+    <div class="step"><div class="n">2</div><div class="t">كسر</div></div>
+    <div class="step"><div class="n">3</div><div class="t">فجوة</div></div>
+    <div class="step"><div class="n">4</div><div class="t">دخول</div></div>
+    <div class="step"><div class="n">5</div><div class="t">هدف</div></div>
+  </div>
+
+  <div class="card" id="card">
+    <div><div class="k">الدخول</div><div class="v" id="v-entry">—</div></div>
+    <div><div class="k">الستوب</div><div class="v" id="v-stop">—</div></div>
+    <div><div class="k">الهدف</div><div class="v" id="v-target">—</div></div>
+    <div class="r" id="cell-r"><div class="k">النتيجة</div><div class="v" id="v-r">—</div></div>
+  </div>
+
+  <div class="caps" id="caps"></div>
+  <div class="disc">مثال تخطيطي لغرض تعليمي — ليست توصية</div>
+</div>
+
+<script src="./markup.js"></script>
+<script src="./footprint.js"></script>
+<script src="./captions.js"></script>
+<script>
+/* ==========================================================================
+   صفقة كاملة — one documented short, sweep to target
+   Part two of the footprint series; part one ended on "تابع البوست الجاي".
+
+   All 11 beats are kept: a documented trade is allowed 25–35s because the
+   result is the payoff, and it earns the seconds. Runtime 32.0s.
+
+     1  HOOK      تبي تعرف وين كانت الصفقة بعد ما طق ستوبك؟
+     2  PARADOX   نفس الشمعة اللي خسّرتك، هي الدخول
+     3  PIVOT     شلون؟
+     4  INVITE    تعال اقولك خطوة خطوة
+     5  BELIEF    الناس تدخل مع الاختراق
+     6  WHY       شكله قوي، والشمعة كبيرة
+     7  TURN      لكن بالواقع؟ الاختراق كان سحب سيولة
+     8  VERDICT   هني كانت الصفقة — من نفس الشمعة اللي طقّت ستوبك   ← reuses 1
+     9  PROOF     شوف — راح حق الهدف
+     10 CARE      بس بدون كسر البنية، لا تدخل
+     11 LOOP      تعرف تحسب الستوب صح؟ تابع البوست الجاي
+
+   Not a single price below is typed into a label. Every number on screen is
+   read back off the candles, and R is arithmetic on three of them.
+   ========================================================================== */
+
+const TOTAL = 32.0;
+const SEAM  = 30.8;
+
+/* ---- the series -------------------------------------------------------
+   Written out, not generated. Every bar that carries a drawing has to hold an
+   exact value: bar 12's low IS the target, bar 20's high IS the liquidity,
+   bar 27's low IS the structure, and bar 30's low IS both the top of the gap
+   and the entry. A random walk cannot be asked to land on those. */
+const C = [
+  [95.00, 94.20, 95.40, 93.80], [94.20, 93.60, 94.60, 93.10],
+  [93.60, 94.10, 94.50, 93.20], [94.10, 92.80, 94.30, 92.40],
+  [92.80, 92.10, 93.10, 91.70], [92.10, 92.70, 93.00, 91.80],
+  [92.70, 91.60, 92.90, 91.20], [91.60, 90.90, 91.90, 90.50],
+  [90.90, 91.50, 91.80, 90.60], [91.50, 90.40, 91.70, 90.10],
+  [90.40, 90.80, 91.10, 90.00], [90.80, 90.40, 91.00, 89.90],
+  [90.40, 89.90, 90.60, 89.20],   // 12 — the low the trade will target
+  [89.90, 91.20, 91.50, 89.70], [91.20, 92.60, 92.90, 91.00],
+  [92.60, 92.00, 93.10, 91.60], [92.00, 93.80, 94.10, 91.90],
+  [93.80, 95.20, 95.50, 93.50], [95.20, 96.90, 97.30, 94.90],
+  [96.90, 98.40, 98.70, 96.60],
+  [98.40, 99.60, 100.00, 98.00],  // 20 — the high: buy-side liquidity
+  [99.60, 98.20, 99.20, 97.80], [98.20, 97.10, 98.60, 96.80],
+  [97.10, 98.00, 98.40, 96.90], [98.00, 96.80, 98.30, 96.40],
+  [96.80, 96.20, 97.10, 96.00], [96.20, 96.60, 96.90, 95.90],
+  [96.60, 97.40, 97.80, 95.80],   // 27 — the last low that built the leg
+  [97.40, 96.90, 97.60, 96.40], [96.90, 98.60, 99.00, 96.90],
+  [98.60, 99.20, 101.80, 97.50],  // 30 — sweeps the high, closes back under
+  [99.20, 95.50,  99.60, 95.00],  // 31 — displacement, closes under bar 27's low
+  [95.50, 93.80,  95.20, 93.20],  // 32 — its high is the floor of the gap
+  [93.80, 94.40,  95.00, 93.50], [94.40, 94.90, 95.10, 94.30],
+  [94.90, 96.90,  97.50, 94.80],  // 35 — taps the top of the gap: the entry
+  [96.90, 95.20,  97.10, 95.00], [95.20, 93.20, 95.40, 92.90],
+  [93.20, 92.10,  93.40, 91.80], [92.10, 92.80, 93.10, 91.60],
+  [92.80, 91.40,  93.00, 91.10], [91.40, 90.60, 91.70, 90.30],
+  [90.60, 91.10,  91.40, 90.40], [91.10, 90.00, 91.20, 89.70],
+  [90.00, 89.40,  90.10, 89.20],  // 44 — the target is reached
+  [89.40, 90.30,  90.60, 89.30], [90.30, 90.90, 91.20, 90.10],
+  [90.90, 90.20,  91.10, 89.90]
+].map(([o, c, h, l]) => ({ o, c, h, l }));
+
+/* ---- the trade, derived ------------------------------------------------
+   BSL   the high of bar 20            — what the sweep goes to collect
+   MSS   the low of bar 27             — the structure that has to break
+   FVG   bar 32's high → bar 30's low  — the gap the displacement left
+   ENTRY the top of that gap           — which is also bar 30's low
+   STOP  the high of the sweep         — above the wick, not above the body
+   TGT   the low of bar 12             — the sell-side liquidity underneath   */
+const BSL   = C[20].h;
+const MSS   = C[27].l;
+const FVG_B = C[32].h, FVG_T = C[30].l;
+const ENTRY = FVG_T;
+const STOP  = C[30].h;
+const TGT   = C[12].l;
+const R     = (ENTRY - TGT) / (STOP - ENTRY);
+
+const ch = LSChart({
+  mount: '#chart', width: 1032, height: 700, candles: C,
+  padding: { top: 40, right: 40, bottom: 30, left: 20 },
+  barsRight: 2, barsVisible: 28,
+  autoTerminate: true, tolerance: 0.01, anim: {}
+});
+ch.grid(4).drawCandles();
+
+/* ---- the chart clock --------------------------------------------------
+   A hold's atBar is the bar the replay stops BEFORE, so a hold that looks at
+   bar N is written as N+1. Six stops, one per step of the trade. */
+const HOLDS = [
+  { atBar: 21, seconds: 1.6 },   // the liquidity is marked
+  { atBar: 31, seconds: 2.6 },   // the sweep
+  { atBar: 32, seconds: 2.4 },   // the break of structure
+  { atBar: 33, seconds: 2.2 },   // the gap it left behind
+  { atBar: 36, seconds: 3.6 },   // the entry, and the risk around it
+  { atBar: 45, seconds: 3.6 }    // the target
+];
+ch.replay({ rate: 3.2, window: 28, start: 14, at: 0, holds: HOLDS });
+const H = Object.fromEntries(HOLDS.map(h => [h.atBar, h.t]));
+
+/* Step 1 — the liquidity. Terminates on bar 30, the bar that takes it, and
+   that termination is the sweep: the drawing ends because the level was
+   collected, which is exactly what the reel is about. */
+ch.level({ price: BSL, from: 20, label: 'سيولة شرائية', dashed: true,
+           at: H[21] + 0.15, dur: 0.55 });
+ch.sticker({ i: 30, price: STOP, text: 'سحب', dy: -66, at: H[31] + 0.3 });
+
+/* Step 2 — the structure. mode:'close' again: a wick under bar 27's low is
+   noise, a close under it is a change of character. */
+ch.level({ price: MSS, from: 27, label: 'آخر قاع', mode: 'close', tone: 'accent',
+           at: H[32] + 0.15, dur: 0.5 });
+ch.sticker({ i: 31, price: C[31].l, text: 'كسر البنية', dy: 76, at: H[32] + 0.9 });
+
+/* Step 3 — the gap. whole:false because an FVG is the space BETWEEN two
+   candles, not the extent of one, so the wrap-the-candle rule cannot apply.
+   It ends on bar 35, the bar that trades back into it — the entry bar. */
+ch.zone({ from: 32, top: FVG_T, bottom: FVG_B, label: 'فجوة', tone: 'accent',
+          whole: false, align: 'left', at: H[33] + 0.2, dur: 0.7 });
+
+/* Steps 4 + 5 — the position. Risk above the wick that swept, reward at the
+   liquidity underneath. */
+/* to:44 — the trade's boxes end where the trade ended, on the bar that paid. */
+ch.position({ from: 35, to: 44, entry: ENTRY, stop: STOP, target: TGT,
+              at: H[36] + 0.25, dur: 1.0 });
+ch.level({ price: TGT, from: 12, label: 'سيولة بيعية', dashed: true, tone: 'muted',
+           at: H[36] + 1.3, dur: 0.6 });
+/* Above the bar, not below it: the target is the bottom of the range, and a
+   label hung under it falls off the plot. */
+ch.sticker({ i: 44, price: TGT, text: 'وصل الهدف', dy: -78, dx: -96, at: H[45] + 0.5 });
+
+ch.layout();
+const CHART_END = ch.duration();
+
+/* ---- the numbers on the card, formatted from the same variables -------- */
+const f2 = v => v.toFixed(2);
+document.getElementById('v-entry').textContent  = f2(ENTRY);
+document.getElementById('v-stop').textContent   = f2(STOP);
+document.getElementById('v-target').textContent = f2(TGT);
+/* The result stays withheld until the target is actually reached. Printing it
+   next to the entry would spoil the only thing the viewer is waiting for, and
+   it would state an outcome the chart has not produced yet. */
+const R_TEXT = '+' + R.toFixed(2) + 'R';
+
+const caps = LSCaptions({
+  mount: '#caps',
+  track: LSCaptions.pace([
+    ['تبي تعرف', 0.60], ['وين كانت الصفقة', 0.85], ['بعد ما طق ستوبك؟', 1.00],
+    ['نفس الشمعة اللي خسّرتك', 1.05], ['هي الدخول', 0.85],
+    ['شلون؟', 0.65], ['تعال اقولك خطوة خطوة', 1.25],
+    ['الناس تدخل مع الاختراق', 1.20], ['شكله قوي', 0.70], ['والشمعة كبيرة', 0.90],
+    ['لكن بالواقع؟', 1.00], ['الاختراق كان <em>سحب سيولة</em>', 1.45],
+    ['صكّر تحت المستوى', 1.10], ['وكسر آخر قاع', 1.10], ['هني تغيّرت البنية', 1.20],
+    ['الدخول من الفجوة', 1.15], ['اللي خلاها النزول', 1.15],
+    ['الستوب فوق الهاي المسحوب', 1.40], ['والهدف السيولة اللي تحت', 1.40],
+    ['شوف — راح <em>حق الهدف</em>', 1.50],
+    ['هني كانت الصفقة', 1.10], ['من نفس الشمعة', 1.00], ['اللي طقّت ستوبك', 1.20],
+    ['بس بدون كسر البنية', 1.20], ['لا تدخل', 0.85],
+    ['تعرف تحسب الستوب صح؟', 1.40], ['تابع البوست الجاي', 1.40]
+  ], { start: 0.1 })
+});
+
+/* ---- the overlay clock ------------------------------------------------ */
+const hookEl  = document.getElementById('hook');
+const verdEl  = document.getElementById('verdict');
+const scrimEl = document.getElementById('scrim');
+const cardEl  = document.getElementById('card');
+const rCell   = document.getElementById('cell-r');
+const rEl     = document.getElementById('v-r');
+const stepEls = [...document.querySelectorAll('.step')];
+const ease = k => k * k * (3 - 2 * k);
+const seg  = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
+const wipe = (el, p) => { el.firstElementChild.style.clipPath = `inset(0 0 0 ${(1 - p) * 100}%)`; };
+
+/* A step lights when the bar that makes it has printed — the strip is driven
+   off the same hold times as the chart, so it can never disagree with it. */
+const STEP_AT = [H[31] + 0.3, H[32] + 0.3, H[33] + 0.3, H[36] + 0.3, H[45] + 0.3];
+
+function seekAll(t) {
+  let ct = t;
+  if (t > SEAM) ct = CHART_END * (1 - ease(seg(t, SEAM, TOTAL - SEAM)));
+  ch.seek(Math.min(ct, CHART_END));
+  caps.seek(t > SEAM ? -1 : t);
+
+  const past = x => (t > SEAM ? false : t >= x);
+  stepEls.forEach((el, i) => el.classList.toggle('on', past(STEP_AT[i])));
+  const hit = past(H[45] + 0.9);
+  rCell.classList.toggle('hit', hit);
+  rEl.textContent = hit ? R_TEXT : '—';
+
+  const hIn = ease(seg(t, 0.35, 0.55));
+  wipe(hookEl, hIn);
+  hookEl.style.opacity = hIn * (1 - ease(seg(t, 3.6, 0.4)));
+
+  /* The verdict waits until the target has landed and been read. Scrimming
+     the chart before that would hide the one thing the reel is here to show. */
+  const vIn = ease(seg(t, 25.9, 0.5)), vOut = ease(seg(t, 29.4, 0.5));
+  wipe(verdEl, vIn);
+  verdEl.style.opacity = vIn * (1 - vOut);
+  scrimEl.style.opacity = (vIn * (1 - vOut) * 0.96).toFixed(3);
+
+  const cIn = ease(seg(t, H[36] - 0.2, 0.5)) * (1 - ease(seg(t, SEAM - 0.7, 0.5)));
+  cardEl.style.opacity = cIn;
+  cardEl.style.transform = `translateY(${(1 - cIn) * 44}px)`;
+}
+
+window.LS_SIZE = [1080, 1920];
+window.LS_DURATION = TOTAL;
+window.LS_TAIL = 0;
+window.LS_VIOLATIONS = ch.violations;
+window.LS_TRADE = { BSL, MSS, FVG_B, FVG_T, ENTRY, STOP, TGT, R,
+                    chartEnd: CHART_END, caps: caps.duration(), holds: H };
+window.seekTo = t => { seekAll(t); return true; };
+seekAll(0);
+document.fonts.ready.then(() => { seekAll(0); window.LS_READY = true; });
+
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now) { seekAll(((now - t0) / 1000) % TOTAL); requestAnimationFrame(loop); })(t0);
+}
+</script>

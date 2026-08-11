@@ -638,8 +638,13 @@
     // ---- 10. position tool (entry / stop / target) ------------------------
     function position({ from, to = null, entry, stop, target, at, dur }) {
       const x1 = X(from) - step / 2;
-      const x2 = to === null ? plotR : X(to) + step / 2;
-      const w = x2 - x1;
+      /* "to the right edge" means the edge of the SERIES, not of the plot.
+         On a replayed chart the bars run past plotR and travel into view on
+         gPan, so anchoring to plotR puts x2 left of x1 and the boxes come out
+         with a negative width — which renders as nothing at all. */
+      const x2 = to === null ? Math.max(plotR, X(candles.length - 1) + step / 2)
+                             : X(to) + step / 2;
+      const w = Math.max(0, x2 - x1);
       const yE = Y(entry), yS = Y(stop), yT = Y(target);
 
       const gt = el('rect', { class: 'ls-mk-pos-target', x: x1, y: Math.min(yE, yT),
