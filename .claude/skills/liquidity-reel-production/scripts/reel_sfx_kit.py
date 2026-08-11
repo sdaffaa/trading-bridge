@@ -392,6 +392,28 @@ def build_reel(cfg, out_html):
           const _lpv = document.getElementById("lpv");
           if (_lpv) _lpv.style.opacity = hide ? 0 : 1;
         }
+        // ونظير ذلك على محور الوقت: الطبقة تنزلق، فوسمٌ قد يمرّ نصفُه
+        // تحت حدّ اللوحة (فيُقرأ «l8» بدل «04:18») أو يقع تحت بطاقة وقت
+        // الكروسهير (فتُقرأ ساعتان فوق بعض). المنصّة تُسقط الوسم في
+        // الحالتين ولا تعرض نصفه — فيُخفى هنا كاملاً لا يُقصّ.
+        const _tlb = document.querySelectorAll(".tlb");
+        if (_tlb.length) {
+          const _st = _tlb[0].ownerSVGElement.getBoundingClientRect();
+          const _k = _st.width / CWc;                 // بكسل الشاشة لكل وحدة لوحة
+          const _L = _st.left + PLx * _k, _R = _st.left + (CWc - PRx) * _k;
+          let _tp = null;
+          if (inside) {
+            const _t = xh.querySelector(".xht");
+            const r = _t.getBoundingClientRect();
+            if (r.width > 0) _tp = r;
+          }
+          for (const el of _tlb) {
+            const b = el.getBoundingClientRect();
+            const cut = b.left < _L - 0.5 || b.right > _R + 0.5;
+            const over = _tp && !(b.right < _tp.left - 2 || b.left > _tp.right + 2);
+            el.style.opacity = (cut || over) ? 0 : 1;
+          }
+        }
       }
     }
   }

@@ -130,6 +130,16 @@
     "sweep.sweep",
     "signal.close_top"
    ]
+  },
+  {
+   "tag": "cl_sc_2026-08-11_0418",
+   "keys": [
+    "4H.ma_run",
+    "1D.pd_room",
+    "1h.room",
+    "sweep.depth",
+    "signal.range"
+   ]
   }
  ]
 }

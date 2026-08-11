@@ -88,7 +88,10 @@ def furniture(W, dec=2, sym="GC=F", tf="15m", tlabels=None, ticks=6, split=False
                 break
             (tg if split else g).append(
                 f'<line x1="{xx:.1f}" y1="{ytop}" x2="{xx:.1f}" y2="{ybot}" stroke="{GRID}" stroke-width="1.4"/>'
-                f'<text x="{xx:.1f}" y="{ybot + 30:.1f}" fill="{AXTX}" font-size="19" font-weight="600" '
+                # `class="tlb"`: الطبقة تنزلق، فوسمُ الوقت قد يمرّ تحت حدّ
+                # اللوحة أو تحت بطاقة وقت الكروسهير. المحرّك يخفيه عندها
+                # إطاراً بإطار (`reel_sfx_kit`) — والصنف هو مقبضه.
+                f'<text class="tlb" x="{xx:.1f}" y="{ybot + 30:.1f}" fill="{AXTX}" font-size="19" font-weight="600" '
                 f'text-anchor="middle" font-family="system-ui,sans-serif" direction="ltr">{tlabels[i]}</text>')
 
     # ── حدّا المحورين ──
