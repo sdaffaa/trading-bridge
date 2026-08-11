@@ -7620,6 +7620,14 @@
    "end": "2021-03-11",
    "label": "run52-tahammul",
    "video": "run52-entries-2026-08-11"
+  },
+  {
+   "symbol": "SPY",
+   "timeframe": "1d",
+   "start": "2020-09-09",
+   "end": "2020-11-09",
+   "label": "run53-baks",
+   "video": "run53-flow-2026-08-11"
   }
  ]
 }
