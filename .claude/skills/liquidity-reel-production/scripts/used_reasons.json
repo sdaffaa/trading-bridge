@@ -160,6 +160,16 @@
     "sweep.sweep",
     "signal.range"
    ]
+  },
+  {
+   "tag": "gc_sc_2026-08-11_0633",
+   "keys": [
+    "4H.ma_run",
+    "1D.pd_low",
+    "1h.room",
+    "sweep.depth",
+    "signal.wick"
+   ]
   }
  ]
 }
