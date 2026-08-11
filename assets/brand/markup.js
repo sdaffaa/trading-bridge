@@ -44,6 +44,70 @@
   const easeOut = p => 1 - Math.pow(1 - p, 3);
   const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
 
+  /* ========================================================================
+     Drawing rules — the same two rules the chart-drawing-accuracy skill
+     enforces, applied here so markup terminates correctly as it is drawn
+     instead of being corrected afterwards.
+
+     A drawing starts on the candle that created it and ends on the candle
+     that broke it. Nothing counts as a break until price has departed the
+     drawing at least once: a level is born touching price, so the bar right
+     after it is still on it — that is not a break, that is price not having
+     left yet.
+
+     Kept behaviourally identical to scripts/verify_drawing.py in the skill;
+     `npm test`-style parity is checked by tools/check-rules-parity.js.
+     ======================================================================== */
+
+  function firstDeparture(candles, start, touching) {
+    for (let j = start + 1; j < candles.length; j++) {
+      if (!touching(candles[j])) return j;
+    }
+    return null;                     // price never leaves → the anchor is wrong
+  }
+
+  function levelTouch(price, side, tol) {
+    return side === 'above'
+      ? c => c.h >= price - tol
+      : c => c.l <= price + tol;
+  }
+
+  function zoneOverlap(top, bottom, tol) {
+    return c => c.h >= bottom - tol && c.l <= top + tol;
+  }
+
+  /* Returns {brk, dep} — the breaking bar and the bar price first left on. */
+  function levelBreak(candles, price, start, mode, side, tol) {
+    if (side === 'auto') side = price >= candles[start].c ? 'above' : 'below';
+    const touching = levelTouch(price, side, tol);
+    const dep = firstDeparture(candles, start, touching);
+    if (dep === null) return { brk: null, dep: null };
+    for (let j = dep + 1; j < candles.length; j++) {
+      const c = candles[j];
+      const hit = mode === 'close'
+        ? (side === 'above' ? c.c > price + tol : c.c < price - tol)
+        : touching(c);
+      if (hit) return { brk: j, dep };
+    }
+    return { brk: null, dep };
+  }
+
+  function zoneBreakBar(candles, top, bottom, start, mode, tol) {
+    const overlaps = zoneOverlap(top, bottom, tol);
+    const dep = firstDeparture(candles, start, overlaps);
+    if (dep === null) return { brk: null, dep: null };
+    for (let j = dep + 1; j < candles.length; j++) {
+      const c = candles[j];
+      const hit = mode === 'fill' ? (c.l <= bottom + tol && c.h >= top - tol)
+                : mode === 'close' ? (c.c >= bottom - tol && c.c <= top + tol)
+                : overlaps(c);
+      if (hit) return { brk: j, dep };
+    }
+    return { brk: null, dep };
+  }
+
+  const levelHolds = (price, tol) => c => c.l - tol <= price && price <= c.h + tol;
+
   function LSChart(opts) {
     const {
       mount,
@@ -54,8 +118,30 @@
       priceRange = null,
       candleWidth = null,
       barsRight = 6,           // empty bars kept at the right for projections
-      anim = null              // pass {} for defaults, or override any CADENCE key
+      anim = null,             // pass {} for defaults, or override any CADENCE key
+      autoTerminate = false,   // end levels/zones at the candle that broke them
+      tolerance = 0
     } = opts;
+
+    /* Drawings that were asked to run to the edge but shouldn't have, and
+       anchors that don't hold up. Read chart.violations after layout(). */
+    const violations = [];
+
+    /* Resolve a drawing's right edge.
+         to: <number>  use it verbatim
+         to: 'auto'    always terminate at the break
+         to: 'edge'    always run to the right edge
+         to omitted    terminate at the break when autoTerminate is on
+       Returns null for "run to the edge". */
+    function resolveEnd(to, compute) {
+      if (typeof to === 'number') return to;
+      if (to === 'edge') return null;
+      if (to === 'auto' || (to == null && autoTerminate)) {
+        const r = compute();
+        return r === null ? null : r;
+      }
+      return null;
+    }
 
     const A = anim ? Object.assign({}, CADENCE, anim, {
       dur: Object.assign({}, CADENCE.dur, anim.dur)
@@ -138,11 +224,28 @@
 
     // ---- 1. level line with inline centred label --------------------------
     // The line breaks around the text — the signature of this markup method.
-    function level({ price, label, from = 0, to = null, tone = 'primary',
-                     dashed = false, at, dur }) {
+    function level({ price, label, from = 0, to, tone = 'primary',
+                     dashed = false, at, dur, mode = 'touch', side = 'auto',
+                     tol = tolerance }) {
+      const end = resolveEnd(to, () => {
+        if (!candles[from]) return null;
+        if (!levelHolds(price, tol)(candles[from])) {
+          violations.push({ id: label || `level@${price}`, kind: 'level', status: 'anchor',
+            message: `bar ${from} never reaches ${price} — the line starts from a candle ` +
+                     `that did not make that level` });
+        }
+        const { brk, dep } = levelBreak(candles, price, from, mode, side, tol);
+        if (dep === null) {
+          violations.push({ id: label || `level@${price}`, kind: 'level', status: 'invalid',
+            message: `price never leaves ${price} after bar ${from}` });
+          return null;
+        }
+        return brk;                       // null → never broken, run to the edge
+      });
+
       const y = Y(price);
       const x1 = X(from) - step / 2;
-      const x2 = to === null ? plotR : X(to) + step / 2;
+      const x2 = end === null ? plotR : X(end) + step / 2;
       const cls = `ls-mk-line ls-mk-${tone}` + (dashed ? ' ls-mk-dashed' : '');
 
       const lineA = el('line', { class: cls, x1, y1: y, x2, y2: y });
@@ -173,10 +276,26 @@
     }
 
     // ---- 2. zone / order block -------------------------------------------
-    function zone({ from, to = null, top, bottom, label, tone = 'primary',
-                    align = 'center', at, dur }) {
+    function zone({ from, to, top, bottom, label, tone = 'primary',
+                    align = 'center', at, dur, mode = 'touch', tol = tolerance }) {
+      const end = resolveEnd(to, () => {
+        if (!candles[from]) return null;
+        if (!zoneOverlap(top, bottom, tol)(candles[from])) {
+          violations.push({ id: label || 'zone', kind: 'zone', status: 'anchor',
+            message: `bar ${from} never trades in ${bottom}–${top} — the box is anchored ` +
+                     `to a candle that did not create it` });
+        }
+        const { brk, dep } = zoneBreakBar(candles, top, bottom, from, mode, tol);
+        if (dep === null) {
+          violations.push({ id: label || 'zone', kind: 'zone', status: 'invalid',
+            message: `price never leaves the zone after bar ${from}` });
+          return null;
+        }
+        return brk;
+      });
+
       const x1 = X(from) - step / 2;
-      const x2 = to === null ? plotR : X(to) + step / 2;
+      const x2 = end === null ? plotR : X(end) + step / 2;
       const yT = Y(top), yB = Y(bottom);
       const w = x2 - x1, h = Math.max(2, yB - yT);
 
@@ -485,10 +604,74 @@
       svg, X, Y, drawCandles, grid, level, zone, structure,
       swing, fib, trend, invalid, volumeProfile, poc, position,
       layout, seek, play, duration,
+      get violations() { return violations; },
       get timeline() { return track; }
     };
     return api;
   }
+
+  /* Standalone audit — same rules, no drawing. Mirrors verify_drawing.py so a
+     chart can be checked before it is built, or in a test. */
+  LSChart.audit = function (candles, drawings) {
+    const last = candles.length - 1;
+    return drawings.map(d => {
+      const id = d.id || d.kind || 'drawing';
+      const start = d.from == null ? 0 : d.from;
+      const end = d.to == null ? null : d.to;
+      const mode = d.mode || 'touch';
+      const tol = d.tolerance || 0;
+      const F = (status, message, should_end_at = null) =>
+        ({ id, kind: d.kind, status, message, should_end_at });
+
+      if (!Number.isInteger(start) || start < 0 || start > last)
+        return F('invalid', `origin bar ${start} is outside the series (0..${last})`);
+      if (end !== null && end < start)
+        return F('invalid', `ends at bar ${end}, before it starts at ${start}`);
+
+      if (d.kind === 'projection')
+        return end !== null && end <= last
+          ? F('too_short', `a projection should extend past the last bar (${last})`)
+          : F('ok', 'projection extends beyond the last bar, as intended');
+
+      if (d.kind === 'target') {
+        let hit = null;
+        for (let j = start; j <= last; j++)
+          if (levelHolds(d.price, tol)(candles[j])) { hit = j; break; }
+        return hit === null
+          ? F('ok', `untapped target at ${d.price}; price never gets there`)
+          : F('too_long', `declared a target, but price reaches ${d.price} at bar ${hit}`, hit);
+      }
+
+      let brk, dep;
+      if (d.kind === 'zone') {
+        if (d.top <= d.bottom) return F('invalid', `top must be above bottom`);
+        if (!zoneOverlap(d.top, d.bottom, tol)(candles[start]))
+          return F('anchor', `bar ${start} never trades in ${d.bottom}–${d.top}`);
+        ({ brk, dep } = zoneBreakBar(candles, d.top, d.bottom, start, mode, tol));
+        if (dep === null) return F('invalid', `price never leaves the zone after bar ${start}`);
+      } else {
+        if (!levelHolds(d.price, tol)(candles[start]))
+          return F('anchor', `bar ${start} never reaches ${d.price}`);
+        ({ brk, dep } = levelBreak(candles, d.price, start, mode, d.side || 'auto', tol));
+        if (dep === null) return F('invalid', `price never leaves ${d.price} after bar ${start}`);
+        if (brk === null) {
+          let seen = false;
+          for (let j = start; j <= last; j++)
+            if (levelHolds(d.price, tol)(candles[j])) { seen = true; break; }
+          if (!seen) return F('floating', `price never returns to ${d.price} after bar ${start}`);
+        }
+      }
+
+      if (brk === null)
+        return (end === null || end === last)
+          ? F('ok', 'never broken; runs to the last bar')
+          : F('too_short', `never broken, so it should run to bar ${last}, not ${end}`, last);
+      if (end === null) return F('too_long', `runs to the right edge but bar ${brk} breaks it`, brk);
+      if (end > brk)    return F('too_long', `ends at bar ${end} but bar ${brk} already broke it`, brk);
+      if (end < brk)    return F('too_short', `ends at bar ${end} but survives until bar ${brk}`, brk);
+      return F('ok', `ends exactly at the breaking bar ${brk}`);
+    });
+  };
 
   LSChart.CADENCE = CADENCE;
   global.LSChart = LSChart;

@@ -186,11 +186,47 @@ Drawing it in the right style is half of it; drawing it in the right *place* is 
 Every line and box must be anchored to the candle that created it and must stop at the candle that
 broke it — past that point it is asserting a level held while price was already through it.
 
-Run the `chart-drawing-accuracy` skill before rendering. Its checker takes the candles plus the
-markup calls and reports any drawing that is too long, cut short, or floating:
+### Auto-termination
+
+The engine can apply the rule while drawing, so endpoints never have to be maintained by hand:
+
+```js
+const ch = LSChart({ …, autoTerminate: true });
+
+ch.zone({ from: 41, top: 87, bottom: 83.5, label: 'Small OB' });   // ends itself
+ch.level({ price: 77.21, label: 'Sweep', from: 22 });              // ends itself
+ch.level({ price: 62, label: 'Liquidity', from: 30, to: 'edge' }); // untapped target, opts out
+```
+
+| `to` | Behaviour |
+|---|---|
+| a number | used verbatim — you are asserting the endpoint yourself |
+| `'auto'` | terminate at the break, whatever `autoTerminate` is set to |
+| `'edge'` | run to the right edge — for targets and untapped liquidity |
+| omitted | terminates at the break when `autoTerminate` is on, otherwise runs to the edge |
+
+A drawing that is **never broken runs to the right edge**, because it is still live — an
+unmitigated order block or an untested level genuinely does extend forward.
+
+Anchors are checked too, but not silently corrected: a level starting on a candle that never
+traded at its price is a judgement call about which candle you meant, so the engine records it and
+leaves it to you. Read `ch.violations` after `layout()` — the demo prints them to the console and
+into the page title, which is enough to catch one before a render ships.
+
+### Checking without drawing
+
+`LSChart.audit(candles, drawings)` applies the same rules with no rendering, and the skill's
+standalone checker does the same from the command line:
 
 ```bash
 python3 .claude/skills/chart-drawing-accuracy/scripts/verify_drawing.py spec.json
+```
+
+Two implementations of one rule set drift, so `tools/check-rules-parity.js` runs both over the same
+spec and fails on any disagreement:
+
+```bash
+node assets/brand/tools/check-rules-parity.js
 ```
 
 ## Real charts

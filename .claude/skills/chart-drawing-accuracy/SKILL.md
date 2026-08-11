@@ -55,6 +55,15 @@ Different drawings die differently, and the mode should match what the drawing c
 Pick deliberately. Claiming a structural break on a wick, then drawing it as though it were
 confirmed by a close, is the most common way charts overstate their case.
 
+## Tolerance — levels are drawn at round numbers
+
+A level is almost never at a candle's exact float extreme; it is drawn at a round price a human
+chose. Checked at zero tolerance, a level at `77.21` fails against a candle whose low is
+`77.21364…` — technically true, practically useless, and it will bury the real findings in noise.
+
+Set `tolerance` to roughly one tick of the instrument (or ~0.1% of the visible range). The point of
+the check is to catch levels that are wrong by *bars*, not by fractions of a pip.
+
 ## The one legitimate exception: targets
 
 A level marking price that **has not happened yet** — untapped liquidity, a take-profit, a

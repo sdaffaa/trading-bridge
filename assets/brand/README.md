@@ -14,6 +14,7 @@ assets/brand/
 ├── FORMAT-REEL-SPLIT.md   ← split-screen reel format (face + chart + karaoke captions)
 ├── reel-split-demo.html/.mp4 ← the split-screen reel template
 ├── captions.js            ← karaoke caption track (0.6s cadence)
+├── tools/check-rules-parity.js ← proves the JS and Python drawing rules agree
 ├── capture-motion.py      ← frame-accurate CDP renderer (motion page → MP4)
 ├── palette-swatches.html  ← swatch sheet source
 ├── palette-swatches.png   ← swatch sheet render (1080×1350)
@@ -124,6 +125,9 @@ and diagonals labelled along their own angle.
 
 Markup is also **drawn, not pasted** — the pace is part of the method: a stroke lands, the chart
 rests ~0.9s, then the label fades in. `MARKUP.md` §Rhythm carries the measured cadence.
+
+Pass `autoTerminate: true` and every level and box ends itself at the candle that broke it; the
+`chart-drawing-accuracy` skill checks the same rules standalone.
 
 **Read `MARKUP.md` before marking up any chart.** Engine: `markup.js`. Worked examples:
 `markup-demo.html` → `markup-demo.png` (static), `markup-motion.html` → `markup-motion.mp4` (animated).
