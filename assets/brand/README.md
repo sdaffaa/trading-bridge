@@ -8,8 +8,10 @@ assets/brand/
 ├── colors.json            ← design tokens (source of truth for color + type)
 ├── brand.css              ← CSS variables + slide/chart/markup primitives
 ├── MARKUP.md              ← the approved chart markup method (read before marking up a chart)
-├── markup.js              ← markup engine: levels, zones, structure, fib, projection
+├── markup.js              ← markup engine: levels, zones, structure, fib, projection + motion
 ├── markup-demo.html/.png  ← worked example of the full markup vocabulary
+├── markup-motion.html/.mp4 ← the same markup drawn at the approved rhythm
+├── capture-motion.py      ← frame-accurate CDP renderer (motion page → MP4)
 ├── palette-swatches.html  ← swatch sheet source
 ├── palette-swatches.png   ← swatch sheet render (1080×1350)
 ├── fonts/                 ← vendored Tajawal (OFL) for reproducible renders
@@ -117,8 +119,11 @@ Structure lines, order blocks and explanation lines follow one approved method �
 labels set inside a break in the line, outlined zones, a single structure zigzag with swing tags,
 and diagonals labelled along their own angle.
 
-**Read `MARKUP.md` before marking up any chart.** Engine: `markup.js`. Worked example:
-`markup-demo.html` → `markup-demo.png`.
+Markup is also **drawn, not pasted** — the pace is part of the method: a stroke lands, the chart
+rests ~0.9s, then the label fades in. `MARKUP.md` §Rhythm carries the measured cadence.
+
+**Read `MARKUP.md` before marking up any chart.** Engine: `markup.js`. Worked examples:
+`markup-demo.html` → `markup-demo.png` (static), `markup-motion.html` → `markup-motion.mp4` (animated).
 
 ![Markup demo](markup-demo.png)
 

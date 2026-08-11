@@ -71,6 +71,77 @@ order it should be narrated in a reel:
 
 ---
 
+## Rhythm — إيقاع الرسم
+
+Markup is not pasted on, it is **drawn**, and the pace is part of the method. These numbers are
+measured from the reference recording (30s clip; drawing runs 3.5s → 28.2s, 17 structural strokes),
+not estimated.
+
+| Quantity | Measured | Adopted |
+|---|---|---|
+| Stroke duration | median **0.7s** (p25 0.5 · p75 0.9 · range 0.2–1.2) | per-type table below |
+| Rest between strokes | median **0.9s** | `rest: 0.9` |
+| Inter-onset interval | median **1.6s** → one element every ~1.5s | emergent |
+| Label fade-in after its stroke lands | median **0.7s** | `labelLag: 0.7`, `labelDur: 0.4` |
+| Total drawing span | 24.7s for 17 elements | ~20s for 15 |
+
+**Per-type stroke duration** (`LSChart.CADENCE.dur`):
+
+| Element | Duration | Reveal |
+|---|---|---|
+| `level` | 0.5s | dash reveal, left → right |
+| `trend` | 0.6s | dash reveal along the diagonal |
+| `zone` | 1.0s | wipe open, left → right |
+| `structure` | **2.2s** | dash reveal across the whole traverse |
+| `projection` | 0.9s | dash reveal, dashed stroke |
+| `fib` | 0.8s | rail draws, ticks and numbers fade at 50% |
+| `swing` | 0.3s | fade |
+| `invalid` | 0.35s | fade |
+
+### The three rules of the rhythm
+
+1. **Draw → rest → name.** A line lands, the chart sits still for ~0.9s, *then* its label fades in
+   0.7s later. The pause is what makes it read as explanation instead of decoration. Never fade a
+   label in with its own line.
+2. **The structure zigzag is the long stroke.** At 2.2s it takes ~3× any other element — it is the
+   spine of the read, and the eye needs to travel it. Everything else is a beat; this is a phrase.
+3. **Swing tags land together, not queued.** After the zigzag settles they appear staggered ~0.18s
+   apart, not spaced by the normal 0.9s rest — they are one gesture, not five elements.
+
+Easing is `ease-out` (cubic) on every reveal: fast departure, soft arrival.
+
+### Driving it
+
+```js
+const ch = LSChart({ …, anim: {} });     // {} adopts the cadence above
+// …add markup in reading order — the timeline auto-sequences from call order…
+ch.layout();
+
+ch.play();          // live playback
+ch.seek(7.5);       // deterministic state at t — used for frame capture
+ch.duration();      // total timeline length in seconds
+```
+
+Override any timing per element with `{ at, dur }`, e.g. the staggered swing tags:
+
+```js
+swings.forEach(([i, price, label, place], k) =>
+  ch.swing({ i, price, label, place, at: 9.8 + k * 0.18 }));
+```
+
+### Rendering to video
+
+`capture-motion.py` drives the page over the Chrome DevTools Protocol, stepping `seek(t)` frame by
+frame so the output is frame-accurate rather than dependent on wall-clock playback:
+
+```bash
+python3 assets/brand/capture-motion.py assets/brand/markup-motion.html out.mp4 30
+```
+
+Reference render: `markup-motion.html` → **`markup-motion.mp4`** (19.9s timeline, 1080×1350, 30fps).
+
+---
+
 ## Usage
 
 ```html

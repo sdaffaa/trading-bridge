@@ -6,6 +6,9 @@
 
    Coordinates are expressed as (candle index, price) — never pixels — so
    markup stays locked to the data when the canvas or range changes.
+
+   Motion: pass `anim: {}` to build a draw-on timeline at the measured
+   reference cadence (see MARKUP.md §Rhythm), then drive it with seek(t).
    ========================================================================== */
 
 (function (global) {
@@ -18,6 +21,28 @@
     return e;
   };
 
+  /* Reference cadence, measured from the source recording (seconds).
+     Stroke length per element type; everything else is spacing. */
+  const CADENCE = {
+    start:      0.6,   // first stroke begins
+    rest:       0.9,   // silence between one stroke ending and the next starting
+    labelLag:   0.7,   // label fades in this long after its stroke lands
+    labelDur:   0.4,   // label fade duration
+    dur: {
+      level:      0.5,
+      trend:      0.6,
+      zone:       1.0,
+      structure:  2.2, // the full traverse — deliberately the longest stroke
+      projection: 0.9,
+      fib:        0.8,
+      swing:      0.3,
+      invalid:    0.35
+    }
+  };
+
+  const easeOut = p => 1 - Math.pow(1 - p, 3);
+  const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+
   function LSChart(opts) {
     const {
       mount,
@@ -27,8 +52,13 @@
       padding = { top: 28, right: 150, bottom: 40, left: 20 },
       priceRange = null,
       candleWidth = null,
-      barsRight = 6            // empty bars kept at the right for projections
+      barsRight = 6,           // empty bars kept at the right for projections
+      anim = null              // pass {} for defaults, or override any CADENCE key
     } = opts;
+
+    const A = anim ? Object.assign({}, CADENCE, anim, {
+      dur: Object.assign({}, CADENCE.dur, anim.dur)
+    }) : null;
 
     const host = typeof mount === 'string' ? document.querySelector(mount) : mount;
     const svg = el('svg', {
@@ -36,6 +66,7 @@
       width: '100%', class: 'ls-chart'
     });
     host.appendChild(svg);
+    const defs = el('defs'); svg.appendChild(defs);
 
     // layers, painted back to front
     const gGrid    = el('g', { class: 'ls-layer-grid' });
@@ -63,8 +94,27 @@
     const X = i => plotL + step * (i + 0.5);
     const Y = p => plotB - ((p - lo) / (hi - lo)) * (plotB - plotT);
 
-    // deferred text-measurement jobs (run in layout())
-    const jobs = [];
+    const jobs = [];        // deferred text measurement, run in layout()
+    const track = [];       // animation entries
+    let cursor = A ? A.start : 0;
+    let uid = 0;
+
+    /* Register an animation entry and advance the timeline cursor.
+       kind: 'stroke' (dash reveal) | 'fade' | 'wipe' (clip-rect grow) */
+    function cue(nodes, kind, t0, dur, extra) {
+      if (!A) return;
+      track.push(Object.assign({ nodes: [].concat(nodes), kind, t0, dur }, extra || {}));
+    }
+    function schedule(type, at, dur) {
+      const d = dur != null ? dur : A.dur[type];
+      const t0 = at != null ? at : cursor;
+      if (at == null) cursor = t0 + d + A.rest;
+      return { t0, dur: d };
+    }
+    function cueLabel(node, strokeEnd) {
+      if (!A) return;
+      cue(node, 'fade', strokeEnd + A.labelLag, A.labelDur);
+    }
 
     // ---- candles ----------------------------------------------------------
     function drawCandles() {
@@ -86,7 +136,8 @@
 
     // ---- 1. level line with inline centred label --------------------------
     // The line breaks around the text — the signature of this markup method.
-    function level({ price, label, from = 0, to = null, tone = 'primary', dashed = false }) {
+    function level({ price, label, from = 0, to = null, tone = 'primary',
+                     dashed = false, at, dur }) {
       const y = Y(price);
       const x1 = X(from) - step / 2;
       const x2 = to === null ? plotR : X(to) + step / 2;
@@ -95,34 +146,53 @@
       const lineA = el('line', { class: cls, x1, y1: y, x2, y2: y });
       const lineB = el('line', { class: cls, x1, y1: y, x2, y2: y });
       gStruct.appendChild(lineA); gStruct.appendChild(lineB);
+      if (!label) lineB.remove();
 
-      if (!label) { lineB.remove(); return api; }
+      const s = schedule('level', at, dur);
+      cue(label ? [lineA, lineB] : [lineA], 'stroke', s.t0, s.dur);
 
-      const t = el('text', {
-        class: `ls-mk-label ls-mk-${tone}-t`, x: (x1 + x2) / 2, y,
-        'text-anchor': 'middle', 'dominant-baseline': 'central'
-      });
-      t.textContent = label;
-      gLabel.appendChild(t);
+      if (label) {
+        const t = el('text', {
+          class: `ls-mk-label ls-mk-${tone}-t`, x: (x1 + x2) / 2, y,
+          'text-anchor': 'middle', 'dominant-baseline': 'central'
+        });
+        t.textContent = label;
+        gLabel.appendChild(t);
+        cueLabel(t, s.t0 + s.dur);
 
-      jobs.push(() => {                       // split the line around the text
-        const w = t.getComputedTextLength() / 2 + 10;
-        const mid = (x1 + x2) / 2;
-        lineA.setAttribute('x2', mid - w);
-        lineB.setAttribute('x1', mid + w);
-      });
+        jobs.push(() => {                     // split the line around the text
+          const w = t.getComputedTextLength() / 2 + 10;
+          const mid = (x1 + x2) / 2;
+          lineA.setAttribute('x2', mid - w);
+          lineB.setAttribute('x1', mid + w);
+        });
+      }
       return api;
     }
 
     // ---- 2. zone / order block -------------------------------------------
-    function zone({ from, to = null, top, bottom, label, tone = 'primary', align = 'center' }) {
+    function zone({ from, to = null, top, bottom, label, tone = 'primary',
+                    align = 'center', at, dur }) {
       const x1 = X(from) - step / 2;
       const x2 = to === null ? plotR : X(to) + step / 2;
       const yT = Y(top), yB = Y(bottom);
-      gZone.appendChild(el('rect', {
-        class: `ls-mk-zone ls-mk-zone-${tone}`,
-        x: x1, y: yT, width: x2 - x1, height: Math.max(2, yB - yT)
-      }));
+      const w = x2 - x1, h = Math.max(2, yB - yT);
+
+      const rect = el('rect', {
+        class: `ls-mk-zone ls-mk-zone-${tone}`, x: x1, y: yT, width: w, height: h
+      });
+      gZone.appendChild(rect);
+
+      const s = schedule('zone', at, dur);
+      if (A) {                                 // wipe the zone open left → right
+        const id = `lsclip${++uid}`;
+        const cp = el('clipPath', { id });
+        const cr = el('rect', { x: x1, y: yT - 2, width: 0, height: h + 4 });
+        cp.appendChild(cr); defs.appendChild(cp);
+        rect.setAttribute('clip-path', `url(#${id})`);
+        cue(rect, 'wipe', s.t0, s.dur, { clip: cr, full: w });
+      }
+
       if (label) {
         const anchor = align === 'right' ? 'end' : align === 'left' ? 'start' : 'middle';
         const lx = align === 'right' ? x2 - 14 : align === 'left' ? x1 + 14 : (x1 + x2) / 2;
@@ -132,65 +202,88 @@
         });
         t.textContent = label;
         gLabel.appendChild(t);
+        cueLabel(t, s.t0 + s.dur);
       }
       return api;
     }
 
     // ---- 3. structure zigzag ---------------------------------------------
-    function structure(points, { tone = 'accent', projection = false } = {}) {
+    function structure(points, { tone = 'accent', projection = false, at, dur } = {}) {
       const d = points.map((p, k) => `${k ? 'L' : 'M'}${X(p.i)},${Y(p.price)}`).join(' ');
-      gStruct.appendChild(el('path', {
+      const path = el('path', {
         class: `ls-mk-zigzag ls-mk-${tone}` + (projection ? ' ls-mk-dashed' : ''),
         d, fill: 'none'
-      }));
+      });
+      gStruct.appendChild(path);
+      const s = schedule(projection ? 'projection' : 'structure', at, dur);
+      cue(path, 'stroke', s.t0, s.dur);
       return api;
     }
 
     // ---- 4. swing point: hollow marker + (n) label ------------------------
-    function swing({ i, price, label, place = 'below', marker = true }) {
+    function swing({ i, price, label, place = 'below', marker = true, at, dur }) {
       const x = X(i), y = Y(price);
-      if (marker) gStruct.appendChild(el('circle', { class: 'ls-mk-marker', cx: x, cy: y, r: 5.5 }));
+      const s = schedule('swing', at, dur);
+      const parts = [];
+      if (marker) {
+        const c = el('circle', { class: 'ls-mk-marker', cx: x, cy: y, r: 5.5 });
+        gStruct.appendChild(c); parts.push(c);
+      }
       if (label) {
         const t = el('text', {
           class: 'ls-mk-swing', x, y: place === 'below' ? y + 24 : y - 17,
           'text-anchor': 'middle'
         });
         t.textContent = label;
-        gLabel.appendChild(t);
+        gLabel.appendChild(t); parts.push(t);
       }
+      cue(parts, 'fade', s.t0, s.dur);
       return api;
     }
 
     // ---- 5. fib scale -----------------------------------------------------
-    function fib({ i, priceFrom, priceTo, levels = [0, 0.5, 0.618, 1], width: fw = 90 }) {
+    function fib({ i, priceFrom, priceTo, levels = [0, 0.5, 0.618, 1],
+                   width: fw = 90, at, dur }) {
       const x = X(i);
-      gStruct.appendChild(el('line', {
+      const parts = [];
+      const rail = el('line', {
         class: 'ls-mk-line ls-mk-accent ls-mk-dashed',
         x1: x, x2: x, y1: Y(priceFrom), y2: Y(priceTo)
-      }));
+      });
+      gStruct.appendChild(rail);
+      const s = schedule('fib', at, dur);
+      cue(rail, 'stroke', s.t0, s.dur);
+
       levels.forEach(lv => {
-        const p = priceFrom + (priceTo - priceFrom) * lv;
-        const y = Y(p);
-        gStruct.appendChild(el('line', {
+        const y = Y(priceFrom + (priceTo - priceFrom) * lv);
+        const tick = el('line', {
           class: 'ls-mk-line ls-mk-muted', x1: x, x2: x + fw, y1: y, y2: y
-        }));
+        });
+        gStruct.appendChild(tick);
         const t = el('text', {
-          class: 'ls-mk-fib', x: x - 8, y, 'text-anchor': 'end', 'dominant-baseline': 'central'
+          class: 'ls-mk-fib', x: x - 8, y, 'text-anchor': 'end',
+          'dominant-baseline': 'central'
         });
         t.textContent = String(lv);
         gLabel.appendChild(t);
+        parts.push(tick, t);
       });
+      cue(parts, 'fade', s.t0 + s.dur * 0.5, A ? A.labelDur : 0);
       return api;
     }
 
     // ---- 6. trendline with rotated inline label ---------------------------
-    function trend({ i1, p1, i2, p2, label, extend = true, tone = 'primary' }) {
+    function trend({ i1, p1, i2, p2, label, extend = true, tone = 'primary', at, dur }) {
       let x1 = X(i1), y1 = Y(p1), x2 = X(i2), y2 = Y(p2);
       if (extend) {                            // project to the right edge
         const m = (y2 - y1) / (x2 - x1);
         y2 = y1 + m * (plotR - x1); x2 = plotR;
       }
-      gStruct.appendChild(el('line', { class: `ls-mk-line ls-mk-${tone}`, x1, y1, x2, y2 }));
+      const line = el('line', { class: `ls-mk-line ls-mk-${tone}`, x1, y1, x2, y2 });
+      gStruct.appendChild(line);
+      const s = schedule('trend', at, dur);
+      cue(line, 'stroke', s.t0, s.dur);
+
       if (label) {
         const fx = 0.84, mx = x1 + (x2 - x1) * fx, my = y1 + (y2 - y1) * fx;
         const ang = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
@@ -200,17 +293,20 @@
         });
         t.textContent = label;
         gLabel.appendChild(t);
+        cueLabel(t, s.t0 + s.dur);
       }
       return api;
     }
 
     // ---- 7. invalidation cross -------------------------------------------
-    function invalid({ i, price, size = 11 }) {
+    function invalid({ i, price, size = 11, at, dur }) {
       const x = X(i), y = Y(price);
       const g = el('g', { class: 'ls-mk-invalid' });
       g.appendChild(el('line', { x1: x - size, y1: y - size, x2: x + size, y2: y + size }));
       g.appendChild(el('line', { x1: x + size, y1: y - size, x2: x - size, y2: y + size }));
       gLabel.appendChild(g);
+      const s = schedule('invalid', at, dur);
+      cue(g, 'fade', s.t0, s.dur);
       return api;
     }
 
@@ -223,15 +319,66 @@
       return api;
     }
 
-    // run deferred text measurements — call after the SVG is in the document
-    function layout() { jobs.forEach(f => f()); jobs.length = 0; return api; }
+    // ---- layout + motion --------------------------------------------------
+    /* Must run after the SVG is in the document: measures every label, cuts the
+       gap in its line, then captures stroke lengths for the draw-on reveal. */
+    function layout() {
+      jobs.forEach(f => f()); jobs.length = 0;
+      if (!A) return api;
+      track.forEach(e => {
+        if (e.kind !== 'stroke') return;
+        e.len = e.nodes.map(nd => {
+          const L = nd.getTotalLength ? nd.getTotalLength() : 0;
+          return L || 1;
+        });
+      });
+      seek(0);
+      return api;
+    }
+
+    function duration() {
+      return track.reduce((m, e) => Math.max(m, e.t0 + e.dur), 0);
+    }
+
+    /* Deterministic: the visual state at time t. Drives both live playback
+       and frame-accurate capture. */
+    function seek(t) {
+      track.forEach(e => {
+        const p = easeOut(clamp01(e.dur > 0 ? (t - e.t0) / e.dur : (t >= e.t0 ? 1 : 0)));
+        if (e.kind === 'stroke') {
+          e.nodes.forEach((nd, k) => {
+            const L = (e.len && e.len[k]) || 1;
+            nd.style.strokeDasharray = L;
+            nd.style.strokeDashoffset = L * (1 - p);
+          });
+        } else if (e.kind === 'wipe') {
+          e.clip.setAttribute('width', e.full * p);
+        } else {
+          e.nodes.forEach(nd => { nd.style.opacity = p; });
+        }
+      });
+      return api;
+    }
+
+    function play(onDone) {
+      const total = duration(), t0 = performance.now();
+      (function frame(now) {
+        const t = (now - t0) / 1000;
+        seek(t);
+        if (t < total) requestAnimationFrame(frame);
+        else if (onDone) onDone();
+      })(t0);
+      return api;
+    }
 
     const api = {
       svg, X, Y, drawCandles, grid, level, zone, structure,
-      swing, fib, trend, invalid, layout
+      swing, fib, trend, invalid, layout, seek, play, duration,
+      get timeline() { return track; }
     };
     return api;
   }
 
+  LSChart.CADENCE = CADENCE;
   global.LSChart = LSChart;
 })(window);
