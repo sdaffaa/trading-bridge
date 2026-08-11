@@ -2,87 +2,203 @@
   "$schema": "https://liquidity.state/brand/colors.schema.json",
   "name": "Liquidity State — Design Tokens",
   "version": "1.0.0",
-  "approvedFrom": "Carousel slide 2/3 — 'الإشارة التي تعاكسك' (light/cream design system)",
+  "approvedFrom": "Liquidity State — Professional Chart Markup spec (PDF), page 3. Exact values, not visually matched.",
   "note": "Light (cream) theme is the APPROVED design theme for carousels, charts and static posts. Dark theme retained as the alternate for reels/video overlays.",
-
   "themes": {
     "light": {
-      "label": "Cream — approved primary design theme",
-
+      "label": "Off-white educational system — authoritative values from the markup spec PDF",
       "background": {
-        "base":        { "value": "#F2EDE4", "usage": "Canvas / slide background (warm cream)" },
-        "gradientTop": { "value": "#F5F0E7", "usage": "Background gradient start (top-left)" },
-        "gradientEnd": { "value": "#EDE6DA", "usage": "Background gradient end (bottom-right)" },
-        "surface":     { "value": "#E9F2F6", "usage": "Badge / callout box fill (pale blue)" },
-        "surfaceBorder": { "value": "#9EC4D5", "usage": "Badge / callout box border" }
+        "base": {
+          "value": "#F3EFE8",
+          "usage": "Canvas / slide background (warm cream)"
+        },
+        "gradientTop": {
+          "value": "#F6F2EB",
+          "usage": "Background gradient start (top-left)"
+        },
+        "gradientEnd": {
+          "value": "#F3EFE8",
+          "usage": "Background gradient end (bottom-right)"
+        },
+        "surface": {
+          "value": "#E4EEF0",
+          "usage": "Badge / callout box fill (pale blue)"
+        },
+        "surfaceBorder": {
+          "value": "#2688A3",
+          "usage": "Badge / callout box border"
+        }
       },
-
       "text": {
-        "primary":   { "value": "#15222E", "usage": "Headlines, sub-headlines, key stat lines (deep navy)" },
-        "secondary": { "value": "#8FA0A9", "usage": "Body / closing lines, muted explanation text" },
-        "accent":    { "value": "#2C7F9E", "usage": "Highlight sentence, teal emphasis line" },
-        "watermark": { "value": "#8FA3AC", "usage": "'LIQUIDITY STATE' top-corner wordmark" }
+        "primary": {
+          "value": "#072535",
+          "usage": "Headlines, sub-headlines, key stat lines (deep navy)"
+        },
+        "secondary": {
+          "value": "#556870",
+          "usage": "Body / closing lines, muted explanation text"
+        },
+        "accent": {
+          "value": "#2688A3",
+          "usage": "Highlight sentence, teal emphasis line"
+        },
+        "watermark": {
+          "value": "#6797A4",
+          "usage": "'LIQUIDITY STATE' top-corner wordmark"
+        }
       },
-
       "chart": {
-        "bullish":   { "value": "#34809B", "usage": "Up candle body + wick (teal)" },
-        "bearish":   { "value": "#15222E", "usage": "Down candle body + wick (deep navy)" },
-        "structure": { "value": "#15222E", "usage": "Equal-lows line, level lines, markers, circles" },
-        "gridline":  { "value": "#DFD8CC", "usage": "Horizontal grid lines (very light warm grey)" },
-        "invalid":   { "value": "#DC4B41", "usage": "Rejection / stop / invalidation mark (X)" },
-        "valid":     { "value": "#15222E", "usage": "Confirmation mark (✓)" }
+        "bullish": {
+          "value": "#2688A3",
+          "usage": "Up candle body + wick (teal)"
+        },
+        "bearish": {
+          "value": "#072535",
+          "usage": "Down candle body + wick (deep navy)"
+        },
+        "structure": {
+          "value": "#072535",
+          "usage": "Equal-lows line, level lines, markers, circles"
+        },
+        "gridline": {
+          "value": "#D8D3CB",
+          "usage": "Horizontal grid lines (very light warm grey)"
+        },
+        "invalid": {
+          "value": "#C35758",
+          "usage": "Rejection / stop / invalidation mark (X)"
+        },
+        "valid": {
+          "value": "#072535",
+          "usage": "Confirmation mark (✓)"
+        }
       },
-
       "ui": {
-        "pagerActive":   { "value": "#2C7F9E", "usage": "Active slide-indicator pill" },
-        "pagerInactive": { "value": "#C9C2B6", "usage": "Inactive slide-indicator dots" },
-        "counterText":   { "value": "#15222E", "usage": "'2/3' slide counter numerals" },
-        "counterBorder": { "value": "#9EC4D5", "usage": "Slide-counter box border" }
+        "pagerActive": {
+          "value": "#2688A3",
+          "usage": "Active slide-indicator pill"
+        },
+        "pagerInactive": {
+          "value": "#D8D3CB",
+          "usage": "Inactive slide-indicator dots"
+        },
+        "counterText": {
+          "value": "#072535",
+          "usage": "'2/3' slide counter numerals"
+        },
+        "counterBorder": {
+          "value": "#6797A4",
+          "usage": "Slide-counter box border"
+        }
       }
     },
-
     "dark": {
       "label": "Dark teal — alternate theme (reels / video overlays)",
       "background": {
-        "base":        { "value": "#0E1E24", "usage": "Canvas background" },
-        "gradientTop": { "value": "#12262E", "usage": "Background gradient start" },
-        "gradientEnd": { "value": "#0E1E24", "usage": "Background gradient end" },
-        "surface":     { "value": "#1B3A45", "usage": "Card / accent box fill" },
-        "surfaceBorder": { "value": "#2C7F9E", "usage": "Card border" }
+        "base": {
+          "value": "#0E1E24",
+          "usage": "Canvas background"
+        },
+        "gradientTop": {
+          "value": "#12262E",
+          "usage": "Background gradient start"
+        },
+        "gradientEnd": {
+          "value": "#0E1E24",
+          "usage": "Background gradient end"
+        },
+        "surface": {
+          "value": "#1B3A45",
+          "usage": "Card / accent box fill"
+        },
+        "surfaceBorder": {
+          "value": "#2C7F9E",
+          "usage": "Card border"
+        }
       },
       "text": {
-        "primary":   { "value": "#FFFFFF", "usage": "Headlines, body" },
-        "secondary": { "value": "#9FB4BC", "usage": "Sub-labels, captions" },
-        "accent":    { "value": "#2ECC9A", "usage": "Positive emphasis" },
-        "watermark": { "value": "#9FB4BC", "usage": "Corner wordmark" }
+        "primary": {
+          "value": "#FFFFFF",
+          "usage": "Headlines, body"
+        },
+        "secondary": {
+          "value": "#9FB4BC",
+          "usage": "Sub-labels, captions"
+        },
+        "accent": {
+          "value": "#2ECC9A",
+          "usage": "Positive emphasis"
+        },
+        "watermark": {
+          "value": "#9FB4BC",
+          "usage": "Corner wordmark"
+        }
       },
       "chart": {
-        "bullish":   { "value": "#2ECC9A", "usage": "Up candle" },
-        "bearish":   { "value": "#E15A5A", "usage": "Down candle" },
-        "structure": { "value": "#9FB4BC", "usage": "Level lines, markers" },
-        "gridline":  { "value": "#1B3A45", "usage": "Grid lines" },
-        "invalid":   { "value": "#E15A5A", "usage": "Invalidation mark" },
-        "valid":     { "value": "#2ECC9A", "usage": "Confirmation mark" }
+        "bullish": {
+          "value": "#2ECC9A",
+          "usage": "Up candle"
+        },
+        "bearish": {
+          "value": "#E15A5A",
+          "usage": "Down candle"
+        },
+        "structure": {
+          "value": "#9FB4BC",
+          "usage": "Level lines, markers"
+        },
+        "gridline": {
+          "value": "#1B3A45",
+          "usage": "Grid lines"
+        },
+        "invalid": {
+          "value": "#E15A5A",
+          "usage": "Invalidation mark"
+        },
+        "valid": {
+          "value": "#2ECC9A",
+          "usage": "Confirmation mark"
+        }
       },
       "ui": {
-        "pagerActive":   { "value": "#2ECC9A", "usage": "Active indicator" },
-        "pagerInactive": { "value": "#1B3A45", "usage": "Inactive indicator" },
-        "counterText":   { "value": "#FFFFFF", "usage": "Slide counter" },
-        "counterBorder": { "value": "#2C7F9E", "usage": "Counter box border" }
+        "pagerActive": {
+          "value": "#2ECC9A",
+          "usage": "Active indicator"
+        },
+        "pagerInactive": {
+          "value": "#1B3A45",
+          "usage": "Inactive indicator"
+        },
+        "counterText": {
+          "value": "#FFFFFF",
+          "usage": "Slide counter"
+        },
+        "counterBorder": {
+          "value": "#2C7F9E",
+          "usage": "Counter box border"
+        }
       }
     }
   },
-
   "metallic": {
     "label": "Silver / steel gem gradient (logo mark only)",
-    "stops": ["#FFFFFF", "#E6ECEF", "#CDD6DA", "#A9B4BA", "#7E8A90"],
+    "stops": [
+      "#FFFFFF",
+      "#E6ECEF",
+      "#CDD6DA",
+      "#A9B4BA",
+      "#7E8A90"
+    ],
     "edge": "#BFC9CE"
   },
-
   "typography": {
     "arabic": {
       "family": "Tajawal",
-      "fallback": ["Almarai", "Cairo", "sans-serif"],
+      "fallback": [
+        "Almarai",
+        "Cairo",
+        "sans-serif"
+      ],
       "weights": {
         "headline": 700,
         "subheadline": 700,
@@ -96,40 +212,90 @@
     "latin": {
       "wordmark": {
         "family": "Cormorant Garamond",
-        "fallback": ["Trajan Pro", "Times New Roman", "serif"],
+        "fallback": [
+          "Trajan Pro",
+          "Times New Roman",
+          "serif"
+        ],
         "letterSpacing": "0.28em",
         "case": "uppercase",
         "note": "Used for the 'LIQUIDITY STATE' wordmark and corner watermark."
       },
       "numerals": {
         "family": "Cormorant Garamond",
-        "fallback": ["Georgia", "serif"],
+        "fallback": [
+          "Georgia",
+          "serif"
+        ],
         "style": "italic",
         "note": "Slide counters (2/3) and figure numbers."
       },
       "technical": {
         "family": "Tajawal",
-        "fallback": ["Inter", "sans-serif"],
+        "fallback": [
+          "Inter",
+          "sans-serif"
+        ],
         "note": "Tickers, prices, R-multiples, technical terms (FVG, POC, Order Flow)."
       }
     },
     "scale": {
-      "headline": { "size": 64, "lineHeight": 1.35, "weight": 700 },
-      "subheadline": { "size": 40, "lineHeight": 1.5, "weight": 700 },
-      "accent": { "size": 34, "lineHeight": 1.5, "weight": 700 },
-      "body": { "size": 30, "lineHeight": 1.7, "weight": 500 },
-      "caption": { "size": 24, "lineHeight": 1.6, "weight": 400 },
-      "watermark": { "size": 22, "lineHeight": 1, "weight": 500 },
+      "headline": {
+        "size": 64,
+        "lineHeight": 1.35,
+        "weight": 700
+      },
+      "subheadline": {
+        "size": 40,
+        "lineHeight": 1.5,
+        "weight": 700
+      },
+      "accent": {
+        "size": 34,
+        "lineHeight": 1.5,
+        "weight": 700
+      },
+      "body": {
+        "size": 30,
+        "lineHeight": 1.7,
+        "weight": 500
+      },
+      "caption": {
+        "size": 24,
+        "lineHeight": 1.6,
+        "weight": 400
+      },
+      "watermark": {
+        "size": 22,
+        "lineHeight": 1,
+        "weight": 500
+      },
       "note": "Sizes are in px at a 1080×1350 carousel canvas. Scale proportionally for other canvases."
     }
   },
-
   "canvas": {
-    "carousel": { "width": 1080, "height": 1350, "safeMargin": 72 },
-    "reel":     { "width": 1080, "height": 1920, "safeTop": 220, "safeBottom": 380 },
-    "square":   { "width": 1080, "height": 1080, "safeMargin": 72 }
+    "carousel": {
+      "width": 1080,
+      "height": 1350,
+      "safeMargin": 72
+    },
+    "reel": {
+      "width": 1080,
+      "height": 1920,
+      "safeTop": 220,
+      "safeBottom": 380
+    },
+    "square": {
+      "width": 1080,
+      "height": 1080,
+      "safeMargin": 72
+    },
+    "markupSlide": {
+      "width": 1080,
+      "height": 1920,
+      "safeMargin": 72
+    }
   },
-
   "rules": [
     "Never use pure black (#000000) or pure white (#FFFFFF) as a background.",
     "Never use neon or fully saturated colors.",

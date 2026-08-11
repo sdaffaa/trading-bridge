@@ -593,6 +593,96 @@
       return api;
     }
 
+    // ---- 11. numbered anchor ---------------------------------------------
+    /* A hollow ring on the exact pixel the element is anchored to, carrying the
+       step number. The ring is what proves the line starts on the wick tip
+       rather than near it. */
+    function anchor({ i, price, n, at, dur, r = 13 }) {
+      const x = X(i), y = Y(price);
+      const g = el('g', { class: 'ls-mk-anchor' });
+      g.appendChild(el('circle', { class: 'ls-mk-anchor-ring', cx: x, cy: y, r }));
+      const t = el('text', {
+        class: 'ls-mk-anchor-n', x, y, 'text-anchor': 'middle',
+        'dominant-baseline': 'central'
+      });
+      t.textContent = String(n);
+      g.appendChild(t);
+      gLabel.appendChild(g);
+      const s = schedule('swing', at, dur);
+      cue(g, 'fade', s.t0, s.dur);
+      return api;
+    }
+
+    // ---- 12. sticker + leader --------------------------------------------
+    /* The label never sits on a candle. It floats in empty space and reaches
+       the price with one calm curve that stops short of the target, so the
+       candle it is talking about stays fully readable. */
+    function sticker({ i, price, text, n, dx = 0, dy = -90, gap = 16,
+                       side = 'auto', at, dur }) {
+      const tx = X(i), ty = Y(price);
+      const cx = tx + dx, cy = ty + dy;
+
+      const g = el('g', { class: 'ls-mk-sticker' });
+      const box = el('rect', { class: 'ls-mk-sticker-box', rx: 10, ry: 10 });
+      const label = el('text', {
+        class: 'ls-mk-sticker-t', x: cx, y: cy,
+        'text-anchor': 'middle', 'dominant-baseline': 'central'
+      });
+      label.textContent = (n != null ? `${n} · ` : '') + text;
+      const leader = el('path', { class: 'ls-mk-leader', fill: 'none' });
+      gLabel.appendChild(leader); gLabel.appendChild(g);
+      g.appendChild(box); g.appendChild(label);
+
+      jobs.push(() => {
+        const w = label.getComputedTextLength() + 34, h = 42;
+        box.setAttribute('x', cx - w / 2); box.setAttribute('y', cy - h / 2);
+        box.setAttribute('width', w);      box.setAttribute('height', h);
+
+        // Leave from the box edge facing the target, arrive just short of it.
+        const from = side === 'auto' ? (Math.abs(dy) > Math.abs(dx)
+          ? { x: cx, y: cy + Math.sign(dy || 1) * -h / 2 }
+          : { x: cx + Math.sign(dx || 1) * -w / 2, y: cy }) : { x: cx, y: cy };
+        const len = Math.hypot(tx - from.x, ty - from.y) || 1;
+        const end = { x: tx - (tx - from.x) / len * gap,
+                      y: ty - (ty - from.y) / len * gap };
+        const mx = (from.x + end.x) / 2 + (end.y - from.y) * 0.16;
+        const my = (from.y + end.y) / 2 - (end.x - from.x) * 0.16;
+        leader.setAttribute('d', `M${from.x},${from.y} Q${mx},${my} ${end.x},${end.y}`);
+      });
+
+      const s = schedule('level', at, dur);
+      cue([g, leader], 'fade', s.t0, s.dur);
+      return api;
+    }
+
+    // ---- 13. price scale --------------------------------------------------
+    /* Round prices down the right edge. Reading a level off the chart is only
+       possible when the scale is actually on it. */
+    function priceScale({ step, decimals = 1, at, dur } = {}) {
+      const span = hi - lo;
+      if (!step) {                                   // pick a round-ish step
+        const raw = span / 5;
+        const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+        step = [1, 2, 2.5, 5, 10].map(m => m * mag)
+                 .find(v => v >= raw) || mag * 10;
+      }
+      const parts = [];
+      for (let p = Math.ceil(lo / step) * step; p <= hi; p += step) {
+        const y = Y(p);
+        const t = el('text', {
+          class: 'ls-mk-price', x: plotR + 14, y,
+          'text-anchor': 'start', 'dominant-baseline': 'central'
+        });
+        t.textContent = p.toFixed(decimals);
+        gLabel.appendChild(t);
+        gGrid.appendChild(el('line', { class: 'ls-grid', x1: plotL, x2: plotR, y1: y, y2: y }));
+        parts.push(t);
+      }
+      const s = schedule('level', at, dur);
+      cue(parts, 'fade', s.t0, s.dur);
+      return api;
+    }
+
     // ---- gridlines --------------------------------------------------------
     function grid(count = 4) {
       for (let k = 1; k < count; k++) {
@@ -657,6 +747,7 @@
     const api = {
       svg, X, Y, drawCandles, grid, level, zone, structure,
       swing, fib, trend, invalid, volumeProfile, poc, position,
+      anchor, sticker, priceScale,
       layout, seek, play, duration,
       get violations() { return violations; },
       get corrections() { return corrections; },

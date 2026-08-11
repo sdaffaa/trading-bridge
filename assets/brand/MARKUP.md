@@ -180,6 +180,76 @@ Render to PNG:
 
 ---
 
+## The zero rule — the source chart is a locked layer
+
+From the markup spec. The original chart is never edited; markup goes on a layer above it.
+Absolutely forbidden:
+
+1. Inventing a candle, price, time, high or low
+2. Changing any candle's body, wick, order, width, colour or position
+3. Redrawing, stretching, compressing or rotating the chart, changing the price/time scale, or
+   cropping away context that matters
+4. Calling a wick-only penetration a break — that is a sweep (`mode: 'close'` is what a confirmed
+   break requires)
+5. Running lines edge to edge for decoration
+6. Putting text or an arrow over a decisive candle, or over a price that has to stay readable
+
+**If a level cannot be read precisely, write "غير محسوم — يحتاج تأكيد" in the plan and do not draw
+it.** Never guess a value. A markup that quietly invents a number is worse than one that admits a
+gap, because the audience cannot tell the difference.
+
+## Read before drawing
+
+Identify in chronological order — not in the order that looks best: context (trend or range,
+the highs and lows that matter, session boundaries if visible) → liquidity → the sweep (the candle
+that pierced the level and came back) → confirmation → the return zone → the plan.
+
+Then produce a **Markup Map** before touching the design:
+
+| العنصر | نقطة البداية الدقيقة | نقطة النهاية الدقيقة | النص | الثقة |
+|---|---|---|---|---|
+| Liquidity line | ذيل القمة المرجعية | شمعة السحب | BSL Sweep | عالية / متوسطة / غير محسومة |
+
+Do not start designing until every element has an unambiguous start and end.
+
+## Educational slide geometry
+
+`markup-slide.html` → `markup-slide.png` is the worked example (1080×1920).
+
+- **Liquidity line** starts on the highest pixel of the reference high's wick (or the lowest of the
+  low's) and stops at the sweep candle. The line's centre sits on the price exactly. Dashed.
+- **Numbered anchors** (`anchor()`) ring the exact pixel and carry the step number — the ring is
+  what proves the line starts *on* the wick rather than near it.
+- **Stickers** (`sticker()`) never sit on a candle. They float in empty space and reach the price
+  with one calm curve that stops ~16px short. One arrow per idea; if an element needs two, the
+  explanation is too long.
+- **FVG** uses the three-candle model only; the rectangle starts after the third candle completes
+  and runs to first mitigation.
+- **Price scale** (`priceScale()`) on the right — a level cannot be verified against a chart that
+  does not show its own prices.
+
+Visual sequence, in this order:
+`Context → Liquidity → Sweep → Displacement → MSS/BOS → FVG/OB → Entry → SL → TP`
+
+Weight them differently: the current element, the previous one, then secondary context. Not
+everything at the same intensity.
+
+## Delivery format
+
+Deliver in this order:
+
+1. **قراءة الشارت** — what the chart says, before any drawing
+2. **Markup Map** — the table above
+3. **النسخة النظيفة** — original chart + markup layer only
+4. **نسخة تعليمية** — numbered
+5. **تقرير تحقق** — state explicitly that candles, prices and scale are unchanged, and name any
+   element left undrawn because it could not be read
+
+Final check before export: every line touches the intended pixel · nothing is built on information
+that is not visible · no text covers a decisive candle or the price scale · no more than two
+educational colours plus the risk colour · events are chronologically ordered · the idea reads in
+one second · the chart before and after is identical.
+
 ## Accuracy
 
 Drawing it in the right style is half of it; drawing it in the right *place* is the other half.

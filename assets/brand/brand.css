@@ -23,31 +23,31 @@
 
 :root {
   /* ---- Background (cream — approved primary) ---- */
-  --ls-bg:                #F2EDE4;
-  --ls-bg-grad-top:       #F5F0E7;
-  --ls-bg-grad-end:       #EDE6DA;
-  --ls-surface:           #E9F2F6;
-  --ls-surface-border:    #9EC4D5;
+  --ls-bg:                #F3EFE8;
+  --ls-bg-grad-top:       #F6F2EB;
+  --ls-bg-grad-end:       #F3EFE8;
+  --ls-surface:           #E4EEF0;
+  --ls-surface-border:    #2688A3;
 
   /* ---- Text ---- */
-  --ls-text:              #15222E;
-  --ls-text-secondary:    #8FA0A9;
-  --ls-text-accent:       #2C7F9E;
-  --ls-watermark:         #8FA3AC;
+  --ls-text:              #072535;
+  --ls-text-secondary:    #556870;
+  --ls-text-accent:       #2688A3;
+  --ls-watermark:         #6797A4;
 
   /* ---- Chart ---- */
-  --ls-bullish:           #34809B;
-  --ls-bearish:           #15222E;
-  --ls-structure:         #15222E;
-  --ls-gridline:          #DFD8CC;
-  --ls-invalid:           #DC4B41;
-  --ls-valid:             #15222E;
+  --ls-bullish:           #2688A3;
+  --ls-bearish:           #072535;
+  --ls-structure:         #072535;
+  --ls-gridline:          #D8D3CB;
+  --ls-invalid:           #C35758;
+  --ls-valid:             #072535;
 
   /* ---- UI ---- */
-  --ls-pager-active:      #2C7F9E;
-  --ls-pager-inactive:    #C9C2B6;
-  --ls-counter-text:      #15222E;
-  --ls-counter-border:    #9EC4D5;
+  --ls-pager-active:      #2688A3;
+  --ls-pager-inactive:    #D8D3CB;
+  --ls-counter-text:      #072535;
+  --ls-counter-border:    #6797A4;
 
   /* ---- Metallic (logo mark only) ---- */
   --ls-metal-1: #FFFFFF;
@@ -202,6 +202,20 @@
 .ls-mk-fib      { font-family: var(--ls-font-ar); font-size: 14px; font-weight: 500;
                   fill: var(--ls-text-secondary); direction: ltr; }
 .ls-mk-invalid  { stroke: var(--ls-invalid); stroke-width: 3.4; stroke-linecap: round; fill: none; }
+
+/* --- educational markup: numbered anchors, stickers, price scale --------
+   Per the markup spec: the label never covers a candle, it floats clear and
+   reaches the price with one calm leader that stops short of the target. */
+.ls-mk-anchor-ring  { fill: var(--ls-bg); stroke: var(--ls-text-accent); stroke-width: 2.4; }
+.ls-mk-anchor-n     { font-family: var(--ls-font-ar); font-size: 15px; font-weight: 700;
+                      fill: var(--ls-text-accent); direction: ltr; }
+.ls-mk-sticker-box  { fill: var(--ls-surface); stroke: var(--ls-text-accent); stroke-width: 1.6; }
+.ls-mk-sticker-t    { font-family: var(--ls-font-ar); font-size: 21px; font-weight: 700;
+                      fill: var(--ls-text); }
+.ls-mk-leader       { stroke: var(--ls-text-accent); stroke-width: 1.8; fill: none;
+                      stroke-linecap: round; }
+.ls-mk-price        { font-family: var(--ls-font-ar); font-size: 19px; font-weight: 500;
+                      fill: var(--ls-text-secondary); direction: ltr; }
 
 /* --- volume profile / POC / position tool ------------------------------- */
 .ls-mk-vp-bar    { fill: var(--ls-vp-bar); }
