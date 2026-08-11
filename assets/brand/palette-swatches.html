@@ -1,0 +1,89 @@
+<meta charset="utf-8">
+<title>Liquidity State — الألوان المعتمدة</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; }
+  .sheet { width:1080px; height:1350px; box-sizing:border-box; padding:52px 72px;
+           background:linear-gradient(160deg,var(--ls-bg-grad-top) 0%,var(--ls-bg-grad-end) 100%);
+           font-family:var(--ls-font-ar); color:var(--ls-text); direction:rtl; position:relative; }
+  .top { display:flex; justify-content:space-between; align-items:center; }
+  h1 { font-size:46px; font-weight:700; text-align:center; margin:18px 0 8px; }
+  .rule { width:240px; height:2px; background:var(--ls-surface-border); margin:0 auto 26px; }
+  h2 { font-size:25px; font-weight:700; color:var(--ls-text-accent); margin:0 0 12px; text-align:right; }
+  .row { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:16px; }
+  .chip .sw { height:80px; border:2px solid rgba(21,34,46,.10); }
+  .chip .nm { font-size:20px; font-weight:700; margin-top:10px; text-align:center; }
+  .chip .hx { font-family:'Courier New',monospace; font-size:16px; color:var(--ls-text-secondary);
+              text-align:center; direction:ltr; margin-top:3px; }
+  .sample { border:2px solid var(--ls-gridline); background:var(--ls-bg); padding:16px; }
+  .type { display:flex; flex-direction:column; gap:5px; margin-top:6px; }
+</style>
+
+<div class="sheet">
+  <div class="top">
+    <div class="ls-counter">1 / 1</div>
+    <div class="ls-watermark">Liquidity State</div>
+  </div>
+
+  <h1>الألوان والخطوط المعتمدة</h1>
+  <div class="rule"></div>
+
+  <h2>الخلفية</h2>
+  <div class="row">
+    <div class="chip"><div class="sw" style="background:#F2EDE4"></div><div class="nm">أساسية</div><div class="hx">#F2EDE4</div></div>
+    <div class="chip"><div class="sw" style="background:#F5F0E7"></div><div class="nm">تدرج علوي</div><div class="hx">#F5F0E7</div></div>
+    <div class="chip"><div class="sw" style="background:#EDE6DA"></div><div class="nm">تدرج سفلي</div><div class="hx">#EDE6DA</div></div>
+    <div class="chip"><div class="sw" style="background:#E9F2F6;border-color:#9EC4D5"></div><div class="nm">صندوق ملاحظة</div><div class="hx">#E9F2F6</div></div>
+  </div>
+
+  <h2>النصوص</h2>
+  <div class="row">
+    <div class="chip"><div class="sw" style="background:#15222E"></div><div class="nm">رئيسي</div><div class="hx">#15222E</div></div>
+    <div class="chip"><div class="sw" style="background:#8FA0A9"></div><div class="nm">ثانوي</div><div class="hx">#8FA0A9</div></div>
+    <div class="chip"><div class="sw" style="background:#2C7F9E"></div><div class="nm">تمييز</div><div class="hx">#2C7F9E</div></div>
+    <div class="chip"><div class="sw" style="background:#8FA3AC"></div><div class="nm">ووترمارك</div><div class="hx">#8FA3AC</div></div>
+  </div>
+
+  <h2>الشارت والشموع</h2>
+  <div class="row">
+    <div class="chip"><div class="sw" style="background:#34809B"></div><div class="nm">شمعة صاعدة</div><div class="hx">#34809B</div></div>
+    <div class="chip"><div class="sw" style="background:#15222E"></div><div class="nm">شمعة هابطة</div><div class="hx">#15222E</div></div>
+    <div class="chip"><div class="sw" style="background:#DFD8CC"></div><div class="nm">خطوط الشبكة</div><div class="hx">#DFD8CC</div></div>
+    <div class="chip"><div class="sw" style="background:#DC4B41"></div><div class="nm">إبطال / وقف</div><div class="hx">#DC4B41</div></div>
+  </div>
+
+  <h2>عينة حية</h2>
+  <div class="sample">
+    <svg viewBox="0 0 900 210" width="100%" height="150">
+      <line x1="20" y1="55" x2="880" y2="55" class="ls-grid"/>
+      <line x1="20" y1="120" x2="880" y2="120" class="ls-grid"/>
+      <g stroke-width="3">
+        <g class="ls-candle-up"><line x1="150" y1="45" x2="150" y2="145"/><rect x="138" y="70" width="24" height="55"/></g>
+        <g class="ls-candle-down"><line x1="220" y1="35" x2="220" y2="135"/><rect x="208" y="55" width="24" height="50"/></g>
+        <g class="ls-candle-up"><line x1="290" y1="25" x2="290" y2="155"/><rect x="278" y="50" width="24" height="70"/></g>
+        <g class="ls-candle-down"><line x1="360" y1="50" x2="360" y2="170"/><rect x="348" y="75" width="24" height="60"/></g>
+        <g class="ls-candle-up"><line x1="430" y1="30" x2="430" y2="140"/><rect x="418" y="45" width="24" height="65"/></g>
+        <g class="ls-candle-down"><line x1="500" y1="55" x2="500" y2="178"/><rect x="488" y="80" width="24" height="55"/></g>
+        <g class="ls-candle-up"><line x1="570" y1="20" x2="570" y2="130"/><rect x="558" y="40" width="24" height="60"/></g>
+        <g class="ls-candle-up"><line x1="640" y1="12" x2="640" y2="115"/><rect x="628" y="28" width="24" height="62"/></g>
+      </g>
+      <line x1="60" y1="178" x2="840" y2="178" class="ls-level"/>
+      <circle cx="500" cy="178" r="9" class="ls-level"/>
+      <g class="ls-invalid" stroke-linecap="round">
+        <line x1="745" y1="188" x2="767" y2="200"/><line x1="767" y1="188" x2="745" y2="200"/>
+      </g>
+    </svg>
+  </div>
+
+  <h2 style="margin-top:18px">الخط — Tajawal</h2>
+  <div class="type">
+    <div style="font-size:36px;font-weight:700">عنوان رئيسي — الإشارة التي تعاكسك</div>
+    <div style="font-size:28px;font-weight:700;color:var(--ls-text-accent)">سطر تمييز — ولذلك رفضتها</div>
+    <div style="font-size:24px;font-weight:500;color:var(--ls-text-secondary)">نص الشرح — الفتيل تحت القاع يسحب السيولة، والإغلاق فوقه يلغي الكسر.</div>
+    <div style="font-size:22px;font-weight:400;color:var(--ls-text-secondary)">أرقام وتقنيات: XAUUSD · 2.6R · Order Flow · FVG · POC</div>
+  </div>
+
+  <div class="ls-pager" style="position:absolute;bottom:22px;left:0;right:0">
+    <i></i><i class="on"></i><i></i>
+  </div>
+</div>

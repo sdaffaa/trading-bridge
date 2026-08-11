@@ -1,0 +1,165 @@
+/* ==========================================================================
+   Liquidity State — Brand Design Tokens
+   Approved from the carousel design system (light / cream theme).
+   Import this file in any HTML used to render carousels, charts or posts.
+   ========================================================================== */
+
+/* Vendored fonts (offline-safe, reproducible renders). Files live in ./fonts/ */
+@font-face {
+  font-family: 'Tajawal';
+  src: url('./fonts/Tajawal-Regular.ttf') format('truetype');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Tajawal';
+  src: url('./fonts/Tajawal-Medium.ttf') format('truetype');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Tajawal';
+  src: url('./fonts/Tajawal-Bold.ttf') format('truetype');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+
+:root {
+  /* ---- Background (cream — approved primary) ---- */
+  --ls-bg:                #F2EDE4;
+  --ls-bg-grad-top:       #F5F0E7;
+  --ls-bg-grad-end:       #EDE6DA;
+  --ls-surface:           #E9F2F6;
+  --ls-surface-border:    #9EC4D5;
+
+  /* ---- Text ---- */
+  --ls-text:              #15222E;
+  --ls-text-secondary:    #8FA0A9;
+  --ls-text-accent:       #2C7F9E;
+  --ls-watermark:         #8FA3AC;
+
+  /* ---- Chart ---- */
+  --ls-bullish:           #34809B;
+  --ls-bearish:           #15222E;
+  --ls-structure:         #15222E;
+  --ls-gridline:          #DFD8CC;
+  --ls-invalid:           #DC4B41;
+  --ls-valid:             #15222E;
+
+  /* ---- UI ---- */
+  --ls-pager-active:      #2C7F9E;
+  --ls-pager-inactive:    #C9C2B6;
+  --ls-counter-text:      #15222E;
+  --ls-counter-border:    #9EC4D5;
+
+  /* ---- Metallic (logo mark only) ---- */
+  --ls-metal-1: #FFFFFF;
+  --ls-metal-2: #E6ECEF;
+  --ls-metal-3: #CDD6DA;
+  --ls-metal-4: #A9B4BA;
+  --ls-metal-5: #7E8A90;
+  --ls-metal-edge: #BFC9CE;
+
+  /* ---- Typography ---- */
+  --ls-font-ar: 'Tajawal', 'Almarai', 'Cairo', sans-serif;
+  --ls-font-wordmark: 'Cormorant Garamond', 'Trajan Pro', 'Times New Roman', serif;
+
+  --ls-size-headline:    64px;
+  --ls-size-subheadline: 40px;
+  --ls-size-accent:      34px;
+  --ls-size-body:        30px;
+  --ls-size-caption:     24px;
+  --ls-size-watermark:   22px;
+
+  --ls-safe-margin: 72px;
+}
+
+/* Alternate dark theme — reels / video overlays */
+[data-ls-theme="dark"] {
+  --ls-bg:                #0E1E24;
+  --ls-bg-grad-top:       #12262E;
+  --ls-bg-grad-end:       #0E1E24;
+  --ls-surface:           #1B3A45;
+  --ls-surface-border:    #2C7F9E;
+
+  --ls-text:              #FFFFFF;
+  --ls-text-secondary:    #9FB4BC;
+  --ls-text-accent:       #2ECC9A;
+  --ls-watermark:         #9FB4BC;
+
+  --ls-bullish:           #2ECC9A;
+  --ls-bearish:           #E15A5A;
+  --ls-structure:         #9FB4BC;
+  --ls-gridline:          #1B3A45;
+  --ls-invalid:           #E15A5A;
+  --ls-valid:             #2ECC9A;
+
+  --ls-pager-active:      #2ECC9A;
+  --ls-pager-inactive:    #1B3A45;
+  --ls-counter-text:      #FFFFFF;
+  --ls-counter-border:    #2C7F9E;
+}
+
+/* ==========================================================================
+   Base slide primitives
+   ========================================================================== */
+
+.ls-slide {
+  width: 1080px;
+  height: 1350px;
+  background: linear-gradient(160deg, var(--ls-bg-grad-top) 0%, var(--ls-bg-grad-end) 100%);
+  font-family: var(--ls-font-ar);
+  color: var(--ls-text);
+  direction: rtl;
+  padding: var(--ls-safe-margin);
+  box-sizing: border-box;
+  position: relative;
+}
+
+.ls-headline    { font-size: var(--ls-size-headline);    font-weight: 700; line-height: 1.35; text-align: center; }
+.ls-subheadline { font-size: var(--ls-size-subheadline); font-weight: 700; line-height: 1.5;  text-align: center; }
+.ls-accent      { font-size: var(--ls-size-accent);      font-weight: 700; line-height: 1.5;  color: var(--ls-text-accent); text-align: center; }
+.ls-body        { font-size: var(--ls-size-body);        font-weight: 500; line-height: 1.7;  color: var(--ls-text-secondary); text-align: center; }
+.ls-caption     { font-size: var(--ls-size-caption);     font-weight: 400; line-height: 1.6;  color: var(--ls-text-secondary); }
+
+/* Badge / callout box — e.g. "مثال تخطيطي" */
+.ls-badge {
+  display: inline-block;
+  background: var(--ls-surface);
+  border: 2px solid var(--ls-surface-border);
+  color: var(--ls-text);
+  font-weight: 700;
+  font-size: 30px;
+  padding: 12px 28px;
+}
+
+/* Corner wordmark watermark */
+.ls-watermark {
+  font-family: var(--ls-font-wordmark);
+  font-size: var(--ls-size-watermark);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ls-watermark);
+  direction: ltr;
+}
+
+/* Slide counter — e.g. 2/3 */
+.ls-counter {
+  font-family: var(--ls-font-wordmark);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 34px;
+  color: var(--ls-counter-text);
+  border: 2px solid var(--ls-counter-border);
+  padding: 8px 22px;
+  direction: ltr;
+}
+
+/* Slide pager dots */
+.ls-pager       { display: flex; gap: 10px; justify-content: center; align-items: center; }
+.ls-pager i     { width: 10px; height: 10px; border-radius: 999px; background: var(--ls-pager-inactive); display: block; }
+.ls-pager i.on  { width: 34px; background: var(--ls-pager-active); }
+
+/* Chart primitives */
+.ls-candle-up   { fill: var(--ls-bullish);   stroke: var(--ls-bullish);   }
+.ls-candle-down { fill: var(--ls-bearish);   stroke: var(--ls-bearish);   }
+.ls-level       { stroke: var(--ls-structure); stroke-width: 2; fill: none; }
+.ls-grid        { stroke: var(--ls-gridline);  stroke-width: 1; }
+.ls-invalid     { stroke: var(--ls-invalid);   fill: none; stroke-width: 4; }
