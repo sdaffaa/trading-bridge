@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="455 55 290 320" width="290" height="320" role="img" aria-label="Liquidity State mark">
+  <title>Liquidity State — gem mark (transparent)</title>
+  <defs>
+    <linearGradient id="sLightest" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E6ECEF"/>
+    </linearGradient>
+    <linearGradient id="sLight" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F1F4F6"/><stop offset="1" stop-color="#CDD6DA"/>
+    </linearGradient>
+    <linearGradient id="sMid" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D2DADE"/><stop offset="1" stop-color="#A9B4BA"/>
+    </linearGradient>
+    <linearGradient id="sDark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#AAB5BB"/><stop offset="1" stop-color="#7E8A90"/>
+    </linearGradient>
+    <linearGradient id="gemGlow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#9fb0b8" stop-opacity="0.35"/>
+    </linearGradient>
+    <radialGradient id="reflection" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#9aa9b0" stop-opacity="0.25"/><stop offset="1" stop-color="#9aa9b0" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <ellipse cx="600" cy="352" rx="120" ry="20" fill="url(#reflection)"/>
+  <polygon points="487.4,135 600,70 600,145 552.4,172.5" fill="url(#sLightest)"/>
+  <polygon points="600,70 712.6,135 647.6,172.5 600,145" fill="url(#sLight)"/>
+  <polygon points="712.6,135 712.6,265 647.6,227.5 647.6,172.5" fill="url(#sMid)"/>
+  <polygon points="712.6,265 600,330 600,255 647.6,227.5" fill="url(#sDark)"/>
+  <polygon points="600,330 487.4,265 552.4,227.5 600,255" fill="url(#sMid)"/>
+  <polygon points="487.4,265 487.4,135 552.4,172.5 552.4,227.5" fill="url(#sLight)"/>
+  <polygon points="600,200 600,145 647.6,172.5" fill="url(#sLight)"/>
+  <polygon points="600,200 647.6,172.5 647.6,227.5" fill="url(#sMid)"/>
+  <polygon points="600,200 647.6,227.5 600,255" fill="url(#sMid)"/>
+  <polygon points="600,200 600,255 552.4,227.5" fill="url(#sLight)"/>
+  <polygon points="600,200 552.4,227.5 552.4,172.5" fill="url(#sLightest)"/>
+  <polygon points="600,200 552.4,172.5 600,145" fill="url(#sLightest)"/>
+  <g fill="none" stroke="#BFC9CE" stroke-width="1.1" opacity="0.65" stroke-linejoin="round">
+    <polygon points="600,70 712.6,135 712.6,265 600,330 487.4,265 487.4,135"/>
+    <polygon points="600,145 647.6,172.5 647.6,227.5 600,255 552.4,227.5 552.4,172.5"/>
+    <line x1="600" y1="70" x2="600" y2="145"/>
+    <line x1="712.6" y1="135" x2="647.6" y2="172.5"/>
+    <line x1="712.6" y1="265" x2="647.6" y2="227.5"/>
+    <line x1="600" y1="330" x2="600" y2="255"/>
+    <line x1="487.4" y1="265" x2="552.4" y2="227.5"/>
+    <line x1="487.4" y1="135" x2="552.4" y2="172.5"/>
+    <line x1="600" y1="145" x2="600" y2="255"/>
+    <line x1="552.4" y1="172.5" x2="647.6" y2="227.5"/>
+    <line x1="647.6" y1="172.5" x2="552.4" y2="227.5"/>
+  </g>
+  <polygon points="600,70 712.6,135 600,145 487.4,135" fill="url(#gemGlow)" opacity="0.25"/>
+</svg>

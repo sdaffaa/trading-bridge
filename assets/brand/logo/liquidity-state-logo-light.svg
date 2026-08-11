@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" width="1200" height="560" role="img" aria-label="Liquidity State">
+  <title>Liquidity State — primary logo (light background)</title>
+  <defs>
+    <!-- Cream background -->
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F5F0E7"/>
+      <stop offset="1" stop-color="#EAE2D4"/>
+    </linearGradient>
+
+    <!-- Silver / steel facet gradients (light source: upper-left) -->
+    <linearGradient id="sLightest" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E6ECEF"/>
+    </linearGradient>
+    <linearGradient id="sLight" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F1F4F6"/>
+      <stop offset="1" stop-color="#CDD6DA"/>
+    </linearGradient>
+    <linearGradient id="sMid" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D2DADE"/>
+      <stop offset="1" stop-color="#A9B4BA"/>
+    </linearGradient>
+    <linearGradient id="sDark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#AAB5BB"/>
+      <stop offset="1" stop-color="#7E8A90"/>
+    </linearGradient>
+    <linearGradient id="gemGlow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.0"/>
+      <stop offset="1" stop-color="#9fb0b8" stop-opacity="0.35"/>
+    </linearGradient>
+    <radialGradient id="reflection" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#9aa9b0" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#9aa9b0" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="1200" height="560" fill="url(#bg)"/>
+
+  <!-- Faint candlestick motif (right edge) -->
+  <g opacity="0.10" stroke="#2B3D4F" stroke-width="2" fill="#2B3D4F">
+    <g transform="translate(980,300)">
+      <line x1="0" y1="-40" x2="0" y2="60"/><rect x="-7" y="-20" width="14" height="55"/>
+      <g transform="translate(34,0)"><line x1="0" y1="-70" x2="0" y2="20"/><rect x="-7" y="-55" width="14" height="45"/></g>
+      <g transform="translate(68,0)"><line x1="0" y1="-95" x2="0" y2="0"/><rect x="-7" y="-80" width="14" height="55"/></g>
+      <g transform="translate(102,0)"><line x1="0" y1="-130" x2="0" y2="-30"/><rect x="-7" y="-115" width="14" height="60"/></g>
+    </g>
+  </g>
+
+  <!-- ===== GEM MARK ===== -->
+  <g>
+    <!-- soft reflection under the gem -->
+    <ellipse cx="600" cy="352" rx="120" ry="20" fill="url(#reflection)"/>
+
+    <!-- Outer ring facets (trapezoids O[i],O[i+1],I[i+1],I[i]) -->
+    <!-- i5 upper-left (brightest) -->
+    <polygon points="487.4,135 600,70 600,145 552.4,172.5" fill="url(#sLightest)"/>
+    <!-- i0 top -->
+    <polygon points="600,70 712.6,135 647.6,172.5 600,145" fill="url(#sLight)"/>
+    <!-- i1 upper-right -->
+    <polygon points="712.6,135 712.6,265 647.6,227.5 647.6,172.5" fill="url(#sMid)"/>
+    <!-- i2 lower-right (darkest) -->
+    <polygon points="712.6,265 600,330 600,255 647.6,227.5" fill="url(#sDark)"/>
+    <!-- i3 bottom -->
+    <polygon points="600,330 487.4,265 552.4,227.5 600,255" fill="url(#sMid)"/>
+    <!-- i4 lower-left -->
+    <polygon points="487.4,265 487.4,135 552.4,172.5 552.4,227.5" fill="url(#sLight)"/>
+
+    <!-- Inner table facets (Center 600,200 to I[i],I[i+1]) -->
+    <polygon points="600,200 600,145 647.6,172.5" fill="url(#sLight)"/>
+    <polygon points="600,200 647.6,172.5 647.6,227.5" fill="url(#sMid)"/>
+    <polygon points="600,200 647.6,227.5 600,255" fill="url(#sMid)"/>
+    <polygon points="600,200 600,255 552.4,227.5" fill="url(#sLight)"/>
+    <polygon points="600,200 552.4,227.5 552.4,172.5" fill="url(#sLightest)"/>
+    <polygon points="600,200 552.4,172.5 600,145" fill="url(#sLightest)"/>
+
+    <!-- facet edge lines -->
+    <g fill="none" stroke="#BFC9CE" stroke-width="1.1" opacity="0.65" stroke-linejoin="round">
+      <polygon points="600,70 712.6,135 712.6,265 600,330 487.4,265 487.4,135"/>
+      <polygon points="600,145 647.6,172.5 647.6,227.5 600,255 552.4,227.5 552.4,172.5"/>
+      <line x1="600" y1="70" x2="600" y2="145"/>
+      <line x1="712.6" y1="135" x2="647.6" y2="172.5"/>
+      <line x1="712.6" y1="265" x2="647.6" y2="227.5"/>
+      <line x1="600" y1="330" x2="600" y2="255"/>
+      <line x1="487.4" y1="265" x2="552.4" y2="227.5"/>
+      <line x1="487.4" y1="135" x2="552.4" y2="172.5"/>
+      <line x1="600" y1="145" x2="600" y2="255"/>
+      <line x1="552.4" y1="172.5" x2="647.6" y2="227.5"/>
+      <line x1="647.6" y1="172.5" x2="552.4" y2="227.5"/>
+    </g>
+
+    <!-- top-edge highlight -->
+    <polygon points="600,70 712.6,135 600,145 487.4,135" fill="url(#gemGlow)" opacity="0.25"/>
+  </g>
+
+  <!-- ===== WORDMARK ===== -->
+  <text x="600" y="452" text-anchor="middle"
+        font-family="'Cormorant Garamond','Trajan Pro','Times New Roman',serif"
+        font-size="72" letter-spacing="20" fill="#2B3D4F" font-weight="500">LIQUIDITY STATE</text>
+
+  <!-- ===== DIVIDER ===== -->
+  <g stroke="#2B3D4F" stroke-width="1.6">
+    <line x1="452" y1="500" x2="587" y2="500"/>
+    <line x1="613" y1="500" x2="748" y2="500"/>
+  </g>
+  <rect x="592" y="492" width="16" height="16" fill="#2B3D4F" transform="rotate(45 600 500)"/>
+</svg>
