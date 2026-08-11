@@ -36,7 +36,8 @@
       projection: 0.9,
       fib:        0.8,
       swing:      0.3,
-      invalid:    0.35
+      invalid:    0.35,
+      vp:         1.2,   // the profile wipes open across its range
     }
   };
 
@@ -310,6 +311,114 @@
       return api;
     }
 
+    // ---- 8. fixed-range volume profile ------------------------------------
+    /* Histogram of traded activity across the leg, drawn inside the range and
+       anchored to its left edge. Volume is approximated from the candles in
+       range when the caller has no per-bin data. Returns the POC price. */
+    function volumeProfile({ from, to, bins = 26, widthPct = 0.32,
+                             valueArea = 0.68, volumes = null, box = true, at, dur }) {
+      const x1 = X(from) - step / 2, x2 = X(to) + step / 2;
+      const seg = candles.slice(from, to + 1);
+      const pHi = Math.max(...seg.map(c => c.h)), pLo = Math.min(...seg.map(c => c.l));
+      const bh = (pHi - pLo) / bins;
+
+      let vol = volumes;
+      if (!vol) {                              // time-at-price approximation
+        vol = new Array(bins).fill(0);
+        seg.forEach(c => {
+          const a = Math.max(0, Math.floor((Math.min(c.l, c.o, c.c) - pLo) / bh));
+          const b = Math.min(bins - 1, Math.floor((Math.max(c.h, c.o, c.c) - pLo) / bh));
+          const body = Math.abs(c.c - c.o) + bh;
+          for (let k = a; k <= b; k++) vol[k] += body;
+        });
+      }
+      const vMax = Math.max(...vol);
+      const pocIdx = vol.indexOf(vMax);
+      const pocPrice = pLo + (pocIdx + 0.5) * bh;
+
+      // value area: grow outward from the POC until the share is covered
+      const total = vol.reduce((a, b) => a + b, 0);
+      let acc = vol[pocIdx], loI = pocIdx, hiI = pocIdx;
+      while (acc < total * valueArea && (loI > 0 || hiI < bins - 1)) {
+        const dn = loI > 0 ? vol[loI - 1] : -1;
+        const up = hiI < bins - 1 ? vol[hiI + 1] : -1;
+        if (up >= dn) acc += vol[++hiI]; else acc += vol[--loI];
+      }
+
+      const g = el('g', { class: 'ls-mk-vp' });
+      const maxW = (x2 - x1) * widthPct;
+      vol.forEach((v, k) => {
+        const y = Y(pLo + (k + 1) * bh);
+        g.appendChild(el('rect', {
+          class: 'ls-mk-vp-bar' + (k >= loI && k <= hiI ? ' ls-mk-vp-va' : ''),
+          x: x1, y, width: Math.max(1, (v / vMax) * maxW),
+          height: Math.max(1, Y(pLo) - Y(pLo + bh) - 1)
+        }));
+      });
+      gZone.appendChild(g);
+
+      if (box) gZone.appendChild(el('rect', {
+        class: 'ls-mk-vp-box', x: x1, y: Y(pHi), width: x2 - x1, height: Y(pLo) - Y(pHi)
+      }));
+
+      const s = schedule('vp', at, dur);
+      if (A) {
+        const id = `lsclip${++uid}`;
+        const cp = el('clipPath', { id });
+        const cr = el('rect', { x: x1 - 2, y: Y(pHi) - 2, width: 0, height: Y(pLo) - Y(pHi) + 4 });
+        cp.appendChild(cr); defs.appendChild(cp);
+        g.setAttribute('clip-path', `url(#${id})`);
+        cue(g, 'wipe', s.t0, s.dur, { clip: cr, full: x2 - x1 });
+      }
+      api.pocPrice = pocPrice;
+      return api;
+    }
+
+    // ---- 9. point of control ---------------------------------------------
+    function poc({ price, from, label = 'POC', at, dur }) {
+      const y = Y(price), x1 = X(from) - step / 2;
+      const line = el('line', { class: 'ls-mk-poc', x1, y1: y, x2: plotR, y2: y });
+      gStruct.appendChild(line);
+      const s = schedule('level', at, dur);
+      cue(line, 'stroke', s.t0, s.dur);
+      if (label) {                            // label rides the right end of the rail
+        const t = el('text', {
+          class: 'ls-mk-poc-t', x: plotR - 10, y, dy: -12, 'text-anchor': 'end'
+        });
+        t.textContent = label;
+        gLabel.appendChild(t);
+        cueLabel(t, s.t0 + s.dur);
+      }
+      return api;
+    }
+
+    // ---- 10. position tool (entry / stop / target) ------------------------
+    function position({ from, to = null, entry, stop, target, at, dur }) {
+      const x1 = X(from) - step / 2;
+      const x2 = to === null ? plotR : X(to) + step / 2;
+      const w = x2 - x1;
+      const yE = Y(entry), yS = Y(stop), yT = Y(target);
+
+      const gt = el('rect', { class: 'ls-mk-pos-target', x: x1, y: Math.min(yE, yT),
+                              width: w, height: Math.abs(yE - yT) });
+      const gs = el('rect', { class: 'ls-mk-pos-stop', x: x1, y: Math.min(yE, yS),
+                              width: w, height: Math.abs(yE - yS) });
+      const ln = el('line', { class: 'ls-mk-pos-entry', x1, y1: yE, x2, y2: yE });
+      gZone.appendChild(gt); gZone.appendChild(gs); gStruct.appendChild(ln);
+
+      const s = schedule('zone', at, dur);
+      if (A) {
+        const id = `lsclip${++uid}`;
+        const cp = el('clipPath', { id });
+        const cr = el('rect', { x: x1, y: Math.min(yT, yS) - 2, width: 0,
+                                height: Math.abs(yT - yS) + 4 });
+        cp.appendChild(cr); defs.appendChild(cp);
+        [gt, gs, ln].forEach(nd => nd.setAttribute('clip-path', `url(#${id})`));
+        cue([gt], 'wipe', s.t0, s.dur, { clip: cr, full: w });
+      }
+      return api;
+    }
+
     // ---- gridlines --------------------------------------------------------
     function grid(count = 4) {
       for (let k = 1; k < count; k++) {
@@ -373,7 +482,8 @@
 
     const api = {
       svg, X, Y, drawCandles, grid, level, zone, structure,
-      swing, fib, trend, invalid, layout, seek, play, duration,
+      swing, fib, trend, invalid, volumeProfile, poc, position,
+      layout, seek, play, duration,
       get timeline() { return track; }
     };
     return api;

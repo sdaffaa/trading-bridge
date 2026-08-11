@@ -11,6 +11,9 @@ assets/brand/
 ├── markup.js              ← markup engine: levels, zones, structure, fib, projection + motion
 ├── markup-demo.html/.png  ← worked example of the full markup vocabulary
 ├── markup-motion.html/.mp4 ← the same markup drawn at the approved rhythm
+├── FORMAT-REEL-SPLIT.md   ← split-screen reel format (face + chart + karaoke captions)
+├── reel-split-demo.html/.mp4 ← the split-screen reel template
+├── captions.js            ← karaoke caption track (0.6s cadence)
 ├── capture-motion.py      ← frame-accurate CDP renderer (motion page → MP4)
 ├── palette-swatches.html  ← swatch sheet source
 ├── palette-swatches.png   ← swatch sheet render (1080×1350)
@@ -129,7 +132,21 @@ rests ~0.9s, then the label fades in. `MARKUP.md` §Rhythm carries the measured 
 
 ---
 
-## 6. Rules
+## 6. Reel formats
+
+| Format | Spec | Template |
+|---|---|---|
+| Static markup slide / slow-draw reel | `MARKUP.md` | `markup-demo.html`, `markup-motion.html` |
+| Split-screen: face + chart + captions | `FORMAT-REEL-SPLIT.md` | `reel-split-demo.html` |
+
+The split-screen format runs **two clocks**: captions change every ~0.6s while the chart changes
+every ~3.5s — roughly six captions per chart beat. Uses the `terminal` dark theme.
+
+![Split reel](reel-split-poster.png)
+
+---
+
+## 7. Rules
 
 - Never pure black (`#000000`) or pure white (`#FFFFFF`) backgrounds. Never neon.
 - Max 2 font sizes per slide besides labels; one big hook line per screen.

@@ -1,0 +1,142 @@
+<meta charset="utf-8">
+<title>Liquidity State — ريل الشاشة المقسومة</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#000; }
+  /* face-cam slot placeholder — drop real footage in .ls-reel-face */
+  .slot { width:100%; height:100%; display:flex; flex-direction:column;
+          align-items:center; justify-content:center; gap:14px;
+          background:radial-gradient(120% 90% at 50% 30%, #223046 0%, #141A24 70%); }
+  .slot .g { width:96px; height:96px; opacity:.5 }
+  .slot .n { font-family:var(--ls-font-ar); font-weight:700; font-size:26px; color:#5B7186; }
+  .brandbar { position:absolute; top:34px; left:0; right:0; text-align:center;
+              font-family:var(--ls-font-wordmark); font-size:24px; letter-spacing:.3em;
+              text-transform:uppercase; color:#7E93A6; direction:ltr; z-index:3; }
+  .ticker { position:absolute; top:calc(31% + 26px); right:34px; z-index:3;
+            font-family:var(--ls-font-ar); font-weight:700; font-size:26px;
+            color:var(--ls-text-secondary); direction:ltr; letter-spacing:.06em; }
+  .cta { position:absolute; bottom:150px; left:0; right:0; text-align:center; z-index:3;
+         font-family:var(--ls-font-ar); font-weight:800; font-size:40px; color:#fff;
+         text-shadow:0 4px 16px rgba(0,0,0,.6); opacity:0; }
+</style>
+
+<div class="ls-reel" data-ls-theme="terminal">
+  <div class="ls-reel-face">
+    <div class="slot">
+      <svg class="g" viewBox="455 55 290 320"><g fill="#8FA3AC" opacity=".8">
+        <polygon points="487.4,135 600,70 600,145 552.4,172.5"/>
+        <polygon points="600,70 712.6,135 647.6,172.5 600,145" opacity=".85"/>
+        <polygon points="712.6,135 712.6,265 647.6,227.5 647.6,172.5" opacity=".6"/>
+        <polygon points="712.6,265 600,330 600,255 647.6,227.5" opacity=".45"/>
+        <polygon points="600,330 487.4,265 552.4,227.5 600,255" opacity=".6"/>
+        <polygon points="487.4,265 487.4,135 552.4,172.5 552.4,227.5" opacity=".75"/>
+      </g></svg>
+      <div class="n">مكان مقطع الكاميرا</div>
+    </div>
+  </div>
+
+  <div class="brandbar">Liquidity State</div>
+  <div class="ticker">XAUUSD · M15</div>
+  <div class="ls-reel-chart"><div id="chart"></div></div>
+  <div class="cta" id="cta">احفظ البوست 🔖</div>
+</div>
+
+<script src="./markup.js"></script>
+<script src="./captions.js"></script>
+<script>
+function series() {
+  let s = 77003;
+  const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
+  const anchors = [
+    [0, 84], [6, 79], [14, 70],            // the leg down → swing low
+    [24, 88], [30, 84], [36, 92],          // impulse up → swing high
+    [44, 83], [50, 82.4],                  // retrace back into the POC
+    [58, 95], [66, 103]                    // and away
+  ];
+  const path = [];
+  for (let k = 0; k < anchors.length - 1; k++) {
+    const [i0, p0] = anchors[k], [i1, p1] = anchors[k + 1];
+    for (let i = i0; i < i1; i++) {
+      const t = (i - i0) / (i1 - i0);
+      path.push(p0 + (p1 - p0) * t + rnd() * 1.9);
+    }
+  }
+  path.push(anchors[anchors.length - 1][1]);
+  return path.slice(0, -1).map((v, i) => {
+    const o = v, c = path[i + 1], w = 0.7 + Math.abs(rnd()) * 1.7;
+    return { o, c, h: Math.max(o, c) + Math.abs(rnd()) * w, l: Math.min(o, c) - Math.abs(rnd()) * w };
+  });
+}
+
+const ch = LSChart({
+  mount: '#chart', width: 1032, height: 1180, candles: series(),
+  padding: { top: 60, right: 40, bottom: 60, left: 20 }, barsRight: 4,
+  anim: {}
+});
+ch.grid(4).drawCandles();
+
+/* ---- the chart clock: one beat every ~3.5s ----------------------------- */
+const ENTRY = 82.6;
+
+/* beat 1 — mark the leg the profile will measure */
+ch.structure([{ i: 14, price: 70 }, { i: 36, price: 92 }], { at: 0.5, dur: 1.4 });
+ch.swing({ i: 14, price: 70, label: 'Swing Low',  place: 'below', at: 1.6 });
+ch.swing({ i: 36, price: 92, label: 'Swing High', place: 'above', at: 2.0 });
+
+/* beat 2 — drag the fixed-range volume profile across it */
+ch.volumeProfile({ from: 14, to: 36, bins: 30, widthPct: 0.34, at: 4.0, dur: 1.3 });
+
+/* beat 3 — the POC extends right, and that is the level */
+ch.poc({ price: ENTRY, from: 14, label: 'POC', at: 7.4, dur: 0.7 });
+
+/* beat 4 — price comes back and taps it */
+ch.swing({ i: 50, price: 82.4, label: '', place: 'below', at: 11.0 });
+
+/* beat 5 — the position: entry at the POC, stop under, target above */
+ch.position({ from: 50, entry: ENTRY, stop: 78.6, target: 96, at: 14.0, dur: 1.2 });
+
+ch.layout();
+
+/* ---- the caption clock: a group every ~0.6s ---------------------------- */
+const caps = LSCaptions({
+  mount: '.ls-reel',
+  track: LSCaptions.pace([
+    ['من القاع', 0.7], ['إلى القمة', 0.8], ['حدّد الساق', 0.7],
+    ['وسحب عليها', 0.7], ['<em>Volume Profile</em>', 1.0],
+    ['شوف وين', 0.6], ['تجمّع الفوليوم', 0.9], ['هذي هي', 0.6],
+    ['<em>POC</em>', 0.9], ['نقطة التحكم', 0.9],
+    ['مدّها لليمين', 0.8], ['وخلّها', 0.6], ['وانتظر', 0.7],
+    ['السعر يرجع لها', 1.0], ['شوف وش صار', 0.8],
+    ['لمسها بالضبط', 1.0], ['ورجع منها', 0.9],
+    ['الدخول من الـ<em>POC</em>', 1.1], ['الوقف تحت الساق', 1.0],
+    ['والهدف فوق', 0.9], ['القمة السابقة', 0.9],
+    ['نموذج بسيط', 0.8], ['بس يحتاج', 0.6], ['اتجاه واضح', 0.9],
+    ['احفظه', 0.7], ['وارجع له', 1.2]
+  ], { start: 0.6 })
+});
+
+/* ---- one clock drives everything -------------------------------------- */
+const ctaEl = document.getElementById('cta');
+const TOTAL = Math.max(ch.duration(), caps.duration()) + 1.2;
+
+function seekAll(t) {
+  ch.seek(t);
+  caps.seek(t);
+  const c = Math.max(0, Math.min(1, (t - (TOTAL - 2.6)) / 0.5));
+  ctaEl.style.opacity = c;
+}
+seekAll(0);
+
+window.LS_DURATION = TOTAL;
+window.seekTo = t => { seekAll(t); return true; };
+window.LS_READY = true;
+
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now) {
+    const t = (now - t0) / 1000;
+    seekAll(t);
+    if (t < TOTAL) requestAnimationFrame(loop);
+  })(t0);
+}
+</script>

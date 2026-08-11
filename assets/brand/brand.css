@@ -182,7 +182,7 @@
 
 /* inline labels sitting inside the break in the line */
 .ls-mk-label       { font-family: var(--ls-font-ar); font-size: 17px; font-weight: 700;
-                     letter-spacing: .01em; }
+                     letter-spacing: .01em; direction: ltr; }
 .ls-mk-primary-t   { fill: var(--ls-structure); }
 .ls-mk-accent-t    { fill: var(--ls-text-accent); }
 .ls-mk-muted-t     { fill: var(--ls-text-secondary); }
@@ -198,7 +198,106 @@
 .ls-mk-zigzag   { stroke-width: 1.4; opacity: .85; }
 .ls-mk-marker   { fill: var(--ls-bg); stroke: var(--ls-text-accent); stroke-width: 2.2; }
 .ls-mk-swing    { font-family: var(--ls-font-ar); font-size: 15px; font-weight: 700;
-                  fill: var(--ls-text-accent); }
+                  fill: var(--ls-text-accent); direction: ltr; }
 .ls-mk-fib      { font-family: var(--ls-font-ar); font-size: 14px; font-weight: 500;
                   fill: var(--ls-text-secondary); direction: ltr; }
 .ls-mk-invalid  { stroke: var(--ls-invalid); stroke-width: 3.4; stroke-linecap: round; fill: none; }
+
+/* --- volume profile / POC / position tool ------------------------------- */
+.ls-mk-vp-bar    { fill: var(--ls-vp-bar); }
+.ls-mk-vp-bar.ls-mk-vp-va { fill: var(--ls-vp-va); }        /* value area */
+.ls-mk-vp-box    { fill: none; stroke: var(--ls-vp-box); stroke-width: 1.2; }
+.ls-mk-poc       { stroke: var(--ls-poc); stroke-width: 2; fill: none; }
+.ls-mk-poc-t     { font-family: var(--ls-font-ar); font-size: 20px; font-weight: 700;
+                   fill: var(--ls-poc); letter-spacing: .04em; direction: ltr; }
+.ls-mk-pos-target { fill: color-mix(in srgb, var(--ls-bullish) 16%, transparent); }
+.ls-mk-pos-stop   { fill: color-mix(in srgb, var(--ls-invalid) 16%, transparent); }
+.ls-mk-pos-entry  { stroke: var(--ls-poc); stroke-width: 1.6; stroke-dasharray: 4 4; }
+
+/* ==========================================================================
+   Terminal theme — dark chart panel for split-screen reels
+   (talking head above, chart below). See FORMAT-REEL-SPLIT.md
+   ========================================================================== */
+
+[data-ls-theme="terminal"] {
+  --ls-bg:             #0E1420;
+  --ls-bg-grad-top:    #111A28;
+  --ls-bg-grad-end:    #0E1420;
+  --ls-surface:        #172233;
+  --ls-surface-border: #26384F;
+
+  --ls-text:           #FFFFFF;
+  --ls-text-secondary: #8CA0B4;
+  --ls-text-accent:    #2ECC9A;
+  --ls-watermark:      #5B7186;
+
+  --ls-bullish:        #2ECC9A;
+  --ls-bearish:        #E15A5A;
+  --ls-structure:      #9FB4BC;
+  --ls-gridline:       #1B2942;
+  --ls-invalid:        #E15A5A;
+
+  --ls-pager-active:   #2ECC9A;
+  --ls-pager-inactive: #26384F;
+  --ls-counter-text:   #FFFFFF;
+  --ls-counter-border: #26384F;
+
+  /* volume profile reads as texture, the value area is the only bright part */
+  --ls-vp-bar: #2E4258;
+  --ls-vp-va:  #E0A33C;
+  --ls-vp-box: #33475F;
+  --ls-poc:    #E0A33C;
+}
+
+/* Light and dark themes still need the VP tokens defined */
+:root {
+  --ls-vp-bar: #C6CFD6;
+  --ls-vp-va:  #C08A2E;
+  --ls-vp-box: #C9C2B6;
+  --ls-poc:    #C08A2E;
+}
+[data-ls-theme="dark"] {
+  --ls-vp-bar: #2E4258;
+  --ls-vp-va:  #E0A33C;
+  --ls-vp-box: #33475F;
+  --ls-poc:    #E0A33C;
+}
+
+/* ==========================================================================
+   Split-screen reel shell — 1080×1920
+   Face panel on top, chart below, captions straddling the seam.
+   ========================================================================== */
+
+.ls-reel {
+  width: 1080px; height: 1920px; position: relative; overflow: hidden;
+  background: var(--ls-bg); font-family: var(--ls-font-ar); direction: rtl;
+}
+.ls-reel-face  { position: absolute; inset: 0 0 auto 0; height: 31%;
+                 background: #1A1F27; overflow: hidden; }
+.ls-reel-face > video, .ls-reel-face > img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.ls-reel-chart { position: absolute; inset: 31% 0 0 0;
+                 background: var(--ls-bg); padding: 0 24px; box-sizing: border-box; }
+
+/* caption sits at the seam — the last thing on the face panel */
+.ls-reel-caption {
+  position: absolute; top: 31%; left: 0; right: 0; transform: translateY(-118%);
+  text-align: center; padding: 0 60px; box-sizing: border-box;
+  font-family: var(--ls-font-ar); font-weight: 800; font-size: 76px; line-height: 1.15;
+  color: #FFFFFF; text-shadow: 0 4px 18px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.7);
+  pointer-events: none;
+}
+.ls-reel-caption em { font-style: normal; color: var(--ls-vp-va); }  /* key term / number */
+
+/* Markup inside a reel is read at arm's length on a phone — everything scales
+   up and thickens relative to the carousel sizing above. */
+.ls-reel .ls-mk-label  { font-size: 30px; }
+.ls-reel .ls-mk-swing  { font-size: 26px; }
+.ls-reel .ls-mk-fib    { font-size: 24px; }
+.ls-reel .ls-mk-poc-t  { font-size: 34px; letter-spacing: .06em; }
+.ls-reel .ls-mk-line   { stroke-width: 2.2; }
+.ls-reel .ls-mk-poc    { stroke-width: 3; }
+.ls-reel .ls-mk-zigzag { stroke-width: 2.4; }
+.ls-reel .ls-mk-marker { stroke-width: 3; r: 7; }
+.ls-reel .ls-mk-zone   { stroke-width: 2; }
