@@ -1,0 +1,305 @@
+<meta charset="utf-8">
+<title>Liquidity State — ثمانية شروط قبل الدخول</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#8A8A8A; }
+
+  /* Eight conditions need half the page, so the chart gives up height for
+     them. That is the right trade here: the gate IS the subject, and the
+     chart is its evidence. */
+  .ls-vr-chart  { top:222px; height:582px; }
+  #hook    { top:346px; font-size:82px; }
+  #verdict { top:360px; font-size:70px; }
+  .ls-vr-scrim  { top:196px; height:620px; }
+
+  #conds   { top:830px; gap:12px; }
+  #conds .ls-vr-tile { padding:13px 16px; gap:13px; }
+  #conds .ls-vr-tile i    { width:38px; height:38px; font-size:21px; line-height:34px; }
+  #conds .ls-vr-tile span { font-size:27px; }
+
+  #stats   { top:1216px; grid-template-columns:1fr 1fr 1fr; }
+  .ls-vr-caps .ls-reel-caption { top:1364px; font-size:54px; }
+  .ls-vr-disc   { top:1494px; }
+
+  .ls-vr-beat { text-shadow:0 2px 26px var(--ls-bg), 0 0 12px var(--ls-bg); }
+</style>
+
+<div class="ls-vr">
+  <div class="ls-vr-ticker">XAUUSD · H1</div>
+  <div class="ls-vr-wm">Liquidity State</div>
+
+  <div class="ls-vr-chart"><div id="chart"></div></div>
+
+  <div class="ls-vr-scrim" id="scrim"></div>
+  <div class="ls-vr-beat" id="hook"><span>چم شرط<br>قبل ما تدخل؟</span></div>
+  <div class="ls-vr-beat" id="verdict"><span>ثمانية شروط<br>لازم <em>قبل ما تدخل</em></span></div>
+
+  <!-- The order is the order they can be checked in. You cannot know the
+       block before the break, or the R before the block. -->
+  <div class="ls-vr-grid" id="conds">
+    <div class="ls-vr-tile"><i>1</i><span>اتجاه صاعد</span></div>
+    <div class="ls-vr-tile"><i>2</i><span>كسر بإغلاق</span></div>
+    <div class="ls-vr-tile"><i>3</i><span>اندفاع أكبر من المعتاد</span></div>
+    <div class="ls-vr-tile"><i>4</i><span>آخر شمعة هابطة</span></div>
+    <div class="ls-vr-tile"><i>5</i><span>الرجوع بعد الكسر</span></div>
+    <div class="ls-vr-tile"><i>6</i><span>رفض فوق البلوك</span></div>
+    <div class="ls-vr-tile"><i>7</i><span>الخطر ≤ ٤٠٪ من الساق</span></div>
+    <div class="ls-vr-tile"><i>8</i><span>العائد ٢R على الأقل</span></div>
+  </div>
+
+  <div class="ls-vr-grid" id="stats">
+    <div class="ls-vr-tile ls-vr-stat" id="st-entry"><div class="k">الدخول</div><div class="v">—</div></div>
+    <div class="ls-vr-tile ls-vr-stat" id="st-stop"><div class="k">الستوب</div><div class="v">—</div></div>
+    <div class="ls-vr-tile ls-vr-stat" id="st-r"><div class="k">النتيجة</div><div class="v">—</div></div>
+  </div>
+
+  <div class="ls-vr-caps" id="caps"></div>
+  <div class="ls-vr-disc">مثال تخطيطي لغرض تعليمي — ليست توصية</div>
+</div>
+
+<script src="./markup.js"></script>
+<script src="./captions.js"></script>
+<script>
+/* ==========================================================================
+   ثمانية شروط قبل الدخول — the entry as a gate, not a signal
+
+   Part five. The order-block model again, but the subject is no longer the
+   pattern: it is the eight conditions the pattern has to pass. Four of them
+   are the ones people already look at; four are the ones that actually stop
+   bad entries, and those four are the reel.
+
+   Every condition is CHECKED IN CODE against the candles, not asserted in a
+   caption. If one of them were false the tile would not light, and the number
+   at the bottom of this file would say so.
+
+   All 11 beats, 34.0s. Anchor noun: الشرط.
+     1  HOOK      تبي تعرف چم شرط لازم قبل ما تدخل؟
+     2  PARADOX   شرط واحد ناقص، والصفقة كلها تفشل
+     3  PIVOT     شلون؟
+     4  INVITE    تعال اقولك
+     5+6 BELIEF   الناس تدخل بشرط أو شرطين
+     7  TURN      لكن بالواقع؟ الدخول بوابة، مو إشارة …
+     8  VERDICT   ثمانية شروط لازم قبل ما تدخل           ← reuses beat 1
+     9  PROOF     شوف — الثمانية تحققوا، وراح حق الهدف
+     10 CARE      ينقص واحد؟ ما فيه صفقة
+     11 LOOP      تعرف أي شرط أهمهم؟ تابع البوست الجاي
+   ========================================================================== */
+
+const TOTAL = 34.0;
+const SEAM  = 32.8;
+
+const C = [
+  [92.00, 92.90, 93.20, 91.70], [92.90, 93.80, 94.10, 92.60],
+  [93.80, 93.20, 94.20, 92.90], [93.20, 94.60, 94.90, 93.00],
+  [94.60, 95.80, 96.10, 94.30], [95.80, 96.60, 96.90, 95.50],
+  [96.60, 95.90, 97.00, 95.60], [95.90, 97.10, 97.40, 95.70],
+  [97.10, 98.40, 98.70, 96.90], [98.40, 99.60, 99.90, 98.10],
+  [99.60, 100.20, 100.50, 99.30],                       // 10 — the first high
+  [100.20, 99.10, 100.40, 98.80], [99.10, 98.20, 99.40, 97.90],
+  [98.20, 97.40, 98.50, 97.00],
+  [97.40, 98.10, 98.40, 96.80],                         // 14 — the higher low
+  [98.10, 99.30, 99.60, 97.90], [99.30, 100.60, 100.90, 99.10],
+  [100.60, 101.90, 102.20, 100.40], [101.90, 103.10, 103.40, 101.70],
+  [103.10, 102.60, 103.50, 102.30],
+  [102.60, 103.40, 104.00, 102.40],                     // 20 — the structure high
+  [103.40, 102.30, 103.60, 102.00], [102.30, 101.40, 102.60, 101.10],
+  [101.40, 102.00, 102.30, 101.10], [102.00, 100.90, 102.20, 100.60],
+  [100.90, 100.10, 101.20, 99.80], [100.10, 100.70, 101.00, 99.70],
+  [100.70, 100.70, 101.10, 99.90],
+  [100.70, 99.60, 100.90, 98.90],                       // 28 — THE ORDER BLOCK
+  [99.60, 101.60, 101.90, 99.50], [101.60, 102.80, 103.10, 101.40],
+  [102.80, 103.80, 104.00, 102.60],                     // 31 — touches, does not close through
+  [103.80, 105.40, 105.60, 103.60],                     // 32 — the displacement, and the high
+  [105.40, 104.60, 105.50, 104.30], [104.60, 103.60, 104.80, 103.30],
+  [103.60, 104.10, 104.40, 103.20], [104.10, 102.80, 104.30, 102.50],
+  [102.80, 101.90, 103.00, 101.60], [101.90, 101.40, 102.10, 101.10],
+  [101.40, 101.80, 102.00, 100.90],                     // 39 — taps the block: the entry
+  [101.80, 102.60, 102.90, 101.40], [102.60, 102.10, 102.90, 101.80],
+  [102.10, 103.20, 103.40, 101.90], [103.20, 104.10, 104.40, 103.00],
+  [104.10, 103.60, 104.30, 103.30], [103.60, 104.40, 104.60, 103.40],
+  [104.40, 104.10, 104.70, 103.90], [104.10, 104.90, 105.10, 103.90],
+  [104.90, 105.40, 105.60, 104.60],                     // 48 — the target is reached
+  [105.40, 105.00, 105.70, 104.80], [105.00, 105.80, 106.00, 104.80],
+  [105.80, 106.40, 106.70, 105.60]
+].map(([o, c, h, l]) => ({ o, c, h, l }));
+
+const BOS   = C[20].h;
+const OB_T  = C[28].h, OB_B = C[28].l;
+const ENTRY = OB_T, STOP = OB_B, TGT = C[32].h;
+const RISK  = ENTRY - STOP;
+const LEG   = TGT - OB_B;                 // the whole move the block produced
+const R     = (TGT - ENTRY) / RISK;
+
+/* ---- the eight conditions, evaluated ------------------------------------
+   Each one returns a boolean and a number, so nothing on screen is a claim
+   the candles have not been asked about. body(i) is used twice, so it is
+   named once. */
+const body = i => Math.abs(C[i].c - C[i].o);
+const meanBody = (a, b) => {
+  let s = 0; for (let i = a; i <= b; i++) s += body(i);
+  return s / (b - a + 1);
+};
+const bosBar   = C.findIndex((c, i) => i > 20 && c.c > BOS);
+const entryBar = C.findIndex((c, i) => i > bosBar && c.l <= ENTRY);
+const disp     = body(bosBar) / meanBody(bosBar - 10, bosBar - 1);
+
+const COND = [
+  { t: 'اتجاه صاعد',
+    ok: C[20].h > C[10].h && C[26].l > C[14].l,
+    note: `${C[20].h.toFixed(2)} > ${C[10].h.toFixed(2)}` },
+  { t: 'كسر بإغلاق',
+    ok: C[31].h >= BOS && C[31].c <= BOS && C[bosBar].c > BOS,
+    note: `الشمعة ${bosBar}` },
+  { t: 'اندفاع أكبر من المعتاد',
+    ok: disp >= 1.5, note: `${disp.toFixed(2)}×` },
+  { t: 'آخر شمعة هابطة',
+    ok: C[28].c < C[28].o && C[29].c > C[29].o && C[30].c > C[30].o && C[31].c > C[31].o,
+    note: 'الشمعة 28' },
+  { t: 'الرجوع بعد الكسر',
+    ok: entryBar > bosBar, note: `${entryBar} > ${bosBar}` },
+  { t: 'رفض فوق البلوك',
+    ok: C[entryBar].l <= OB_T && C[entryBar].c > OB_T,
+    note: `${C[entryBar].c.toFixed(2)} > ${OB_T.toFixed(2)}` },
+  { t: 'الخطر ≤ ٤٠٪ من الساق',
+    ok: RISK <= 0.40 * LEG, note: `${(RISK / LEG * 100).toFixed(0)}%` },
+  { t: 'العائد ٢R على الأقل',
+    ok: R >= 2, note: `${R.toFixed(2)}R` }
+];
+const ALL_OK = COND.every(c => c.ok);
+
+const ch = LSChart({
+  mount: '#chart', width: 1000, height: 582, candles: C,
+  padding: { top: 40, right: 38, bottom: 26, left: 18 },
+  barsRight: 1, barsVisible: 52,
+  autoTerminate: true, tolerance: 0.01, anim: {}
+});
+ch.grid(3).drawCandles();
+
+const HOLDS = [
+  { atBar: 21, seconds: 3.2 },   // the trend                    → 1
+  { atBar: 33, seconds: 4.0 },   // the break, and its size       → 2, 3
+  { atBar: 34, seconds: 3.2 },   // the block                     → 4
+  { atBar: 40, seconds: 6.2 },   // the entry, and its arithmetic → 5, 6, 7, 8
+  { atBar: 49, seconds: 4.4 }    // the target
+];
+ch.replay({ rate: 3.6, window: 52, start: 14, at: 0, holds: HOLDS });
+const H = Object.fromEntries(HOLDS.map(h => [h.atBar, h.t]));
+
+ch.structure([{ i: 10, price: C[10].h }, { i: 14, price: C[14].l },
+              { i: 20, price: BOS }], { at: H[21] + 0.2, dur: 1.1 });
+ch.level({ price: BOS, from: 20, label: 'قمة الهيكل', mode: 'close',
+           at: H[21] + 1.5, dur: 0.6 });
+ch.sticker({ i: bosBar, price: C[bosBar].c, text: 'كسر بإغلاق', dy: -70,
+             at: H[33] + 0.6 });
+ch.zone({ from: 28, top: OB_T, bottom: OB_B, label: 'أوردر بلوك', tone: 'accent',
+          align: 'right', at: H[34] + 0.3, dur: 0.9 });
+ch.position({ from: entryBar, to: 48, entry: ENTRY, stop: STOP, target: TGT,
+              at: H[40] + 0.4, dur: 1.0 });
+ch.level({ price: TGT, from: 32, label: 'قمة الاندفاع', dashed: true, tone: 'muted',
+           at: H[40] + 1.4, dur: 0.6 });
+ch.sticker({ i: 48, price: TGT, text: 'وصل الهدف', dy: -72, dx: -84,
+             at: H[49] + 0.6 });
+
+ch.layout();
+const CHART_END = ch.duration();
+
+const f2 = v => v.toFixed(2);
+document.querySelector('#st-entry .v').textContent = f2(ENTRY);
+document.querySelector('#st-stop .v').textContent  = f2(STOP);
+const R_TEXT = '+' + R.toFixed(2) + 'R';
+
+/* Each tile carries the number it passed on, so a viewer who pauses can check
+   the claim instead of taking it. */
+const condEls = [...document.querySelectorAll('#conds .ls-vr-tile')];
+condEls.forEach((el, i) => {
+  const s = document.createElement('em');
+  s.textContent = COND[i].note;
+  el.appendChild(s);
+});
+
+const caps = LSCaptions({
+  mount: '#caps',
+  track: LSCaptions.pace([
+    ['تبي تعرف', 0.50], ['چم شرط لازم', 0.85], ['قبل ما تدخل؟', 0.90],
+    ['شرط واحد ناقص', 0.95], ['والصفقة كلها تفشل', 1.05],
+    ['شلون؟', 0.60], ['تعال اقولك', 0.75],
+    ['الناس تدخل بشرط أو شرطين', 1.40],
+    ['لكن بالواقع؟', 0.95],
+    ['الدخول <em>بوابة</em>، مو إشارة', 1.45],
+    ['أول أربعة صاروا', 1.20], ['الاتجاه، الكسر', 1.05], ['الاندفاع، والبلوك', 1.20],
+    ['بس هذي يعرفونها', 1.30],
+    ['والأربعة الجاية يفوتونهم:', 1.55],
+    ['الرجوع لازم بعد الكسر', 1.45],
+    ['والإغلاق يرفض من فوق البلوك', 1.70],
+    ['والخطر ما يزيد', 1.05], ['عن ٤٠٪ من الساق', 1.25],
+    ['والعائد <em>٢R</em> على الأقل', 1.55],
+    ['شوف — الثمانية تحققوا', 1.45], ['وراح حق الهدف', 1.25],
+    ['ثمانية شروط', 1.00], ['لازم قبل ما تدخل', 1.20],
+    ['ينقص واحد؟', 0.95], ['ما فيه صفقة', 1.05],
+    ['تعرف أي شرط أهمهم؟', 1.40], ['تابع البوست الجاي', 1.35]
+  ], { start: 0.1 })
+});
+
+/* ---- the overlay clock ------------------------------------------------ */
+const hookEl  = document.getElementById('hook');
+const verdEl  = document.getElementById('verdict');
+const scrimEl = document.getElementById('scrim');
+const stEntry = document.getElementById('st-entry');
+const stStop  = document.getElementById('st-stop');
+const stR     = document.getElementById('st-r');
+const ease = k => k * k * (3 - 2 * k);
+const seg  = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
+const wipe = (el, p) => { el.firstElementChild.style.clipPath = `inset(0 0 0 ${(1 - p) * 100}%)`; };
+
+/* A tile lights when the chart has proved it — conditions 1–4 as each event
+   prints, then 5–8 in a burst at the entry, because all four are decided by
+   the same bar. */
+const COND_AT = [
+  H[21] + 1.2, H[33] + 0.8, H[33] + 1.9, H[34] + 0.9,
+  H[40] + 0.3, H[40] + 1.5, H[40] + 3.0, H[40] + 4.5
+];
+
+function seekAll(t) {
+  let ct = t;
+  if (t > SEAM) ct = CHART_END * (1 - ease(seg(t, SEAM, TOTAL - SEAM)));
+  ch.seek(Math.min(ct, CHART_END));
+  caps.seek(t > SEAM ? -1 : t);
+
+  const past = x => (t > SEAM ? false : t >= x);
+  condEls.forEach((el, i) => el.classList.toggle('on', past(COND_AT[i]) && COND[i].ok));
+
+  stEntry.classList.toggle('on', past(H[40] + 0.5));
+  stStop.classList.toggle('on', past(H[40] + 0.5));
+  const hit = past(H[49] + 1.0);
+  stR.classList.toggle('on', hit);
+  stR.querySelector('.v').textContent = hit ? R_TEXT : '—';
+
+  const hIn = ease(seg(t, 0.35, 0.55));
+  wipe(hookEl, hIn);
+  hookEl.style.opacity = hIn * (1 - ease(seg(t, 4.1, 0.4)));
+
+  const vIn = ease(seg(t, 25.6, 0.5)), vOut = ease(seg(t, 29.6, 0.5));
+  wipe(verdEl, vIn);
+  verdEl.style.opacity = vIn * (1 - vOut);
+  scrimEl.style.opacity = (vIn * (1 - vOut) * 0.96).toFixed(3);
+}
+
+window.LS_SIZE = [1080, 1920];
+window.LS_DURATION = TOTAL;
+window.LS_TAIL = 0;
+window.LS_VIOLATIONS = ch.violations;
+window.LS_GATE = {
+  BOS, OB_T, OB_B, ENTRY, STOP, TGT, RISK, LEG, R, disp, bosBar, entryBar,
+  allConditionsPass: ALL_OK,
+  conditions: COND.map((c, i) => ({ n: i + 1, ok: c.ok, note: c.note })),
+  chartEnd: CHART_END, caps: caps.duration(), holds: H
+};
+window.seekTo = t => { seekAll(t); return true; };
+seekAll(0);
+document.fonts.ready.then(() => { seekAll(0); window.LS_READY = true; });
+
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now) { seekAll(((now - t0) / 1000) % TOTAL); requestAnimationFrame(loop); })(t0);
+}
+</script>

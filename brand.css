@@ -1,0 +1,7 @@
+
+/* A tile can carry the number it passed on, so a viewer who pauses can check
+   the claim rather than take it. */
+.ls-vr-tile em { margin-right: auto; font-style: normal; font-size: 22px;
+                 font-weight: 700; direction: ltr; white-space: nowrap;
+                 color: var(--ls-text-secondary); opacity: .8; }
+.ls-vr-tile.on em { color: var(--ls-text-accent); opacity: 1; }

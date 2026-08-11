@@ -151,6 +151,7 @@ Pass `autoTerminate: true` and every level and box ends itself at the candle tha
 | Documented trade, sweep → target | `reel-trade.md` | `reel-trade.html` |
 | Range + volume profile, value-edge entry | `reel-value.md` | `reel-value.html` |
 | Trend continuation from an order block (cream) | `reel-orderblock.md` | `reel-orderblock.html` |
+| The entry as an eight-condition gate (cream) | `reel-entry-gate.md` | `reel-entry-gate.html` |
 
 The footprint reel is the worked example of the whole system on one clock: bar replay, markup,
 a footprint that builds price by price, and captions all driven by the same `seek(t)`. Runtime
@@ -196,6 +197,15 @@ use these; the first three are left as they shipped.
 ![Trade reel](reel-trade-poster.png)
 ![Value reel](reel-value-poster.png)
 ![Order block reel](reel-orderblock-poster.png)
+![Entry gate reel](reel-entry-gate-poster.png)
+
+`reel-entry-gate.html` is part five: the same order-block trade, but the subject is the **eight
+conditions** it has to pass rather than the pattern. Each condition is evaluated in code against
+the candles — displacement is the breaking candle's body over the mean of the previous ten
+(1.72×), risk is the block's height over the leg it produced (30%), and so on — so a tile only
+lights when the chart has actually satisfied it, and each carries the number it passed on.
+Four of the eight are the ones everyone already looks at; the other four are what the reel is
+for. See [`reel-entry-gate.md`](reel-entry-gate.md).
 
 The split-screen format runs **two clocks**: captions change every ~0.6s while the chart changes
 every ~3.5s — roughly six captions per chart beat. Uses the `terminal` dark theme.
