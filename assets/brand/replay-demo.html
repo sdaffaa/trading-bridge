@@ -74,6 +74,6 @@ ch.layout();
 
 window.LS_DURATION = ch.duration() + 0.8;
 window.seekTo = t => { ch.seek(t); return true; };
-window.LS_READY = true;
+document.fonts.ready.then(() => { window.LS_READY = true; });
 if (!location.search.includes('static')) ch.play();
 </script>

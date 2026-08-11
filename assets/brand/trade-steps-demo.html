@@ -1,0 +1,230 @@
+<meta charset="utf-8">
+<title>Liquidity State — خطوات صفقة تداول</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; }
+  .slide { width:1080px; height:1920px; box-sizing:border-box; padding:56px 60px 44px;
+           background:var(--ls-bg); font-family:var(--ls-font-ar); color:var(--ls-text);
+           direction:rtl; display:flex; flex-direction:column; }
+  .top { display:flex; justify-content:space-between; align-items:baseline; }
+  .eyebrow { font-size:24px; font-weight:700; letter-spacing:.2em; color:var(--ls-text-accent);
+             direction:ltr; text-transform:uppercase; }
+  .pair { font-size:23px; font-weight:600; color:var(--ls-text-secondary); direction:ltr; }
+  h1  { font-size:57px; font-weight:800; margin:12px 0 6px; text-align:left; line-height:1.24; }
+  .sub{ font-size:27px; font-weight:500; color:var(--ls-text-secondary); text-align:left;
+        margin:0 0 14px; }
+  .rule { height:1px; background:var(--ls-gridline); margin:0 0 14px; }
+
+  .steps { display:flex; gap:8px; margin-bottom:14px; }
+  .steps .s { flex:1; border-top:3px solid var(--ls-gridline); padding-top:8px;
+              font-size:18px; font-weight:700; color:var(--ls-text-secondary);
+              opacity:.4; direction:rtl; text-align:right; }
+  .steps .s.on   { border-top-color:var(--ls-text-accent); color:var(--ls-text-accent); opacity:1; }
+  .steps .s.done { opacity:.7; border-top-color:var(--ls-text-accent); }
+
+  .card { border:1.5px solid #CFDDE2; border-radius:22px; padding:16px 10px 8px;
+          background:var(--ls-bg-grad-top); overflow:hidden; }
+
+  .say { margin-top:16px; min-height:112px; }
+  .say .t { font-size:36px; font-weight:800; line-height:1.3; }
+  .say .d { font-size:25px; font-weight:500; color:var(--ls-text-secondary);
+            margin-top:6px; line-height:1.5; }
+
+  .plan { display:flex; gap:11px; margin-top:12px; }
+  .plan > div { flex:1; border:1.5px solid var(--ls-gridline); border-radius:12px;
+                padding:10px 13px; opacity:0; }
+  .plan .k { font-size:18px; font-weight:600; color:var(--ls-text-secondary); direction:ltr; }
+  .plan .v { font-size:28px; font-weight:800; direction:ltr; margin-top:2px; }
+  .plan .risk .v { color:var(--ls-invalid); }
+  .plan .tp   .v { color:var(--ls-text-accent); }
+  .plan .res  { border-color:var(--ls-text-accent); }
+  .plan .res .v { color:var(--ls-text-accent); }
+
+  .foot { margin-top:auto; display:flex; justify-content:space-between; align-items:center;
+          gap:24px; border-top:1px solid var(--ls-gridline); padding-top:15px; }
+  .foot .lm { font-family:var(--ls-font-wordmark); font-size:18px; letter-spacing:.2em;
+              color:var(--ls-text-secondary); direction:ltr; text-transform:uppercase;
+              white-space:nowrap; }
+  .foot .dc { font-size:18px; font-weight:500; color:var(--ls-text-secondary); white-space:nowrap; }
+</style>
+
+<div class="slide">
+  <div class="top">
+    <div class="eyebrow">Trade Walkthrough · Liquidity + Value</div>
+    <div class="pair">XAUUSD · M15</div>
+  </div>
+  <h1>خطوات صفقة تداول</h1>
+  <div class="sub">من تحديد السيولة إلى إغلاق الهدف — خطوة خطوة.</div>
+  <div class="rule"></div>
+
+  <div class="steps" id="steps">
+    <div class="s">١ · السيولة</div><div class="s">٢ · السحب</div><div class="s">٣ · الكسر</div>
+    <div class="s">٤ · القيمة</div><div class="s">٥ · الدخول</div><div class="s">٦ · النتيجة</div>
+  </div>
+
+  <div class="card"><div id="chart"></div></div>
+
+  <div class="say"><div class="t" id="sayT"></div><div class="d" id="sayD"></div></div>
+
+  <div class="plan">
+    <div class="res"  id="pRS"><div class="k">Result</div><div class="v" id="vRS">—</div></div>
+    <div class="tp"   id="pTP"><div class="k">TP</div><div class="v" id="vTP">—</div></div>
+    <div class="risk" id="pSL"><div class="k">SL</div><div class="v" id="vSL">—</div></div>
+    <div              id="pEN"><div class="k">Entry</div><div class="v" id="vEN">—</div></div>
+  </div>
+
+  <div class="foot">
+    <div class="lm">Liquidity State · Markup System</div>
+    <div class="dc">مثال تخطيطي — ليست توصية</div>
+  </div>
+</div>
+
+<script src="./markup.js"></script>
+<script>
+/* Schematic series carrying one full trade. Every level below is read back off
+   these candles — the zero rule holds in code, not in intent. */
+function series() {
+  let s = 31337;
+  const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
+  const A = [
+    [0,4238],[14,4262],[22,4276],[30,4288],[34,4286.5],[38,4288.4],
+    [42,4281],[46,4291.5],[50,4268],[54,4258],[60,4256],[68,4276],
+    [74,4262],[82,4244],[92,4234]
+  ];
+  const out = [];
+  for (let k = 0; k < A.length - 1; k++) {
+    const [i0,p0] = A[k], [i1,p1] = A[k+1];
+    for (let i = i0; i < i1; i++) out.push(p0 + (p1-p0)*((i-i0)/(i1-i0)) + rnd()*2.0);
+  }
+  out.push(A[A.length-1][1]);
+  return out.slice(0,-1).map((v,i) => {
+    const o = v, c = out[i+1], w = 0.7 + Math.abs(rnd())*2.3;
+    return { o, c, h: Math.max(o,c)+Math.abs(rnd())*w, l: Math.min(o,c)-Math.abs(rnd())*w };
+  });
+}
+const candles = series();
+const hiOf = (a,b) => { let i=a,p=candles[a].h; for(let k=a;k<=b;k++) if(candles[k].h>p){p=candles[k].h;i=k;} return {i,p}; };
+const loOf = (a,b) => { let i=a,p=candles[a].l; for(let k=a;k<=b;k++) if(candles[k].l<p){p=candles[k].l;i=k;} return {i,p}; };
+
+/* --- read before drawing ------------------------------------------------- */
+const BSL = hiOf(30,40);                                  // external liquidity
+let sweepI = BSL.i + 1;
+while (candles[sweepI].h <= BSL.p) sweepI++;
+const sweepH = candles[sweepI].h;                         // the wick → SL sits above
+
+const swingLo = loOf(38,44);
+let mssI = sweepI + 1;                                    // a BODY close, not a wick
+while (mssI < candles.length && candles[mssI].c >= swingLo.p) mssI++;
+
+const gaps = [];
+for (let i = sweepI+1; i < Math.min(mssI+10, candles.length-1); i++)
+  if (candles[i-1].l > candles[i+1].h)
+    gaps.push({ i, top: candles[i-1].l, bottom: candles[i+1].h });
+let fvg = null, entryI = mssI + 2;
+for (const g of gaps) {                                   // the gap price returns to
+  let e = g.i + 2;
+  while (e < candles.length && candles[e].h < g.bottom) e++;
+  if (e < candles.length - 6) { fvg = g; entryI = e; break; }
+}
+const ENTRY = fvg.bottom, SL = sweepH;
+const targetLo = loOf(entryI+2, candles.length-1);
+const TP = targetLo.p, R = (ENTRY - TP) / (SL - ENTRY);
+
+/* --- chart --------------------------------------------------------------- */
+const ch = LSChart({
+  mount: '#chart', width: 940, height: 1010, candles,
+  padding: { top: 42, right: 104, bottom: 34, left: 20 },
+  barsRight: 2, barsVisible: 58, tolerance: 0.05, anim: {}
+});
+ch.priceScale({ step: 15, decimals: 0 });
+ch.drawCandles();
+
+const HOLD = 3.5;
+const holds = [
+  { atBar: sweepI - 2,   seconds: HOLD },   // 1 liquidity, marked before it is taken
+  { atBar: sweepI + 2,   seconds: HOLD },   // 2 the sweep
+  { atBar: mssI   + 2,   seconds: HOLD },   // 3 the break
+  { atBar: mssI   + 6,   seconds: HOLD },   // 4 value: the profile over the finished leg
+  { atBar: entryI + 2,   seconds: HOLD },   // 5 entry at the edge of value
+  { atBar: targetLo.i+1, seconds: HOLD+1.8} // 6 result
+];
+ch.replay({ rate: 4.71, window: 56, start: 24, holds });
+const T = holds.map(h => h.t);
+
+/* 1 — external liquidity, drawn while it is still untouched */
+ch.level({ price: BSL.p, from: BSL.i, to: sweepI, dashed: true, tone: 'accent', at: T[0]+.2 });
+ch.anchor({ i: BSL.i, price: BSL.p, n: 1, at: T[0]+.9 });
+ch.sticker({ i: BSL.i, price: BSL.p, text: 'سيولة قمم متساوية', n: 1, dx: 6, dy: -130, at: T[0]+1.3 });
+
+/* 2 — the sweep: wick through, close back under */
+ch.sticker({ i: sweepI, price: sweepH, text: 'سحب السيولة', n: 2, dx: 58, dy: -60, at: T[1]+.6 });
+ch.anchor({ i: sweepI, price: sweepH, n: 2, at: T[1]+.2 });
+
+/* 3 — MSS, confirmed by a body close through the last higher low */
+ch.level({ price: swingLo.p, from: swingLo.i, to: mssI, mode: 'close', at: T[2]+.2 });
+ch.sticker({ i: mssI, price: swingLo.p, text: 'كسر البنية بإغلاق', n: 3, dx: -30, dy: 84, at: T[2]+1.0 });
+
+/* 4 — where value actually was, over the completed leg (a final FRVP, not a
+       developing one) */
+ch.volumeProfile({ from: 14, to: sweepI, bins: 30, widthPct: 0.26,
+                   valueArea: 0.70, showVA: true, at: T[3]+.2, dur: 1.2 });
+const vp = ch.profile;
+ch.sticker({ i: 20, price: vp.poc, text: 'POC', n: 4, dx: 78, dy: -46, at: T[3]+1.6 });
+
+/* 5 — the gap sits on the value-area low: two reasons at one price */
+ch.zone({ from: fvg.i-1, to: entryI, top: fvg.top, bottom: fvg.bottom,
+          tone: 'accent', whole: false, at: T[4]+.2 });
+ch.position({ from: entryI, to: targetLo.i, entry: ENTRY, stop: SL, target: TP, at: T[4]+.9 });
+ch.sticker({ i: entryI, price: ENTRY, text: 'دخول عند حافة القيمة', n: 5,
+             dx: 92, dy: 56, at: T[4]+1.6 });
+
+/* 6 — the outcome */
+ch.level({ price: TP, from: targetLo.i, to: 'edge', tone: 'accent', at: T[5]+.3 });
+ch.sticker({ i: targetLo.i, price: TP, text: 'تحقق الهدف', n: 6, dx: -50, dy: 70, at: T[5]+1.1 });
+
+ch.layout();
+
+/* --- words + plan, one clock --------------------------------------------- */
+const SAY = [
+  ['السيولة تُحدَّد قبل أن تُؤخذ','قمم متساوية = أوامر وقف مكدّسة فوقها. نرسمها الآن، لا بعد ما تُسحب.'],
+  ['الفتيل أخذها ثم أُغلق تحتها','لو أغلق فوقها واستمر، هذا كسر مقبول مو سحب — الفرق يقلب القراءة.'],
+  ['الإغلاق تحت آخر قاع','هنا تغيّر الاتجاه فعلاً. الفتيل وحده ما كان كافياً.'],
+  ['وين كانت القيمة؟','بروفايل الساق المكتملة: أعلى تجمّع عند الـPOC، والقيمة بين حديها.'],
+  ['الفجوة على حافة القيمة','سببان عند سعر واحد: فجوة اندفاع + حد منطقة القيمة. الوقف فوق فتيل السحب.'],
+  ['الهدف: سيولة القيعان','خرجنا وين يوجد الطرف المقابل — لا عند رقم أعجبنا.']
+];
+const stepEls = [...document.querySelectorAll('#steps .s')];
+const $ = id => document.getElementById(id);
+const f0 = n => n.toFixed(0);
+
+function ui(t) {
+  let cur = -1;
+  T.forEach((tt,k) => { if (t >= tt + 0.15) cur = k; });
+  stepEls.forEach((el,k) => {
+    el.classList.toggle('on', k === cur);
+    el.classList.toggle('done', k < cur);
+  });
+  $('sayT').textContent = cur >= 0 ? SAY[cur][0] : '';
+  $('sayD').textContent = cur >= 0 ? SAY[cur][1] : '';
+  $('pEN').style.opacity = t >= T[4]+1.0 ? 1 : 0; $('vEN').textContent = f0(ENTRY);
+  $('pSL').style.opacity = t >= T[4]+1.3 ? 1 : 0; $('vSL').textContent = f0(SL);
+  $('pTP').style.opacity = t >= T[4]+1.6 ? 1 : 0; $('vTP').textContent = f0(TP);
+  $('pRS').style.opacity = t >= T[5]+1.4 ? 1 : 0; $('vRS').textContent = '+' + R.toFixed(1) + 'R';
+}
+
+const TOTAL = ch.duration() + 1.0;
+const seekAll = t => { ch.seek(t); ui(t); };
+seekAll(0);
+window.LS_DURATION = TOTAL;
+window.seekTo = t => { seekAll(t); return true; };
+document.fonts.ready.then(() => { window.LS_READY = true; });
+window.LS_INFO = { BSL: BSL.p, sweepI, sweepH, swingLo: swingLo.p, mssI,
+                   fvg, entryI, ENTRY, SL, TP, R,
+                   poc: vp.poc, vah: vp.vah, val: vp.val,
+                   fvgAtValueEdge: Math.abs(fvg.bottom - vp.val) < 2.5,
+                   violations: ch.violations };
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now){ const t=(now-t0)/1000; seekAll(t); if(t<TOTAL) requestAnimationFrame(loop); })(t0);
+}
+</script>

@@ -215,6 +215,7 @@
     const Y = p => plotB - ((p - lo) / (hi - lo)) * (plotB - plotT);
 
     const candleNodes = [];  // one per bar, for replay reveal
+    let panX = 0;            // current viewport offset, set by the replay handler
     const jobs = [];        // deferred text measurement, run in layout()
     const track = [];       // animation entries
     let cursor = A ? A.start : 0;
@@ -607,8 +608,12 @@
         }
       }
 
-      api.pocPrice = pocPrice; api.vah = VAH; api.val = VAL;
-      api.hvn = hvn; api.lvn = lvn; api.developing = developing;
+      /* Results live on api.profile, not loose on api: a flat `api.poc` would
+         collide with the poc() method and silently hand you a function where
+         you expected a price. */
+      api.profile = { poc: pocPrice, vah: VAH, val: VAL, hvn, lvn, developing,
+                      hi: pHi, lo: pLo };
+      api.pocPrice = pocPrice;              // kept: already in use
       return api;
     }
 
@@ -722,7 +727,14 @@
       });
 
       const s = schedule('level', at, dur);
-      cue([g, leader], 'fade', s.t0, s.dur);
+      cue([g, leader], 'fade', s.t0, s.dur, { anchorX: tx });
+      const cueEntry = track.length ? track[track.length - 1] : null;
+      if (cueEntry) jobs.push(() => {
+        // recorded for the visibility test in seek(); the box, not the anchor,
+        // is what actually gets cut by the plot edge
+        cueEntry.boxX = +box.getAttribute('x');
+        cueEntry.boxW = +box.getAttribute('width');
+      });
       return api;
     }
 
@@ -806,7 +818,15 @@
     /* Must run after the SVG is in the document: measures every label, cuts the
        gap in its line, then captures stroke lengths for the draw-on reveal. */
     function layout() {
-      jobs.forEach(f => f()); jobs.length = 0;
+      /* Text is measured here, so it must be measured against the real font.
+         Tajawal arrives via @font-face; measuring before it loads sizes every
+         sticker to fallback metrics and clips the Arabic inside it. The jobs
+         are idempotent, so re-run them once the font is actually ready. */
+      jobs.forEach(f => f());
+      if (typeof document !== 'undefined' && document.fonts &&
+          document.fonts.status !== 'loaded') {
+        document.fonts.ready.then(() => { jobs.forEach(f => f()); });
+      }
       if (!A) return api;
       track.forEach(e => {
         if (e.kind !== 'stroke') return;
@@ -835,8 +855,8 @@
           else n = seg.b0 + Math.floor(Math.max(0, t - seg.t0) * e.rate);
           n = Math.max(0, Math.min(candles.length, n));
           e.nodes.forEach((nd, i) => { nd.style.display = i < n ? '' : 'none'; });
-          e.pan.setAttribute('transform',
-            `translate(${-Math.max(0, n - e.win) * step},0)`);
+          panX = -Math.max(0, n - e.win) * step;
+          e.pan.setAttribute('transform', `translate(${panX},0)`);
           return;
         }
         const p = easeOut(clamp01(e.dur > 0 ? (t - e.t0) / e.dur : (t >= e.t0 ? 1 : 0)));
@@ -849,7 +869,17 @@
         } else if (e.kind === 'wipe') {
           e.clip.setAttribute('width', e.full * p);
         } else {
-          e.nodes.forEach(nd => { nd.style.opacity = p; });
+          /* A label is hidden the moment the pan would clip it. Testing the
+             anchor is not enough — the box is much wider than the point it
+             hangs from, so it gets cut long before its bar leaves the plot,
+             and a half-rendered word reads as a rendering bug. */
+          const off = e.boxX != null &&
+                      (e.boxX + panX < plotL - 2 ||
+                       e.boxX + panX + e.boxW > plotR + 2);
+          e.nodes.forEach(nd => {
+            nd.style.opacity = p;
+            nd.style.display = off ? 'none' : '';
+          });
         }
       });
       return api;

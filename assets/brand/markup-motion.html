@@ -99,6 +99,6 @@ ch.layout();
 /* Capture / playback hooks */
 window.LS_DURATION = ch.duration();
 window.seekTo = t => { ch.seek(t); return true; };
-window.LS_READY = true;
+document.fonts.ready.then(() => { window.LS_READY = true; });
 if (!location.search.includes('static')) ch.play();
 </script>

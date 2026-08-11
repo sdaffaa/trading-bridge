@@ -37,7 +37,28 @@ pipq -r requirements.txt
 #                        H.264/HEVC decoder and cannot read phone recordings
 #   websocket-client   — CDP driver used by assets/brand/capture-motion.py
 echo "[session-start] chart + video toolchain"
-pipq Pillow numpy cairosvg imageio-ffmpeg websocket-client
+TOOLCHAIN=(Pillow numpy cairosvg imageio-ffmpeg websocket-client)
+pipq "${TOOLCHAIN[@]}" || true
+
+# Verify rather than trust. This hook runs early in container startup and the
+# egress proxy is not always up yet, so pip can fail while the script still
+# reports success — leaving a session that looks ready and is not. Importing is
+# the only honest check; a failure here is worth one retry and, past that, a
+# loud message rather than a silent hole.
+toolchain_ok() {
+  python3 -c 'import PIL, numpy, cairosvg, imageio_ffmpeg, websocket' 2>/dev/null
+}
+if ! toolchain_ok; then
+  echo "[session-start]   toolchain incomplete — network may not have been up; retrying"
+  sleep 4
+  pipq "${TOOLCHAIN[@]}" || true
+  if ! toolchain_ok; then
+    echo "[session-start]   STILL INCOMPLETE. Run this before rendering anything:"
+    echo "[session-start]     python3 -m pip install ${TOOLCHAIN[*]}"
+  else
+    echo "[session-start]   recovered on retry"
+  fi
+fi
 
 # Optional: Agent Reach. Non-fatal — a failure here must never block a session.
 # Installed into its own venv so it cannot disturb the project's dependencies.

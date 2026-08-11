@@ -130,7 +130,7 @@ seekAll(0);
 
 window.LS_DURATION = TOTAL;
 window.seekTo = t => { seekAll(t); return true; };
-window.LS_READY = true;
+document.fonts.ready.then(() => { window.LS_READY = true; });
 
 if (!location.search.includes('static')) {
   const t0 = performance.now();
