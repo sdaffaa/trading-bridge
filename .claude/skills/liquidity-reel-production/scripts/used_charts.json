@@ -7628,6 +7628,46 @@
    "end": "2020-11-09",
    "label": "run53-baks",
    "video": "run53-flow-2026-08-11"
+  },
+  {
+   "symbol": "6S=F",
+   "timeframe": "1d",
+   "start": "2026-03-16",
+   "end": "2026-05-11",
+   "label": "run54-farq",
+   "video": "run54-factory-2026-08-11"
+  },
+  {
+   "symbol": "SLV",
+   "timeframe": "1d",
+   "start": "2025-01-08",
+   "end": "2025-03-06",
+   "label": "run54-mada",
+   "video": "run54-factory-2026-08-11"
+  },
+  {
+   "symbol": "NQ=F",
+   "timeframe": "1d",
+   "start": "2021-03-09",
+   "end": "2021-05-19",
+   "label": "run54-nisba",
+   "video": "run54-factory-2026-08-11"
+  },
+  {
+   "symbol": "SPY",
+   "timeframe": "1d",
+   "start": "2019-03-14",
+   "end": "2019-05-21",
+   "label": "run54-sukun",
+   "video": "run54-factory-2026-08-11"
+  },
+  {
+   "symbol": "6J=F",
+   "timeframe": "1d",
+   "start": "2025-01-13",
+   "end": "2025-02-10",
+   "label": "run54-sura",
+   "video": "run54-factory-2026-08-11"
   }
  ]
 }
