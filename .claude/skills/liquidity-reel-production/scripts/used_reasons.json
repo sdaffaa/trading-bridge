@@ -150,6 +150,16 @@
     "sweep.pool",
     "signal.wick"
    ]
+  },
+  {
+   "tag": "cl_sc_2026-08-11_0539",
+   "keys": [
+    "4H.ma_gap",
+    "1D.pd_mid",
+    "1h.struct",
+    "sweep.sweep",
+    "signal.range"
+   ]
   }
  ]
 }
