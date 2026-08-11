@@ -163,3 +163,42 @@
 .ls-level       { stroke: var(--ls-structure); stroke-width: 2; fill: none; }
 .ls-grid        { stroke: var(--ls-gridline);  stroke-width: 1; }
 .ls-invalid     { stroke: var(--ls-invalid);   fill: none; stroke-width: 4; }
+
+/* ==========================================================================
+   Chart markup layer  (see markup.js)
+   Method: thin hairlines + inline labels that break the line. Annotation must
+   read as typography over the chart, never as heavy drawing on top of it.
+   ========================================================================== */
+
+.ls-chart { display: block; }
+
+/* hairlines — level lines, trendlines, fib rails */
+.ls-mk-line        { fill: none; stroke-width: 1.6; }
+.ls-mk-primary     { stroke: var(--ls-structure); }
+.ls-mk-accent      { stroke: var(--ls-text-accent); }
+.ls-mk-muted       { stroke: var(--ls-text-secondary); }
+.ls-mk-danger      { stroke: var(--ls-invalid); }
+.ls-mk-dashed      { stroke-dasharray: 5 5; }
+
+/* inline labels sitting inside the break in the line */
+.ls-mk-label       { font-family: var(--ls-font-ar); font-size: 17px; font-weight: 700;
+                     letter-spacing: .01em; }
+.ls-mk-primary-t   { fill: var(--ls-structure); }
+.ls-mk-accent-t    { fill: var(--ls-text-accent); }
+.ls-mk-muted-t     { fill: var(--ls-text-secondary); }
+.ls-mk-danger-t    { fill: var(--ls-invalid); }
+
+/* zones — order blocks, liquidity pools, fib zones */
+.ls-mk-zone            { stroke-width: 1.4; }
+.ls-mk-zone-primary    { stroke: var(--ls-structure);   fill: color-mix(in srgb, var(--ls-structure) 6%, transparent); }
+.ls-mk-zone-accent     { stroke: var(--ls-text-accent); fill: color-mix(in srgb, var(--ls-text-accent) 9%, transparent); }
+.ls-mk-zone-danger     { stroke: var(--ls-invalid);     fill: color-mix(in srgb, var(--ls-invalid) 8%, transparent); }
+
+/* structure zigzag + swing markers */
+.ls-mk-zigzag   { stroke-width: 1.4; opacity: .85; }
+.ls-mk-marker   { fill: var(--ls-bg); stroke: var(--ls-text-accent); stroke-width: 2.2; }
+.ls-mk-swing    { font-family: var(--ls-font-ar); font-size: 15px; font-weight: 700;
+                  fill: var(--ls-text-accent); }
+.ls-mk-fib      { font-family: var(--ls-font-ar); font-size: 14px; font-weight: 500;
+                  fill: var(--ls-text-secondary); direction: ltr; }
+.ls-mk-invalid  { stroke: var(--ls-invalid); stroke-width: 3.4; stroke-linecap: round; fill: none; }

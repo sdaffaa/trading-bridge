@@ -6,7 +6,10 @@ and ready-to-use design tokens.
 ```
 assets/brand/
 ├── colors.json            ← design tokens (source of truth for color + type)
-├── brand.css              ← CSS variables + slide/chart primitives
+├── brand.css              ← CSS variables + slide/chart/markup primitives
+├── MARKUP.md              ← the approved chart markup method (read before marking up a chart)
+├── markup.js              ← markup engine: levels, zones, structure, fib, projection
+├── markup-demo.html/.png  ← worked example of the full markup vocabulary
 ├── palette-swatches.html  ← swatch sheet source
 ├── palette-swatches.png   ← swatch sheet render (1080×1350)
 ├── fonts/                 ← vendored Tajawal (OFL) for reproducible renders
@@ -108,7 +111,20 @@ Render a slide to PNG:
 
 ---
 
-## 5. Rules
+## 5. Chart markup
+
+Structure lines, order blocks and explanation lines follow one approved method — hairlines with
+labels set inside a break in the line, outlined zones, a single structure zigzag with swing tags,
+and diagonals labelled along their own angle.
+
+**Read `MARKUP.md` before marking up any chart.** Engine: `markup.js`. Worked example:
+`markup-demo.html` → `markup-demo.png`.
+
+![Markup demo](markup-demo.png)
+
+---
+
+## 6. Rules
 
 - Never pure black (`#000000`) or pure white (`#FFFFFF`) backgrounds. Never neon.
 - Max 2 font sizes per slide besides labels; one big hook line per screen.

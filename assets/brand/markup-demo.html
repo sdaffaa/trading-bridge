@@ -1,0 +1,104 @@
+<meta charset="utf-8">
+<title>Liquidity State — منهجية الماركب</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; }
+  .sheet { width:1080px; height:1350px; box-sizing:border-box; padding:52px 60px;
+           background:linear-gradient(160deg,var(--ls-bg-grad-top) 0%,var(--ls-bg-grad-end) 100%);
+           font-family:var(--ls-font-ar); color:var(--ls-text); direction:rtl; position:relative; }
+  .top { display:flex; justify-content:space-between; align-items:center; }
+  h1 { font-size:54px; font-weight:700; text-align:center; margin:10px 0 4px; }
+  .sub { font-size:30px; font-weight:700; text-align:center; color:var(--ls-text-accent); margin-bottom:10px; }
+  .foot { margin-top:22px; text-align:center; }
+  .foot .a { font-size:30px; font-weight:700; color:var(--ls-text-accent); }
+  .foot .b { font-size:25px; font-weight:500; color:var(--ls-text-secondary); margin-top:8px; line-height:1.6; }
+</style>
+
+<div class="sheet">
+  <div class="top">
+    <div class="ls-counter">2 / 3</div>
+    <div class="ls-watermark">Liquidity State</div>
+  </div>
+
+  <h1>الهيكل والأوردر بلوك</h1>
+  <div class="sub">مثال تخطيطي — طريقة الماركب المعتمدة</div>
+
+  <div id="chart"></div>
+
+  <div class="foot">
+    <div class="a">الماركب يشرح الفكرة — ما يزحم الشارت</div>
+    <div class="b">خط رفيع، مسمّى واحد، ومساحة تتنفس. كل خط له سبب أو ينحذف.</div>
+  </div>
+
+  <div class="ls-pager" style="position:absolute;bottom:34px;left:0;right:0">
+    <i></i><i class="on"></i><i></i>
+  </div>
+</div>
+
+<script src="./markup.js"></script>
+<script>
+/* ---- deterministic sample series shaped to a real structure story -------- */
+function series() {
+  let s = 20240811;
+  const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
+  const anchors = [
+    [0, 95], [4, 100], [10, 88], [15, 91], [22, 77],
+    [30, 90], [37, 79], [43, 86], [50, 70], [56, 77], [62, 65]
+  ];
+  const path = [];
+  for (let k = 0; k < anchors.length - 1; k++) {
+    const [i0, p0] = anchors[k], [i1, p1] = anchors[k + 1];
+    for (let i = i0; i < i1; i++) {
+      const t = (i - i0) / (i1 - i0);
+      path.push(p0 + (p1 - p0) * t + rnd() * 2.6);
+    }
+  }
+  path.push(anchors[anchors.length - 1][1]);
+  return path.slice(0, -1).map((v, i) => {
+    const o = v, c = path[i + 1], w = 0.9 + Math.abs(rnd()) * 2.2;
+    return { o, c, h: Math.max(o, c) + Math.abs(rnd()) * w, l: Math.min(o, c) - Math.abs(rnd()) * w };
+  });
+}
+
+const ch = LSChart({
+  mount: '#chart', width: 960, height: 880, candles: series(),
+  padding: { top: 34, right: 120, bottom: 54, left: 14 }, barsRight: 7
+});
+
+ch.grid(4).drawCandles();
+
+/* 1 — external liquidity above, drawn as an inline-labelled level */
+ch.level({ price: 100, label: 'BSL', from: 4 });
+
+/* 2 — internal liquidity band + the order block, as outlined zones */
+ch.zone({ from: 12, top: 91.5, bottom: 88.5, label: 'Internal BSL', align: 'right' });
+ch.zone({ from: 41, to: 62, top: 87, bottom: 83.5, label: 'Small OB', tone: 'accent', align: 'right' });
+
+/* 3 — the diagonal, labelled along its own angle */
+ch.trend({ i1: 4, p1: 100, i2: 30, p2: 90, label: 'Trendline' });
+
+/* 4 — structure zigzag through the swings, then the swing tags */
+ch.structure([
+  { i: 4, price: 100 }, { i: 22, price: 77 }, { i: 30, price: 90 },
+  { i: 50, price: 70 }, { i: 56, price: 77 }, { i: 62, price: 65 }
+]);
+[[4,100,'(0)','above'],[22,77,'(1)','below'],[30,90,'(2)','above'],
+ [50,70,'(3)','below'],[62,65,'(5)','below']]
+  .forEach(([i,price,label,place]) => ch.swing({ i, price, label, place }));
+
+/* 5 — the explanation lines: what happened, in order */
+ch.level({ price: 77,   label: 'Sweep',     from: 16, to: 27 });
+ch.level({ price: 83.5, label: 'CHoCH',     from: 22, to: 38 });
+ch.level({ price: 70,   label: 'BOS',       from: 44, to: 60 });
+ch.level({ price: 62,   label: 'Liquidity', from: 30, dashed: true, tone: 'muted' });
+
+/* 6 — fib rail on the impulse leg, and where the idea dies */
+ch.fib({ i: 36, priceFrom: 70, priceTo: 90, levels: [0, 0.618, 1], width: 46 });
+ch.invalid({ i: 60, price: 87.8 });
+
+/* 7 — expected path */
+ch.structure([{ i: 62, price: 65 }, { i: 68, price: 62 }],
+             { tone: 'accent', projection: true });
+
+ch.layout();   /* measure labels, then break the lines around them */
+</script>
