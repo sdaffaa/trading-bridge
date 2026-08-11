@@ -648,13 +648,20 @@
 
       jobs.push(() => {
         const w = label.getComputedTextLength() + 34, h = 42;
-        box.setAttribute('x', cx - w / 2); box.setAttribute('y', cy - h / 2);
+        /* Keep the box inside the plot. A sticker that runs off the edge loses
+           the end of its own label, and the offset that was fine on one bar is
+           wrong once the viewport pans. */
+        let bx = cx - w / 2;
+        bx = Math.max(plotL + 4, Math.min(bx, plotR - w - 4));
+        const cxc = bx + w / 2;
+        label.setAttribute('x', cxc);
+        box.setAttribute('x', bx);         box.setAttribute('y', cy - h / 2);
         box.setAttribute('width', w);      box.setAttribute('height', h);
 
         // Leave from the box edge facing the target, arrive just short of it.
         const from = side === 'auto' ? (Math.abs(dy) > Math.abs(dx)
-          ? { x: cx, y: cy + Math.sign(dy || 1) * -h / 2 }
-          : { x: cx + Math.sign(dx || 1) * -w / 2, y: cy }) : { x: cx, y: cy };
+          ? { x: cxc, y: cy + Math.sign(dy || 1) * -h / 2 }
+          : { x: cxc + Math.sign(dx || 1) * -w / 2, y: cy }) : { x: cxc, y: cy };
         const len = Math.hypot(tx - from.x, ty - from.y) || 1;
         const end = { x: tx - (tx - from.x) / len * gap,
                       y: ty - (ty - from.y) / len * gap };
@@ -706,10 +713,32 @@
        the pan turns a replay into a camera move and reads as a different thing.
 
        `window` is how many bars stay on screen before the jumping starts. */
-    function replay({ rate = 4.71, window: win = 40, at = 0, start = 1 } = {}) {
+    function replay({ rate = 4.71, window: win = 40, at = 0, start = 1,
+                      holds = [] } = {}) {
       if (!A) return api;
-      track.push({ kind: 'replay', t0: at, dur: candles.length / rate,
-                   rate, win, start, nodes: candleNodes, pan: gPan });
+
+      /* Holds are the pauses where the story gets told: the replay freezes on
+         the bar that just printed while that step's markup draws, then runs on.
+         Without them every event flashes past in 212ms and the markup lands on
+         a chart that has already moved somewhere else.
+
+         Build the piecewise timeline once so n(t) stays a lookup, and so each
+         step can ask when its own hold begins. */
+      const segs = [];
+      let tAcc = at, prevBar = start;
+      [...holds].sort((a, b) => a.atBar - b.atBar).forEach(h => {
+        const tStart = tAcc + (h.atBar - prevBar) / rate;
+        segs.push({ run: true, b0: prevBar, t0: tAcc, t1: tStart });
+        segs.push({ run: false, b0: h.atBar, t0: tStart, t1: tStart + h.seconds });
+        h.t = tStart;                       // when this step's markup should start
+        tAcc = tStart + h.seconds; prevBar = h.atBar;
+      });
+      const tEnd = tAcc + (candles.length - prevBar) / rate;
+      segs.push({ run: true, b0: prevBar, t0: tAcc, t1: tEnd });
+
+      track.push({ kind: 'replay', t0: at, dur: tEnd - at,
+                   rate, win, start, segs, nodes: candleNodes, pan: gPan });
+      api.holds = holds;
       return api;
     }
 
@@ -749,8 +778,11 @@
       track.forEach(e => {
         if (e.kind === 'replay') {
           // integer bar count → the pan lands on whole pitches by construction
-          const n = Math.max(0, Math.min(candles.length,
-                     Math.floor((t - e.t0) * e.rate) + e.start));
+          let n;
+          const seg = e.segs.find(g => t < g.t1) || e.segs[e.segs.length - 1];
+          if (!seg.run) n = seg.b0;                       // frozen on this bar
+          else n = seg.b0 + Math.floor(Math.max(0, t - seg.t0) * e.rate);
+          n = Math.max(0, Math.min(candles.length, n));
           e.nodes.forEach((nd, i) => { nd.style.display = i < n ? '' : 'none'; });
           e.pan.setAttribute('transform',
             `translate(${-Math.max(0, n - e.win) * step},0)`);

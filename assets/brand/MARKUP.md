@@ -160,6 +160,40 @@ ch.layout();
 Reference render: `replay-demo.html` → **`replay-demo.mp4`**. Verified against the source with the
 same measurement pipeline: pitch 14.0px, one-pitch jumps, 64.5 px/s, 4.61 candles/sec.
 
+### Entry model — replay that stops at each event
+
+`entry-model-demo.html` → **`entry-model-demo.mp4`** walks one setup in the spec's order
+(`Liquidity → Sweep → MSS → FVG → Entry → SL → TP`) while the chart replays at the measured rate.
+
+The mechanism that makes it work is `holds`: the replay freezes on the bar that just printed while
+that step's markup draws, then runs on.
+
+```js
+const holds = [
+  { atBar: sweepI + 2, seconds: 3.6 },
+  { atBar: mssI   + 2, seconds: 3.6 },
+  …
+];
+ch.replay({ rate: 4.71, window: 56, start: 24, holds });
+const T = holds.map(h => h.t);      // when each step begins — schedule markup against it
+ch.level({ …, at: T[0] + 0.2 });
+```
+
+Without holds every event flashes past in 212ms and the markup lands on a chart that has already
+moved somewhere else. `start` opens with bars already on screen instead of a long empty run-up.
+
+**Every level is read back off the candles, never typed in** — the reference high, the sweep wick,
+the last higher low, the gap bounds and the target low are all found by scanning the series, so
+each drawing lands on a real wick and the chart reports zero violations. That is the zero rule
+holding in code rather than in good intentions.
+
+Two details worth copying:
+
+- **MSS is a body close**, not a wick — `while (candles[mssI].c >= swingLo.p) mssI++`. Naming a
+  wick-only penetration a break is exactly what the spec forbids.
+- **The FVG chosen is the first one price actually returns into**, not the first one found. A
+  displacement leaves several gaps; an untouched gap is not an entry, it is just a gap.
+
 ### Rendering to video
 
 `capture-motion.py` drives the page over the Chrome DevTools Protocol, stepping `seek(t)` frame by
