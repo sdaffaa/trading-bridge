@@ -315,6 +315,111 @@ that is not visible · no text covers a decisive candle or the price scale · no
 educational colours plus the risk colour · events are chronologically ordered · the idea reads in
 one second · the chart before and after is identical.
 
+## Liquidity + Volume Profile
+
+The spec's second master prompt. Its role is **Designer, not advisor**: map where liquidity sits and
+where the market found acceptance or rejection — without inventing data or issuing a
+recommendation.
+
+### Audit the volume source before reading anything
+
+Volume means different things depending on where the chart came from, and reading it wrong makes
+every level downstream wrong:
+
+| Source | What the numbers are | What you may not say |
+|---|---|---|
+| `XAUUSD` CFD / spot | **tick volume** — price update counts | never call it contracts traded |
+| `GC1!` / COMEX futures | real exchange trade volume | — |
+| unclear | classify as **Unknown** and say so | anything precise |
+
+Never infer Bid/Ask or Up/Down split from tick volume. If the chart is Heikin Ashi or any
+non-standard candle type it distorts both price and volume — ask for normal candles before
+committing. Publish the audit as a table (symbol · volume type · profile type · bounds · session ·
+timezone) with a confidence column, **before** any level.
+
+### External vs internal liquidity
+
+- **External** — PDH/PDL, PWH/PWL, session highs/lows (Asia / London / New York), major swing
+  highs/lows, equal highs/lows. The level must be clear in context and at the edge of the working
+  range. **Not every high is external liquidity.**
+- **Internal** — short-term equal highs/lows, minor swing clusters, highs and lows inside the range.
+  Use them as a possible path *through* the range, never as an automatic final target.
+
+Equal highs need to be equal: past the stated tolerance they are not equal, and you need at least
+two valid ones. A level already pierced by an earlier candle that then traded behind it is not
+untouched.
+
+### What makes a sweep a sweep
+
+All four, or it is not one:
+
+1. Price reached a level identified **beforehand**
+2. It pierced or touched it per the stated rule
+3. It returned inside the range, or closed with a proper rejection
+4. It happened **after** the level formed — not before
+
+If price broke through and kept accepting beyond, that is a breakout, not a sweep.
+
+Then score the level out of five — clear session or higher-timeframe level · not already swept or
+deeply tested · nearby equal highs/lows clustered · clean approach without repeated chop · a
+confirmed response after arrival — and grade it A / B / C.
+
+> **Do not use the response after the touch to argue the level was obvious before it.** Grade the
+> level's quality *before* the touch separately from the confirmation *after* it. This is the single
+> easiest way to produce analysis that looks rigorous and is actually hindsight.
+
+### Acceptance vs rejection
+
+Neither is a one-candle verdict. **Acceptance** wants a cluster of evidence: several closes
+inside/behind the area, time spent there with new volume building, the POC migrating toward it, a
+successful retest from the other side. **Rejection** wants a short test, a wick or displacement
+away, and a close outside. A single wick is not institutional rejection.
+
+### Choosing the profile
+
+`Session` for one session · `FRVP` between two fixed points · `AVP` anchored to a clear event and
+running to the last bar · `Composite` for merged sessions, stating why. **Do not use Visible Range
+for final markup** — if changing the zoom changes the level, the level was never a level.
+
+### The levels, and how each is drawn
+
+| Level | Meaning | Drawn as |
+|---|---|---|
+| POC / VPOC | the row holding the most volume | **one precise line** on the actual price row |
+| Value Area | the stated percentage, usually 70% | shaded band between VAH and VAL |
+| VAH / VAL | its edges | thin dashed edges, labelled |
+| HVN | a clear peak — dense trading, prior acceptance | **a band the thickness of the rows forming it** |
+| LVN | a clear valley between two higher nodes | a band; do **not** assume it gets crossed |
+| Shelf / Ledge | where a cluster ends against a void | the edge at the actual transition |
+
+A node is a region of acceptance, not a price — drawn as a line it claims precision the profile does
+not have. While a profile is still forming, mark it **developing** and say so.
+
+```js
+const vp = ch.volumeProfile({ from, to, valueArea: 0.70, showVA: true, nodes: true });
+vp.pocPrice; vp.vah; vp.val; vp.hvn; vp.lvn;
+```
+
+### Confluence, and the language rule
+
+Rank **at most three** zones. For each: the liquidity present, the volume level, the rejection
+scenario, the acceptance scenario, and what invalidates the read. Write scenarios conditionally:
+
+```
+IF sweep + close back inside value + displacement, THEN the rejection scenario becomes valid.
+IF several closes outside value + new volume building, THEN acceptance becomes more likely.
+```
+
+**Forbidden outright:** «شراء مؤكد» · «بيع مؤكد» · «هدف مضمون» · «نجاح مضمون». This is a map, not a
+signal.
+
+### Delivery for this prompt
+
+`Data Audit → Liquidity Map → Volume Profile Map → Confluence Map (top 3) → Markup Plan → Quality
+Report`. The quality report states explicitly: no invented levels · volume type named · profile and
+session bounds fixed · candles and prices unchanged · no guaranteed-profit language · undecided
+elements left undrawn.
+
 ## Accuracy
 
 Drawing it in the right style is half of it; drawing it in the right *place* is the other half.

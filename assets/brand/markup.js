@@ -503,7 +503,9 @@
        anchored to its left edge. Volume is approximated from the candles in
        range when the caller has no per-bin data. Returns the POC price. */
     function volumeProfile({ from, to, bins = 26, widthPct = 0.32,
-                             valueArea = 0.68, volumes = null, box = true, at, dur }) {
+                             valueArea = 0.70, volumes = null, box = true,
+                             showVA = false, nodes = false, developing = false,
+                             at, dur }) {
       const x1 = X(from) - step / 2, x2 = X(to) + step / 2;
       const seg = candles.slice(from, to + 1);
       const pHi = Math.max(...seg.map(c => c.h)), pLo = Math.min(...seg.map(c => c.l));
@@ -522,6 +524,7 @@
       const vMax = Math.max(...vol);
       const pocIdx = vol.indexOf(vMax);
       const pocPrice = pLo + (pocIdx + 0.5) * bh;
+      const rowPrice = k => pLo + (k + 0.5) * bh;
 
       // value area: grow outward from the POC until the share is covered
       const total = vol.reduce((a, b) => a + b, 0);
@@ -557,7 +560,55 @@
         g.setAttribute('clip-path', `url(#${id})`);
         cue(g, 'wipe', s.t0, s.dur, { clip: cr, full: x2 - x1 });
       }
-      api.pocPrice = pocPrice;
+      /* Value area edges. The spec wants the percentage the indicator is
+         actually set to — 70% is only the usual default, not a law. */
+      const VAH = rowPrice(hiI) + bh / 2, VAL = rowPrice(loI) - bh / 2;
+
+      if (showVA) {
+        // insertBefore(g): the profile's own bars have to stay readable, so the
+        // shading goes underneath them rather than on top
+        gZone.insertBefore(el('rect', {
+          class: 'ls-mk-va-band', x: x1, y: Y(VAH),
+          width: plotR - x1, height: Math.max(2, Y(VAL) - Y(VAH))
+        }), g);
+        [['VAH', VAH], ['VAL', VAL]].forEach(([nm, pv]) => {
+          gStruct.appendChild(el('line', {
+            class: 'ls-mk-va-edge', x1, x2: plotR, y1: Y(pv), y2: Y(pv)
+          }));
+          const t = el('text', {
+            class: 'ls-mk-va-t', x: plotR - 8, y: Y(pv), dy: nm === 'VAH' ? -8 : 16,
+            'text-anchor': 'end'
+          });
+          t.textContent = nm;
+          gLabel.appendChild(t);
+        });
+      }
+
+      /* HVN / LVN are drawn as BANDS the thickness of the rows that form them.
+         Drawn as a line they claim a precision the profile does not have — a
+         node is a region of acceptance, not a price. */
+      const hvn = [], lvn = [];
+      if (nodes) {
+        const mean = total / bins;
+        for (let k = 1; k < bins - 1; k++) {
+          const isPeak = vol[k] >= vol[k-1] && vol[k] >= vol[k+1] && vol[k] > mean * 1.25;
+          const isVoid = vol[k] <= vol[k-1] && vol[k] <= vol[k+1] && vol[k] < mean * 0.55;
+          if (!isPeak && !isVoid) continue;
+          let a = k, b = k;                         // grow to the rows forming it
+          while (a > 0      && (isPeak ? vol[a-1] > mean : vol[a-1] < mean)) a--;
+          while (b < bins-1 && (isPeak ? vol[b+1] > mean : vol[b+1] < mean)) b++;
+          const top = rowPrice(b) + bh / 2, bottom = rowPrice(a) - bh / 2;
+          (isPeak ? hvn : lvn).push({ top, bottom });
+          gZone.insertBefore(el('rect', {
+            class: isPeak ? 'ls-mk-hvn' : 'ls-mk-lvn',
+            x: x1, y: Y(top), width: plotR - x1, height: Math.max(2, Y(bottom) - Y(top))
+          }), g);
+          k = b;                                    // don't re-emit the same node
+        }
+      }
+
+      api.pocPrice = pocPrice; api.vah = VAH; api.val = VAL;
+      api.hvn = hvn; api.lvn = lvn; api.developing = developing;
       return api;
     }
 

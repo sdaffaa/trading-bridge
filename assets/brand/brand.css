@@ -222,6 +222,15 @@
 .ls-mk-vp-bar.ls-mk-vp-va { fill: var(--ls-vp-va); }        /* value area */
 .ls-mk-vp-box    { fill: none; stroke: var(--ls-vp-box); stroke-width: 1.2; }
 .ls-mk-poc       { stroke: var(--ls-poc); stroke-width: 2; fill: none; }
+/* value area, and the nodes inside it. A node is a region of acceptance, not a
+   price, so it is drawn as a band the thickness of the rows that form it. */
+.ls-mk-va-band   { fill: color-mix(in srgb, var(--ls-text-accent) 7%, transparent); }
+.ls-mk-va-edge   { stroke: var(--ls-text-accent); stroke-width: 1.4;
+                   stroke-dasharray: 6 5; fill: none; }
+.ls-mk-va-t      { font-family: var(--ls-font-ar); font-size: 18px; font-weight: 700;
+                   fill: var(--ls-text-accent); direction: ltr; letter-spacing: .04em; }
+.ls-mk-hvn       { fill: color-mix(in srgb, var(--ls-structure) 9%, transparent); }
+.ls-mk-lvn       { fill: color-mix(in srgb, var(--ls-vp-va) 14%, transparent); }
 .ls-mk-poc-t     { font-family: var(--ls-font-ar); font-size: 20px; font-weight: 700;
                    fill: var(--ls-poc); letter-spacing: .04em; direction: ltr; }
 .ls-mk-pos-target { fill: color-mix(in srgb, var(--ls-bullish) 16%, transparent); }

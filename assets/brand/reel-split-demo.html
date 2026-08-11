@@ -84,7 +84,8 @@ ch.swing({ i: 14, price: 70, label: 'Swing Low',  place: 'below', at: 1.6 });
 ch.swing({ i: 36, price: 92, label: 'Swing High', place: 'above', at: 2.0 });
 
 /* beat 2 — drag the fixed-range volume profile across it */
-ch.volumeProfile({ from: 14, to: 36, bins: 30, widthPct: 0.34, at: 4.0, dur: 1.3 });
+ch.volumeProfile({ from: 14, to: 36, bins: 30, widthPct: 0.34,
+                   valueArea: 0.70, showVA: true, nodes: true, at: 4.0, dur: 1.3 });
 
 /* beat 3 — the POC extends right, and that is the level */
 ch.poc({ price: ENTRY, from: 14, label: 'POC', at: 7.4, dur: 0.7 });
