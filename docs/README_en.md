@@ -173,7 +173,18 @@ this skill:
 |---|---|
 | `markup.js` | chart markup engine — levels, zones, structure, volume profile, position tool |
 | `MARKUP.md` | the approved markup method and its drawing rhythm |
+| `FORMAT-CAROUSEL.md` | the carousel page architecture and the footprint method |
+| `footprint.js` | footprint / order-flow ladders — the four approved variants |
+| `capture-slides.py` | renders each carousel page to PNG, and fails if a drawing broke a rule |
 | `tools/check-rules-parity.js` | proves the JS and Python rule implementations agree |
+
+Carousel pages that carry a chart are held to the same rules as anything else. Collect their
+violations into `window.LS_VIOLATIONS` and `capture-slides.py` will refuse to exit clean:
+
+```bash
+python3 assets/brand/capture-slides.py assets/brand/carousel-demo.html out/
+# violations: 0   corrections: 0
+```
 
 ## Enforcing the rules while drawing
 

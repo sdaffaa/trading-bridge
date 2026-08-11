@@ -279,6 +279,69 @@
   --ls-vp-box: #C9C2B6;
   --ls-poc:    #C08A2E;
 }
+
+/* ==========================================================================
+   Carousel + footprint tokens
+   Sampled off the approved 7-page footprint carousel. The page cream measures
+   #FAF7F2 there against the approved #F3EFE8 — a hair lighter, same family —
+   so the approved token stays canonical and the delta is recorded here rather
+   than forked into a second background.
+   ========================================================================== */
+:root {
+  --ls-card-bg:      #FBF8F3;   /* barely above the page, so the border does the work */
+  --ls-card-border:  #6797A4;   /* measured #68A4B6 at 1.5px */
+  --ls-bar-bg:       #E7EAE9;   /* conclusion bar / checklist rows */
+  --ls-bar-border:   #C3D3D6;
+
+  /* footprint — a fixed vocabulary, because a reader learns it once */
+  --ls-fp-cell:      #ECEFF0;   /* empty track: there was a price, nothing traded */
+  --ls-fp-bid-bg:    #D6E6E9;   /* bid column, teal tint */
+  --ls-fp-ask-bg:    #EBEAE8;   /* ask column, neutral */
+  --ls-fp-buy:       #95C794;   /* aggressive buying, lifting the ask */
+  --ls-fp-sell:      #E27D7B;   /* aggressive selling, hitting the bid */
+  --ls-fp-imb:       #F2D4D1;   /* imbalance row */
+  --ls-fp-heat:      #2688A3;   /* depth bar; volume rides opacity, not hue */
+  --ls-fp-panel:     #F1EEE8;
+  --ls-fp-hi:        #C9E4EA;   /* the one row the page is about */
+  --ls-warn-bg:      #F9F2ED;
+}
+
+/* Cover theme — page 1 only. Dark so the ladder glows, and so the reader
+   knows before reading a word that a carousel has started. */
+[data-ls-theme="cover"] {
+  --ls-bg:             #010C17;
+  --ls-bg-grad-top:    #03131E;
+  --ls-bg-grad-end:    #010C17;
+  --ls-surface:        #041723;
+  --ls-surface-border: #0E3A45;
+
+  --ls-text:           #FFFFFF;
+  --ls-text-secondary: #8FA8B4;
+  --ls-text-accent:    #22D3DC;   /* measured #22D4DC at the glow core */
+  --ls-watermark:      #7FA9B4;
+
+  --ls-bullish:        #22D3DC;
+  --ls-bearish:        #041723;
+  --ls-structure:      #22D3DC;
+  --ls-gridline:       #0E2430;
+  --ls-invalid:        #E15A5A;
+
+  --ls-counter-text:   #FFFFFF;
+  --ls-counter-border: #1E6C7C;
+
+  --ls-card-bg:        #041723;
+  --ls-card-border:    #12414D;
+  --ls-bar-bg:         #061E2B;
+  --ls-bar-border:     #12414D;
+
+  --ls-fp-cell:        #0A2532;
+  --ls-fp-bid-bg:      #0A2A38;
+  --ls-fp-ask-bg:      #0A2532;
+  --ls-fp-heat:        #22D3DC;
+  --ls-fp-panel:       #04161F;
+  --ls-fp-hi:          #22D3DC;
+  --ls-glow:           rgba(34,211,220,.42);
+}
 [data-ls-theme="dark"] {
   --ls-vp-bar: #2E4258;
   --ls-vp-va:  #E0A33C;
@@ -324,3 +387,253 @@
 .ls-reel .ls-mk-zigzag { stroke-width: 2.4; }
 .ls-reel .ls-mk-marker { stroke-width: 3; r: 7; }
 .ls-reel .ls-mk-zone   { stroke-width: 2; }
+
+/* ==========================================================================
+   Carousel page — 1080×1350
+   Every page is the same seven bands in the same order. The reader learns the
+   furniture on page 1 and never has to look for it again; only the content
+   band changes. See FORMAT-CAROUSEL.md.
+
+     counter · crest · headline · sub · content · conclusion · (cta)
+   ========================================================================== */
+
+.ls-c {
+  width: 1080px; height: 1350px; box-sizing: border-box;
+  padding: 46px 60px 44px;
+  background: linear-gradient(160deg, var(--ls-bg-grad-top) 0%, var(--ls-bg-grad-end) 100%);
+  font-family: var(--ls-font-ar); color: var(--ls-text); direction: rtl;
+  display: flex; flex-direction: column; position: relative; overflow: hidden;
+}
+.ls-c[data-ls-theme="cover"] {
+  background: radial-gradient(120% 70% at 50% 22%, #06202E 0%, #010C17 72%);
+}
+
+/* --- band 1: the counter, always top-left, always LTR -------------------- */
+.ls-c-counter {
+  position: absolute; top: 46px; left: 60px;
+  font-family: var(--ls-font-wordmark); font-style: italic; font-weight: 600;
+  font-size: 30px; letter-spacing: .08em; color: var(--ls-counter-text);
+  border: 1.5px solid var(--ls-counter-border); border-radius: 4px;
+  padding: 8px 20px; direction: ltr;
+}
+
+/* --- band 2: the crest — gem, wordmark, diamond rule --------------------- */
+.ls-c-crest { text-align: center; }
+.ls-c-crest .gem { height: 96px; display: block; margin: 0 auto; }
+.ls-c-crest .mark {
+  display: flex; align-items: center; justify-content: center; gap: 22px;
+  margin-top: 12px;
+}
+.ls-c-crest .mark span {
+  font-family: var(--ls-font-wordmark); font-size: 30px; font-weight: 500;
+  letter-spacing: .34em; text-transform: uppercase;
+  color: var(--ls-text); direction: ltr; white-space: nowrap;
+}
+.ls-c-crest .mark i { display: block; width: 46px; height: 1.5px;
+                      background: var(--ls-text-accent); opacity: .8; }
+/* the diamond rule: a hairline broken by a rotated square at dead centre */
+.ls-c-rule {
+  display: flex; align-items: center; justify-content: center; gap: 0;
+  margin-top: 16px;
+}
+.ls-c-rule i { display: block; height: 1px; width: 190px;
+               background: linear-gradient(to var(--d, right),
+                           transparent, var(--ls-text-accent)); opacity: .55; }
+.ls-c-rule i + i { --d: left; }
+.ls-c-rule b { width: 11px; height: 11px; margin: 0 9px;
+               background: var(--ls-text-accent); transform: rotate(45deg); }
+
+/* --- band 3/4: eyebrow, headline, sub ------------------------------------ */
+.ls-c-eyebrow {
+  text-align: center; margin-top: 30px;
+  font-size: 27px; font-weight: 700; letter-spacing: .04em;
+  color: var(--ls-text-accent);
+}
+.ls-c-h1 {
+  text-align: center; margin: 26px 0 0; font-size: 66px; font-weight: 800;
+  line-height: 1.3; letter-spacing: -.01em;
+}
+.ls-c[data-ls-theme="cover"] .ls-c-h1 { font-size: 82px; line-height: 1.22; }
+/* a flanking rule on either side of a short title — page 5's treatment */
+.ls-c-h1.flank { display: flex; align-items: center; justify-content: center; gap: 30px; }
+.ls-c-h1.flank i { display: block; height: 3px; width: 64px;
+                   background: var(--ls-text-accent); opacity: .85; }
+.ls-c-sub {
+  text-align: center; margin: 22px 0 0; font-size: 38px; font-weight: 700;
+  line-height: 1.5; color: var(--ls-text-secondary);
+}
+.ls-c-sub em, .ls-c-h1 em { font-style: normal; color: var(--ls-text-accent); }
+.ls-c-note {
+  text-align: center; margin-top: 18px; font-size: 27px; font-weight: 500;
+  line-height: 1.6; color: var(--ls-text-secondary);
+}
+
+/* --- band 5: content ----------------------------------------------------- */
+.ls-c-body { flex: 1; display: flex; flex-direction: column;
+             justify-content: center; gap: 22px; min-height: 0; margin-top: 30px; }
+.ls-c-row  { display: flex; gap: 22px; align-items: stretch; }
+.ls-c-row > * { flex: 1; }
+
+.ls-card {
+  background: var(--ls-card-bg);
+  border: 1.5px solid color-mix(in srgb, var(--ls-card-border) 55%, transparent);
+  border-radius: 20px; padding: 26px 24px; box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center;
+}
+.ls-card-title {
+  font-size: 38px; font-weight: 800; color: var(--ls-text-accent); text-align: center;
+}
+.ls-card-title.sm { font-size: 30px; line-height: 1.45; }
+.ls-card-def {
+  font-size: 27px; font-weight: 500; line-height: 1.6; text-align: center;
+  color: var(--ls-text); margin-top: 16px;
+}
+.ls-card-fig { margin-top: 20px; display: flex; align-items: center;
+               justify-content: center; flex: 1; min-height: 0; width: 100%; }
+/* LSChart mounts as width:100% + viewBox, so its box has to be given a width
+   to fill. Without this the chart resolves against a zero-width flex item and
+   renders as a thumbnail in the middle of an empty card. */
+.ls-card-fig > div { width: 100%; display: flex;
+                     align-items: center; justify-content: center; }
+/* the same diamond rule, shrunk, separating a card's title from its body */
+.ls-card .ls-c-rule { margin-top: 14px; }
+.ls-card .ls-c-rule i { width: 78px; }
+.ls-card .ls-c-rule b { width: 7px; height: 7px; }
+/* a card split into two halves by a hairline — page 5 */
+.ls-card.split { flex-direction: row; align-items: stretch; padding: 30px 20px; gap: 0; }
+.ls-card.split > div { flex: 1; display: flex; flex-direction: column;
+                       align-items: center; padding: 0 18px; }
+.ls-card.split > div + div { border-right: 1.5px solid
+                             color-mix(in srgb, var(--ls-card-border) 40%, transparent); }
+
+/* --- chips: three across, one idea each ---------------------------------- */
+.ls-c-chips { display: flex; gap: 18px; }
+.ls-chip {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 14px;
+  background: var(--ls-card-bg);
+  border: 1.5px solid color-mix(in srgb, var(--ls-card-border) 55%, transparent);
+  border-radius: 14px; padding: 22px 12px;
+  font-size: 25px; font-weight: 700; color: var(--ls-text); text-align: center;
+}
+.ls-chip svg { flex: none; }
+
+/* --- checklist rows: one claim per row, all ticked ----------------------- */
+.ls-check {
+  display: flex; align-items: center; gap: 22px;
+  background: var(--ls-bar-bg);
+  border: 1.5px solid color-mix(in srgb, var(--ls-bar-border) 70%, transparent);
+  border-radius: 14px; padding: 20px 28px;
+  font-size: 32px; font-weight: 700;
+}
+.ls-check i {
+  flex: none; width: 40px; height: 40px; border-radius: 999px;
+  border: 2px solid var(--ls-text-accent); color: var(--ls-text-accent);
+  font-size: 22px; font-style: normal; line-height: 36px; text-align: center;
+}
+
+/* --- band 6: the conclusion bar ------------------------------------------ */
+.ls-c-concl {
+  background: var(--ls-bar-bg);
+  border: 1.5px solid color-mix(in srgb, var(--ls-bar-border) 80%, transparent);
+  border-radius: 16px; padding: 26px 34px; margin-top: 24px;
+  text-align: center; font-size: 40px; font-weight: 800; line-height: 1.45;
+}
+.ls-c-concl.bullet::before {
+  content: ''; display: inline-block; width: 12px; height: 12px;
+  border-radius: 999px; background: var(--ls-text-accent);
+  margin-left: 18px; vertical-align: middle;
+}
+/* the one red thing on the page: what would make you wrong */
+.ls-c-warn {
+  display: flex; align-items: center; gap: 26px;
+  background: var(--ls-warn-bg);
+  border: 1.5px solid color-mix(in srgb, var(--ls-invalid) 55%, transparent);
+  border-radius: 16px; padding: 26px 34px; margin-top: 22px;
+  font-size: 38px; font-weight: 800; color: var(--ls-invalid);
+}
+.ls-c-warn svg { flex: none; }
+.ls-c-warn span { flex: 1; text-align: center; }
+
+/* --- band 7: the cover's swipe pill -------------------------------------- */
+.ls-c-cta {
+  align-self: center; margin-top: 34px;
+  border: 1.5px solid var(--ls-text-accent); border-radius: 12px;
+  padding: 20px 62px; font-size: 40px; font-weight: 800; color: var(--ls-text);
+  box-shadow: 0 0 34px -8px var(--ls-glow, transparent);
+}
+.ls-c-cta em { font-style: normal; color: var(--ls-text-accent); margin-right: 16px; }
+
+/* ==========================================================================
+   Footprint (see footprint.js)
+   Numbers are LTR and tabular even on an RTL page — a ladder is a market
+   convention, not text.
+   ========================================================================== */
+
+.ls-fp { display: block; overflow: visible; }
+.ls-fp text { direction: ltr; font-family: var(--ls-font-ar);
+              font-variant-numeric: tabular-nums; }
+
+.ls-fp-panel  { fill: var(--ls-fp-panel);
+                stroke: color-mix(in srgb, var(--ls-card-border) 70%, transparent);
+                stroke-width: 1.5; }
+.ls-fp-hdr    { font-size: 21px; font-weight: 800; letter-spacing: .12em;
+                fill: var(--ls-text-accent); }
+.ls-fp-hdr-sm { font-size: 18px; font-weight: 700; fill: var(--ls-text-secondary); }
+.ls-fp-div    { stroke: color-mix(in srgb, var(--ls-text-accent) 60%, transparent);
+                stroke-width: 1.5; }
+
+.ls-fp-num    { font-size: 21px; font-weight: 600; fill: var(--ls-text); }
+.ls-fp-num-lg { font-size: 25px; font-weight: 700; fill: var(--ls-text); }
+.ls-fp-num-hi { font-weight: 800; }
+
+/* depth behind the number — one hue, volume carried by opacity */
+.ls-fp-heat   { fill: var(--ls-fp-heat); }
+.ls-fp-hi     { fill: color-mix(in srgb, var(--ls-fp-hi) 22%, transparent);
+                stroke: var(--ls-fp-hi); stroke-width: 1.5; }
+.ls-fp-cell   { fill: var(--ls-fp-cell); }
+.ls-fp-cell-hi{ fill: color-mix(in srgb, var(--ls-fp-heat) 30%, transparent); }
+.ls-fp-track  { fill: var(--ls-fp-cell); }
+.ls-fp-price  { fill: var(--ls-fp-cell); }
+
+.ls-fp-bid    { fill: var(--ls-fp-bid-bg); }
+.ls-fp-ask    { fill: var(--ls-fp-ask-bg); }
+.ls-fp-imb    { fill: var(--ls-fp-imb); }
+.ls-fp-buy    { fill: var(--ls-fp-buy); }
+.ls-fp-sell   { fill: var(--ls-fp-sell); }
+
+/* The body is opaque so the wick passes behind it, the way a candle is
+   actually drawn — a wick showing through the body reads as two shapes. */
+.ls-fp-body   { fill: var(--ls-card-bg); stroke: var(--ls-text-accent); stroke-width: 2; }
+.ls-fp-wick   { stroke: var(--ls-text-accent); stroke-width: 2.4; }
+.ls-fp-band   { fill: var(--ls-text-secondary); }
+.ls-fp-frame  { fill: none; stroke: var(--ls-text-accent); stroke-width: 1.6; }
+.ls-fp-box    { fill: none; stroke: var(--ls-text-accent); stroke-width: 2; }
+.ls-fp-brace  { stroke: var(--ls-text-accent); stroke-width: 1.6; opacity: .75; }
+.ls-fp-brace-t{ font-size: 24px; font-weight: 700; fill: var(--ls-text-accent);
+                direction: rtl; }
+
+.ls-fp-leader { stroke: var(--ls-text-accent); stroke-width: 1.5;
+                stroke-dasharray: 7 6; }
+.ls-fp-dot    { fill: none; stroke: var(--ls-text-accent); stroke-width: 2; }
+.ls-fp-callout{ font-size: 26px; font-weight: 700; fill: var(--ls-text); direction: rtl; }
+.ls-fp-danger-t { stroke: var(--ls-invalid); fill: var(--ls-invalid); }
+
+/* On the cover the lit row is the whole point, so it is the only thing
+   allowed to glow. */
+[data-ls-theme="cover"] .ls-fp-hi     { filter: drop-shadow(0 0 12px var(--ls-glow)); }
+[data-ls-theme="cover"] .ls-fp-num    { fill: #D6E6EC; }
+[data-ls-theme="cover"] .ls-fp-num-hi { fill: #FFFFFF; }
+[data-ls-theme="cover"] .ls-fp-wick,
+[data-ls-theme="cover"] .ls-fp-body   { filter: drop-shadow(0 0 8px var(--ls-glow)); }
+
+/* Chart markup inside a carousel page is read on a phone at arm's length.
+   The reel scales markup up for the same reason; a page is read a little
+   closer, so it lands between the two. */
+.ls-c .ls-mk-label     { font-size: 23px; }
+.ls-c .ls-mk-swing     { font-size: 21px; }
+.ls-c .ls-mk-sticker-t { font-size: 27px; }
+.ls-c .ls-mk-anchor-n  { font-size: 19px; }
+.ls-c .ls-mk-price     { font-size: 22px; }
+.ls-c .ls-mk-line      { stroke-width: 2; }
+.ls-c .ls-mk-zigzag    { stroke-width: 2.2; }
+.ls-c .ls-mk-marker    { stroke-width: 2.8; }

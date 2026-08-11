@@ -13,6 +13,11 @@ assets/brand/
 ├── markup-motion.html/.mp4 ← the same markup drawn at the approved rhythm
 ├── FORMAT-REEL-SPLIT.md   ← split-screen reel format (face + chart + karaoke captions)
 ├── reel-split-demo.html/.mp4 ← the split-screen reel template
+├── FORMAT-CAROUSEL.md     ← carousel page architecture + the footprint method
+├── footprint.js           ← footprint ladders: ladder / heat / inside / bars
+├── carousel-demo.html     ← the 7-page carousel template — copy it, swap the content
+├── carousel/              ← its render, 7 × 1080×1350
+├── capture-slides.py      ← renders each page to PNG; fails if a drawing broke a rule
 ├── captions.js            ← karaoke caption track (0.6s cadence)
 ├── tools/check-rules-parity.js ← proves the JS and Python drawing rules agree
 ├── capture-motion.py      ← frame-accurate CDP renderer (motion page → MP4)
@@ -150,7 +155,40 @@ every ~3.5s — roughly six captions per chart beat. Uses the `terminal` dark th
 
 ---
 
-## 7. Rules
+## 7. Carousel + footprint
+
+The carousel format is documented in full — page architecture, type scale, component set, the
+footprint method, and a page-by-page recipe — in **[`FORMAT-CAROUSEL.md`](FORMAT-CAROUSEL.md)**.
+`carousel-demo.html` is the working template: seven pages at 1080×1350, copy it and swap the
+content.
+
+Every page is the same seven bands in the same order — counter · crest · headline · sub ·
+content · conclusion · (cta) — and the furniture is stamped in by script rather than re-typed
+per page. Page 1 is the only dark page (`data-ls-theme="cover"`); the rest are the cream
+identity.
+
+`footprint.js` renders order flow in four variants: `ladder` (the hero panel), `heat` (bid |
+candle | ask), `inside` (the grid laid over the candle body) and `bars` (proportional bid /
+price / ask). One rule governs all of them:
+
+> **The ladder is always LTR — bid left, ask right**, even on an RTL page. It is a market
+> convention, not text. Arabic labels sit outside the ladder and stay RTL.
+
+Render and check a deck with:
+
+```bash
+python3 capture-slides.py carousel-demo.html carousel/
+# violations: 0   corrections: 0
+```
+
+It exits non-zero if any chart on any page broke its own accuracy rules, so a deck can't be
+shipped looking finished while a level runs past the candle that killed it.
+
+![Carousel cover](carousel/slide1.png)
+
+---
+
+## 8. Rules
 
 - Never pure black (`#000000`) or pure white (`#FFFFFF`) backgrounds. Never neon.
 - Max 2 font sizes per slide besides labels; one big hook line per screen.

@@ -1,0 +1,388 @@
+<meta charset="utf-8">
+<title>Liquidity State — كاروسيل الفوتبرينت</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#8A8A8A; }
+  .deck { display:flex; flex-direction:column; align-items:center; gap:28px; padding:28px 0; }
+</style>
+
+<!-- ==========================================================================
+     A seven-page carousel, built to the architecture in FORMAT-CAROUSEL.md.
+     Every page declares only its content: the counter and the crest are
+     stamped in by the script at the bottom, which is the whole point — the
+     furniture is not something you re-type per page and get subtly wrong.
+     Pages 1–5 reproduce the approved reference; 6–7 close the lesson.
+     ========================================================================== -->
+<div class="deck">
+
+<!-- ---- 1 / 7 · cover ------------------------------------------------------
+     Dark, so the reader knows a carousel started. One claim, one contradiction,
+     one figure that contains the answer without explaining it yet. -->
+<div class="ls-c" data-ls-theme="cover" data-n="1">
+  <div class="ls-c-eyebrow">— درس – برايس أكشن —</div>
+  <h1 class="ls-c-h1">دخلوا شراء بقوة...<br>لكن السعر هبط.</h1>
+  <div class="ls-c-sub"><em>الفوتبرينت</em> يكشف من علق عند السيولة.</div>
+  <div class="ls-c-body">
+    <div class="fig" style="direction:ltr;display:flex;align-items:center;justify-content:center;gap:0">
+      <div id="cover-fp"></div>
+      <div id="cover-candle"></div>
+    </div>
+  </div>
+  <div class="ls-c-cta">اسحب <em>←</em></div>
+</div>
+
+<!-- ---- 2 / 7 · the two halves of the idea ---------------------------------
+     Two cards, same height, same internal order: title · rule · definition ·
+     figure. Symmetry is the argument — these are two views of one event. -->
+<div class="ls-c" data-n="2">
+  <h1 class="ls-c-h1">السيولة تقول: وين؟</h1>
+  <div class="ls-c-sub">الفوتبرينت يقول: شصار هناك؟</div>
+  <div class="ls-c-body">
+    <div class="ls-c-row" style="flex:1;min-height:0">
+      <div class="ls-card">
+        <div class="ls-card-title">السيولة</div>
+        <div class="ls-c-rule"><i></i><b></b><i></i></div>
+        <div class="ls-card-def">مكان تتجمع عنده<br>أوامر الوقف والدخول.</div>
+        <div class="ls-card-fig"><div id="s2-chart"></div></div>
+      </div>
+      <div class="ls-card">
+        <div class="ls-card-title">الفوتبرينت</div>
+        <div class="ls-c-rule"><i></i><b></b><i></i></div>
+        <div class="ls-card-def">ما نُفِّذ داخل الشمعة<br>على الـ Bid والـ Ask.</div>
+        <div class="ls-card-fig"><div id="s2-fp"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="ls-c-concl">المكان وحده ما يكفي... نحتاج ردّة الفعل.</div>
+</div>
+
+<!-- ---- 3 / 7 · step one, on the chart -------------------------------------
+     One card, one chart, three numbered anchors read right-to-left in Arabic
+     order. The level stops at the candle that broke it — the accuracy rule
+     applies to teaching charts too, or it isn't a rule. -->
+<div class="ls-c" data-n="3">
+  <h1 class="ls-c-h1">أولاً: السعر يسحب السيولة</h1>
+  <div class="ls-c-note">يخترق القمة السابقة، فيفعّل أوامر الوقف<br>ويجذب مشتري الاختراق.</div>
+  <div class="ls-c-body">
+    <div class="ls-card" style="flex:1;min-height:0;padding:14px">
+      <div class="ls-card-fig" style="margin-top:0"><div id="s3-chart"></div></div>
+    </div>
+  </div>
+  <div class="ls-c-concl bullet">السحب ليس دخولًا وحده.</div>
+</div>
+
+<!-- ---- 4 / 7 · step two, inside the candle --------------------------------
+     The anatomy page: the grid sits ON the candle, so the reader never has to
+     be told the two are the same event. Chips carry the three readings; the
+     conclusion states the contradiction the chips add up to. -->
+<div class="ls-c" data-n="4">
+  <h1 class="ls-c-h1">ثانيًا: راقب ما داخل الشمعة</h1>
+  <div class="ls-c-body">
+    <div style="display:flex;justify-content:center"><div id="s4-fp"></div></div>
+    <div class="ls-c-chips">
+      <div class="ls-chip">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="var(--ls-text-accent)"
+             stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 26 C 14 26, 18 20, 26 9"/><path d="M18 8 L27 8 L27 17"/></svg>
+        <span>Ask مرتفع</span>
+      </div>
+      <div class="ls-chip">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="var(--ls-text-accent)"
+             stroke-width="2.2"><circle cx="17" cy="17" r="12"/>
+          <path d="M17 11v12M11 17h12" stroke-linecap="round"/></svg>
+        <span>Delta موجب</span>
+      </div>
+      <div class="ls-chip">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="var(--ls-text-accent)"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="17" cy="17" r="12"/><path d="M11 20 l5-5 3 3 5-6"/></svg>
+        <span>السعر لا يكمل صعود</span>
+      </div>
+    </div>
+  </div>
+  <div class="ls-c-concl">مشتريات عدوانية... بلا تقدّم سعري.</div>
+  <div class="ls-c-note" style="margin-top:16px">هذا قد يشير إلى امتصاص المشترين عند القمة.</div>
+</div>
+
+<!-- ---- 5 / 7 · the name for it --------------------------------------------
+     A short title gets flanking rules. One split card: behaviour on the right,
+     order flow on the left, hairline between them. Then the checklist, then
+     the single red caveat — the only red on the page. -->
+<div class="ls-c" data-n="5">
+  <h1 class="ls-c-h1 flank"><i></i>علامة الامتصاص<i></i></h1>
+  <div class="ls-c-body">
+    <!-- behaviour first (right, where Arabic starts), then the order flow that
+         produced it — the reader meets the candle they know before the ladder
+         they are still learning -->
+    <div class="ls-card split" style="flex:1;min-height:0">
+      <div>
+        <div class="ls-card-title sm">سلوك سعري:<br>رفض ثم إغلاق أدنى</div>
+        <div class="ls-card-fig"><div id="s5-candle"></div></div>
+      </div>
+      <div>
+        <div class="ls-card-title sm">تلزم شراء عدوانية<br>عند القمة</div>
+        <div class="ls-card-fig"><div id="s5-fp"></div></div>
+      </div>
+    </div>
+    <div class="ls-check"><i>✓</i><span>تنفيذ شراء كبير قرب القمة</span></div>
+    <div class="ls-check"><i>✓</i><span>فشل السعر في صنع امتداد</span></div>
+    <div class="ls-check"><i>✓</i><span>إغلاق وعودة تحت مستوى السيولة</span></div>
+  </div>
+  <div class="ls-c-warn">
+    <svg width="46" height="46" viewBox="0 0 46 46" fill="none" stroke="var(--ls-invalid)"
+         stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M23 6 L43 40 H3 Z"/><path d="M23 18v11"/><path d="M23 34.5v.1"/></svg>
+    <span>لا تعتمد على لون الدلتا وحده.</span>
+  </div>
+</div>
+
+<!-- ---- 6 / 7 · step three, the confirmation -------------------------------
+     Same furniture as page 3, so the reader reads it faster than the first
+     one. Two drawings, each ending on the candle that ended it. -->
+<div class="ls-c" data-n="6">
+  <h1 class="ls-c-h1">ثالثًا: انتظر التأكيد</h1>
+  <div class="ls-c-note">الإغلاق يرجع تحت المستوى، وبعدها<br>يكسر السعر آخر قاع بنّاء.</div>
+  <div class="ls-c-body">
+    <div class="ls-card" style="flex:1;min-height:0;padding:14px">
+      <div class="ls-card-fig" style="margin-top:0"><div id="s6-chart"></div></div>
+    </div>
+  </div>
+  <div class="ls-c-concl bullet">بدون كسر البنية، السحب مجرد ظل.</div>
+</div>
+
+<!-- ---- 7 / 7 · the recap and the ask --------------------------------------
+     No new information. The three steps in the order they were taught, the
+     legal line, and one thing to do. -->
+<div class="ls-c" data-n="7">
+  <h1 class="ls-c-h1 flank"><i></i>الخلاصة<i></i></h1>
+  <div class="ls-c-body">
+    <div class="ls-check"><i>1</i><span>السعر يسحب السيولة فوق القمة</span></div>
+    <div class="ls-check"><i>2</i><span>الفوتبرينت يظهر شراء عدواني بلا تقدّم</span></div>
+    <div class="ls-check"><i>3</i><span>الإغلاق يرجع تحت المستوى ويكسر البنية</span></div>
+    <div class="ls-c-concl" style="margin-top:34px">ثلاثتها مع بعض... أو ما فيه شي.</div>
+    <div class="ls-c-note" style="margin-top:26px">لغرض تعليمي — ليست توصية.</div>
+  </div>
+  <!-- an inline mark, not an emoji: no colour-emoji font is vendored, so an
+       emoji renders differently on every machine that opens this file -->
+  <div class="ls-c-cta">احفظ البوست
+    <svg width="30" height="38" viewBox="0 0 30 38" fill="none" stroke="var(--ls-text-accent)"
+         stroke-width="2.6" stroke-linejoin="round" style="vertical-align:-6px;margin-right:14px">
+      <path d="M5 3h20v32l-10-9-10 9z"/></svg>
+  </div>
+</div>
+
+</div>
+
+<script src="./markup.js"></script>
+<script src="./footprint.js"></script>
+<script>
+/* ==========================================================================
+   1. Page furniture — stamped, never re-typed
+   ========================================================================== */
+const CREST = n => `
+  <div class="ls-c-counter">${n} / 7</div>
+  <div class="ls-c-crest">
+    <img class="gem" src="./logo/liquidity-state-mark.svg" alt="">
+    <div class="mark"><i></i><span>Liquidity State</span><i></i></div>
+    <div class="ls-c-rule"><i></i><b></b><i></i></div>
+  </div>`;
+document.querySelectorAll('.ls-c').forEach(p =>
+  p.insertAdjacentHTML('afterbegin', CREST(p.dataset.n)));
+
+/* ==========================================================================
+   2. Page 1 — the hero ladder, and a candle that shares its rows
+   The lit ladder row and the candle's liquidity band are the same price. That
+   is the entire figure: it is one event shown twice.
+   ========================================================================== */
+const COVER_ROWS = [
+  [182, 96], [248, 128], [315, 173], [471, 259], [693, 412], [912, 683],
+  [1200, 1100], [1600, 1400], [1100, 1300], [812, 1000], [564, 728],
+  [378, 486], [224, 312], [156, 186], [98, 107]
+].map(([bid, ask], i) => ({ bid, ask, hi: i === 7 }));
+
+const HI = 7;
+const coverFp = LSFootprint({
+  mount: '#cover-fp', variant: 'ladder', width: 300, height: 560,
+  rows: COVER_ROWS, compact: true
+});
+
+/* The candle is drawn in the ladder's own row space, so nothing has to be
+   nudged by eye to line up. */
+(function coverCandle() {
+  const w = 470, h = 560, cx = 120;
+  const yHi = coverFp.rowMid(HI);
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'ls-fp');
+  svg.setAttribute('width', w); svg.setAttribute('height', h);
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  const top = coverFp.rowMid(1), bot = coverFp.rowMid(14);
+  const bodyT = coverFp.rowMid(3), bodyB = coverFp.rowMid(11);
+  svg.innerHTML = `
+    <line class="ls-fp-wick" x1="${cx}" x2="${cx}" y1="${top}" y2="${bot}"/>
+    <rect class="ls-fp-body" x="${cx - 56}" y="${bodyT}" width="112" height="${bodyB - bodyT}"/>
+    <rect x="${cx - 56}" y="${yHi}" width="112" height="${bodyB - yHi}"
+          fill="var(--ls-text-accent)" opacity=".9"/>
+    <line class="ls-fp-body" x1="${cx - 56}" x2="${cx + 56}" y1="${yHi}" y2="${yHi}"/>
+    <circle class="ls-fp-dot" cx="${cx}" cy="${top}" r="6"/>
+    <circle class="ls-fp-dot" cx="${cx}" cy="${bot}" r="6"/>
+    <line class="ls-fp-leader" x1="${cx + 12}" x2="${cx + 190}" y1="${top}" y2="${top}"/>
+    <line class="ls-fp-leader" x1="${cx + 68}" x2="${cx + 190}" y1="${yHi}" y2="${yHi}"/>
+    <line class="ls-fp-leader" x1="${cx + 12}" x2="${cx + 190}" y1="${bot}" y2="${bot}"/>
+    <text class="ls-fp-callout" x="${cx + 204}" y="${top}" dominant-baseline="central">
+      <tspan x="${cx + 204}" dy="-16">هاي مسحوب</tspan>
+      <tspan x="${cx + 204}" dy="34">(سويبد هاي)</tspan></text>
+    <text class="ls-fp-callout" x="${cx + 204}" y="${yHi}" dominant-baseline="central">منطقة سيولة</text>
+    <text class="ls-fp-callout" x="${cx + 204}" y="${bot}" dominant-baseline="central">رفض سعري</text>`;
+  document.getElementById('cover-candle').appendChild(svg);
+})();
+
+/* ==========================================================================
+   3. Page 2 — where, and what happened there
+   ========================================================================== */
+/* Nine candles climbing into a level that is the high of bar 5 and bar 6.
+   Written out rather than generated: a definition figure has to be the same
+   picture every time it renders. */
+const S2 = [
+  { o: 60.0, c: 63.0, h: 63.8, l: 58.6 },
+  { o: 63.0, c: 65.8, h: 66.4, l: 62.4 },
+  { o: 65.8, c: 63.9, h: 67.2, l: 63.1 },
+  { o: 63.9, c: 68.6, h: 69.4, l: 63.4 },
+  { o: 68.6, c: 71.4, h: 72.2, l: 68.0 },
+  { o: 71.4, c: 73.8, h: 75.0, l: 70.9 },
+  { o: 73.8, c: 71.0, h: 75.0, l: 70.2 },
+  { o: 71.0, c: 68.4, h: 71.6, l: 67.6 },
+  { o: 68.4, c: 66.2, h: 69.0, l: 65.4 }
+];
+const s2ch = LSChart({
+  mount: '#s2-chart', width: 400, height: 340, candles: S2,
+  padding: { top: 54, right: 18, bottom: 20, left: 18 }, barsRight: 0,
+  autoTerminate: true, tolerance: 0.01
+});
+s2ch.drawCandles();
+s2ch.level({ price: 75.0, from: 5, label: 'مستوى سيولة', dashed: true });
+s2ch.layout();
+
+/* The same event, unpacked: eight prices, what traded on each side. */
+const s2fp = LSFootprint({
+  mount: '#s2-fp', variant: 'heat', width: 400, height: 340, compact: false,
+  labels: { bid: 'Bid', ask: 'Ask' },
+  rows: [[42, 38], [68, 61], [91, 89], [134, 127], [156, 143], [118, 101], [74, 66], [35, 31]]
+    .map(([bid, ask], i) => ({ bid, ask, hi: i === 4 }))
+});
+
+/* ==========================================================================
+   4. Pages 3 + 6 — one series, two lessons
+   Hand-written so the level really is a wick tip and the break really is a
+   close. Bars 3 and 6 top out at exactly 100; bar 8 closes through it.
+   ========================================================================== */
+const SWEEP = [
+  { o: 88.0, c: 92.0, h: 93.0,  l: 86.0 },
+  { o: 92.0, c: 89.0, h: 94.0,  l: 88.0 },
+  { o: 89.0, c: 95.0, h: 96.0,  l: 88.5 },
+  { o: 95.0, c: 98.5, h: 100.0, l: 94.5 },   // 3 — the high
+  { o: 98.5, c: 94.0, h: 99.0,  l: 93.0 },
+  { o: 94.0, c: 91.0, h: 95.0,  l: 90.0 },
+  { o: 91.0, c: 97.5, h: 100.0, l: 90.5 },   // 6 — tested again, same tip
+  { o: 97.5, c: 93.5, h: 98.0,  l: 92.5 },   // 7 — the low the sweep leaves behind
+  { o: 93.5, c: 105.0, h: 106.5, l: 93.0 },  // 8 — the sweep
+  { o: 105.0, c: 96.0, h: 105.5, l: 95.0 },  // 9 — straight back
+  { o: 96.0, c: 92.0, h: 97.0,  l: 90.5 }    // 10 — through the low
+];
+
+const s3 = LSChart({
+  mount: '#s3-chart', width: 900, height: 640, candles: SWEEP,
+  padding: { top: 70, right: 34, bottom: 26, left: 34 }, barsRight: 1,
+  autoTerminate: true, tolerance: 0.01
+});
+s3.drawCandles();
+/* mode:'close' — a wick through the level is the sweep, not the break. That
+   distinction is the lesson, so the drawing has to be built on it. */
+s3.level({ price: 100, from: 3, label: 'سيولة شرائية', dashed: true, mode: 'close' });
+s3.anchor({ i: 3, price: 100.0, n: 1 });
+s3.anchor({ i: 8, price: 106.5, n: 2 });
+s3.anchor({ i: 9, price: 95.0,  n: 3 });
+s3.sticker({ i: 3, price: 100.0, text: 'القمة',  dy: -58 });
+s3.sticker({ i: 8, price: 106.5, text: 'السحب',  dy: -52 });
+s3.sticker({ i: 9, price: 95.0,  text: 'العودة', dy: 104, dx: -18 });
+s3.layout();
+
+const s6 = LSChart({
+  mount: '#s6-chart', width: 900, height: 640, candles: SWEEP,
+  padding: { top: 60, right: 34, bottom: 34, left: 34 }, barsRight: 1,
+  autoTerminate: true, tolerance: 0.01
+});
+s6.drawCandles();
+s6.level({ price: 100,  from: 3, label: 'السيولة',  dashed: true, mode: 'close' });
+s6.level({ price: 92.5, from: 7, label: 'آخر قاع', mode: 'close', tone: 'accent' });
+/* No invalidation cross here. Red is reserved for what would make the idea
+   wrong; a close coming back through a level is the idea working. */
+s6.sticker({ i: 10, price: 90.5, text: 'كسر البنية', dy: 56, dx: -40 });
+s6.layout();
+
+/* ==========================================================================
+   5. Page 4 — the grid over the candle body
+   ========================================================================== */
+LSFootprint({
+  mount: '#s4-fp', variant: 'inside', width: 720, height: 470,
+  rows: [
+    { bid: 520, ask: 1180, imb: true },
+    { bid: 410, ask: 690 }, { bid: 560, ask: 610 }, { bid: 730, ask: 540 },
+    { bid: 680, ask: 430 }, { bid: 460, ask: 310 }, { bid: 300, ask: 180 }
+  ],
+  brace: { from: 1, to: 6, text: 'جسم الشمعة' },
+  callouts: [{ row: 0, col: 'ask', side: 'right', len: 60,
+               text: 'اختلال توازن', tone: 'danger' }]
+});
+
+/* ==========================================================================
+   6. Page 5 — the order flow, and the candle it produced
+   ========================================================================== */
+LSFootprint({
+  mount: '#s5-fp', variant: 'bars', width: 400, height: 350,
+  labels: { bid: 'Bid', ask: 'Ask', price: 'Price' },
+  rows: [
+    { price: 110, ask: 380 }, { price: 109, ask: 420 }, { price: 108, ask: 300 },
+    { price: 107, ask: 190 }, { price: 106, ask: 110 }, { price: 105, bid: 130 },
+    { price: 104, bid: 210 }, { price: 103, bid: 330 }, { price: 102, bid: 380 },
+    { price: 101, bid: 400 }
+  ],
+  box: { from: 0, to: 3, col: 'ask' }
+});
+
+/* The candle that all of that produced. Hand-drawn, not LSChart: this is an
+   anatomy figure — it labels parts of one candle, not levels in a series. */
+(function absorptionCandle() {
+  const w = 360, h = 350, cx = 168;
+  const wickT = 26, bodyT = 116, bodyB = 250, wickB = 288;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'ls-fp');
+  svg.setAttribute('width', w); svg.setAttribute('height', h);
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  /* Both labels sit to the right of the candle — the RTL start edge, so the
+     eye meets the words before the shape they describe. */
+  const lx = cx + 74;
+  svg.innerHTML = `
+    <line class="ls-fp-wick" x1="${cx}" x2="${cx}" y1="${wickT}" y2="${wickB}"/>
+    <rect x="${cx - 34}" y="${bodyT}" width="68" height="${bodyB - bodyT}"
+          fill="var(--ls-text-accent)" stroke="var(--ls-text-accent)" stroke-width="2"/>
+    <line class="ls-fp-leader" x1="${cx - 66}" x2="${lx - 12}" y1="${bodyT}" y2="${bodyT}"
+          style="stroke:var(--ls-text-secondary)"/>
+    <line class="ls-fp-leader" x1="${cx + 40}" x2="${lx - 12}" y1="${bodyB}" y2="${bodyB}"
+          style="stroke:var(--ls-text-secondary)"/>
+    <text class="ls-fp-callout" x="${lx}" y="${bodyT - 34}" text-anchor="start">
+      <tspan x="${lx}">رفض علوي</tspan>
+      <tspan x="${lx}" dy="34">(ظل علوي طويل)</tspan></text>
+    <text class="ls-fp-callout" x="${lx}" y="${bodyB + 24}" text-anchor="start">إغلاق أدنى</text>
+    <path class="ls-fp-leader" style="stroke-dasharray:none"
+          d="M${cx} ${wickB + 6} V${wickB + 44}"/>
+    <path d="M${cx} ${wickB + 56} l-9 -14 h18 z" fill="var(--ls-text-accent)"/>`;
+  document.getElementById('s5-candle').appendChild(svg);
+})();
+
+/* ==========================================================================
+   7. Report — every drawing on every chart, checked before this is shippable
+   ========================================================================== */
+window.LS_VIOLATIONS = [].concat(s2ch.violations, s3.violations, s6.violations);
+window.LS_CORRECTIONS = [].concat(s2ch.corrections, s3.corrections, s6.corrections);
+document.fonts.ready.then(() => { window.LS_READY = true; });
+</script>
