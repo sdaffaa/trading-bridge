@@ -150,6 +150,7 @@ Pass `autoTerminate: true` and every level and box ends itself at the candle tha
 | Full-frame chart + footprint (faceless) | `reel-footprint.md` | `reel-footprint.html` |
 | Documented trade, sweep → target | `reel-trade.md` | `reel-trade.html` |
 | Range + volume profile, value-edge entry | `reel-value.md` | `reel-value.html` |
+| Trend continuation from an order block (cream) | `reel-orderblock.md` | `reel-orderblock.html` |
 
 The footprint reel is the worked example of the whole system on one clock: bar replay, markup,
 a footprint that builds price by price, and captions all driven by the same `seek(t)`. Runtime
@@ -177,9 +178,24 @@ come out of `volumeProfile()` and everything else is derived from them. See
 > exchange volume — stated on the page itself as well as here. Pass `volumes` to
 > `volumeProfile()` on a feed that has real volume and the values become real.
 
+`reel-orderblock.html` is part four, the first **continuation** (the others are reversals), the
+first long, and the first reel in the **cream identity**. Entry is the top of the order block,
+stop its low, target the high of the impulse — +2.15R. It is also the first page built on the
+`.ls-vr` components below, so it renders cream by simply not asking for the dark theme. See
+[`reel-orderblock.md`](reel-orderblock.md).
+
+### `.ls-vr` — the vertical reel components
+
+The first three reels hard-coded their dark surfaces. `brand.css` now carries the reel chrome
+as theme-driven components — `.ls-vr`, `-chart`, `-beat`, `-scrim`, `-tile`, `-grid`, `-stat`,
+`-rule`, `-caps`, `-disc` — so the same markup renders in either identity by setting or
+omitting `data-ls-theme="cover"`. A page supplies only its vertical rhythm. New reels should
+use these; the first three are left as they shipped.
+
 ![Footprint reel](reel-footprint-poster.png)
 ![Trade reel](reel-trade-poster.png)
 ![Value reel](reel-value-poster.png)
+![Order block reel](reel-orderblock-poster.png)
 
 The split-screen format runs **two clocks**: captions change every ~0.6s while the chart changes
 every ~3.5s — roughly six captions per chart beat. Uses the `terminal` dark theme.

@@ -650,6 +650,118 @@
 }
 [data-ls-theme="cover"] .ls-mk-pos-entry { stroke: #FFFFFF; stroke-width: 2.2; }
 
+/* ==========================================================================
+   Vertical reel chrome — 1080×1920, theme-driven
+   The first reels hard-coded their dark surfaces. These do it with tokens, so
+   the same markup renders in the cream identity or on the dark cover by
+   changing one attribute. New reels should use these.
+   ========================================================================== */
+
+.ls-vr {
+  width: 1080px; height: 1920px; position: relative; overflow: hidden;
+  font-family: var(--ls-font-ar); direction: rtl; color: var(--ls-text);
+  background: linear-gradient(163deg, var(--ls-bg-grad-top) 0%, var(--ls-bg-grad-end) 100%);
+}
+.ls-vr[data-ls-theme="cover"] {
+  background: radial-gradient(120% 58% at 50% 28%, #06202E 0%, #010C17 74%);
+}
+
+.ls-vr-ticker { position: absolute; top: 152px; left: 60px; direction: ltr;
+                font-size: 26px; font-weight: 700; letter-spacing: .10em;
+                color: var(--ls-text-secondary); }
+.ls-vr-wm     { position: absolute; top: 152px; right: 60px; direction: ltr;
+                font-family: var(--ls-font-wordmark); font-size: 24px;
+                letter-spacing: .28em; text-transform: uppercase;
+                color: var(--ls-watermark); }
+
+/* The chart sits in a card on the cream identity — that border is the light
+   theme's signature, and on cream a bled-out chart has nothing holding it. */
+.ls-vr-chart { position: absolute; left: 40px; right: 40px;
+               border: 1.5px solid color-mix(in srgb, var(--ls-card-border) 55%, transparent);
+               border-radius: 22px; background: var(--ls-card-bg);
+               padding: 12px; box-sizing: border-box; }
+.ls-vr[data-ls-theme="cover"] .ls-vr-chart { border: 0; background: none; padding: 0; }
+
+.ls-vr-beat { position: absolute; left: 64px; right: 64px; text-align: center;
+              font-weight: 800; line-height: 1.24; letter-spacing: -.01em; }
+.ls-vr-beat em { font-style: normal; color: var(--ls-text-accent); }
+.ls-vr-beat > span { display: block; clip-path: inset(0 0 0 100%); }
+
+/* The scrim is the page's own background, so it works in either identity
+   without a second rule. */
+.ls-vr-scrim { position: absolute; left: 0; right: 0; opacity: 0;
+               background: linear-gradient(180deg,
+                 color-mix(in srgb, var(--ls-bg) 0%, transparent) 0%,
+                 color-mix(in srgb, var(--ls-bg) 92%, transparent) 22%,
+                 color-mix(in srgb, var(--ls-bg) 92%, transparent) 78%,
+                 color-mix(in srgb, var(--ls-bg) 0%, transparent) 100%); }
+
+/* A tile: a condition, a step, a target. Off until the chart earns it. */
+.ls-vr-tile { display: flex; align-items: center; gap: 16px;
+              border: 1.5px solid color-mix(in srgb, var(--ls-card-border) 45%, transparent);
+              border-radius: 16px; padding: 18px 20px;
+              background: var(--ls-card-bg); opacity: .40; }
+.ls-vr-tile i { flex: none; width: 44px; height: 44px; border-radius: 999px;
+                border: 2px solid color-mix(in srgb, var(--ls-text-secondary) 70%, transparent);
+                color: var(--ls-text-secondary); font-style: normal;
+                font-size: 24px; font-weight: 800; line-height: 40px; text-align: center; }
+.ls-vr-tile span { font-size: 30px; font-weight: 800; line-height: 1.3;
+                   color: var(--ls-text-secondary); }
+.ls-vr-tile.on { opacity: 1; border-color: var(--ls-text-accent);
+                 background: color-mix(in srgb, var(--ls-text-accent) 9%, var(--ls-card-bg));
+                 box-shadow: 0 6px 26px -14px color-mix(in srgb, var(--ls-text-accent) 80%, transparent); }
+.ls-vr-tile.on i    { border-color: var(--ls-text-accent); color: var(--ls-text-accent); }
+.ls-vr-tile.on span { color: var(--ls-text); }
+
+.ls-vr-grid { position: absolute; left: 44px; right: 44px; direction: rtl;
+              display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* A stat: a label over a number. Same tile, centred, no bullet. */
+.ls-vr-stat { display: block; text-align: center; padding: 16px 10px; }
+.ls-vr-stat .k { font-size: 25px; font-weight: 700; color: var(--ls-text-secondary); }
+.ls-vr-stat .v { margin-top: 8px; font-size: 40px; font-weight: 800;
+                 color: var(--ls-text-secondary); direction: ltr;
+                 font-variant-numeric: tabular-nums; }
+.ls-vr-stat.on .k { color: var(--ls-text-accent); }
+.ls-vr-stat.on .v { color: var(--ls-text); }
+
+.ls-vr-rule { position: absolute; left: 44px; right: 44px; opacity: 0;
+              border: 1.5px solid color-mix(in srgb, var(--ls-card-border) 55%, transparent);
+              border-radius: 16px; background: var(--ls-card-bg); padding: 20px 26px;
+              display: flex; align-items: center; justify-content: space-between;
+              direction: rtl; }
+.ls-vr-rule .lbl { font-size: 31px; font-weight: 800; color: var(--ls-text-accent); }
+.ls-vr-rule .num { font-size: 34px; font-weight: 800; color: var(--ls-text);
+                   direction: ltr; font-variant-numeric: tabular-nums; }
+.ls-vr-rule .num b { color: var(--ls-text-secondary); font-weight: 700; }
+
+.ls-vr-caps .ls-reel-caption {
+  position: absolute; left: 70px; right: 70px; transform: none; padding: 0;
+  font-size: 56px; line-height: 1.2; color: var(--ls-text); text-shadow: none;
+}
+.ls-vr[data-ls-theme="cover"] .ls-reel-caption {
+  color: #fff; text-shadow: 0 4px 22px rgba(1,12,23,.9);
+}
+.ls-vr-caps .ls-reel-caption em { color: var(--ls-text-accent); }
+
+.ls-vr-disc { position: absolute; left: 0; right: 0; text-align: center;
+              font-size: 22px; font-weight: 500; line-height: 1.5;
+              color: var(--ls-text-secondary); opacity: .8; }
+
+/* Markup on a reel is read at arm's length, in either identity. */
+.ls-vr .ls-mk-label     { font-size: 29px; }
+.ls-vr .ls-mk-sticker-t { font-size: 31px; }
+.ls-vr .ls-mk-swing     { font-size: 26px; }
+.ls-vr .ls-mk-line      { stroke-width: 2.4; }
+.ls-vr .ls-mk-zone      { stroke-width: 2; }
+.ls-vr .ls-mk-marker    { stroke-width: 4; }
+.ls-vr .ls-mk-anchor-n  { font-size: 20px; }
+/* On cream the default 16% position tints are legible but weak at reel size;
+   the ratio between the two blocks is the reason they exist. */
+.ls-vr .ls-mk-pos-target { fill: color-mix(in srgb, var(--ls-bullish) 20%, transparent); }
+.ls-vr .ls-mk-pos-stop   { fill: color-mix(in srgb, var(--ls-invalid) 22%, transparent); }
+.ls-vr .ls-mk-pos-entry  { stroke: var(--ls-text); stroke-width: 2; }
+
 /* Chart markup inside a carousel page is read on a phone at arm's length.
    The reel scales markup up for the same reason; a page is read a little
    closer, so it lands between the two. */

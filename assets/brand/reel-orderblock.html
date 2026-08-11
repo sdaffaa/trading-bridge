@@ -1,0 +1,273 @@
+<meta charset="utf-8">
+<title>Liquidity State — الدخول من الأوردر بلوك</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#8A8A8A; }
+
+  /* Only the vertical rhythm lives here. Every surface, border and colour
+     comes from the .ls-vr components in brand.css, which is why this page is
+     the cream identity by doing nothing: it simply does not ask for the dark
+     theme. */
+  .ls-vr-chart  { top:226px; height:698px; }
+  #hook    { top:372px; font-size:84px; }
+  #verdict { top:396px; font-size:74px; }
+  .ls-vr-scrim  { top:200px; height:720px; }
+  #conds   { top:952px; }
+  #rule    { top:1148px; }
+  #stats   { top:1242px; }
+  .ls-vr-caps .ls-reel-caption { top:1382px; }
+  .ls-vr-disc   { top:1506px; }
+
+  /* On cream the text needs no shadow to sit on the chart — it needs the
+     opposite, a little air, so the beat carries a soft cream halo instead. */
+  .ls-vr-beat { text-shadow:0 2px 26px var(--ls-bg), 0 0 12px var(--ls-bg); }
+</style>
+
+<div class="ls-vr">
+  <div class="ls-vr-ticker">XAUUSD · H1</div>
+  <div class="ls-vr-wm">Liquidity State</div>
+
+  <div class="ls-vr-chart"><div id="chart"></div></div>
+
+  <div class="ls-vr-scrim" id="scrim"></div>
+  <div class="ls-vr-beat" id="hook"><span>ليش تدخل باتجاه<br>صح... وتخسر؟</span></div>
+  <div class="ls-vr-beat" id="verdict"><span>جذي تدخل باتجاه صح<br><em>وما تخسر</em></span></div>
+
+  <div class="ls-vr-grid" id="conds">
+    <div class="ls-vr-tile"><i>1</i><span>اتجاه صاعد واضح</span></div>
+    <div class="ls-vr-tile"><i>2</i><span>كسر هيكل فوق القمة</span></div>
+    <div class="ls-vr-tile"><i>3</i><span>رجوع للأوردر بلوك</span></div>
+    <div class="ls-vr-tile"><i>4</i><span>الهدف قمة الاندفاع</span></div>
+  </div>
+
+  <div class="ls-vr-rule" id="rule">
+    <div class="lbl">الستوب تحت قاع الأوردر بلوك</div>
+    <div class="num" id="rulenum">—</div>
+  </div>
+
+  <div class="ls-vr-grid" id="stats">
+    <div class="ls-vr-tile ls-vr-stat" id="st-entry"><div class="k">الدخول · قمة البلوك</div><div class="v">—</div></div>
+    <div class="ls-vr-tile ls-vr-stat" id="st-r"><div class="k">النتيجة</div><div class="v">—</div></div>
+  </div>
+
+  <div class="ls-vr-caps" id="caps"></div>
+  <div class="ls-vr-disc">مثال تخطيطي لغرض تعليمي — ليست توصية</div>
+</div>
+
+<script src="./markup.js"></script>
+<script src="./captions.js"></script>
+<script>
+/* ==========================================================================
+   الدخول من الأوردر بلوك — part four, and the first in the cream identity
+
+   A continuation, not a reversal — which is what makes it a fourth model
+   rather than a fourth example:
+
+     part 2  reversal · sweep → MSS → FVG            · short
+     part 3  reversal · range → value edge fails     · short
+     part 4  CONTINUATION · trend → BOS → order block · LONG
+
+   All 11 beats, 30.4s. Anchor noun: الاتجاه.
+     1  HOOK      تبي تعرف ليش تدخل باتجاه صح وتخسر؟
+     2  PARADOX   الاتجاه صاعد، ودخلت شراء، وطلعت خسران
+     3  PIVOT     شلون؟
+     4  INVITE    تعال اقولك
+     5  BELIEF    الناس تدخل مع الشمعة الكبيرة
+     6  WHY       يخافون يفوتهم الاتجاه
+     7  TURN      لكن بالواقع؟ الاتجاه ما يمشي على خط …
+     8  VERDICT   جذي تدخل باتجاه صح وما تخسر            ← reuses beat 1
+     9  PROOF     شوف — راح حق الهدف
+     10 CARE      بس بدون كسر هيكل، ما فيه أوردر بلوك
+     11 LOOP      تفرّق بين أوردر بلوك وأي شمعة هابطة؟ تابع البوست الجاي
+   ========================================================================== */
+
+const TOTAL = 31.0;
+const SEAM  = 29.8;
+
+/* ---- the series --------------------------------------------------------
+   A trend of higher highs and higher lows, then one impulse that breaks the
+   last high, and a pullback into the candle that produced it. Bars 20, 28 and
+   33 are written by hand because each one IS a price the trade uses: the
+   structure high, the order block, and the target. */
+const C = [
+  [92.00, 92.90, 93.20, 91.70], [92.90, 93.80, 94.10, 92.60],
+  [93.80, 93.20, 94.20, 92.90], [93.20, 94.60, 94.90, 93.00],
+  [94.60, 95.80, 96.10, 94.30], [95.80, 96.60, 96.90, 95.50],
+  [96.60, 95.90, 97.00, 95.60], [95.90, 97.10, 97.40, 95.70],
+  [97.10, 98.40, 98.70, 96.90], [98.40, 99.60, 99.90, 98.10],
+  [99.60, 100.20, 100.50, 99.30],                       // 10 — a first high
+  [100.20, 99.10, 100.40, 98.80], [99.10, 98.20, 99.40, 97.90],
+  [98.20, 97.40, 98.50, 97.00],
+  [97.40, 98.10, 98.40, 96.80],                         // 14 — the higher low
+  [98.10, 99.30, 99.60, 97.90], [99.30, 100.60, 100.90, 99.10],
+  [100.60, 101.90, 102.20, 100.40], [101.90, 103.10, 103.40, 101.70],
+  [103.10, 102.60, 103.50, 102.30],
+  [102.60, 103.40, 104.00, 102.40],                     // 20 — the structure high
+  [103.40, 102.30, 103.60, 102.00], [102.30, 101.40, 102.60, 101.10],
+  [101.40, 102.00, 102.30, 101.10], [102.00, 100.90, 102.20, 100.60],
+  [100.90, 100.10, 101.20, 99.80], [100.10, 100.70, 101.00, 99.70],
+  [100.70, 100.70, 101.10, 99.90],
+  [100.70, 99.60, 100.90, 98.90],                       // 28 — THE ORDER BLOCK
+  [99.60, 101.60, 101.90, 99.50], [101.60, 102.80, 103.10, 101.40],
+  [102.80, 103.80, 104.00, 102.60],                     // 31 — tests, does not close through
+  [103.80, 104.80, 105.00, 103.60],                     // 32 — closes above: the BOS
+  [104.80, 105.00, 105.20, 104.50],                     // 33 — the high of the impulse
+  [105.00, 104.10, 105.10, 103.80], [104.10, 103.20, 104.40, 102.90],
+  [103.20, 103.70, 104.00, 102.80], [103.70, 102.40, 103.90, 102.10],
+  [102.40, 101.50, 102.60, 101.20],
+  [101.50, 101.80, 102.10, 100.90],                     // 39 — taps the block: the entry
+  [101.80, 102.60, 102.90, 101.40], [102.60, 102.10, 102.90, 101.80],
+  [102.10, 103.20, 103.40, 101.90], [103.20, 104.10, 104.40, 103.00],
+  [104.10, 103.60, 104.30, 103.30], [103.60, 104.40, 104.60, 103.40],
+  [104.40, 104.10, 104.70, 103.90], [104.10, 104.90, 105.10, 103.90],
+  [104.90, 105.10, 105.20, 104.60],                     // 48 — the target is reached
+  [105.10, 104.60, 105.30, 104.40], [104.60, 105.40, 105.60, 104.40],
+  [105.40, 106.10, 106.40, 105.20]
+].map(([o, c, h, l]) => ({ o, c, h, l }));
+
+/* ---- the trade, derived ------------------------------------------------
+   BOS    the high of bar 20 — the structure the impulse has to close through
+   BLOCK  bar 28, the last down-close candle before that impulse
+   ENTRY  the top of the block · STOP the bottom of it
+   TGT    the high of the impulse — the buy-side liquidity it left behind    */
+const BOS   = C[20].h;
+const OB_T  = C[28].h, OB_B = C[28].l;
+const ENTRY = OB_T;
+const STOP  = OB_B;
+const TGT   = C[33].h;
+const RISK  = ENTRY - STOP;
+const R     = (TGT - ENTRY) / RISK;
+
+const ch = LSChart({
+  mount: '#chart', width: 1000, height: 674, candles: C,
+  padding: { top: 44, right: 40, bottom: 30, left: 18 },
+  barsRight: 1, barsVisible: 52,        // the whole leg stays on screen: no pan
+  autoTerminate: true, tolerance: 0.01, anim: {}
+});
+ch.grid(4).drawCandles();
+
+/* A hold's atBar is the bar it stops BEFORE, so a hold that looks at bar N is
+   written N+1. */
+const HOLDS = [
+  { atBar: 21, seconds: 2.8 },   // the trend, and the high that defines it
+  { atBar: 33, seconds: 3.2 },   // the break of structure
+  { atBar: 34, seconds: 3.4 },   // the block the impulse came from
+  { atBar: 40, seconds: 4.2 },   // the pullback into it: the entry
+  { atBar: 49, seconds: 4.0 }    // the target
+];
+ch.replay({ rate: 4.6, window: 52, start: 16, at: 0, holds: HOLDS });
+const H = Object.fromEntries(HOLDS.map(h => [h.atBar, h.t]));
+
+/* Step 1 — the structure. mode:'close' — bar 31 touches 104.00 and does not
+   close through it, and that is exactly the difference between a test and a
+   break. The level ends on bar 32, the bar that actually broke it. */
+ch.structure([{ i: 10, price: C[10].h }, { i: 14, price: C[14].l },
+              { i: 20, price: BOS }], { at: H[21] + 0.2, dur: 1.1 });
+ch.level({ price: BOS, from: 20, label: 'قمة الهيكل', mode: 'close',
+           at: H[21] + 1.5, dur: 0.6 });
+ch.sticker({ i: 32, price: C[32].c, text: 'كسر هيكل', dy: -76, at: H[33] + 0.5 });
+
+/* Step 2 — the block. The zone wraps bar 28 whole, wick to wick: cropped to
+   the body it would hide the low that the stop is measured from. It ends on
+   bar 39, the bar that trades back into it — the entry bar. */
+ch.zone({ from: 28, top: OB_T, bottom: OB_B, label: 'أوردر بلوك', tone: 'accent',
+          align: 'right', at: H[34] + 0.3, dur: 0.9 });
+
+/* Steps 3 + 4 — the position. */
+ch.position({ from: 39, to: 48, entry: ENTRY, stop: STOP, target: TGT,
+              at: H[40] + 0.4, dur: 1.0 });
+ch.level({ price: TGT, from: 33, label: 'قمة الاندفاع', dashed: true, tone: 'muted',
+           at: H[40] + 1.4, dur: 0.6 });
+ch.sticker({ i: 48, price: TGT, text: 'وصل الهدف', dy: -74, dx: -84,
+             at: H[49] + 0.6 });
+
+ch.layout();
+const CHART_END = ch.duration();
+
+const f2 = v => v.toFixed(2);
+document.getElementById('rulenum').innerHTML =
+  `${f2(ENTRY)} <b>−</b> ${f2(STOP)} <b>=</b> ${f2(RISK)}`;
+document.querySelector('#st-entry .v').textContent = f2(ENTRY);
+const R_TEXT = '+' + R.toFixed(2) + 'R';
+
+const caps = LSCaptions({
+  mount: '#caps',
+  track: LSCaptions.pace([
+    ['تبي تعرف', 0.55], ['ليش تدخل باتجاه صح', 1.05], ['وتخسر؟', 0.85],
+    ['الاتجاه صاعد', 0.90], ['ودخلت شراء', 0.90], ['وطلعت خسران', 1.00],
+    ['شلون؟', 0.62], ['تعال اقولك', 0.78],
+    ['الناس تدخل مع الشمعة الكبيرة', 1.35], ['يخافون يفوتهم الاتجاه', 1.20],
+    ['لكن بالواقع؟', 0.95],
+    ['الاتجاه ما يمشي على خط', 1.30],
+    ['يكسر القمة', 0.90], ['بعدين يرجع', 0.95],
+    ['يرجع لآخر شمعة هابطة', 1.30], ['قبل الكسر', 0.90],
+    ['هذي <em>الأوردر بلوك</em>', 1.35],
+    ['الدخول من فوقها', 1.05], ['والستوب تحت قاعها', 1.20],
+    ['والهدف قمة الاندفاع', 1.30],
+    ['شوف — راح حق الهدف', 1.35],
+    ['جذي تدخل باتجاه صح', 1.20], ['وما تخسر', 1.00],
+    ['بس بدون كسر هيكل', 1.10], ['ما فيه أوردر بلوك', 1.10],
+    ['تفرّق بينها وبين', 1.05], ['أي شمعة هابطة؟', 1.10],
+    ['تابع البوست الجاي', 1.35]
+  ], { start: 0.1 })
+});
+
+/* ---- the overlay clock ------------------------------------------------ */
+const hookEl  = document.getElementById('hook');
+const verdEl  = document.getElementById('verdict');
+const scrimEl = document.getElementById('scrim');
+const ruleEl  = document.getElementById('rule');
+const stEntry = document.getElementById('st-entry');
+const stR     = document.getElementById('st-r');
+const condEls = [...document.querySelectorAll('#conds .ls-vr-tile')];
+const ease = k => k * k * (3 - 2 * k);
+const seg  = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
+const wipe = (el, p) => { el.firstElementChild.style.clipPath = `inset(0 0 0 ${(1 - p) * 100}%)`; };
+
+const COND_AT = [H[21] + 1.0, H[33] + 0.6, H[34] + 0.8, H[40] + 1.6];
+
+function seekAll(t) {
+  let ct = t;
+  if (t > SEAM) ct = CHART_END * (1 - ease(seg(t, SEAM, TOTAL - SEAM)));
+  ch.seek(Math.min(ct, CHART_END));
+  caps.seek(t > SEAM ? -1 : t);
+
+  const past = x => (t > SEAM ? false : t >= x);
+  condEls.forEach((el, i) => el.classList.toggle('on', past(COND_AT[i])));
+
+  stEntry.classList.toggle('on', past(H[40] + 0.6));
+  /* The result waits for the target. Showing it beside the entry would state
+     an outcome the chart has not produced yet. */
+  const hit = past(H[49] + 1.0);
+  stR.classList.toggle('on', hit);
+  stR.querySelector('.v').textContent = hit ? R_TEXT : '—';
+
+  const hIn = ease(seg(t, 0.35, 0.55));
+  wipe(hookEl, hIn);
+  hookEl.style.opacity = hIn * (1 - ease(seg(t, 4.0, 0.4)));
+
+  const vIn = ease(seg(t, 24.4, 0.5)), vOut = ease(seg(t, 27.4, 0.5));
+  wipe(verdEl, vIn);
+  verdEl.style.opacity = vIn * (1 - vOut);
+  scrimEl.style.opacity = (vIn * (1 - vOut) * 0.96).toFixed(3);
+
+  const rIn = ease(seg(t, H[40] + 0.8, 0.5)) * (1 - ease(seg(t, SEAM - 0.7, 0.5)));
+  ruleEl.style.opacity = rIn;
+  ruleEl.style.transform = `translateY(${(1 - rIn) * 38}px)`;
+}
+
+window.LS_SIZE = [1080, 1920];
+window.LS_DURATION = TOTAL;
+window.LS_TAIL = 0;
+window.LS_VIOLATIONS = ch.violations;
+window.LS_TRADE = { BOS, OB_T, OB_B, ENTRY, STOP, TGT, RISK, R,
+                    chartEnd: CHART_END, caps: caps.duration(), holds: H };
+window.seekTo = t => { seekAll(t); return true; };
+seekAll(0);
+document.fonts.ready.then(() => { seekAll(0); window.LS_READY = true; });
+
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now) { seekAll(((now - t0) / 1000) % TOTAL); requestAnimationFrame(loop); })(t0);
+}
+</script>
