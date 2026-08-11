@@ -8,6 +8,7 @@ Usage:
     python3 verify_drawing.py spec.json --fix out.json  # report + write corrected spec
     python3 verify_drawing.py spec.json --fix out.json --snap   # also snap bad anchors
     python3 verify_drawing.py spec.json --json          # machine-readable report
+    python3 verify_drawing.py --selftest                # verify the install
 
 Spec format:
 {
@@ -32,6 +33,7 @@ Exit code 0 if every drawing is accurate, 1 if any violation was found.
 """
 
 import json
+import os
 import sys
 
 OK, TOO_LONG, TOO_SHORT, FLOATING, ANCHOR, EDGE, PARTIAL, INVALID = (
@@ -307,8 +309,30 @@ ICON = {OK: "ok  ", TOO_LONG: "LONG", TOO_SHORT: "SHRT", FLOATING: "FLOAT",
         ANCHOR: "ANCH", EDGE: "EDGE", PARTIAL: "PART", INVALID: "BAD "}
 
 
+def selftest():
+    """Run the bundled example and confirm the rules still fire as documented.
+    Verifies an install without needing a chart of your own."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    spec_path = os.path.join(here, "..", "examples", "demo-spec.json")
+    exp_path = os.path.join(here, "..", "examples", "demo-spec.expected.json")
+    spec = json.load(open(spec_path))
+    expected = json.load(open(exp_path))
+    got = {f["id"]: f["status"] for f in verify(spec)}
+    bad = {k: (v, got.get(k)) for k, v in expected.items() if got.get(k) != v}
+    for k, v in expected.items():
+        mark = "ok  " if got.get(k) == v else "FAIL"
+        print(f"  [{mark}] {k:<14} expected {v}, got {got.get(k)}")
+    if bad:
+        print(f"\n{len(bad)} check(s) failed — the rules are not behaving as documented.")
+        return 1
+    print(f"\nall {len(expected)} checks pass; the skill is installed and working.")
+    return 0
+
+
 def main():
     args = sys.argv[1:]
+    if args and args[0] == "--selftest":
+        return selftest()
     if not args:
         print(__doc__)
         return 2
