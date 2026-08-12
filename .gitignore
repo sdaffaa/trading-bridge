@@ -30,3 +30,11 @@
 .claude/skills/*/scripts/out56/reel56_raw.mp4
 .claude/skills/*/scripts/out56/*sheet*.png
 .claude/skills/*/scripts/out56/f1*.png
+
+# تشغيلة ٥٧: الإطارات ونواتج الرندر الوسيطة تُعاد بأمر واحد.
+.claude/skills/*/scripts/frames57/
+.claude/skills/*/scripts/out57/qa*/
+.claude/skills/*/scripts/out57/dec/
+.claude/skills/*/scripts/out57/*.html
+.claude/skills/*/scripts/out57/*.log
+.claude/skills/*/scripts/out57/g1*.png
