@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>Liquidity State — Volume Profile · Excess إلى POC</title>
+<title>Liquidity State — Volume Profile · H4 إلى M5</title>
 <link rel="stylesheet" href="./brand.css">
 <style>
   html,body { margin:0; padding:0; background:#8A8A8A; }
@@ -8,8 +8,9 @@
         border:1.5px solid color-mix(in srgb, var(--ls-card-border) 50%, transparent);
         border-radius:20px; background:var(--ls-card-bg); box-sizing:border-box;
         padding:10px 12px 6px; }
-  #tf15 { top:200px; height:300px; }
-  #tf5  { top:512px; height:380px; }
+  #tf4  { top:192px; height:172px; }
+  #tf15 { top:376px; height:250px; }
+  #tf5  { top:638px; height:302px; }
   .tf .ls-mk-label     { font-size:19px; }
   .tf .ls-mk-sticker-t { font-size:23px; }
   .tf .ls-mk-va-t      { font-size:15px; }
@@ -21,21 +22,22 @@
                border-radius:999px; padding:3px 14px; }
   .tf .role  { position:absolute; top:16px; left:22px; z-index:2;
                font-size:23px; font-weight:800; color:var(--ls-text-secondary); }
-  #tf5.idle .role, #tf5.idle .badge { opacity:.4; }
-  #tf5 .hint { position:absolute; inset:0; display:flex; align-items:center;
+  .tf.idle .role, .tf.idle .badge { opacity:.4; }
+  .tf .hint { position:absolute; inset:0; display:flex; align-items:center;
                justify-content:center; font-size:32px; font-weight:800;
                color:var(--ls-text-secondary); opacity:.5; }
   /* The lower card carries the M5 candles AND the ladder that opens the one
      candle they turn on — the chart says where, the ladder says who. */
-  #tf5 .row { display:flex; gap:12px; align-items:center; margin-top:38px; }
+  .tf .pane { margin-top:26px; }
+  #tf5 .row { display:flex; gap:12px; align-items:center; margin-top:30px; }
   #chart5 { width:592px; flex:none; }
   #ladder { width:344px; flex:none; }
 
-  #hook    { top:300px; font-size:72px; }
-  #verdict { top:312px; font-size:60px; }
-  .ls-vr-scrim  { top:176px; height:730px; }
+  #hook    { top:280px; font-size:68px; }
+  #verdict { top:292px; font-size:56px; }
+  .ls-vr-scrim  { top:172px; height:782px; }
 
-  #schools { top:916px; gap:12px; }
+  #schools { top:964px; gap:12px; }
   .school  { border:1.5px solid color-mix(in srgb, var(--ls-card-border) 45%, transparent);
              border-radius:18px; background:var(--ls-card-bg); padding:12px 16px; opacity:.42; }
   .school .hd { display:flex; align-items:center; justify-content:space-between;
@@ -66,19 +68,24 @@
   .school.on .c span { color:var(--ls-text); }
   .school.on .c em   { color:var(--ls-text-accent); opacity:1; }
 
-  #stats   { top:1204px; grid-template-columns:1fr 1fr 1fr; }
-  .ls-vr-caps .ls-reel-caption { top:1368px; font-size:52px; }
-  .ls-vr-disc   { top:1470px; }
+  #stats   { top:1206px; grid-template-columns:1fr 1fr 1fr; }
+  .ls-vr-caps .ls-reel-caption { top:1372px; font-size:50px; }
+  .ls-vr-disc   { top:1476px; }
   .ls-vr-beat { text-shadow:0 2px 26px var(--ls-bg), 0 0 12px var(--ls-bg); }
 </style>
 
 <div class="ls-vr">
-  <div class="ls-vr-ticker">XAUUSD · M15 → M5</div>
+  <div class="ls-vr-ticker">XAUUSD · H4 → M15 → M5</div>
   <div class="ls-vr-wm">Liquidity State</div>
 
-  <div class="tf" id="tf15">
+  <div class="tf" id="tf4">
+    <div class="badge">H4</div><div class="role">القيمة الكبرى</div>
+    <div id="chart4" class="pane"></div>
+  </div>
+  <div class="tf idle" id="tf15">
     <div class="badge">M15</div><div class="role">القيمة</div>
-    <div id="chart15"></div>
+    <div class="hint" id="hint15">شمعة H4 = ١٦ شمعة M15</div>
+    <div id="chart15" class="pane"></div>
   </div>
   <div class="tf idle" id="tf5">
     <div class="badge">M5</div><div class="role">الدخول · ومين نفّذ</div>
@@ -95,14 +102,14 @@
 
   <div class="ls-vr-grid" id="schools">
     <div class="school">
-      <div class="hd"><div class="nm">Volume Profile</div><div class="tf">M15</div></div>
-      <div class="c"><b>1</b><span>Excess below VAL</span><em class="n1">—</em></div>
-      <div class="c"><b>2</b><span>Acceptance in value</span><em class="n2">—</em></div>
+      <div class="hd"><div class="nm">Volume Profile</div><div class="tf">H4</div></div>
+      <div class="c"><b>1</b><span>H4 lower value</span><em class="n1">—</em></div>
+      <div class="c"><b>2</b><span>H4 POC = target</span><em class="n2">—</em></div>
     </div>
     <div class="school">
       <div class="hd"><div class="nm">Volume Profile</div><div class="tf">M15 → M5</div></div>
-      <div class="c"><b>3</b><span>VAL retest holds</span><em class="n1">—</em></div>
-      <div class="c"><b>4</b><span>POC as target</span><em class="n2">—</em></div>
+      <div class="c"><b>3</b><span>Excess below VAL</span><em class="n1">—</em></div>
+      <div class="c"><b>4</b><span>VAL retest holds</span><em class="n2">—</em></div>
     </div>
     <div class="school">
       <div class="hd"><div class="nm">Footprint</div><div class="tf">M5</div></div>
@@ -168,34 +175,52 @@ function leg(from, to, n, wick, wob) {
   return out;
 }
 
-/* ---- pass one: the M5 balance, and the profile of the M15 above it ------- */
-function balance5(n) {
-  let s = 8814409, p = 100;
+/* ---- pass one: the H4 context, and value measured at two scales --------
+   864 M5 bars = 18 whole H4 candles. The H4 profile is taken on all of them;
+   the M15 profile on the last 32 M15 bars only. Two scales of one word: the H4
+   says where value has been for days, the M15 where it is now. */
+function balance5(n, from) {
+  let s = 8814409, p = from;
   const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
   const out = [];
   for (let i = 0; i < n; i++) {
     const o = p;
-    const c = Math.max(96.20, Math.min(103.80, o + (100 - o) * 0.13 + rnd() * 2.3));
-    const w = 0.18 + Math.abs(rnd()) * 0.55;
+    const c = Math.max(from - 7.5, Math.min(from + 7.5,
+                       o + (from - o) * 0.02 + rnd() * 1.35));
+    const w = 0.12 + Math.abs(rnd()) * 0.34;
     out.push({ o, c,
-      h: Math.min(104.30, Math.max(o, c) + Math.abs(rnd()) * w),
-      l: Math.max(95.70, Math.min(o, c) - Math.abs(rnd()) * w) });
+      h: Math.max(o, c) + Math.abs(rnd()) * w,
+      l: Math.min(o, c) - Math.abs(rnd()) * w });
     p = c;
   }
   return out;
 }
 
-const BAL5  = balance5(72);                       // 72 M5 bars = 24 M15 bars
+/* The last two H4 candles drift to the lower edge of the balance, so the M15
+   value the trade is built on sits in the LOWER part of H4 value — which is
+   the whole reason the higher frame is on the page. */
+const CORE  = balance5(768, 100);
+const BAL5  = CORE.concat(leg(CORE[CORE.length - 1].c, 95.4, 96, 0.22, 0.34));
 const BAL15 = LSTF.aggregate(BAL5, 3);
+const BAL4  = LSTF.aggregate(BAL5, 48);
 const q0    = BAL5[BAL5.length - 1].c;
 
 const probe = document.createElement('div');
 probe.style.cssText = 'position:absolute;left:-9999px;width:900px';
 document.body.appendChild(probe);
-const pc = LSChart({ mount: probe, width: 900, height: 500, candles: BAL15,
+
+const p4 = LSChart({ mount: probe, width: 900, height: 500, candles: BAL4,
+                     padding: { top: 20, right: 20, bottom: 20, left: 20 }, barsRight: 1 });
+p4.drawCandles();
+p4.volumeProfile({ from: 0, to: BAL4.length - 1, bins: 26, valueArea: 0.70 });
+const POC4 = r2(p4.profile.poc), VAH4 = r2(p4.profile.vah), VAL4 = r2(p4.profile.val);
+probe.innerHTML = '';
+
+const VP0 = BAL15.length - 32;                    // recent value, not ancient value
+const pc = LSChart({ mount: probe, width: 900, height: 500, candles: BAL15.slice(VP0),
                      padding: { top: 20, right: 20, bottom: 20, left: 20 }, barsRight: 1 });
 pc.drawCandles();
-pc.volumeProfile({ from: 0, to: BAL15.length - 1, bins: 26, valueArea: 0.70 });
+pc.volumeProfile({ from: 0, to: 31, bins: 26, valueArea: 0.70 });
 const POC = r2(pc.profile.poc), VAH = r2(pc.profile.vah), VAL = r2(pc.profile.val);
 probe.remove();
 
@@ -210,38 +235,41 @@ const u = d => r2(VAL + d * U);
 const EXC_D = 0.38;                               // excess depth, as a fraction of U
 
 const M5 = BAL5.concat(
-  leg(q0, u(0.30), 6, 0.05 * U, 0.04 * U),        // M15 24–25 — down to the edge of value
+  leg(q0, u(0.30), 24, 0.05 * U, 0.05 * U),       // 8 M15 bars — down to value's edge
   [
-    /* M15 26 — the excess: through the VAL, and refused */
+    /* the excess: through the VAL, and refused */
     { o: u(0.30), c: u(0.10), h: u(0.36), l: u(0)      },
-    { o: u(0.10), c: u(0),    h: u(0.16), l: u(-EXC_D) },   // 79 — the rejection candle
+    { o: u(0.10), c: u(0),    h: u(0.16), l: u(-EXC_D) },   // the rejection candle
     { o: u(0),    c: u(0.22), h: u(0.28), l: u(-0.08)  },
-    /* M15 27 — accepted back inside value, and still under the POC */
+    /* accepted back inside value, and still under the POC */
     { o: u(0.22), c: u(0.38), h: u(0.44), l: u(0.16) },
     { o: u(0.38), c: u(0.52), h: u(0.58), l: u(0.32) },
     { o: u(0.52), c: u(0.62), h: u(0.68), l: u(0.46) },
-    /* M15 28 — the retest of the VAL from above: the entry */
+    /* the retest of the VAL from above: the entry */
     { o: u(0.62), c: u(0.34), h: u(0.68), l: u(0.28) },
-    { o: u(0.34), c: u(0.20), h: u(0.40), l: u(0)    },    // 85 — taps the VAL exactly
+    { o: u(0.34), c: u(0.20), h: u(0.40), l: u(0)    },    // taps the VAL exactly
     { o: u(0.20), c: u(0.46), h: u(0.52), l: u(0.14) }
   ],
-  leg(u(0.46), u(1.25), 12, 0.06 * U, 0.07 * U),  // M15 29–32 — up through the POC
-  leg(u(1.25), u(1.90), 9, 0.06 * U, 0.05 * U)
+  leg(u(0.46), u(1.25), 30, 0.06 * U, 0.09 * U),  // up through the POC
+  leg(u(1.25), u(1.95), 33, 0.06 * U, 0.07 * U)
 );
 
-const M15 = LSTF.aggregate(M5, 3);
-const TF_ERRORS = LSTF.verify(M5, M15, 3);
+const STACK = LSTF.chain(M5, [3, 16]);
+const M15 = STACK.series[0], H4 = STACK.series[1];
+const TF_ERRORS = STACK.errors;
 
-/* ---- the model ---------------------------------------------------------- */
-const excessBar5 = 79, excessBar15 = 26;
+/* ---- the model, indexed from where the action begins -------------------- */
+const A5  = BAL5.length, A15 = A5 / 3;
+const excessBar5  = A5 + 25;                      // the rejection candle
+const excessBar15 = A15 + 8;
 const EXC   = M5[excessBar5].l;                   // the low the excess printed
 const ENTRY = VAL, STOP = r2(EXC), TGT = POC;
 const RISK  = r2(ENTRY - STOP), LEG_ = r2(TGT - STOP), R = (TGT - ENTRY) / RISK;
 
-const entryBar5 = M5.findIndex((c, i) => i > 81 && c.l <= ENTRY + 1e-9);
+const entryBar5 = M5.findIndex((c, i) => i > A5 + 26 && c.l <= ENTRY + 1e-9);
 const tgtBar5   = M5.findIndex((c, i) => i > entryBar5 && c.h >= TGT - 1e-9);
 let accepted = 0;
-for (let i = 27; i < 30; i++) if (M15[i].c > VAL) accepted++;
+for (let i = excessBar15 + 1; i <= excessBar15 + 3; i++) if (M15[i].c > VAL) accepted++;
 
 /* ---- the fourth school --------------------------------------------------
    ILLUSTRATIVE rows — the page says so, because delta is not in OHLC. The
@@ -264,12 +292,17 @@ const closePos = (ex.c - ex.l) / (ex.h - ex.l);   // where it closed in its own 
 const FP_ROWS = ROWS.map(([price, bid, ask], i) => ({ price, bid, ask, hi: i === hiRow }));
 
 const COND = [
+  /* The H4 pair — the two numbers that make the higher frame more than
+     decoration: this M15 value sits in the LOWER third of H4 value, and the
+     H4 point of control is still above the M15 target, so the magnet the
+     trade is walking toward has more behind it. */
+  { ok: ENTRY <= VAL4 + (VAH4 - VAL4) / 3,
+                                          note: `${VAL4.toFixed(2)}–${VAH4.toFixed(2)}` },
+  { ok: Math.abs(POC4 - TGT) <= 0.30,     note: `${POC4.toFixed(2)} ≈ ${TGT.toFixed(2)}` },
   { ok: M15[excessBar15].l < VAL && M15[excessBar15].c > VAL,
                                           note: `−${r2(VAL - EXC).toFixed(2)}` },
-  { ok: accepted >= 3,                    note: `${accepted}/3 close` },
-  { ok: M5[entryBar5].l <= ENTRY + 1e-9 && M5[entryBar5].c > ENTRY,
+  { ok: M5[entryBar5].l <= ENTRY + 1e-9 && M5[entryBar5].c > ENTRY && accepted >= 3,
                                           note: `${ENTRY.toFixed(2)}` },
-  { ok: TGT > ENTRY,                      note: `POC ${POC.toFixed(2)}` },
   { ok: DELTA < 0,                        note: `${(DELTA / 1000).toFixed(1)}K` },
   { ok: DELTA < 0 && ABS >= 2 && closePos >= 0.66 && hiRow >= ROWS.length - 4,
                                           note: `${ABS.toFixed(1)}:1` },
@@ -278,79 +311,97 @@ const COND = [
 ];
 const SCHOOL_OK = [0, 1, 2, 3].map(g => COND[g * 2].ok && COND[g * 2 + 1].ok);
 
-/* ---- the two charts ----------------------------------------------------- */
+/* ---- three charts ------------------------------------------------------- */
+const ch4 = LSChart({
+  mount: '#chart4', width: 1000, height: 140, candles: BAL4,
+  padding: { top: 14, right: 92, bottom: 12, left: 12 },
+  barsRight: 1, autoTerminate: true, tolerance: 0.03, anim: {}
+});
+ch4.grid(2).drawCandles();
+ch4.volumeProfile({ from: 0, to: BAL4.length - 1, bins: 26, widthPct: 0.15,
+                    valueArea: 0.70, showVA: true, at: 1.2, dur: 1.2 });
+ch4.poc({ price: POC4, from: 0, label: 'H4 POC', at: 3.2, dur: 0.6 });
+ch4.layout();
+
+const M15_SHOW = 64, M15_OFF = M15.length - M15_SHOW;   // wide enough to hold the
+                                                        // profile window it measures
+const s15 = i => i - M15_OFF;
 const ch15 = LSChart({
-  mount: '#chart15', width: 1000, height: 284, candles: M15,
-  padding: { top: 40, right: 100, bottom: 20, left: 14 },
-  barsRight: 1, barsVisible: 39, autoTerminate: true, tolerance: 0.01, anim: {}
+  mount: '#chart15', width: 1000, height: 218, candles: M15.slice(M15_OFF),
+  padding: { top: 28, right: 92, bottom: 30, left: 12 },
+  barsRight: 1, barsVisible: 66, autoTerminate: true, tolerance: 0.01, anim: {}
 });
 ch15.grid(2).drawCandles();
 
 const HOLD15 = [
-  { atBar: 26, seconds: 2.8 },   // the balance, and the profile measured on it
-  { atBar: 29, seconds: 4.2 },   // the excess, and the closes back inside
-  { atBar: 32, seconds: 10.0 }   // the pause the M5 card runs inside
+  { atBar: s15(excessBar15),     seconds: 2.4 },  // value, measured, before anything
+  { atBar: s15(excessBar15) + 3, seconds: 3.6 },  // the excess and the closes back in
+  { atBar: s15(excessBar15) + 6, seconds: 6.5 }   // the pause the M5 card runs inside
 ];
-ch15.replay({ rate: 3.0, window: 39, start: 2, at: 0, holds: HOLD15 });
+ch15.replay({ rate: 6.0, window: 66, start: 8, at: 0, holds: HOLD15 });
 const H15 = Object.fromEntries(HOLD15.map(h => [h.atBar, h.t]));
+const HV = H15[s15(excessBar15)], HX = H15[s15(excessBar15) + 3],
+      HM = H15[s15(excessBar15) + 6];
 
-ch15.volumeProfile({ from: 0, to: 23, bins: 26, widthPct: 0.15, valueArea: 0.70,
-                     showVA: true, at: 7.6, dur: 1.2 });
-ch15.poc({ price: POC, from: 0, label: 'POC', at: 9.0, dur: 0.6 });
-ch15.sticker({ i: excessBar15, price: M15[excessBar15].l, text: 'Excess', dy: 46,
-               at: H15[29] + 0.8 });
-ch15.zone({ from: 30, spanBars: 3, to: 32,
-            top: Math.max(M15[30].h, M15[31].h, M15[32].h),
-            bottom: Math.min(M15[30].l, M15[31].l, M15[32].l),
-            label: 'M5 ↓', tone: 'primary', align: 'right',
-            at: H15[32] - 0.6, dur: 0.6 });
+ch15.volumeProfile({ from: s15(VP0), to: s15(VP0) + 31, bins: 26, widthPct: 0.14,
+                     valueArea: 0.70, showVA: true, at: 1.0, dur: 1.1 });
+ch15.poc({ price: POC, from: s15(VP0), label: 'POC', at: 2.4, dur: 0.6 });
+ch15.sticker({ i: s15(excessBar15), price: M15[excessBar15].l, text: 'Excess', dy: 34,
+               at: HX + 0.8 });
+ch15.zone({ from: s15(excessBar15) + 4, spanBars: 3, to: s15(excessBar15) + 6,
+            top: Math.max(M15[excessBar15 + 4].h, M15[excessBar15 + 5].h, M15[excessBar15 + 6].h),
+            bottom: Math.min(M15[excessBar15 + 4].l, M15[excessBar15 + 5].l, M15[excessBar15 + 6].l),
+            label: 'M5 ↓', tone: 'primary', align: 'right', at: HM - 0.6, dur: 0.6 });
 ch15.layout();
 const END15 = ch15.duration();
 
 /* The lower chart is scaled to the bars it actually shows. Left to the whole
-   M5 series it would stretch from the balance's low to the rally's high and
-   flatten the 0.45-point excess this reel is about into a hairline. */
-const W0 = 76;
+   M5 series it would stretch from the context's low to the rally's high and
+   flatten the excess this reel is about into a hairline. */
+const M5_LO = A5 + 6, M5_HI = A5 + 64;           // the window the trade happens in
+const s5 = i => i - M5_LO;
 let wLo = Infinity, wHi = -Infinity;
-for (let i = W0; i < M5.length; i++) { wHi = Math.max(wHi, M5[i].h); wLo = Math.min(wLo, M5[i].l); }
+for (let i = M5_LO; i < M5_HI; i++) { wHi = Math.max(wHi, M5[i].h); wLo = Math.min(wLo, M5[i].l); }
 const wPad = (wHi - wLo) * 0.10;
 
 const ch5 = LSChart({
-  mount: '#chart5', width: 620, height: 296, candles: M5,
+  mount: '#chart5', width: 620, height: 268, candles: M5.slice(M5_LO, M5_HI),
   /* the excess low is the lowest price on this card and its label hangs
      under it, so the bottom padding has to leave room */
-  padding: { top: 30, right: 74, bottom: 58, left: 12 },
+  padding: { top: 26, right: 74, bottom: 52, left: 12 },
   priceRange: [r2(wLo - wPad), r2(wHi + wPad)],
-  barsRight: 1, barsVisible: 32, autoTerminate: true, tolerance: 0.01, anim: {}
+  barsRight: 1, barsVisible: 34, autoTerminate: true, tolerance: 0.01, anim: {}
 });
 ch5.grid(2).drawCandles();
 
 const HOLD5 = [
-  { atBar: excessBar5 + 1, seconds: 2.6 },   // the rejection candle, and its ladder
-  { atBar: entryBar5 + 1,  seconds: 2.2 },   // the retest that held
-  { atBar: tgtBar5 + 1,    seconds: 2.6 }    // the POC
+  { atBar: s5(excessBar5) + 1, seconds: 2.2 },   // the rejection candle, and its ladder
+  { atBar: s5(entryBar5) + 1,  seconds: 1.8 },   // the retest that held
+  { atBar: s5(tgtBar5) + 1,    seconds: 2.2 }    // the POC
 ];
-ch5.replay({ rate: 5.5, window: 32, start: W0, at: 0, holds: HOLD5 });
+ch5.replay({ rate: 7.5, window: 34, start: 8, at: 0, holds: HOLD5 });
 const H5 = Object.fromEntries(HOLD5.map(h => [h.atBar, h.t]));
+const HXX = H5[s5(excessBar5) + 1], HE = H5[s5(entryBar5) + 1], HT = H5[s5(tgtBar5) + 1];
 
 ch5.level({ price: VAL, from: 0, label: 'VAL', target: true, at: 0.4, dur: 0.5 });
-ch5.sticker({ i: excessBar5, price: EXC, text: 'Absorption', dy: 44, dx: -70,
-              at: H5[excessBar5 + 1] + 2.2 });
-ch5.position({ from: entryBar5, to: tgtBar5, entry: ENTRY, stop: STOP, target: TGT,
-               at: H5[entryBar5 + 1] + 0.5, dur: 0.9 });
-ch5.sticker({ i: tgtBar5, price: TGT, text: 'POC', dy: -42, dx: -60,
-              at: H5[tgtBar5 + 1] + 0.6 });
+ch5.sticker({ i: s5(excessBar5), price: EXC, text: 'Absorption', dy: 40, dx: -66,
+              at: HXX + 2.0 });
+ch5.position({ from: s5(entryBar5), to: s5(tgtBar5), entry: ENTRY, stop: STOP, target: TGT,
+               at: HE + 0.5, dur: 0.9 });
+ch5.sticker({ i: s5(tgtBar5), price: TGT, text: 'POC', dy: -38, dx: -56,
+              at: HT + 0.6 });
 ch5.layout();
 const END5 = ch5.duration();
 
-const M5_START = H15[32];
-const FP_IN    = M5_START + H5[excessBar5 + 1] + 0.3;
+const M15_START = 7.0;
+const M5_START  = M15_START + HM;
+const FP_IN     = M5_START + HXX + 0.3;
 const fp = LSFootprint({
-  mount: '#ladder', variant: 'ladder', width: 344, height: 286,
+  mount: '#ladder', variant: 'ladder', width: 344, height: 258,
   rows: FP_ROWS, compact: false, heatKey: 'total', panel: false,
   anim: { at: 0, panel: 0.35, rowStagger: 0.15, rowDur: 0.28 }
 });
-const STORY_END = Math.max(END15, M5_START + END5);
+const STORY_END = Math.max(M15_START + END15, M5_START + END5);
 
 const f2 = v => v.toFixed(2);
 document.querySelector('#st-entry .v').textContent = f2(ENTRY);
@@ -388,6 +439,8 @@ const caps = LSCaptions({
 const hookEl = document.getElementById('hook'), verdEl = document.getElementById('verdict');
 const scrimEl = document.getElementById('scrim');
 const tf5El = document.getElementById('tf5'), hintEl = document.getElementById('hint');
+const tf15El = document.getElementById('tf15'), hint15 = document.getElementById('hint15');
+const pane15 = document.querySelector('#chart15');
 const rowEl = document.querySelector('#tf5 .row');
 const stEntry = document.getElementById('st-entry'), stStop = document.getElementById('st-stop');
 const stR = document.getElementById('st-r');
@@ -404,13 +457,18 @@ const SCHOOL_AT = [H15[29] + 4.4,                       // the excess, and accep
 function seekAll(t) {
   let te = t;
   if (t > SEAM) te = SEAM * (1 - ease(seg(t, SEAM, TOTAL - SEAM)));
-  ch15.seek(Math.min(te, END15));
+  ch4.seek(te);
+  ch15.seek(Math.min(Math.max(te - M15_START, 0), END15));
   ch5.seek(Math.min(Math.max(te - M5_START, 0), END5));
   fp.seek(Math.max(te - FP_IN, 0));
   caps.seek(t > SEAM ? -1 : t);
 
   const past = x => (t > SEAM ? false : t >= x);
+  const o15 = ease(seg(te, M15_START - 0.5, 0.7));
   const open = ease(seg(te, M5_START - 0.5, 0.7));
+  tf15El.classList.toggle('idle', o15 < 0.5);
+  pane15.style.opacity = o15;
+  hint15.style.opacity = (1 - o15) * 0.5;
   tf5El.classList.toggle('idle', open < 0.5);
   rowEl.style.opacity = open;
   hintEl.style.opacity = (1 - open) * 0.5;

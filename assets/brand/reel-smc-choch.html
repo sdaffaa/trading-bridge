@@ -1,54 +1,56 @@
 <meta charset="utf-8">
-<title>Liquidity State — SMC · Sweep إلى CHoCH</title>
+<title>Liquidity State — SMC · H4 إلى M5</title>
 <link rel="stylesheet" href="./brand.css">
 <style>
   html,body { margin:0; padding:0; background:#8A8A8A; }
 
   .tf { position:absolute; left:44px; right:44px;
         border:1.5px solid color-mix(in srgb, var(--ls-card-border) 50%, transparent);
-        border-radius:20px; background:var(--ls-card-bg); box-sizing:border-box;
-        padding:10px 12px 6px; }
-  #tf15 { top:200px; height:340px; }
-  #tf5  { top:552px; height:340px; }
-  .tf .ls-mk-label     { font-size:19px; }
-  .tf .ls-mk-sticker-t { font-size:23px; }
-  .tf .ls-mk-va-t      { font-size:15px; }
-  .tf .badge { position:absolute; top:14px; right:22px; z-index:2;
-               font-family:var(--ls-font-wordmark); font-size:20px; letter-spacing:.18em;
+        border-radius:18px; background:var(--ls-card-bg); box-sizing:border-box;
+        padding:8px 12px 4px; }
+  #tf4  { top:192px; height:176px; }
+  #tf15 { top:380px; height:286px; }
+  #tf5  { top:678px; height:262px; }
+  .tf .ls-mk-label     { font-size:18px; }
+  .tf .ls-mk-sticker-t { font-size:21px; }
+  .tf .ls-mk-va-t      { font-size:14px; }
+  .tf .ls-mk-fib       { font-size:13px; }
+  .tf .badge { position:absolute; top:11px; right:20px; z-index:2;
+               font-family:var(--ls-font-wordmark); font-size:18px; letter-spacing:.18em;
                font-weight:700; direction:ltr; color:var(--ls-text-accent);
                background:color-mix(in srgb, var(--ls-text-accent) 10%, var(--ls-card-bg));
                border:1px solid color-mix(in srgb, var(--ls-text-accent) 45%, transparent);
-               border-radius:999px; padding:3px 14px; }
-  .tf .role  { position:absolute; top:16px; left:22px; z-index:2;
-               font-size:23px; font-weight:800; color:var(--ls-text-secondary); }
-  #tf5.idle .role, #tf5.idle .badge { opacity:.4; }
-  #tf5 .hint { position:absolute; inset:0; display:flex; align-items:center;
-               justify-content:center; font-size:34px; font-weight:800;
-               color:var(--ls-text-secondary); opacity:.5; }
+               border-radius:999px; padding:2px 12px; }
+  .tf .role  { position:absolute; top:13px; left:20px; z-index:2;
+               font-size:21px; font-weight:800; color:var(--ls-text-secondary); }
+  .tf.idle .role, .tf.idle .badge { opacity:.4; }
+  .tf .hint { position:absolute; inset:0; display:flex; align-items:center;
+              justify-content:center; font-size:27px; font-weight:800;
+              color:var(--ls-text-secondary); opacity:.5; }
+  .tf .pane { margin-top:26px; }
 
-  #hook    { top:308px; font-size:72px; }
-  #verdict { top:320px; font-size:62px; }
-  .ls-vr-scrim  { top:176px; height:730px; }
+  #hook    { top:284px; font-size:68px; }
+  #verdict { top:296px; font-size:58px; }
+  .ls-vr-scrim  { top:172px; height:782px; }
 
-  #schools { top:916px; gap:12px; }
+  #schools { top:964px; gap:12px; }
   .school  { border:1.5px solid color-mix(in srgb, var(--ls-card-border) 45%, transparent);
-             border-radius:18px; background:var(--ls-card-bg); padding:12px 16px; opacity:.42; }
+             border-radius:18px; background:var(--ls-card-bg); padding:11px 15px; opacity:.42; }
   .school .hd { display:flex; align-items:center; justify-content:space-between;
                 border-bottom:1px solid color-mix(in srgb, var(--ls-card-border) 35%, transparent);
-                padding-bottom:8px; margin-bottom:8px; }
-  .school .nm { font-family:var(--ls-font-wordmark); font-size:21px; letter-spacing:.14em;
+                padding-bottom:7px; margin-bottom:7px; }
+  .school .nm { font-family:var(--ls-font-wordmark); font-size:20px; letter-spacing:.13em;
                 font-weight:700; direction:ltr; color:var(--ls-text-secondary); }
-  .school .tf { position:static; border:0; background:none; padding:0;
-                font-family:var(--ls-font-wordmark); font-size:17px; letter-spacing:.12em;
+  .school .fr { font-family:var(--ls-font-wordmark); font-size:17px; letter-spacing:.12em;
                 direction:ltr; color:var(--ls-text-secondary); opacity:.7; }
-  .school .c  { display:flex; align-items:center; gap:10px; margin-top:7px; }
-  .school .c b{ flex:none; width:24px; height:24px; border-radius:999px; font-size:14px;
-                font-weight:800; line-height:22px; text-align:center;
+  .school .c  { display:flex; align-items:center; gap:9px; margin-top:6px; }
+  .school .c b{ flex:none; width:23px; height:23px; border-radius:999px; font-size:13px;
+                font-weight:800; line-height:21px; text-align:center;
                 border:1.5px solid color-mix(in srgb, var(--ls-text-secondary) 60%, transparent);
                 color:var(--ls-text-secondary); }
-  .school .c span { font-size:20px; font-weight:700; direction:ltr;
+  .school .c span { font-size:19px; font-weight:700; direction:ltr;
                     color:var(--ls-text-secondary); }
-  .school .c em   { margin-right:auto; font-style:normal; font-size:19px; font-weight:700;
+  .school .c em   { margin-right:auto; font-style:normal; font-size:17px; font-weight:700;
                     direction:ltr; white-space:nowrap;
                     color:var(--ls-text-secondary); opacity:.75; }
 
@@ -56,28 +58,33 @@
                background:color-mix(in srgb, var(--ls-text-accent) 8%, var(--ls-card-bg));
                box-shadow:0 6px 26px -14px color-mix(in srgb, var(--ls-text-accent) 80%, transparent); }
   .school.on .nm { color:var(--ls-text); }
-  .school.on .tf { color:var(--ls-text-accent); opacity:1; }
+  .school.on .fr { color:var(--ls-text-accent); opacity:1; }
   .school.on .c b { border-color:var(--ls-text-accent); color:var(--ls-text-accent); }
   .school.on .c span { color:var(--ls-text); }
   .school.on .c em   { color:var(--ls-text-accent); opacity:1; }
 
-  #stats   { top:1204px; grid-template-columns:1fr 1fr 1fr; }
-  .ls-vr-caps .ls-reel-caption { top:1368px; font-size:52px; }
+  #stats   { top:1206px; grid-template-columns:1fr 1fr 1fr; }
+  .ls-vr-caps .ls-reel-caption { top:1372px; font-size:50px; }
   .ls-vr-disc   { top:1482px; }
   .ls-vr-beat { text-shadow:0 2px 26px var(--ls-bg), 0 0 12px var(--ls-bg); }
 </style>
 
 <div class="ls-vr">
-  <div class="ls-vr-ticker">XAUUSD · M15 → M5</div>
+  <div class="ls-vr-ticker">XAUUSD · H4 → M15 → M5</div>
   <div class="ls-vr-wm">Liquidity State</div>
 
-  <div class="tf" id="tf15">
-    <div class="badge">M15</div><div class="role">السياق</div>
-    <div id="chart15"></div>
+  <div class="tf" id="tf4">
+    <div class="badge">H4</div><div class="role">مع مين</div>
+    <div id="chart4" class="pane"></div>
+  </div>
+  <div class="tf idle" id="tf15">
+    <div class="badge">M15</div><div class="role">وين</div>
+    <div class="hint" id="hint15">شمعة H4 = ١٦ شمعة M15</div>
+    <div id="chart15" class="pane"></div>
   </div>
   <div class="tf idle" id="tf5">
-    <div class="badge">M5</div><div class="role">الدخول</div>
-    <div class="hint" id="hint">البلوك ما يبيّن إلا هني</div>
+    <div class="badge">M5</div><div class="role">متى</div>
+    <div class="hint" id="hint5">البلوك ما يبيّن إلا هني</div>
     <div id="chart5" class="pane"></div>
   </div>
 
@@ -87,24 +94,24 @@
 
   <div class="ls-vr-grid" id="schools">
     <div class="school">
-      <div class="hd"><div class="nm">SMC</div><div class="tf">M15</div></div>
-      <div class="c"><b>1</b><span>Equal Lows</span><em class="n1">—</em></div>
-      <div class="c"><b>2</b><span>Liquidity Sweep</span><em class="n2">—</em></div>
+      <div class="hd"><div class="nm">SMC</div><div class="fr">H4</div></div>
+      <div class="c"><b>1</b><span>H4 Demand Block</span><em class="n1">—</em></div>
+      <div class="c"><b>2</b><span>H4 Discount</span><em class="n2">—</em></div>
     </div>
     <div class="school">
-      <div class="hd"><div class="nm">SMC</div><div class="tf">M15 → M5</div></div>
-      <div class="c"><b>3</b><span>CHoCH</span><em class="n1">—</em></div>
-      <div class="c"><b>4</b><span>Order Block</span><em class="n2">—</em></div>
+      <div class="hd"><div class="nm">SMC</div><div class="fr">M15</div></div>
+      <div class="c"><b>3</b><span>Equal Lows</span><em class="n1">—</em></div>
+      <div class="c"><b>4</b><span>Liquidity Sweep</span><em class="n2">—</em></div>
     </div>
     <div class="school">
-      <div class="hd"><div class="nm">ICT</div><div class="tf">M5</div></div>
-      <div class="c"><b>5</b><span>Displacement</span><em class="n1">—</em></div>
-      <div class="c"><b>6</b><span>Fair Value Gap</span><em class="n2">—</em></div>
+      <div class="hd"><div class="nm">SMC</div><div class="fr">M15 → M5</div></div>
+      <div class="c"><b>5</b><span>CHoCH</span><em class="n1">—</em></div>
+      <div class="c"><b>6</b><span>Order Block</span><em class="n2">—</em></div>
     </div>
     <div class="school">
-      <div class="hd"><div class="nm">Volume Profile</div><div class="tf">M15</div></div>
-      <div class="c"><b>7</b><span>Sweep below VAL</span><em class="n1">—</em></div>
-      <div class="c"><b>8</b><span>Target back in value</span><em class="n2">—</em></div>
+      <div class="hd"><div class="nm">ICT</div><div class="fr">M5</div></div>
+      <div class="c"><b>7</b><span>Displacement</span><em class="n1">—</em></div>
+      <div class="c"><b>8</b><span>Fair Value Gap</span><em class="n2">—</em></div>
     </div>
   </div>
 
@@ -123,20 +130,23 @@
 <script src="./captions.js"></script>
 <script>
 /* ==========================================================================
-   SMC · Equal Lows → Sweep → CHoCH → Order Block
+   SMC · H4 demand → equal lows → sweep → CHoCH → M5 order block
 
-   Standalone — no series, no callback to another reel. What it teaches is one
-   sentence: two lows at the same price are not support, they are a resting
-   pool of stop orders, and the market goes and takes them before it turns.
+   Standalone. One sentence: two lows at the same price are not support, they
+   are a pool of resting stop orders — and the market goes and takes them
+   before it turns. What the H4 adds is WHERE it is worth taking them: inside
+   the demand block the last impulse came from, in the discount half of that
+   leg. The same pool anywhere else is just a pool.
 
-   The two frames divide the work the way the account always divides it:
-     M15 — the equal lows, the sweep through them, and the change of character
-           that closes above the last lower high.
-     M5  — the order block that CHoCH impulse left behind. On M15 the whole
+     H4  — WITH WHOM: the demand block, and discount on the leg it launched.
+     M15 — WHERE: the two equal lows inside that block, the sweep through
+           them, and the change of character that closes above the last lower
+           high.
+     M5  — WHEN: the order block that CHoCH impulse left. On M15 the whole
            pullback is one candle; the block is inside it.
 
-   M5 is the market and M15 is LSTF.aggregate(M5, 3); LSTF.verify gates the
-   render, so the two charts cannot drift into being different markets.
+   M5 is the market; M15 and H4 are LSTF.chain(M5, [3, 16]) and the chain is
+   verified before the page renders.
 
    All 11 beats, 34.0s. Anchor noun: البلوك.
    ========================================================================== */
@@ -144,15 +154,15 @@
 const TOTAL = 34.0, SEAM = 32.8;
 const r2 = v => Math.round(v * 100) / 100;
 
-/* ---- pass one: a declining M5 market, and the M15 it aggregates into ----- */
-function decline5(n) {
-  let s = 5590231, p = 108;
+/* ---- pass one: the H4 context ------------------------------------------ */
+function drift5(n, from) {
+  let s = 2249537, p = from;
   const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
   const out = [];
   for (let i = 0; i < n; i++) {
     const o = p;
-    const c = Math.max(99.00, o - 0.075 + rnd() * 1.7);
-    const w = 0.16 + Math.abs(rnd()) * 0.45;
+    const c = Math.max(from - 9, Math.min(from + 9, o + 0.004 + rnd() * 1.25));
+    const w = 0.10 + Math.abs(rnd()) * 0.32;
     out.push({ o, c,
       h: Math.max(o, c) + Math.abs(rnd()) * w,
       l: Math.min(o, c) - Math.abs(rnd()) * w });
@@ -161,176 +171,224 @@ function decline5(n) {
   return out;
 }
 
-const PRE5  = decline5(66);                       // 66 M5 bars = 22 M15 bars
+function leg(from, to, n, wick, wob) {
+  const out = []; let o = from;
+  for (let i = 1; i <= n; i++) {
+    const c = r2(from + (to - from) * (i / n) + (wob || 0) * Math.sin(i * 1.9));
+    out.push({ o, c, h: r2(Math.max(o, c) + wick), l: r2(Math.min(o, c) - wick) });
+    o = c;
+  }
+  return out;
+}
+
+/* Drift, one bearish H4 candle, a two-candle impulse away from it, then a
+   pullback all the way back into it. 864 M5 bars = 18 whole H4 candles. */
+const DRIFT = drift5(624, 104);
+const pA    = r2(DRIFT[DRIFT.length - 1].c);
+const PRE5  = DRIFT.concat(
+  leg(pA,            r2(pA - 5.0), 48, 0.18, 0.16),
+  leg(r2(pA - 5.0),  r2(pA + 6.0), 96, 0.20, 0.22),
+  leg(r2(pA + 6.0),  r2(pA - 4.0), 96, 0.18, 0.20)
+);
 const PRE15 = LSTF.aggregate(PRE5, 3);
+const PRE4  = LSTF.aggregate(PRE5, 48);
 const p0    = PRE5[PRE5.length - 1].c;
-let GL = Infinity;
-PRE15.forEach(c => { if (c.l < GL) GL = c.l; });
 
-const probe = document.createElement('div');
-probe.style.cssText = 'position:absolute;left:-9999px;width:900px';
-document.body.appendChild(probe);
-const pc = LSChart({ mount: probe, width: 900, height: 500, candles: PRE15,
-                     padding: { top: 20, right: 20, bottom: 20, left: 20 }, barsRight: 1 });
-pc.drawCandles();
-pc.volumeProfile({ from: 0, to: PRE15.length - 1, bins: 24, valueArea: 0.70 });
-const POC = r2(pc.profile.poc), VAH = r2(pc.profile.vah), VAL = r2(pc.profile.val);
-probe.remove();
+/* The H4 demand block, measured: the last bearish H4 candle before the biggest
+   bullish one. Found by body size, never picked by eye — and searched only in
+   the RECENT structure. Over the whole context a lucky run of drift can out-
+   body the real impulse, and then the block is found in noise; every condition
+   downstream would still pass, on a level the market never launched from. */
+const LOOK4 = 8;
+let impIdx = PRE4.length - LOOK4, impBody = -Infinity;
+for (let i = PRE4.length - LOOK4; i < PRE4.length; i++) {
+  const b = PRE4[i].c - PRE4[i].o;
+  if (b > impBody) { impBody = b; impIdx = i; }
+}
+let obIdx = 0;
+for (let i = impIdx - 1; i >= 0; i--) { if (PRE4[i].c < PRE4[i].o) { obIdx = i; break; } }
+const OB4 = { top: r2(PRE4[obIdx].h), bottom: r2(PRE4[obIdx].l) };
 
-/* The equal-lows shelf, placed under everything the decline already printed so
-   that the pool it represents is genuinely the lowest resting liquidity. */
-const EQL = r2(Math.min(p0 - 3.0, GL - 0.3));
+const LEG4_LO = OB4.bottom;
+let LEG4_HI = -Infinity;
+for (let i = obIdx; i <= impIdx; i++) LEG4_HI = Math.max(LEG4_HI, PRE4[i].h);
+LEG4_HI = r2(LEG4_HI);
+const EQ4 = r2((LEG4_LO + LEG4_HI) / 2);          // the H4 equilibrium
+
+/* ---- pass two: 96 M5 bars, written against the block -------------------- */
+const EQL = r2(OB4.bottom + 0.6);                 // the pool sits INSIDE the block
 const E = d => r2(EQL + d);
 
-const M5 = PRE5.concat([
-  /* M15 22 — the leg down that prints the first low */
-  { o: p0,     c: E(2.0), h: r2(p0 + 0.2), l: E(1.9) },
-  { o: E(2.0), c: E(0.9), h: E(2.1),       l: E(0.8) },
-  { o: E(0.9), c: E(0.3), h: E(1.0),       l: E(0)   },   // 68 — low #1 = EQL
-  /* M15 23 — the bounce that sets the last lower high */
-  { o: E(0.3), c: E(1.1), h: E(1.3), l: E(0.2) },
-  { o: E(1.1), c: E(1.7), h: E(1.9), l: E(1.0) },
-  { o: E(1.7), c: E(1.4), h: E(2.1), l: E(1.3) },        // 71 — the LH
-  /* M15 24 — back to exactly the same low */
-  { o: E(1.4), c: E(0.8), h: E(1.5), l: E(0.7) },
-  { o: E(0.8), c: E(0.4), h: E(0.9), l: E(0.3) },
-  { o: E(0.4), c: E(0.5), h: E(0.6), l: E(0)   },        // 74 — low #2 = EQL
-  /* M15 25 — a lower high: the downtrend still intact */
-  { o: E(0.5), c: E(1.0), h: E(1.1), l: E(0.4) },
-  { o: E(1.0), c: E(1.3), h: E(1.5), l: E(0.9) },
-  { o: E(1.3), c: E(0.9), h: E(1.4), l: E(0.8) },
-  /* M15 26 — the sweep, and the M5 order block at the end of it */
-  { o: E(0.9), c: E(0.5), h: E(1.0), l: E(0.4)  },
-  { o: E(0.5), c: E(0.9), h: E(1.0), l: E(-0.8) },       // 79 — through the pool
-  { o: E(0.9), c: E(0.7), h: E(1.0), l: E(0.6)  },       // 80 — THE ORDER BLOCK
-  /* M15 27 — the impulse that changes the character */
-  { o: E(0.7), c: E(1.6), h: E(1.7), l: E(0.6) },
-  { o: E(1.6), c: E(2.4), h: E(2.5), l: E(1.5) },
-  { o: E(2.4), c: E(3.0), h: E(3.1), l: E(2.3) },        // 83 — closes above the LH
-  /* M15 28 — continuation, and the high that becomes the target */
-  { o: E(3.0), c: E(2.8), h: E(3.2), l: E(2.7) },
-  { o: E(2.8), c: E(4.0), h: E(4.2), l: E(2.7) },
-  { o: E(4.0), c: E(5.2), h: E(5.6), l: E(3.9) },        // 86 — the high, and the target
-  /* M15 29–30 — the pullback, and the tap on the block */
-  { o: E(5.2), c: E(4.3), h: E(5.3), l: E(4.2) },
-  { o: E(4.3), c: E(3.4), h: E(4.4), l: E(3.3) },
-  { o: E(3.4), c: E(2.4), h: E(3.5), l: E(2.3) },
-  { o: E(2.4), c: E(1.7), h: E(2.5), l: E(1.6) },
-  { o: E(1.7), c: E(1.3), h: E(1.8), l: E(1.0) },        // 91 — taps the block: entry
-  { o: E(1.3), c: E(1.9), h: E(2.0), l: E(1.2) },
-  /* M15 31+ — away */
-  { o: E(1.9), c: E(2.5), h: E(2.6), l: E(1.8) },
-  { o: E(2.5), c: E(2.2), h: E(2.7), l: E(2.1) },
-  { o: E(2.2), c: E(3.0), h: E(3.1), l: E(2.1) },
-  { o: E(3.0), c: E(3.7), h: E(3.8), l: E(2.9) },
-  { o: E(3.7), c: E(3.4), h: E(3.9), l: E(3.3) },
-  { o: E(3.4), c: E(4.2), h: E(4.3), l: E(3.3) },
-  { o: E(4.2), c: E(4.8), h: E(4.9), l: E(4.1) },
-  { o: E(4.8), c: E(4.5), h: E(5.0), l: E(4.4) },
-  { o: E(4.5), c: E(5.4), h: E(5.7), l: E(4.4) },        // 101 — target reached
-  { o: E(5.4), c: E(6.0), h: E(6.2), l: E(5.3) },
-  { o: E(6.0), c: E(5.7), h: E(6.1), l: E(5.6) },
-  { o: E(5.7), c: E(6.5), h: E(6.7), l: E(5.6) }
-]);   /* 105 M5 bars = 35 M15. The series stops a few bars past the target on
-         purpose: every bar after it only widens the price scale, and a scale
-         stretched by candles nobody is looking at is what flattens the order
-         block into a hairline. */
+const M5 = PRE5.concat(
+  leg(p0, E(2.6), 57, 0.30, 0.55),                // 19 M15 bars of approach
+  [
+    /* the leg down that prints the first low */
+    { o: E(2.6), c: E(2.0), h: E(2.7), l: E(1.9) },
+    { o: E(2.0), c: E(0.9), h: E(2.1), l: E(0.8) },
+    { o: E(0.9), c: E(0.3), h: E(1.0), l: E(0)   },   // low #1 = EQL
+    /* the bounce that sets the last lower high */
+    { o: E(0.3), c: E(1.1), h: E(1.3), l: E(0.2) },
+    { o: E(1.1), c: E(1.7), h: E(1.9), l: E(1.0) },
+    { o: E(1.7), c: E(1.4), h: E(2.1), l: E(1.3) },   // the LH
+    /* back to exactly the same low */
+    { o: E(1.4), c: E(0.8), h: E(1.5), l: E(0.7) },
+    { o: E(0.8), c: E(0.4), h: E(0.9), l: E(0.3) },
+    { o: E(0.4), c: E(0.5), h: E(0.6), l: E(0)   },   // low #2 = EQL
+    /* a lower high: the downtrend still intact */
+    { o: E(0.5), c: E(1.0), h: E(1.1), l: E(0.4) },
+    { o: E(1.0), c: E(1.3), h: E(1.5), l: E(0.9) },
+    { o: E(1.3), c: E(0.9), h: E(1.4), l: E(0.8) },
+    /* the sweep, and the M5 order block at the end of it */
+    { o: E(0.9), c: E(0.5), h: E(1.0), l: E(0.4)  },
+    { o: E(0.5), c: E(0.9), h: E(1.0), l: E(-0.8) },  // through the pool
+    { o: E(0.9), c: E(0.7), h: E(1.0), l: E(0.6)  },  // THE ORDER BLOCK
+    /* the impulse that changes the character */
+    { o: E(0.7), c: E(1.6), h: E(1.7), l: E(0.6) },
+    { o: E(1.6), c: E(2.4), h: E(2.5), l: E(1.5) },
+    { o: E(2.4), c: E(3.0), h: E(3.1), l: E(2.3) },   // closes above the LH
+    /* continuation, and the high that becomes the target */
+    { o: E(3.0), c: E(2.8), h: E(3.2), l: E(2.7) },
+    { o: E(2.8), c: E(4.0), h: E(4.2), l: E(2.7) },
+    { o: E(4.0), c: E(5.2), h: E(5.6), l: E(3.9) },   // the target
+    /* the pullback, and the tap on the block */
+    { o: E(5.2), c: E(4.3), h: E(5.3), l: E(4.2) },
+    { o: E(4.3), c: E(3.4), h: E(4.4), l: E(3.3) },
+    { o: E(3.4), c: E(2.4), h: E(3.5), l: E(2.3) },
+    { o: E(2.4), c: E(1.7), h: E(2.5), l: E(1.6) },
+    { o: E(1.7), c: E(1.3), h: E(1.8), l: E(1.0) },   // taps the block: entry
+    { o: E(1.3), c: E(1.9), h: E(2.0), l: E(1.2) },
+    /* away */
+    { o: E(1.9), c: E(2.5), h: E(2.6), l: E(1.8) },
+    { o: E(2.5), c: E(2.2), h: E(2.7), l: E(2.1) },
+    { o: E(2.2), c: E(3.0), h: E(3.1), l: E(2.1) },
+    { o: E(3.0), c: E(3.7), h: E(3.8), l: E(2.9) },
+    { o: E(3.7), c: E(3.4), h: E(3.9), l: E(3.3) },
+    { o: E(3.4), c: E(4.2), h: E(4.3), l: E(3.3) },
+    { o: E(4.2), c: E(4.8), h: E(4.9), l: E(4.1) },
+    { o: E(4.8), c: E(4.5), h: E(5.0), l: E(4.4) },
+    { o: E(4.5), c: E(5.4), h: E(5.7), l: E(4.4) },   // the target is reached
+    { o: E(5.4), c: E(6.0), h: E(6.2), l: E(5.3) },
+    { o: E(6.0), c: E(5.7), h: E(6.1), l: E(5.6) },
+    { o: E(5.7), c: E(6.5), h: E(6.7), l: E(5.6) }
+  ]
+);
 
-const M15 = LSTF.aggregate(M5, 3);
-const TF_ERRORS = LSTF.verify(M5, M15, 3);
+const STACK = LSTF.chain(M5, [3, 16]);
+const M15 = STACK.series[0], H4 = STACK.series[1];
+const TF_ERRORS = STACK.errors;
 
-/* ---- the model, read back off the two series ---------------------------- */
-const lowA = 22, lowB = 24, swpBar15 = 26, chochBar15 = 27;
-const LH = M15[23].h;                             // the last lower high
-const SL = M5[79].l;                              // the sweep low
-const OB = { top: M5[80].h, bottom: M5[80].l };   // the M5 order block
+/* ---- the model, indexed from where the action begins -------------------- */
+const A5  = PRE5.length + 57;                     // first bar of the written action
+const A15 = A5 / 3;
+const lowA = A15,      lowB = A15 + 2;
+const swpBar15 = A15 + 4, chochBar15 = A15 + 5;
+const LH  = M15[A15 + 1].h;                       // the last lower high
+const SL  = M5[A5 + 13].l;                        // the sweep low
+const OB  = { top: M5[A5 + 14].h, bottom: M5[A5 + 14].l };   // the M5 order block
 
-const ENTRY = r2(OB.top), STOP = r2(SL), TGT = r2(M15[28].h);
+const ENTRY = r2(OB.top), STOP = r2(SL), TGT = r2(M15[A15 + 6].h);
 const RISK = r2(ENTRY - STOP), LEG = r2(TGT - STOP), R = (TGT - ENTRY) / RISK;
 
-const entryBar5 = M5.findIndex((c, i) => i > 86 && c.l <= ENTRY + 1e-9);
+const entryBar5 = M5.findIndex((c, i) => i > A5 + 20 && c.l <= ENTRY + 1e-9);
 const tgtBar5   = M5.findIndex((c, i) => i > entryBar5 && c.h >= TGT - 1e-9);
 const body5     = i => Math.abs(M5[i].c - M5[i].o);
-const dispR     = body5(82) / (function () {
-  let s = 0; for (let i = 70; i < 80; i++) s += body5(i); return s / 10;
+const dispR     = body5(A5 + 16) / (function () {
+  let s = 0; for (let i = A5 + 4; i < A5 + 14; i++) s += body5(i); return s / 10;
 })();
-const fvgLo = M5[81].h, fvgHi = M5[83].l;         // bullish M5 gap: 81's high < 83's low
+const fvgLo = M5[A5 + 15].h, fvgHi = M5[A5 + 17].l;   // bullish M5 gap
 
 const COND = [
-  { ok: Math.abs(M15[lowA].l - M15[lowB].l) <= 0.01,  note: `${r2(M15[lowA].l).toFixed(2)}` },
+  { ok: EQL >= OB4.bottom && EQL <= OB4.top,
+                                     note: `${OB4.bottom.toFixed(2)}–${OB4.top.toFixed(2)}` },
+  { ok: SL < EQ4,                    note: `EQ ${EQ4.toFixed(2)}` },
+  { ok: Math.abs(M15[lowA].l - M15[lowB].l) <= 0.01,
+                                     note: `${r2(M15[lowA].l).toFixed(2)}` },
   { ok: M15[swpBar15].l < EQL && M15[swpBar15].c > EQL,
-                                                      note: `−${r2(EQL - SL).toFixed(2)}` },
-  { ok: M15[chochBar15].c > LH,                       note: `bar ${chochBar15}` },
-  { ok: M5[80].c < M5[80].o && M5[81].c > M5[81].o &&
+                                     note: `−${r2(EQL - SL).toFixed(2)}` },
+  { ok: M15[chochBar15].c > LH,      note: `bar ${chochBar15 - A15}` },
+  { ok: M5[A5 + 14].c < M5[A5 + 14].o && M5[A5 + 15].c > M5[A5 + 15].o &&
         M5[entryBar5].l <= ENTRY + 1e-9 && M5[entryBar5].c > ENTRY,
-                                                      note: `${ENTRY.toFixed(2)}` },
-  { ok: dispR >= 1.5,                                 note: `${dispR.toFixed(2)}×` },
-  { ok: fvgHi > fvgLo,                                note: `${r2(fvgHi - fvgLo).toFixed(2)}` },
-  { ok: SL < VAL,                                     note: `VAL ${VAL.toFixed(2)}` },
-  { ok: TGT >= VAL,                                   note: `${TGT.toFixed(2)}` }
+                                     note: `${ENTRY.toFixed(2)}` },
+  { ok: dispR >= 1.5,                note: `${dispR.toFixed(2)}×` },
+  { ok: fvgHi > fvgLo,               note: `${r2(fvgHi - fvgLo).toFixed(2)}` }
 ];
 const SCHOOL_OK = [0, 1, 2, 3].map(g => COND[g * 2].ok && COND[g * 2 + 1].ok);
 
-/* ---- the two charts ----------------------------------------------------- */
+/* ---- three charts ------------------------------------------------------- */
+const ch4 = LSChart({
+  mount: '#chart4', width: 1000, height: 144, candles: H4,
+  padding: { top: 14, right: 92, bottom: 12, left: 12 },
+  barsRight: 1, autoTerminate: true, tolerance: 0.03, anim: {}
+});
+ch4.grid(2).drawCandles();
+ch4.zone({ from: obIdx, top: OB4.top, bottom: OB4.bottom, label: 'H4 OB', tone: 'accent',
+           align: 'right', at: 1.8, dur: 0.7 });
+ch4.fib({ i: Math.max(1, obIdx - 5), priceFrom: LEG4_LO, priceTo: LEG4_HI,
+          levels: [0, 0.5, 1], width: 130, at: 3.4, dur: 0.8 });
+ch4.layout();
+
+const M15_SHOW = 40, M15_OFF = M15.length - M15_SHOW;
+const s15 = i => i - M15_OFF;
 const ch15 = LSChart({
-  mount: '#chart15', width: 1000, height: 324, candles: M15,
-  /* the sweep low is the lowest price on the chart and its label hangs under
-     it, so the bottom padding has to make room the way a short reel does */
-  padding: { top: 40, right: 100, bottom: 58, left: 14 },
-  barsRight: 1, barsVisible: 37, autoTerminate: true, tolerance: 0.01, anim: {}
+  mount: '#chart15', width: 1000, height: 254, candles: M15.slice(M15_OFF),
+  padding: { top: 30, right: 92, bottom: 34, left: 12 },
+  barsRight: 1, barsVisible: 42, autoTerminate: true, tolerance: 0.01, anim: {}
 });
 ch15.grid(2).drawCandles();
 
 const HOLD15 = [
-  { atBar: 26, seconds: 2.6 },   // the two equal lows, still untouched
-  { atBar: 28, seconds: 4.2 },   // the sweep and the change of character
-  { atBar: 31, seconds: 10.0 }   // the long pause — the M5 chart runs inside it
+  { atBar: s15(swpBar15),     seconds: 2.4 },     // the two equal lows, still untouched
+  { atBar: s15(chochBar15) + 1, seconds: 3.6 },   // the sweep and the change of character
+  { atBar: s15(chochBar15) + 4, seconds: 8.0 }    // the pause the M5 card runs inside
 ];
-ch15.replay({ rate: 2.7, window: 37, start: 2, at: 0, holds: HOLD15 });
+ch15.replay({ rate: 4.2, window: 42, start: 6, at: 0, holds: HOLD15 });
 const H15 = Object.fromEntries(HOLD15.map(h => [h.atBar, h.t]));
+const HQ = H15[s15(swpBar15)], HC = H15[s15(chochBar15) + 1], HM = H15[s15(chochBar15) + 4];
 
-ch15.level({ price: EQL, from: lowA, label: 'Equal Lows', at: 8.4, dur: 0.5 });
-ch15.level({ price: LH, from: 23, label: 'Lower High', mode: 'close', at: 8.9, dur: 0.5 });
-ch15.sticker({ i: swpBar15, price: SL, text: 'Sweep', dy: 46, at: H15[28] + 0.6 });
-ch15.sticker({ i: chochBar15, price: M15[chochBar15].c, text: 'CHoCH', dy: -42,
-               at: H15[28] + 2.2 });
-ch15.volumeProfile({ from: 0, to: 21, bins: 24, widthPct: 0.14, valueArea: 0.70,
-                     showVA: true, at: 15.4, dur: 1.1 });
-ch15.zone({ from: 29, spanBars: 3, to: 31,
-            top: Math.max(M15[29].h, M15[30].h, M15[31].h),
-            bottom: Math.min(M15[29].l, M15[30].l, M15[31].l),
-            label: 'M5 ↓', tone: 'primary', align: 'right',
-            at: H15[31] - 0.6, dur: 0.6 });
+ch15.level({ price: EQL, from: s15(lowA), label: 'Equal Lows', at: 1.2, dur: 0.5 });
+ch15.level({ price: LH, from: s15(A15 + 1), label: 'Lower High', mode: 'close',
+             at: 2.0, dur: 0.5 });
+ch15.sticker({ i: s15(swpBar15), price: SL, text: 'Sweep', dy: 36, at: HC + 0.5 });
+ch15.sticker({ i: s15(chochBar15), price: M15[chochBar15].c, text: 'CHoCH', dy: -34,
+               at: HC + 2.0 });
+ch15.zone({ from: s15(chochBar15) + 2, spanBars: 3, to: s15(chochBar15) + 4,
+            top: Math.max(M15[chochBar15 + 2].h, M15[chochBar15 + 3].h, M15[chochBar15 + 4].h),
+            bottom: Math.min(M15[chochBar15 + 2].l, M15[chochBar15 + 3].l, M15[chochBar15 + 4].l),
+            label: 'M5 ↓', tone: 'primary', align: 'right', at: HM - 0.6, dur: 0.6 });
 ch15.layout();
 const END15 = ch15.duration();
 
+const M5_SHOW = 40, M5_OFF = M5.length - M5_SHOW;
+const s5 = i => i - M5_OFF;
 const ch5 = LSChart({
-  mount: '#chart5', width: 1000, height: 324, candles: M5,
-  padding: { top: 46, right: 100, bottom: 18, left: 14 },
-  barsRight: 1, barsVisible: 38, autoTerminate: true, tolerance: 0.01, anim: {}
+  mount: '#chart5', width: 1000, height: 230, candles: M5.slice(M5_OFF),
+  padding: { top: 30, right: 92, bottom: 18, left: 12 },
+  barsRight: 1, barsVisible: 42, autoTerminate: true, tolerance: 0.01, anim: {}
 });
 ch5.grid(2).drawCandles();
 
 const HOLD5 = [
-  { atBar: entryBar5 + 1, seconds: 2.4 },
-  { atBar: tgtBar5 + 1,   seconds: 3.0 }
+  { atBar: s5(entryBar5) + 1, seconds: 2.2 },
+  { atBar: s5(tgtBar5) + 1,   seconds: 2.6 }
 ];
-ch5.replay({ rate: 5.0, window: 38, start: 78, at: 0, holds: HOLD5 });
+ch5.replay({ rate: 6.0, window: 42, start: 2, at: 0, holds: HOLD5 });
 const H5 = Object.fromEntries(HOLD5.map(h => [h.atBar, h.t]));
+const HE = H5[s5(entryBar5) + 1], HT = H5[s5(tgtBar5) + 1];
 
-ch5.zone({ from: 80, top: OB.top, bottom: OB.bottom, label: 'Order Block', tone: 'accent',
-           align: 'right', at: 0.5, dur: 0.7 });
-ch5.zone({ from: 83, top: fvgHi, bottom: fvgLo, label: 'FVG', tone: 'accent',
-           whole: false, align: 'left', at: 1.4, dur: 0.7 });
-ch5.position({ from: entryBar5, to: tgtBar5, entry: ENTRY, stop: STOP, target: TGT,
-               at: H5[entryBar5 + 1] + 0.5, dur: 0.9 });
-ch5.sticker({ i: tgtBar5, price: TGT, text: 'وصل الهدف', dy: -46, dx: -124,
-              at: H5[tgtBar5 + 1] + 0.6 });
+ch5.zone({ from: s5(A5 + 14), top: OB.top, bottom: OB.bottom, label: 'Order Block',
+           tone: 'accent', align: 'left', at: 0.5, dur: 0.7 });
+ch5.zone({ from: s5(A5 + 17), top: fvgHi, bottom: fvgLo, label: 'FVG', tone: 'accent',
+           whole: false, align: 'right', at: 1.4, dur: 0.7 });
+ch5.position({ from: s5(entryBar5), to: s5(tgtBar5), entry: ENTRY, stop: STOP, target: TGT,
+               at: HE + 0.5, dur: 0.9 });
+ch5.sticker({ i: s5(tgtBar5), price: TGT, text: 'وصل الهدف', dy: -38, dx: -108,
+              at: HT + 0.6 });
 ch5.layout();
 const END5 = ch5.duration();
 
-const M5_START = H15[31];
-const STORY_END = Math.max(END15, M5_START + END5);
+const M15_START = 7.0;
+const M5_START  = M15_START + HM;
+const STORY_END = Math.max(M15_START + END15, M5_START + END5);
 
 const f2 = v => v.toFixed(2);
 document.querySelector('#st-entry .v').textContent = f2(ENTRY);
@@ -344,31 +402,32 @@ document.querySelectorAll('.school').forEach((el, g) => {
 const caps = LSCaptions({
   mount: '#caps',
   track: LSCaptions.pace([
-    ['قاعين على نفس السعر', 1.35], ['تقول دعم؟', 1.05],
-    ['السوق يقول', 0.95], ['أوامر محجوزة', 1.20],
+    ['قاعين على نفس السعر', 1.30], ['تقول دعم؟', 1.00],
+    ['السوق يقول أوامر محجوزة', 1.60],
     ['شلون؟', 0.60], ['تعال اقولك', 0.75],
-    ['الكل يشتري من القاع المتساوي', 1.45], ['ويحط ستوبه تحته', 1.25],
+    ['الكل يشتري من القاع المتساوي', 1.45], ['ويحط ستوبه تحته', 1.20],
     ['لكن بالواقع؟', 0.85],
-    ['على الـ M15 — <em>Equal Lows</em>', 1.70],
-    ['السعر كسرهم وسحب السيولة', 1.70],
-    ['ورجع فوقهم بنفس الشمعة', 1.55],
-    ['وبعدها <em>CHoCH</em> بإغلاق', 1.40],
-    ['فوق آخر قمة هابطة', 1.30],
-    ['نزّل على الـ M5', 1.15], ['آخر شمعة هابطة قبل الاندفاع', 1.60],
-    ['هذا هو الـ <em>Order Block</em>', 1.45], ['والسعر رجع له بالضبط', 1.50],
-    ['هني الشراء', 0.90], ['والستوب تحت السحب', 1.65],
-    ['شوف — راح حق الهدف', 1.50],
-    ['القاع المتساوي مو دعم', 1.45], ['هو هدف', 0.95],
-    ['وإذا ما رجع للبلوك؟', 1.40],
-    ['ما فيه صفقة — تابع الجاي', 1.75]
+    ['الـ H4 يقول مع مين', 1.30], ['<em>Demand Block</em> صاعد', 1.40],
+    ['والسحب صار بالنص السفلي', 1.55],
+    ['نزّل على الـ M15 — يقول وين', 1.65],
+    ['<em>Equal Lows</em> جوّا البلوك', 1.55],
+    ['السعر كسرهم وسحب السيولة', 1.65],
+    ['وبعدها <em>CHoCH</em> بإغلاق', 1.45],
+    ['نزّل على الـ M5 — يقول متى', 1.60],
+    ['آخر شمعة هابطة قبل الاندفاع', 1.60],
+    ['هذا هو الـ <em>Order Block</em>', 1.45], ['والسعر رجع له بالضبط', 1.45],
+    ['شوف — راح حق الهدف', 1.45],
+    ['القاع المتساوي مو دعم', 1.40], ['هو هدف', 0.90],
+    ['وإذا ما رجع للبلوك؟ ما فيه صفقة', 1.90]
   ], { start: 0.1 })
 });
 
 /* ---- the overlay clock ------------------------------------------------ */
 const hookEl = document.getElementById('hook'), verdEl = document.getElementById('verdict');
 const scrimEl = document.getElementById('scrim');
-const tf5El = document.getElementById('tf5'), hintEl = document.getElementById('hint');
-const paneEl = document.querySelector('#chart5');
+const tf15El = document.getElementById('tf15'), tf5El = document.getElementById('tf5');
+const hint15 = document.getElementById('hint15'), hint5 = document.getElementById('hint5');
+const pane15 = document.querySelector('#chart15'), pane5 = document.querySelector('#chart5');
 const stEntry = document.getElementById('st-entry'), stStop = document.getElementById('st-stop');
 const stR = document.getElementById('st-r');
 const schoolEls = [...document.querySelectorAll('.school')];
@@ -376,37 +435,40 @@ const ease = k => k * k * (3 - 2 * k);
 const seg  = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
 const wipe = (el, p) => { el.firstElementChild.style.clipPath = `inset(0 0 0 ${(1 - p) * 100}%)`; };
 
-const SCHOOL_AT = [H15[28] + 1.4,                       // equal lows + the sweep
-                   M5_START + H5[entryBar5 + 1] + 1.0,  // CHoCH + the block that held
-                   M5_START + 2.2,                      // displacement + the M5 gap
-                   M5_START + H5[tgtBar5 + 1] + 0.8];   // sweep vs VAL, target vs value
+const SCHOOL_AT = [M15_START + HC + 1.0,          // the block, and the pool inside it
+                   M15_START + HC + 1.0,          // equal lows and the sweep
+                   M5_START + HE + 1.0,           // CHoCH and the block that held
+                   M5_START + HE + 1.6];          // displacement and the M5 gap
 
 function seekAll(t) {
   let te = t;
   if (t > SEAM) te = SEAM * (1 - ease(seg(t, SEAM, TOTAL - SEAM)));
-  ch15.seek(Math.min(te, END15));
+  ch4.seek(te);
+  ch15.seek(Math.min(Math.max(te - M15_START, 0), END15));
   ch5.seek(Math.min(Math.max(te - M5_START, 0), END5));
   caps.seek(t > SEAM ? -1 : t);
 
   const past = x => (t > SEAM ? false : t >= x);
-  const open = ease(seg(te, M5_START - 0.5, 0.7));
-  tf5El.classList.toggle('idle', open < 0.5);
-  paneEl.style.opacity = open;
-  hintEl.style.opacity = (1 - open) * 0.5;
+  const o15 = ease(seg(te, M15_START - 0.5, 0.7));
+  const o5  = ease(seg(te, M5_START - 0.5, 0.7));
+  tf15El.classList.toggle('idle', o15 < 0.5); pane15.style.opacity = o15;
+  hint15.style.opacity = (1 - o15) * 0.5;
+  tf5El.classList.toggle('idle', o5 < 0.5);   pane5.style.opacity = o5;
+  hint5.style.opacity = (1 - o5) * 0.5;
 
   schoolEls.forEach((el, g) => el.classList.toggle('on', past(SCHOOL_AT[g]) && SCHOOL_OK[g]));
 
-  stEntry.classList.toggle('on', past(M5_START + H5[entryBar5 + 1] + 0.7));
-  stStop.classList.toggle('on', past(M5_START + H5[entryBar5 + 1] + 0.7));
-  const hit = past(M5_START + H5[tgtBar5 + 1] + 1.0);
+  stEntry.classList.toggle('on', past(M5_START + HE + 0.7));
+  stStop.classList.toggle('on', past(M5_START + HE + 0.7));
+  const hit = past(M5_START + HT + 1.0);
   stR.classList.toggle('on', hit);
   stR.querySelector('.v').textContent = hit ? R_TEXT : '—';
 
   const hIn = ease(seg(t, 0.35, 0.55));
   wipe(hookEl, hIn);
-  hookEl.style.opacity = hIn * (1 - ease(seg(t, 3.5, 0.4)));
+  hookEl.style.opacity = hIn * (1 - ease(seg(t, 3.3, 0.4)));
 
-  const vIn = ease(seg(t, 26.9, 0.5)), vOut = ease(seg(t, 29.6, 0.5));
+  const vIn = ease(seg(t, 27.4, 0.5)), vOut = ease(seg(t, 30.0, 0.5));
   wipe(verdEl, vIn);
   verdEl.style.opacity = vIn * (1 - vOut);
   scrimEl.style.opacity = (vIn * (1 - vOut) * 0.96).toFixed(3);
@@ -415,18 +477,20 @@ function seekAll(t) {
 window.LS_SIZE = [1080, 1920];
 window.LS_DURATION = TOTAL;
 window.LS_TAIL = 0;
-window.LS_VIOLATIONS = ch15.violations.concat(ch5.violations,
-  TF_ERRORS.map(e => ({ id: 'M15÷M5', kind: 'timeframe', status: 'mismatch', message: e.message })));
-window.LS_M5 = M5; window.LS_M15 = M15;
+window.LS_VIOLATIONS = ch4.violations.concat(ch15.violations, ch5.violations,
+  TF_ERRORS.map(e => ({ id: 'H4÷M15÷M5', kind: 'timeframe', status: 'mismatch',
+                        message: e.message })));
+window.LS_M5 = M5; window.LS_M15 = M15; window.LS_H4 = H4;
 window.LS_GATE = {
-  EQL, LH: r2(LH), SL: r2(SL), POC, VAH, VAL, OB: [r2(OB.bottom), r2(OB.top)],
+  OB4: [OB4.bottom, OB4.top], obIdx, impIdx, LEG4_LO, LEG4_HI, EQ4,
+  EQL, LH: r2(LH), SL: r2(SL), pA, OB: [r2(OB.bottom), r2(OB.top)],
   FVG: [r2(fvgLo), r2(fvgHi)], ENTRY, STOP, TGT, RISK, LEG, R: +R.toFixed(3),
-  dispR: +dispR.toFixed(3), entryBar5, tgtBar5, n5: M5.length, n15: M15.length,
-  tfErrors: TF_ERRORS.length,
+  dispR: +dispR.toFixed(3), A5, A15, entryBar5, tgtBar5,
+  n5: M5.length, n15: M15.length, n4: H4.length, tfErrors: TF_ERRORS.length,
   conditions: COND.map((c, i) => ({ n: i + 1, ok: c.ok, note: c.note })),
   schools: SCHOOL_OK, allPass: COND.every(c => c.ok),
-  end15: END15, end5: END5, m5Start: M5_START, storyEnd: STORY_END,
-  caps: caps.duration(), h15: H15, h5: H5
+  end15: END15, end5: END5, m15Start: M15_START, m5Start: M5_START,
+  storyEnd: STORY_END, caps: caps.duration(), HQ, HC, HM, HE, HT
 };
 window.seekTo = t => { seekAll(t); return true; };
 seekAll(0);

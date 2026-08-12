@@ -175,8 +175,8 @@ this skill:
 | `MARKUP.md` | the approved markup method and its drawing rhythm |
 | `FORMAT-CAROUSEL.md` | the carousel page architecture and the footprint method |
 | `FORMAT-REEL-VERTICAL.md` | the vertical reel design method (`.ls-vr`) |
-| `FORMAT-REEL-MTF.md` | the two-frame M15 → M5 reel method |
-| `timeframe.js` | derives the M15 series from the M5 one, and proves the two agree |
+| `FORMAT-REEL-MTF.md` | the three-frame H4 → M15 → M5 reel method |
+| `timeframe.js` | derives the M15 and H4 series from the M5 one, and proves the stack agrees |
 | `footprint.js` | footprint / order-flow ladders — the four approved variants |
 | `capture-slides.py` | renders each carousel page to PNG, and fails if a drawing broke a rule |
 | `tools/check-rules-parity.js` | proves the JS and Python rule implementations agree |

@@ -169,16 +169,19 @@ reference build.
 | Order flow joins the other three (cream) | `reel-orderflow.md` | `reel-orderflow.html` |
 | The schools disagree — no trade (cream) | `reel-no-trade.md` | `reel-no-trade.html` |
 | The same gate mirrored on a short (cream) | `reel-sell-edge.md` | `reel-sell-edge.html` |
-| **M15 + M5** — ICT sweep → FVG → OTE | `reel-ict-mtf.md` | `reel-ict-mtf.html` |
-| **M15 + M5** — SMC equal lows → CHoCH → order block | `reel-smc-choch.md` | `reel-smc-choch.html` |
-| **M15 + M5** — volume profile excess → POC, with a footprint ladder | `reel-value-poc.md` | `reel-value-poc.html` |
+| **H4 + M15 + M5** — ICT sweep → FVG → OTE | `reel-ict-mtf.md` | `reel-ict-mtf.html` |
+| **H4 + M15 + M5** — SMC equal lows → CHoCH → order block | `reel-smc-choch.md` | `reel-smc-choch.html` |
+| **H4 + M15 + M5** — volume profile excess → POC, with a footprint ladder | `reel-value-poc.md` | `reel-value-poc.html` |
 
-**Every trade is read on M15 and entered on M5**, and the two charts are one
-market: the M5 candles are generated and the M15 candles are
-`LSTF.aggregate(M5, 3)` — never written by hand. `LSTF.verify` runs before the
-render and a mismatch is treated as a drawing violation. The method is written
-up in **[`FORMAT-REEL-MTF.md`](FORMAT-REEL-MTF.md)**; `timeframe.js` is the
-module.
+**Every trade is read on H4, located on M15 and entered on M5**, and the three
+charts are one market: the M5 candles are generated and the other two are
+`LSTF.chain(M5, [3, 16])` — never written by hand. The chain is verified link by
+link before the render and a mismatch is treated as a drawing violation. One H4
+candle is 48 M5 candles, so twenty of them cost 960 generated bars; that is the
+price of the frame and these reels pay it. **The higher frame has to earn its
+place** — at least one condition is a number measured on H4 and tested against
+the entry, or the H4 chart is decoration. The method is written up in
+**[`FORMAT-REEL-MTF.md`](FORMAT-REEL-MTF.md)**; `timeframe.js` is the module.
 
 **Every reel gets its own chart.** No two share a `balance()` seed or a structure — the seeds
 in use are `41071`, `20260811`, `5150411`, `771103`, `6420733`, `9174253`. Reusing candles under
@@ -237,19 +240,26 @@ use these; the first three are left as they shipped.
 ![SMC two-frame reel](reel-smc-choch-poster.png)
 ![Volume profile two-frame reel](reel-value-poc-poster.png)
 
-The three two-frame reels are standalone — no series, no callbacks — and each
+The three multi-frame reels are standalone — no series, no callbacks — and each
 leads with a different school, named in English on the cards: **ICT**
 (liquidity sweep, displacement, fair value gap, OTE 0.705), **SMC** (equal
 lows, sweep, CHoCH, order block, mitigation), and **Volume Profile +
 Footprint** (excess below VAL, acceptance, POC as target, negative delta,
-absorption). The upper card answers *where* and the lower answers *when*: on
+absorption). The three cards answer *with whom*, *where* and *when* in turn: on
 M15 the whole entry is one wick, and the level the trade turns on is passed to
-both charts as the same variable rather than re-derived. `reel-value-poc.html`
-puts the footprint ladder beside the M5 candles in the same card — the chart
-says where, the ladder says who.
+every chart that shows it as the same variable rather than re-derived. Each H4
+card carries its own tie to the entry — the M15 sweep landing inside the H4
+order block, the equal lows sitting inside H4 demand, the M15 target being the
+H4 point of control. `reel-value-poc.html` puts the footprint ladder beside the
+M5 candles in the same card — the chart says where, the ladder says who.
 
-Building these surfaced two engine bugs that only appear with two charts on one
-page, both now fixed in `markup.js`: SVG ids were counted per chart instance
+One trap the H4 layer introduces: searching the whole context for "the biggest
+impulse" finds a lucky run of drift instead of the real one, and every
+condition downstream then passes on a level the market never launched from.
+The search is restricted to the recent H4 candles for that reason.
+
+Building these surfaced two engine bugs that only appear with more than one chart
+on a page, both now fixed in `markup.js`: SVG ids were counted per chart instance
 though they are document-global, so the second chart's clip-paths resolved to
 the first chart's and its reveals painted nothing; and sticker boxes were
 clamped to the plot rather than to the series, so on a panning chart a
