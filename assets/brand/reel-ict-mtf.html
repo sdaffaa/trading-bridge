@@ -1,59 +1,58 @@
 <meta charset="utf-8">
-<title>Liquidity State — ICT · Sweep إلى OTE</title>
+<title>Liquidity State — ICT · H4 إلى M5</title>
 <link rel="stylesheet" href="./brand.css">
 <style>
   html,body { margin:0; padding:0; background:#8A8A8A; }
 
-  /* Two frames, two cards. The upper one is the context and never moves; the
-     lower one is the entry and only exists once the context is settled. */
+  /* Three frames, three cards. Each opens when the story hands it the floor,
+     and none of them closes again. */
   .tf { position:absolute; left:44px; right:44px;
         border:1.5px solid color-mix(in srgb, var(--ls-card-border) 50%, transparent);
-        border-radius:20px; background:var(--ls-card-bg); box-sizing:border-box;
-        padding:10px 12px 6px; }
-  #tf15 { top:200px; height:340px; }
-  #tf5  { top:552px; height:340px; }
-  /* Markup type is sized for one 566px chart; two 324px charts need it smaller
-     or the level labels become the chart. */
-  .tf .ls-mk-label     { font-size:21px; }
-  .tf .ls-mk-sticker-t { font-size:23px; }
-  .tf .ls-mk-va-t      { font-size:15px; }
-  .tf .ls-mk-fib       { font-size:15px; }
-  .tf .badge { position:absolute; top:14px; right:22px; z-index:2;
-               font-family:var(--ls-font-wordmark); font-size:20px; letter-spacing:.18em;
+        border-radius:18px; background:var(--ls-card-bg); box-sizing:border-box;
+        padding:8px 12px 4px; }
+  #tf4  { top:192px; height:176px; }
+  #tf15 { top:380px; height:286px; }
+  #tf5  { top:678px; height:262px; }
+  .tf .ls-mk-label     { font-size:18px; }
+  .tf .ls-mk-sticker-t { font-size:21px; }
+  .tf .ls-mk-va-t      { font-size:14px; }
+  .tf .ls-mk-fib       { font-size:13px; }
+  .tf .badge { position:absolute; top:11px; right:20px; z-index:2;
+               font-family:var(--ls-font-wordmark); font-size:18px; letter-spacing:.18em;
                font-weight:700; direction:ltr; color:var(--ls-text-accent);
                background:color-mix(in srgb, var(--ls-text-accent) 10%, var(--ls-card-bg));
                border:1px solid color-mix(in srgb, var(--ls-text-accent) 45%, transparent);
-               border-radius:999px; padding:3px 14px; }
-  .tf .role  { position:absolute; top:16px; left:22px; z-index:2;
-               font-size:23px; font-weight:800; color:var(--ls-text-secondary); }
-  #tf5.idle .role, #tf5.idle .badge { opacity:.4; }
-  #tf5 .hint { position:absolute; inset:0; display:flex; align-items:center;
-               justify-content:center; font-size:34px; font-weight:800;
-               color:var(--ls-text-secondary); opacity:.5; }
+               border-radius:999px; padding:2px 12px; }
+  .tf .role  { position:absolute; top:13px; left:20px; z-index:2;
+               font-size:21px; font-weight:800; color:var(--ls-text-secondary); }
+  .tf.idle .role, .tf.idle .badge { opacity:.4; }
+  .tf .hint { position:absolute; inset:0; display:flex; align-items:center;
+              justify-content:center; font-size:27px; font-weight:800;
+              color:var(--ls-text-secondary); opacity:.5; }
+  .tf .pane { margin-top:26px; }
 
-  #hook    { top:308px; font-size:74px; }
-  #verdict { top:320px; font-size:62px; }
-  .ls-vr-scrim  { top:176px; height:730px; }
+  #hook    { top:284px; font-size:70px; }
+  #verdict { top:296px; font-size:58px; }
+  .ls-vr-scrim  { top:172px; height:782px; }
 
-  #schools { top:916px; gap:12px; }
+  #schools { top:964px; gap:12px; }
   .school  { border:1.5px solid color-mix(in srgb, var(--ls-card-border) 45%, transparent);
-             border-radius:18px; background:var(--ls-card-bg); padding:12px 16px; opacity:.42; }
+             border-radius:18px; background:var(--ls-card-bg); padding:11px 15px; opacity:.42; }
   .school .hd { display:flex; align-items:center; justify-content:space-between;
                 border-bottom:1px solid color-mix(in srgb, var(--ls-card-border) 35%, transparent);
-                padding-bottom:8px; margin-bottom:8px; }
-  .school .nm { font-family:var(--ls-font-wordmark); font-size:21px; letter-spacing:.14em;
+                padding-bottom:7px; margin-bottom:7px; }
+  .school .nm { font-family:var(--ls-font-wordmark); font-size:20px; letter-spacing:.13em;
                 font-weight:700; direction:ltr; color:var(--ls-text-secondary); }
-  .school .tf { position:static; border:0; background:none; padding:0;
-                font-family:var(--ls-font-wordmark); font-size:17px; letter-spacing:.12em;
+  .school .fr { font-family:var(--ls-font-wordmark); font-size:17px; letter-spacing:.12em;
                 direction:ltr; color:var(--ls-text-secondary); opacity:.7; }
-  .school .c  { display:flex; align-items:center; gap:10px; margin-top:7px; }
-  .school .c b{ flex:none; width:24px; height:24px; border-radius:999px; font-size:14px;
-                font-weight:800; line-height:22px; text-align:center;
+  .school .c  { display:flex; align-items:center; gap:9px; margin-top:6px; }
+  .school .c b{ flex:none; width:23px; height:23px; border-radius:999px; font-size:13px;
+                font-weight:800; line-height:21px; text-align:center;
                 border:1.5px solid color-mix(in srgb, var(--ls-text-secondary) 60%, transparent);
                 color:var(--ls-text-secondary); }
-  .school .c span { font-size:21px; font-weight:700; direction:ltr;
+  .school .c span { font-size:19px; font-weight:700; direction:ltr;
                     color:var(--ls-text-secondary); }
-  .school .c em   { margin-right:auto; font-style:normal; font-size:19px; font-weight:700;
+  .school .c em   { margin-right:auto; font-style:normal; font-size:17px; font-weight:700;
                     direction:ltr; white-space:nowrap;
                     color:var(--ls-text-secondary); opacity:.75; }
 
@@ -61,54 +60,59 @@
                background:color-mix(in srgb, var(--ls-text-accent) 8%, var(--ls-card-bg));
                box-shadow:0 6px 26px -14px color-mix(in srgb, var(--ls-text-accent) 80%, transparent); }
   .school.on .nm { color:var(--ls-text); }
-  .school.on .tf { color:var(--ls-text-accent); opacity:1; }
+  .school.on .fr { color:var(--ls-text-accent); opacity:1; }
   .school.on .c b { border-color:var(--ls-text-accent); color:var(--ls-text-accent); }
   .school.on .c span { color:var(--ls-text); }
   .school.on .c em   { color:var(--ls-text-accent); opacity:1; }
 
-  #stats   { top:1204px; grid-template-columns:1fr 1fr 1fr; }
-  .ls-vr-caps .ls-reel-caption { top:1368px; font-size:52px; }
+  #stats   { top:1206px; grid-template-columns:1fr 1fr 1fr; }
+  .ls-vr-caps .ls-reel-caption { top:1372px; font-size:50px; }
   .ls-vr-disc   { top:1482px; }
   .ls-vr-beat { text-shadow:0 2px 26px var(--ls-bg), 0 0 12px var(--ls-bg); }
 </style>
 
 <div class="ls-vr">
-  <div class="ls-vr-ticker">XAUUSD · M15 → M5</div>
+  <div class="ls-vr-ticker">XAUUSD · H4 → M15 → M5</div>
   <div class="ls-vr-wm">Liquidity State</div>
 
-  <div class="tf" id="tf15">
-    <div class="badge">M15</div><div class="role">السياق</div>
-    <div id="chart15"></div>
+  <div class="tf" id="tf4">
+    <div class="badge">H4</div><div class="role">مع مين</div>
+    <div id="chart4" class="pane"></div>
+  </div>
+  <div class="tf idle" id="tf15">
+    <div class="badge">M15</div><div class="role">وين</div>
+    <div class="hint" id="hint15">شمعة H4 = ١٦ شمعة M15</div>
+    <div id="chart15" class="pane"></div>
   </div>
   <div class="tf idle" id="tf5">
-    <div class="badge">M5</div><div class="role">الدخول</div>
-    <div class="hint" id="hint">شمعة M15 = ٣ شمعات M5</div>
+    <div class="badge">M5</div><div class="role">متى</div>
+    <div class="hint" id="hint5">شمعة M15 = ٣ شمعات M5</div>
     <div id="chart5" class="pane"></div>
   </div>
 
   <div class="ls-vr-scrim" id="scrim"></div>
-  <div class="ls-vr-beat" id="hook"><span>الدخول ما تشوفه<br>على فريمك</span></div>
-  <div class="ls-vr-beat" id="verdict"><span>الـ M15 يقول وين<br>والـ M5 يقول <em>متى</em></span></div>
+  <div class="ls-vr-beat" id="hook"><span>ثلاث فريمات<br>ثلاثة أسئلة</span></div>
+  <div class="ls-vr-beat" id="verdict"><span>مع مين · وين<br>و<em>متى</em></span></div>
 
   <div class="ls-vr-grid" id="schools">
     <div class="school">
-      <div class="hd"><div class="nm">ICT</div><div class="tf">M15</div></div>
-      <div class="c"><b>1</b><span>Liquidity Sweep</span><em class="n1">—</em></div>
-      <div class="c"><b>2</b><span>Displacement</span><em class="n2">—</em></div>
+      <div class="hd"><div class="nm">SMC</div><div class="fr">H4</div></div>
+      <div class="c"><b>1</b><span>H4 Order Block</span><em class="n1">—</em></div>
+      <div class="c"><b>2</b><span>H4 Premium</span><em class="n2">—</em></div>
     </div>
     <div class="school">
-      <div class="hd"><div class="nm">ICT</div><div class="tf">M15 → M5</div></div>
-      <div class="c"><b>3</b><span>Fair Value Gap</span><em class="n1">—</em></div>
-      <div class="c"><b>4</b><span>OTE 0.705</span><em class="n2">—</em></div>
+      <div class="hd"><div class="nm">ICT</div><div class="fr">M15</div></div>
+      <div class="c"><b>3</b><span>Liquidity Sweep</span><em class="n1">—</em></div>
+      <div class="c"><b>4</b><span>Displacement</span><em class="n2">—</em></div>
     </div>
     <div class="school">
-      <div class="hd"><div class="nm">SMC</div><div class="tf">M15</div></div>
-      <div class="c"><b>5</b><span>Break of Structure</span><em class="n1">—</em></div>
-      <div class="c"><b>6</b><span>Close below range</span><em class="n2">—</em></div>
+      <div class="hd"><div class="nm">ICT</div><div class="fr">M15 → M5</div></div>
+      <div class="c"><b>5</b><span>Fair Value Gap</span><em class="n1">—</em></div>
+      <div class="c"><b>6</b><span>OTE 0.705</span><em class="n2">—</em></div>
     </div>
     <div class="school">
-      <div class="hd"><div class="nm">Volume Profile</div><div class="tf">M15</div></div>
-      <div class="c"><b>7</b><span>Entry above VAH</span><em class="n1">—</em></div>
+      <div class="hd"><div class="nm">Volume Profile</div><div class="fr">M15</div></div>
+      <div class="c"><b>7</b><span>Sweep above VAH</span><em class="n1">—</em></div>
       <div class="c"><b>8</b><span>Target below VAL</span><em class="n2">—</em></div>
     </div>
   </div>
@@ -128,20 +132,26 @@
 <script src="./captions.js"></script>
 <script>
 /* ==========================================================================
-   ICT · Sweep → FVG → OTE, read on M15 and taken on M5
+   ICT · H4 order block → M15 sweep → M5 OTE
 
-   The first two-timeframe reel. The M5 candles ARE the market; the M15 candles
-   are `LSTF.aggregate(M5, 3)` and nothing else, and `LSTF.verify` proves it
-   before the page will render. Two independently generated charts labelled M15
-   and M5 would be the timeframe version of inventing a price — the M5 wick
-   that fills the entry would not exist inside the M15 candle above it.
+   Three frames, one market. The M5 candles are generated; M15 and H4 are
+   LSTF.chain(M5, [3, 16]) and nothing else — one H4 candle is exactly 48 M5
+   candles, and LSTF proves the whole stack before the page will render.
 
-   What the two frames each answer:
-     M15 — WHERE: the sweep of the range high, the displacement down, the gap
-           it left behind, the close under the range.
-     M5  — WHEN: the same gap, magnified, with the 0.705 retracement of the M5
-           leg sitting inside it. That is a price the M15 candle cannot show
-           you: on M15 the whole entry is one wick.
+   Each frame answers one question, and each is CHECKED on:
+     H4  — WITH WHOM: the order block the move belongs to, and the break of
+           structure that set the bias.
+     M15 — WHERE: the range under that block, the sweep into it, the
+           displacement away, the gap left behind.
+     M5  — WHEN: the 0.705 retracement of the M5 leg, inside the M15 gap. On
+           M15 the whole entry is one wick.
+
+   The higher frame earns its place: condition 1 is that the M15 sweep high
+   lands inside the H4 order block — a price measured on H4, tested against a
+   candle written on M5.
+
+   Twenty H4 candles cost 960 M5 candles, and that is what gets generated. The
+   H4 chart is not a second series drawn to match; it is the same bars.
 
    All 11 beats, 34.0s. Anchor noun: الفريم.
    ========================================================================== */
@@ -149,196 +159,276 @@
 const TOTAL = 34.0, SEAM = 32.8;
 const r2 = v => Math.round(v * 100) / 100;
 
-/* ---- pass one: the M5 balance, and the M15 it aggregates into ------------ */
-function balance5(n) {
-  let s = 3082517, p = 100;
+/* ---- pass one: the H4 context, generated on M5 -------------------------- */
+function context5(n) {
+  let s = 7315609, p = 118;
   const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
   const out = [];
   for (let i = 0; i < n; i++) {
     const o = p;
-    const c = Math.max(97.40, Math.min(102.60, o + (100 - o) * 0.15 + rnd() * 1.9));
-    const w = 0.18 + Math.abs(rnd()) * 0.5;
+    const c = Math.max(96.0, o - 0.019 + rnd() * 1.15);
+    const w = 0.10 + Math.abs(rnd()) * 0.30;
     out.push({ o, c,
-      h: Math.min(103.00, Math.max(o, c) + Math.abs(rnd()) * w),
-      l: Math.max(97.00, Math.min(o, c) - Math.abs(rnd()) * w) });
+      h: Math.max(o, c) + Math.abs(rnd()) * w,
+      l: Math.min(o, c) - Math.abs(rnd()) * w });
     p = c;
   }
   return out;
 }
 
-const BAL5  = balance5(84);                       // 84 M5 bars = 28 M15 bars
-const BAL15 = LSTF.aggregate(BAL5, 3);
+const CTX5 = context5(816);                       // 17 whole H4 candles
+const CTX4 = LSTF.aggregate(CTX5, 48);
 
-let RH = -Infinity, rhIdx = 0, RL = Infinity, rlIdx = 0;
-BAL15.forEach((c, i) => {
-  if (c.h > RH) { RH = c.h; rhIdx = i; }
-  if (c.l < RL) { RL = c.l; rlIdx = i; }
-});
+/* The H4 order block, measured: the last bullish H4 candle before the biggest
+   bearish H4 candle in the context. Nothing is chosen by eye — the impulse is
+   found by body size, and the block is the up-candle standing in front of it. */
+let impIdx = 0, impBody = 0;
+CTX4.forEach((c, i) => { const b = c.o - c.c; if (b > impBody) { impBody = b; impIdx = i; } });
+let obIdx = 0;
+for (let i = impIdx - 1; i >= 0; i--) { if (CTX4[i].c > CTX4[i].o) { obIdx = i; break; } }
+const OB4 = { top: r2(CTX4[obIdx].h), bottom: r2(CTX4[obIdx].l) };
+const OB4_MID = r2((OB4.top + OB4.bottom) / 2);
+
+/* Premium / discount on the H4 leg the block launched: from the low the
+   impulse printed up to the block's high. A sweep that happens above the
+   midpoint is a sweep in premium — the half of the range you sell.
+
+   (A BOS level was the obvious second condition and it does not survive this
+   repo's own rules: the structural low here is the block candle's own low, and
+   the impulse breaks it on the very next candle, so price never leaves it.
+   A level price never departs is not a level.) */
+const LEG4_LO = r2(CTX4[impIdx].l);
+const LEG4_HI = OB4.top;
+const EQ4 = r2((LEG4_LO + LEG4_HI) / 2);
+
+/* ---- pass two: 144 M5 bars of action, written under that block ---------- */
+function leg(from, to, n, wick, wob) {
+  const out = []; let o = from;
+  for (let i = 1; i <= n; i++) {
+    const c = r2(from + (to - from) * (i / n) + (wob || 0) * Math.sin(i * 1.9));
+    out.push({ o, c, h: r2(Math.max(o, c) + wick), l: r2(Math.min(o, c) - wick) });
+    o = c;
+  }
+  return out;
+}
+
+/* The range: seeded, but ceilinged at the block's doorstep so the sweep that
+   follows has somewhere real to sweep INTO. */
+function rangeBars(n, from, top, depth) {
+  let s = 4470019, p = from;
+  const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const o = p;
+    const c = Math.max(top - depth, Math.min(top - 0.12, o + rnd() * 1.5));
+    const w = 0.10 + Math.abs(rnd()) * 0.30;
+    out.push({ o, c,
+      h: Math.min(top, Math.max(o, c) + Math.abs(rnd()) * w),
+      l: Math.max(top - depth - 0.2, Math.min(o, c) - Math.abs(rnd()) * w) });
+    p = c;
+  }
+  return out;
+}
+
+const q0 = CTX5[CTX5.length - 1].c;
+const RANGE_TOP = r2(OB4.bottom - 0.25);
+const APPROACH  = leg(q0, r2(RANGE_TOP - 1.8), 24, 0.16, 0.14);        //  8 M15 bars
+const RANGE5    = rangeBars(84, r2(RANGE_TOP - 1.8), RANGE_TOP, 4.2);  // 28 M15 bars
+const PRE5      = CTX5.concat(APPROACH, RANGE5);
+const PRE15     = LSTF.aggregate(PRE5, 3);
+const RB0       = PRE15.length - 28;              // first M15 bar of the range
+
+let RH = -Infinity, rhIdx = 0, RL = Infinity;
+for (let i = RB0; i < PRE15.length; i++) {
+  if (PRE15[i].h > RH) { RH = PRE15[i].h; rhIdx = i; }
+  if (PRE15[i].l < RL) { RL = PRE15[i].l; }
+}
 RH = r2(RH); RL = r2(RL);
 
 const probe = document.createElement('div');
 probe.style.cssText = 'position:absolute;left:-9999px;width:900px';
 document.body.appendChild(probe);
-const pc = LSChart({ mount: probe, width: 900, height: 500, candles: BAL15,
+const pc = LSChart({ mount: probe, width: 900, height: 500, candles: PRE15.slice(RB0),
                      padding: { top: 20, right: 20, bottom: 20, left: 20 }, barsRight: 1 });
 pc.drawCandles();
-pc.volumeProfile({ from: 0, to: BAL15.length - 1, bins: 26, valueArea: 0.70 });
+pc.volumeProfile({ from: 0, to: 27, bins: 26, valueArea: 0.70 });
 const POC = r2(pc.profile.poc), VAH = r2(pc.profile.vah), VAL = r2(pc.profile.val);
 probe.remove();
 
-/* ---- pass two: 36 M5 bars written against the measured range high -------- */
 const A = d => r2(RH + d);
+const SWEEP_HI = OB4_MID;                         // the sweep tags the block's middle
 
-const M5 = BAL5.concat([
-  /* M15 bar 28 — the sweep: through the range high, closed back under it */
-  { o: A(-0.6),  c: A(-0.2),  h: A(-0.1),  l: A(-0.8)  },
-  { o: A(-0.2),  c: A(-0.5),  h: A(1.2),   l: A(-0.7)  },   // 85 — the sweep high
-  { o: A(-0.5),  c: A(-0.85), h: A(-0.4),  l: A(-0.9)  },   // 86 — M15[28].l = the gap top
-  /* M15 bar 29 — displacement */
-  { o: A(-0.85), c: A(-2.2),  h: A(-0.8),  l: A(-2.4)  },
-  { o: A(-2.2),  c: A(-3.4),  h: A(-2.1),  l: A(-3.6)  },
-  { o: A(-3.4),  c: A(-4.3),  h: A(-3.3),  l: A(-4.5)  },
-  /* M15 bar 30 — the leg's low, and the close under the range */
-  { o: A(-4.3),  c: A(-5.2),  h: A(-4.2),  l: A(-5.4)  },   // 90 — M15[30].h = the gap floor
-  { o: A(-5.2),  c: A(-6.1),  h: A(-5.1),  l: A(-6.4)  },
-  { o: A(-6.1),  c: A(-6.8),  h: A(-6.0),  l: A(-7.4)  },   // 92 — the leg low
-  /* M15 bars 31–33 — the retrace the M5 chart exists to magnify */
-  { o: A(-6.8),  c: A(-5.9),  h: A(-5.7),  l: A(-6.9)  },
-  { o: A(-5.9),  c: A(-5.0),  h: A(-4.8),  l: A(-6.0)  },
-  { o: A(-5.0),  c: A(-4.3),  h: A(-4.1),  l: A(-5.1)  },
-  { o: A(-4.3),  c: A(-3.5),  h: A(-3.3),  l: A(-4.4)  },
-  { o: A(-3.5),  c: A(-2.8),  h: A(-2.6),  l: A(-3.6)  },
-  { o: A(-2.8),  c: A(-2.3),  h: A(-2.2),  l: A(-2.9)  },
-  { o: A(-2.3),  c: A(-1.8),  h: A(-1.7),  l: A(-2.4)  },
-  { o: A(-1.8),  c: A(-1.6),  h: A(-1.34), l: A(-1.9)  },   // 100 — the entry bar
-  { o: A(-1.6),  c: A(-2.6),  h: A(-1.55), l: A(-2.8)  },
-  /* M15 bars 34–39 — away */
-  { o: A(-2.6),  c: A(-3.5),  h: A(-2.5),  l: A(-3.7)  },
-  { o: A(-3.5),  c: A(-4.4),  h: A(-3.4),  l: A(-4.6)  },
-  { o: A(-4.4),  c: A(-5.1),  h: A(-4.3),  l: A(-5.3)  },
-  { o: A(-5.1),  c: A(-4.6),  h: A(-4.4),  l: A(-5.2)  },
-  { o: A(-4.6),  c: A(-5.8),  h: A(-4.5),  l: A(-6.0)  },
-  { o: A(-5.8),  c: A(-6.6),  h: A(-5.7),  l: A(-6.8)  },
-  { o: A(-6.6),  c: A(-7.3),  h: A(-6.5),  l: A(-7.5)  },   // 108 — target reached
-  { o: A(-7.3),  c: A(-6.9),  h: A(-6.7),  l: A(-7.4)  },
-  { o: A(-6.9),  c: A(-7.8),  h: A(-6.8),  l: A(-8.1)  },
-  { o: A(-7.8),  c: A(-7.2),  h: A(-7.0),  l: A(-7.9)  },
-  { o: A(-7.2),  c: A(-8.3),  h: A(-7.1),  l: A(-8.6)  },
-  { o: A(-8.3),  c: A(-8.9),  h: A(-8.2),  l: A(-9.2)  },
-  { o: A(-8.9),  c: A(-8.4),  h: A(-8.2),  l: A(-9.0)  },
-  { o: A(-8.4),  c: A(-9.4),  h: A(-8.3),  l: A(-9.7)  },
-  { o: A(-9.4),  c: A(-10.0), h: A(-9.3),  l: A(-10.3) }
-]);   // 114 M5 bars — a multiple of three, so no half-formed M15 candle
+const M5 = PRE5.concat([
+  /* the sweep: through the range high, into the H4 block, closed back under */
+  { o: A(-0.6),   c: A(-0.2),  h: A(-0.1),  l: A(-0.8)  },
+  { o: A(-0.2),   c: A(-0.4),  h: SWEEP_HI, l: A(-0.6)  },
+  { o: A(-0.4),   c: A(-0.7),  h: A(-0.3),  l: A(-0.9)  },
+  /* displacement — deep enough that 0.705 of the leg lands INSIDE the gap it
+     leaves behind, which is the whole geometry of this entry */
+  { o: A(-0.7),   c: A(-2.6),  h: A(-0.6),  l: A(-2.8)  },
+  { o: A(-2.6),   c: A(-4.2),  h: A(-2.5),  l: A(-4.4)  },
+  { o: A(-4.2),   c: A(-5.6),  h: A(-4.1),  l: A(-5.8)  },
+  /* the leg low, and the close far under the range */
+  { o: A(-5.6),   c: A(-6.8),  h: A(-5.5),  l: A(-7.0)  },
+  { o: A(-6.8),   c: A(-8.6),  h: A(-6.7),  l: A(-8.9)  },
+  { o: A(-8.6),   c: A(-9.8),  h: A(-8.5),  l: A(-10.5) },
+  /* the retrace the M5 card exists to magnify */
+  { o: A(-9.8),   c: A(-8.6),  h: A(-8.4),  l: A(-9.9)  },
+  { o: A(-8.6),   c: A(-7.3),  h: A(-7.1),  l: A(-8.7)  },
+  { o: A(-7.3),   c: A(-6.1),  h: A(-5.9),  l: A(-7.4)  },
+  { o: A(-6.1),   c: A(-4.9),  h: A(-4.7),  l: A(-6.2)  },
+  { o: A(-4.9),   c: A(-3.8),  h: A(-3.6),  l: A(-5.0)  },
+  { o: A(-3.8),   c: A(-2.9),  h: A(-2.7),  l: A(-3.9)  },
+  { o: A(-2.9),   c: A(-2.2),  h: A(-2.0),  l: A(-3.0)  },
+  { o: A(-2.2),   c: A(-1.9),  h: 0,        l: A(-2.3)  },   // the OTE — patched below
+  { o: A(-1.9),   c: A(-3.0),  h: A(-1.85), l: A(-3.2)  },
+  /* away, to the target and past it */
+  { o: A(-3.0),   c: A(-4.2),  h: A(-2.9),  l: A(-4.4)  },
+  { o: A(-4.2),   c: A(-5.3),  h: A(-4.1),  l: A(-5.5)  },
+  { o: A(-5.3),   c: A(-4.8),  h: A(-4.6),  l: A(-5.4)  },
+  { o: A(-4.8),   c: A(-6.2),  h: A(-4.7),  l: A(-6.4)  },
+  { o: A(-6.2),   c: A(-7.4),  h: A(-6.1),  l: A(-7.6)  },
+  { o: A(-7.4),   c: A(-6.9),  h: A(-6.7),  l: A(-7.5)  },
+  { o: A(-6.9),   c: A(-8.3),  h: A(-6.8),  l: A(-8.5)  },
+  { o: A(-8.3),   c: A(-9.5),  h: A(-8.2),  l: A(-9.7)  },
+  { o: A(-9.5),   c: A(-10.7), h: A(-9.4),  l: A(-11.0) },   // the target is reached
+  { o: A(-10.7),  c: A(-10.1), h: A(-9.9),  l: A(-10.8) },
+  { o: A(-10.1),  c: A(-11.0), h: A(-10.0), l: A(-11.2) },
+  { o: A(-11.0),  c: A(-10.4), h: A(-10.2), l: A(-11.1) },
+  { o: A(-10.4),  c: A(-11.3), h: A(-10.3), l: A(-11.5) },
+  { o: A(-11.3),  c: A(-10.7), h: A(-10.5), l: A(-11.4) },
+  { o: A(-10.7),  c: A(-11.6), h: A(-10.6), l: A(-11.8) },
+  { o: A(-11.6),  c: A(-11.0), h: A(-10.8), l: A(-11.7) },
+  { o: A(-11.0),  c: A(-11.9), h: A(-10.9), l: A(-12.1) },
+  { o: A(-11.9),  c: A(-11.4), h: A(-11.2), l: A(-12.0) }
+]);
 
-const M15 = LSTF.aggregate(M5, 3);
-const TF_ERRORS = LSTF.verify(M5, M15, 3);        // must be [] — checked below
+/* ---- the model ---------------------------------------------------------
+   The OTE is the 0.705 retracement of the M5 leg, computable only once the leg
+   exists — and the entry candle's high has to BE that price, not near it. It
+   is patched onto the bar instead of typed a second time. */
+const N       = M5.length;
+const ACT     = N - 36;                           // first bar of the action block
+const sweepB5 = ACT + 1;
+const legLoB5 = ACT + 8;
+const oteB5   = ACT + 16;
+const LEG_LO  = M5[legLoB5].l;
+const OTE     = r2(LEG_LO + 0.705 * (SWEEP_HI - LEG_LO));
+M5[oteB5].h   = OTE;
 
-/* ---- the model ----------------------------------------------------------
-   Everything below is read off the two derived series, never typed.         */
-const sweepBar15 = 28, dispBar15 = 30;
-const SWEEP_HI = M5[85].h;                        // the wick that took the liquidity
-const LEG_LO   = M5[92].l;                        // the low the displacement printed
-const fvgHi    = M15[sweepBar15].l;               // bearish gap: 28's low > 30's high
-const fvgLo    = M15[dispBar15].h;
+const STACK = LSTF.chain(M5, [3, 16]);
+const M15 = STACK.series[0], H4 = STACK.series[1];
+const TF_ERRORS = STACK.errors;
 
-/* OTE — the 0.705 retracement of the M5 leg. This is the price the M15 candle
-   physically cannot show: on M15 the whole thing is one wick. */
-const OTE = r2(LEG_LO + 0.705 * (SWEEP_HI - LEG_LO));
-const ENTRY = OTE, STOP = SWEEP_HI, TGT = LEG_LO;
-const RISK = r2(STOP - ENTRY), LEG = r2(STOP - TGT), R = (ENTRY - TGT) / RISK;
+const sweepB15 = Math.floor(sweepB5 / 3);
+const dispB15  = Math.floor(legLoB5 / 3);
+const fvgHi    = M15[sweepB15].l;                 // bearish gap: the sweep bar's low …
+const fvgLo    = M15[dispB15].h;                  // … over the displacement bar's high
 
-const entryBar5 = M5.findIndex((c, i) => i > 92 && c.h >= ENTRY - 1e-9);
+const ENTRY = OTE, STOP = r2(SWEEP_HI), TGT = r2(LEG_LO);
+const RISK  = r2(STOP - ENTRY), LEG = r2(STOP - TGT), R = (ENTRY - TGT) / RISK;
+
+const entryBar5 = M5.findIndex((c, i) => i > legLoB5 && c.h >= ENTRY - 1e-9);
 const tgtBar5   = M5.findIndex((c, i) => i > entryBar5 && c.l <= TGT + 1e-9);
-const bodies    = i => Math.abs(M15[i].c - M15[i].o);
-const dispR     = bodies(29) / (function () {
-  let s = 0; for (let i = 19; i < 29; i++) s += bodies(i); return s / 10;
+const b15       = i => Math.abs(M15[i].c - M15[i].o);
+const dispR     = b15(sweepB15 + 1) / (function () {
+  let s = 0; for (let i = sweepB15 - 10; i < sweepB15; i++) s += b15(i); return s / 10;
 })();
 
 const COND = [
-  { ok: M15[sweepBar15].h > RH && M15[sweepBar15].c < RH,
-                                          note: `+${r2(SWEEP_HI - RH).toFixed(2)}` },
-  { ok: dispR >= 1.5,                     note: `${dispR.toFixed(2)}×` },
-  { ok: fvgHi > fvgLo,                    note: `${r2(fvgHi - fvgLo).toFixed(2)}` },
+  { ok: SWEEP_HI >= OB4.bottom && SWEEP_HI <= OB4.top,
+                                    note: `${OB4.bottom.toFixed(2)}–${OB4.top.toFixed(2)}` },
+  { ok: SWEEP_HI > EQ4,             note: `EQ ${EQ4.toFixed(2)}` },
+  { ok: M15[sweepB15].h > RH && M15[sweepB15].c < RH,
+                                    note: `+${r2(SWEEP_HI - RH).toFixed(2)}` },
+  { ok: dispR >= 1.5,               note: `${dispR.toFixed(2)}×` },
+  { ok: fvgHi > fvgLo,              note: `${r2(fvgHi - fvgLo).toFixed(2)}` },
   { ok: OTE > fvgLo && OTE < fvgHi && M5[entryBar5].h >= ENTRY - 1e-9,
-                                          note: `${OTE.toFixed(2)}` },
-  { ok: M15[dispBar15].c < RL,            note: `bar ${dispBar15}` },
-  { ok: M15[dispBar15].c < RL && M15[dispBar15 + 1].l < RL,
-                                          note: `${RL.toFixed(2)}` },
-  { ok: ENTRY > VAH,                      note: `VAH ${VAH.toFixed(2)}` },
-  { ok: TGT < VAL,                        note: `VAL ${VAL.toFixed(2)}` }
+                                    note: `${OTE.toFixed(2)}` },
+  { ok: SWEEP_HI > VAH,             note: `VAH ${VAH.toFixed(2)}` },
+  { ok: TGT < VAL,                  note: `VAL ${VAL.toFixed(2)}` }
 ];
 const SCHOOL_OK = [0, 1, 2, 3].map(g => COND[g * 2].ok && COND[g * 2 + 1].ok);
 
-/* ---- the two charts ----------------------------------------------------- */
+/* ---- three charts ------------------------------------------------------- */
+const ch4 = LSChart({
+  mount: '#chart4', width: 1000, height: 144, candles: H4,
+  padding: { top: 14, right: 92, bottom: 12, left: 12 },
+  barsRight: 1, autoTerminate: true, tolerance: 0.03, anim: {}
+});
+ch4.grid(2).drawCandles();
+ch4.zone({ from: obIdx, top: OB4.top, bottom: OB4.bottom, label: 'H4 OB', tone: 'accent',
+           align: 'right', at: 1.8, dur: 0.7 });
+ch4.fib({ i: impIdx + 2, priceFrom: LEG4_LO, priceTo: LEG4_HI,
+          levels: [0, 0.5, 1], width: 190, at: 3.4, dur: 0.8 });
+ch4.layout();
+
+const M15_SHOW = 40, M15_OFF = M15.length - M15_SHOW;
+const s15 = i => i - M15_OFF;
 const ch15 = LSChart({
-  mount: '#chart15', width: 1000, height: 324, candles: M15,
-  padding: { top: 46, right: 100, bottom: 18, left: 14 },
+  mount: '#chart15', width: 1000, height: 254, candles: M15.slice(M15_OFF),
+  padding: { top: 30, right: 92, bottom: 18, left: 12 },
   barsRight: 1, barsVisible: 42, autoTerminate: true, tolerance: 0.01, anim: {}
 });
 ch15.grid(2).drawCandles();
 
 const HOLD15 = [
-  { atBar: 29, seconds: 2.6 },   // the sweep
-  { atBar: 31, seconds: 4.2 },   // displacement, gap, close under the range
-  { atBar: 34, seconds: 10.0 }   // the long pause — the M5 chart runs inside it
+  { atBar: s15(sweepB15) + 1, seconds: 2.4 },     // the sweep into the H4 block
+  { atBar: s15(dispB15) + 1,  seconds: 3.4 },     // displacement, gap, close under
+  { atBar: s15(dispB15) + 4,  seconds: 8.0 }      // the pause the M5 card runs inside
 ];
-ch15.replay({ rate: 2.7, window: 42, start: 4, at: 0, holds: HOLD15 });
+ch15.replay({ rate: 4.2, window: 42, start: 6, at: 0, holds: HOLD15 });
 const H15 = Object.fromEntries(HOLD15.map(h => [h.atBar, h.t]));
+const HS = H15[s15(sweepB15) + 1], HD = H15[s15(dispB15) + 1], HM = H15[s15(dispB15) + 4];
 
-/* The profile cannot be drawn before the bars it measures have printed — the
-   range finishes at bar 27, which is why it lands here and not at second one. */
-ch15.level({ price: RH, from: rhIdx, label: 'Range High', at: 8.4, dur: 0.5 });
-ch15.level({ price: RL, from: rlIdx, label: 'Range Low', mode: 'close', at: 8.9, dur: 0.5 });
-ch15.volumeProfile({ from: 0, to: 27, bins: 26, widthPct: 0.14, valueArea: 0.70,
-                     showVA: true, at: 15.4, dur: 1.1 });
-ch15.sticker({ i: sweepBar15, price: SWEEP_HI, text: 'Sweep', dy: -40, dx: -96, at: H15[29] + 0.6 });
-ch15.zone({ from: dispBar15, top: fvgHi, bottom: fvgLo, label: 'FVG', tone: 'accent',
-            whole: false, align: 'right', at: H15[31] + 1.2, dur: 0.7 });
-ch15.sticker({ i: dispBar15, price: M15[dispBar15].c, text: 'BOS', dy: 46, at: H15[31] + 2.4 });
-/* The three M15 candles the lower card is about to open up. */
-ch15.zone({ from: 31, spanBars: 3, to: 33,
-            top: Math.max(M15[31].h, M15[32].h, M15[33].h),
-            bottom: Math.min(M15[31].l, M15[32].l, M15[33].l),
-            label: 'M5 ↓', tone: 'primary', align: 'right',
-            at: H15[34] - 0.6, dur: 0.6 });
+ch15.volumeProfile({ from: s15(RB0), to: s15(RB0) + 27, bins: 26, widthPct: 0.13,
+                     valueArea: 0.70, showVA: true, at: 1.0, dur: 1.0 });
+ch15.level({ price: RH, from: s15(rhIdx), label: 'Range High', at: 2.4, dur: 0.5 });
+ch15.sticker({ i: s15(sweepB15), price: SWEEP_HI, text: 'Sweep', dy: -36, dx: -88,
+               at: HS + 0.6 });
+ch15.zone({ from: s15(dispB15), top: fvgHi, bottom: fvgLo, label: 'FVG', tone: 'accent',
+            whole: false, align: 'right', at: HD + 1.2, dur: 0.7 });
+ch15.zone({ from: s15(dispB15) + 1, spanBars: 3, to: s15(dispB15) + 3,
+            top: Math.max(M15[dispB15 + 1].h, M15[dispB15 + 2].h, M15[dispB15 + 3].h),
+            bottom: Math.min(M15[dispB15 + 1].l, M15[dispB15 + 2].l, M15[dispB15 + 3].l),
+            label: 'M5 ↓', tone: 'primary', align: 'right', at: HM - 0.6, dur: 0.6 });
 ch15.layout();
 const END15 = ch15.duration();
 
+const M5_SHOW = 40, M5_OFF = M5.length - M5_SHOW;
+const s5 = i => i - M5_OFF;
 const ch5 = LSChart({
-  mount: '#chart5', width: 1000, height: 324, candles: M5,
-  padding: { top: 46, right: 100, bottom: 18, left: 14 },
-  barsRight: 1, barsVisible: 38, autoTerminate: true, tolerance: 0.01, anim: {}
+  mount: '#chart5', width: 1000, height: 230, candles: M5.slice(M5_OFF),
+  padding: { top: 30, right: 92, bottom: 18, left: 12 },
+  barsRight: 1, barsVisible: 42, autoTerminate: true, tolerance: 0.01, anim: {}
 });
 ch5.grid(2).drawCandles();
 
 const HOLD5 = [
-  { atBar: entryBar5 + 1, seconds: 2.4 },
-  { atBar: tgtBar5 + 1,   seconds: 3.0 }
+  { atBar: s5(entryBar5) + 1, seconds: 2.2 },
+  { atBar: s5(tgtBar5) + 1,   seconds: 2.6 }
 ];
-ch5.replay({ rate: 5.0, window: 38, start: 84, at: 0, holds: HOLD5 });
+ch5.replay({ rate: 6.0, window: 42, start: 2, at: 0, holds: HOLD5 });
 const H5 = Object.fromEntries(HOLD5.map(h => [h.atBar, h.t]));
+const HE = H5[s5(entryBar5) + 1], HT = H5[s5(tgtBar5) + 1];
 
-/* The SAME gap, drawn at the same two prices — that is the whole point of the
-   lower card, so it is not re-derived here, it is re-used. */
-ch5.zone({ from: 90, top: fvgHi, bottom: fvgLo, label: 'FVG · M15', tone: 'accent',
-           whole: false, align: 'right', at: 0.5, dur: 0.7 });
-/* The OTE is a RETRACEMENT, not a level: no candle made it, so it is drawn as
-   the fib ruler it actually is — the leg it measures, and the 0.62/0.705/0.79
-   band on it. Drawn as a level it would have to be anchored to a candle that
-   never traded there, which is exactly the anchor rule this repo enforces. */
-ch5.fib({ i: 92, priceFrom: LEG_LO, priceTo: SWEEP_HI,
-          levels: [0, 0.62, 0.705, 0.79, 1], width: 250, at: 1.4, dur: 0.8 });
-ch5.sticker({ i: entryBar5, price: ENTRY, text: 'OTE 0.705', dy: -46, dx: -116,
-              at: H5[entryBar5 + 1] + 1.6 });
-ch5.position({ from: entryBar5, to: tgtBar5, entry: ENTRY, stop: STOP, target: TGT,
-               at: H5[entryBar5 + 1] + 0.5, dur: 0.9 });
-ch5.sticker({ i: tgtBar5, price: TGT, text: 'وصل الهدف', dy: 46, dx: -124,
-              at: H5[tgtBar5 + 1] + 0.6 });
+/* The SAME gap, at the same two prices — re-used, never re-derived. */
+ch5.zone({ from: s5(legLoB5) - 2, top: fvgHi, bottom: fvgLo, label: 'FVG · M15',
+           tone: 'accent', whole: false, align: 'right', at: 0.5, dur: 0.7 });
+ch5.fib({ i: s5(legLoB5), priceFrom: LEG_LO, priceTo: SWEEP_HI,
+          levels: [0, 0.62, 0.705, 0.79, 1], width: 240, at: 1.3, dur: 0.8 });
+ch5.position({ from: s5(entryBar5), to: s5(tgtBar5), entry: ENTRY, stop: STOP, target: TGT,
+               at: HE + 0.5, dur: 0.9 });
+ch5.sticker({ i: s5(entryBar5), price: ENTRY, text: 'OTE 0.705', dy: -38, dx: -100,
+              at: HE + 1.4 });
+ch5.sticker({ i: s5(tgtBar5), price: TGT, text: 'وصل الهدف', dy: 38, dx: -108,
+              at: HT + 0.6 });
 ch5.layout();
 const END5 = ch5.duration();
 
-const M5_START = H15[34];                        // the lower card opens as M15 pauses
-const STORY_END = Math.max(END15, M5_START + END5);
+const M15_START = 7.0;
+const M5_START  = M15_START + HM;
+const STORY_END = Math.max(M15_START + END15, M5_START + END5);
 
 const f2 = v => v.toFixed(2);
 document.querySelector('#st-entry .v').textContent = f2(ENTRY);
@@ -352,30 +442,32 @@ document.querySelectorAll('.school').forEach((el, g) => {
 const caps = LSCaptions({
   mount: '#caps',
   track: LSCaptions.pace([
-    ['الدخول', 0.70], ['ما تشوفه على فريمك', 1.30],
-    ['الـ M15 يقول وين', 1.30], ['والـ M5 يقول متى', 1.30],
+    ['ثلاث فريمات', 1.05], ['ثلاثة أسئلة', 1.10],
+    ['مع مين · وين · ومتى', 1.55],
     ['شلون؟', 0.60], ['تعال اقولك', 0.75],
-    ['الكل يدوّر فريم واحد', 1.25], ['يشوف فيه كل شي', 1.20],
+    ['الكل يدوّر فريم واحد', 1.25], ['يجاوب على الثلاثة', 1.25],
     ['لكن بالواقع؟', 0.85],
-    ['على الـ M15 — <em>Liquidity Sweep</em>', 1.70],
-    ['و<em>Displacement</em> هابط', 1.75],
-    ['خلّى <em>Fair Value Gap</em>', 1.55], ['وقفل تحت الرينج', 1.30],
-    ['وبرّا منطقة القيمة', 1.30],
-    ['نزّل على الـ M5', 1.15], ['نفس الفجوة — بس مفتوحة', 1.50],
-    ['وجوّاها <em>OTE 0.705</em>', 1.45], ['والسعر لمسها بالضبط', 1.50],
-    ['هني البيع', 0.90], ['والستوب فوق الـ <em>Sweep</em>', 1.80],
-    ['شوف — راح حق الهدف', 1.50],
-    ['الـ M15 يقول وين', 1.25], ['والـ M5 يقول متى', 1.30],
-    ['فريم واحد يخليك متأخر', 1.40],
-    ['وأي شمعة تفتح أول؟ تابع الجاي', 1.85]
+    ['الـ H4 يقول مع مين', 1.35], ['<em>Order Block</em> هابط', 1.40],
+    ['وكسر هيكل تحته', 1.30],
+    ['نزّل على الـ M15 — يقول وين', 1.65],
+    ['رينج تحت البلوك', 1.25], ['و<em>Liquidity Sweep</em> جوّاه', 1.55],
+    ['بعدها <em>Displacement</em> وفجوة', 1.65],
+    ['نزّل على الـ M5 — يقول متى', 1.60],
+    ['نفس الفجوة بس مفتوحة', 1.45], ['وجوّاها <em>OTE 0.705</em>', 1.40],
+    ['والسعر لمسها بالضبط', 1.40],
+    ['شوف — راح حق الهدف', 1.45],
+    ['فريم واحد ما يجاوب الثلاثة', 1.65],
+    ['مع مين · وين · ومتى', 1.50],
+    ['وأي فريم تفتح أول؟ تابع الجاي', 1.80]
   ], { start: 0.1 })
 });
 
 /* ---- the overlay clock ------------------------------------------------ */
 const hookEl = document.getElementById('hook'), verdEl = document.getElementById('verdict');
 const scrimEl = document.getElementById('scrim');
-const tf5El = document.getElementById('tf5'), hintEl = document.getElementById('hint');
-const paneEl = document.querySelector('#chart5');
+const tf15El = document.getElementById('tf15'), tf5El = document.getElementById('tf5');
+const hint15 = document.getElementById('hint15'), hint5 = document.getElementById('hint5');
+const pane15 = document.querySelector('#chart15'), pane5 = document.querySelector('#chart5');
 const stEntry = document.getElementById('st-entry'), stStop = document.getElementById('st-stop');
 const stR = document.getElementById('st-r');
 const schoolEls = [...document.querySelectorAll('.school')];
@@ -383,44 +475,40 @@ const ease = k => k * k * (3 - 2 * k);
 const seg  = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
 const wipe = (el, p) => { el.firstElementChild.style.clipPath = `inset(0 0 0 ${(1 - p) * 100}%)`; };
 
-/* Sweep and displacement are answered by the M15 alone; the gap and the OTE
-   need the lower card open; risk-to-value needs the trade priced. */
-const SCHOOL_AT = [H15[31] - 0.6,                              // sweep + displacement
-                   M5_START + H5[entryBar5 + 1] + 1.0,         // the gap, and the OTE inside it
-                   H15[31] + 2.8,                              // BOS + close under the range
-                   M5_START + H5[tgtBar5 + 1] + 0.8];          // entry vs VAH, target vs VAL
+const SCHOOL_AT = [M15_START + HS + 1.0,          // the block, and the sweep inside it
+                   M15_START + HD + 1.0,          // the M15 sweep and its displacement
+                   M5_START + HE + 1.0,           // the gap, and the OTE inside it
+                   M5_START + HT + 1.0];          // entry vs VAH, target vs VAL
 
 function seekAll(t) {
-  /* One clock, two charts. The seam runs the SHARED story time backwards, so
-     both frames rewind together and the last frame is frame zero in both. */
   let te = t;
   if (t > SEAM) te = SEAM * (1 - ease(seg(t, SEAM, TOTAL - SEAM)));
-  ch15.seek(Math.min(te, END15));
+  ch4.seek(te);
+  ch15.seek(Math.min(Math.max(te - M15_START, 0), END15));
   ch5.seek(Math.min(Math.max(te - M5_START, 0), END5));
   caps.seek(t > SEAM ? -1 : t);
 
   const past = x => (t > SEAM ? false : t >= x);
-  /* The lower chart holds 84 bars of balance the moment it is seeked to 0, so
-     it has to be hidden outright until the story hands it the floor — dimming
-     the badge is not enough when the candles themselves are the spoiler. */
-  const open = ease(seg(te, M5_START - 0.5, 0.7));
-  tf5El.classList.toggle('idle', open < 0.5);
-  paneEl.style.opacity = open;
-  hintEl.style.opacity = (1 - open) * 0.5;
+  const o15 = ease(seg(te, M15_START - 0.5, 0.7));
+  const o5  = ease(seg(te, M5_START - 0.5, 0.7));
+  tf15El.classList.toggle('idle', o15 < 0.5); pane15.style.opacity = o15;
+  hint15.style.opacity = (1 - o15) * 0.5;
+  tf5El.classList.toggle('idle', o5 < 0.5);   pane5.style.opacity = o5;
+  hint5.style.opacity = (1 - o5) * 0.5;
 
   schoolEls.forEach((el, g) => el.classList.toggle('on', past(SCHOOL_AT[g]) && SCHOOL_OK[g]));
 
-  stEntry.classList.toggle('on', past(M5_START + H5[entryBar5 + 1] + 0.7));
-  stStop.classList.toggle('on', past(M5_START + H5[entryBar5 + 1] + 0.7));
-  const hit = past(M5_START + H5[tgtBar5 + 1] + 1.0);
+  stEntry.classList.toggle('on', past(M5_START + HE + 0.7));
+  stStop.classList.toggle('on', past(M5_START + HE + 0.7));
+  const hit = past(M5_START + HT + 1.0);
   stR.classList.toggle('on', hit);
   stR.querySelector('.v').textContent = hit ? R_TEXT : '—';
 
   const hIn = ease(seg(t, 0.35, 0.55));
   wipe(hookEl, hIn);
-  hookEl.style.opacity = hIn * (1 - ease(seg(t, 3.5, 0.4)));
+  hookEl.style.opacity = hIn * (1 - ease(seg(t, 3.3, 0.4)));
 
-  const vIn = ease(seg(t, 26.9, 0.5)), vOut = ease(seg(t, 29.6, 0.5));
+  const vIn = ease(seg(t, 27.4, 0.5)), vOut = ease(seg(t, 30.0, 0.5));
   wipe(verdEl, vIn);
   verdEl.style.opacity = vIn * (1 - vOut);
   scrimEl.style.opacity = (vIn * (1 - vOut) * 0.96).toFixed(3);
@@ -429,20 +517,21 @@ function seekAll(t) {
 window.LS_SIZE = [1080, 1920];
 window.LS_DURATION = TOTAL;
 window.LS_TAIL = 0;
-/* A timeframe mismatch is a drawing violation: it means the two charts on
-   screen are not the same market. It blocks the render like any other. */
-window.LS_VIOLATIONS = ch15.violations.concat(ch5.violations,
-  TF_ERRORS.map(e => ({ id: 'M15÷M5', kind: 'timeframe', status: 'mismatch', message: e.message })));
-window.LS_M5 = M5; window.LS_M15 = M15;
+window.LS_VIOLATIONS = ch4.violations.concat(ch15.violations, ch5.violations,
+  TF_ERRORS.map(e => ({ id: 'H4÷M15÷M5', kind: 'timeframe', status: 'mismatch',
+                        message: e.message })));
+window.LS_M5 = M5; window.LS_M15 = M15; window.LS_H4 = H4;
 window.LS_GATE = {
+  OB4: [OB4.bottom, OB4.top], OB4_MID, obIdx, impIdx, LEG4_LO, LEG4_HI, EQ4,
   RH, RL, POC, VAH, VAL, SWEEP_HI: r2(SWEEP_HI), LEG_LO: r2(LEG_LO),
   FVG: [r2(fvgLo), r2(fvgHi)], OTE, ENTRY, STOP, TGT, RISK, LEG,
-  R: +R.toFixed(3), dispR: +dispR.toFixed(3), entryBar5, tgtBar5,
-  n5: M5.length, n15: M15.length, tfErrors: TF_ERRORS.length,
+  R: +R.toFixed(3), dispR: +dispR.toFixed(3),
+  sweepB5, legLoB5, oteB5, entryBar5, tgtBar5, sweepB15, dispB15,
+  n5: M5.length, n15: M15.length, n4: H4.length, tfErrors: TF_ERRORS.length,
   conditions: COND.map((c, i) => ({ n: i + 1, ok: c.ok, note: c.note })),
   schools: SCHOOL_OK, allPass: COND.every(c => c.ok),
-  end15: END15, end5: END5, m5Start: M5_START, storyEnd: STORY_END,
-  caps: caps.duration(), h15: H15, h5: H5
+  end15: END15, end5: END5, m15Start: M15_START, m5Start: M5_START,
+  storyEnd: STORY_END, caps: caps.duration(), HS, HD, HM, HE, HT
 };
 window.seekTo = t => { seekAll(t); return true; };
 seekAll(0);

@@ -73,6 +73,35 @@
     return errs;
   }
 
+  /* A whole stack in one call. `chain(M5, [3, 16])` returns the M15 and H4
+     series derived in turn, each verified against the one below it, so a
+     three-frame page cannot ship with the top chart quietly describing a
+     different market from the bottom one.
+
+       const { series: [M15, H4], errors } = LSTF.chain(M5, [3, 16]);
+
+     Ratios multiply: 3 then 16 means one H4 candle is 48 M5 candles. The whole
+     stack is only exact when the base length is a multiple of that product,
+     which the errors report. */
+  function chain(base, ratios) {
+    const series = [];
+    const errors = [];
+    const product = ratios.reduce((a, b) => a * b, 1);
+    if (base.length % product !== 0) {
+      errors.push({ i: null, field: 'stack',
+                    message: `${base.length} base bars is not a multiple of ${product} ` +
+                             `(${ratios.join(' × ')}); the top frame would drop a partial candle` });
+    }
+    let cur = base;
+    ratios.forEach(n => {
+      const up = aggregate(cur, n);
+      verify(cur, up, n).forEach(e => errors.push(e));
+      series.push(up);
+      cur = up;
+    });
+    return { series, errors };
+  }
+
   /* The LTF bars inside one HTF bar, and the HTF bar one LTF bar sits in. */
   function span(iHtf, n)  { return { from: iHtf * n, to: iHtf * n + n - 1 }; }
   function parent(iLtf, n) { return Math.floor(iLtf / n); }
@@ -83,5 +112,5 @@
   function toLtf(iHtf, n) { return iHtf * n; }
   function toHtf(iLtf, n) { return Math.floor(iLtf / n); }
 
-  root.LSTF = { aggregate, verify, span, parent, toLtf, toHtf };
+  root.LSTF = { aggregate, verify, chain, span, parent, toLtf, toHtf };
 })(typeof window !== 'undefined' ? window : globalThis);
