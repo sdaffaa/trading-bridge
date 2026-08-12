@@ -1,0 +1,136 @@
+{
+ "mode": "Reconstructed",
+ "symbol": "GLD (SPDR Gold Shares)",
+ "source": "Alpha Vantage",
+ "tf": "يومي · 1D",
+ "volType": "حجم بورصة حقيقي (NYSE Arca)",
+ "window": "2026-03-19 → 2026-05-01",
+ "fixedRange": "2026-03-30 → 2026-04-15",
+ "candles": 31,
+ "body": {
+  "mean": 3.81,
+  "median": 2.42,
+  "max": 14.71
+ },
+ "range": {
+  "mean": 7.37,
+  "median": 6.43,
+  "max": 17.36
+ },
+ "bodyRangePct": 46.7,
+ "morphology": {
+  "contraction": 5,
+  "normal": 23,
+  "displacement": 3,
+  "outlier": 0
+ },
+ "motion": {
+  "ER": 0.02,
+  "overlapAvg": 0.45,
+  "pullbackDepth": 12.25,
+  "pauseRate": 29.6,
+  "hotWindowRun": 4
+ },
+ "candlestats": {
+  "reversalPct": 48.4,
+  "dojiPct": 6.5,
+  "insidePct": 16.7,
+  "outsidePct": 10,
+  "longestSameColor": 4
+ },
+ "antiPattern": {
+  "bodySimilarity": 20,
+  "rangeSimilarity": 26.7,
+  "shapeSimilarity": 6.7,
+  "topMotif": "DUD",
+  "motifSharePct": 20.7,
+  "motifMaxRepeat": 2,
+  "lag1Dir": 33.3,
+  "lag3Dir": 60.7,
+  "lag1BodyCorr": 0.08,
+  "lag3BodyCorr": 0.08
+ },
+ "trade": {
+  "risk": 7.96,
+  "R_to_POC": 0.33,
+  "R_to_VAL": 2.02,
+  "chronological": true,
+  "slAboveExitHigh": true,
+  "noFutureLeak": true
+ },
+ "gates": [
+  {
+   "name": "OHLC صالح لكل شمعة",
+   "ok": true,
+   "sev": "حرج",
+   "note": "0 صف غير صالح"
+  },
+  {
+   "name": "الترتيب الزمني للنموذج (لا Future Leak)",
+   "ok": true,
+   "sev": "حرج",
+   "note": "exit ≤ fail ≤ entry ≤ POC < VAL"
+  },
+  {
+   "name": "مصدر البيانات مُعلن",
+   "ok": true,
+   "sev": "حرج",
+   "note": "GLD (SPDR Gold Shares) · Alpha Vantage · يومي · 1D"
+  },
+  {
+   "name": "عدد الشموع ضمن نطاق الكاروسيل 28–48",
+   "ok": true,
+   "sev": "مرتفع",
+   "note": "31 شمعة"
+  },
+  {
+   "name": "لا Motif ثلاثي متكرر أكثر من مرتين",
+   "ok": true,
+   "sev": "تشخيصي",
+   "note": "أطول تكرار 2"
+  },
+  {
+   "name": "Motif Share ≤ 50%",
+   "ok": true,
+   "sev": "تشخيصي",
+   "note": "20.7%"
+  },
+  {
+   "name": "ER > 0.85 لا يستمر بلا Pause",
+   "ok": true,
+   "sev": "تشخيصي",
+   "note": "أطول سلسلة 4 نافذة"
+  },
+  {
+   "name": "Lag3 Direction Match 35–60%",
+   "ok": false,
+   "sev": "تشخيصي",
+   "note": "60.7%"
+  },
+  {
+   "name": "Lag3 Body Corr < 0.40",
+   "ok": true,
+   "sev": "تشخيصي",
+   "note": "0.08"
+  },
+  {
+   "name": "أطول سلسلة لون واحد ≤ 6",
+   "ok": true,
+   "sev": "تشخيصي",
+   "note": "4"
+  },
+  {
+   "name": "متوسط Body/Range 38–58%",
+   "ok": true,
+   "sev": "تشخيصي",
+   "note": "46.7%"
+  },
+  {
+   "name": "الستوب فوق قمة الخروج",
+   "ok": true,
+   "sev": "حرج",
+   "note": "450.05 > 448.7"
+  }
+ ],
+ "verdict": "PASS"
+}

@@ -8,7 +8,7 @@ import { renderChart, gemSVG } from './charts.js';
 const HANDLE='@liquidity.state';
 const FONTS=fs.readFileSync('src/fonts.css','utf8');
 const THEME=fs.readFileSync('src/theme.css','utf8');
-const S=JSON.parse(fs.readFileSync('../reel/data/scenario.json','utf8'));
+const S=JSON.parse(fs.readFileSync('../reel/data/scenario_carousel.json','utf8'));
 const OUT='out/png-stop'; fs.mkdirSync(OUT,{recursive:true}); fs.mkdirSync('dist',{recursive:true});
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const hl=s=>esc(s).replace(/\(\((.+?)\)\)/g,'<span class="hl">$1</span>');
@@ -24,21 +24,22 @@ const slides=[
   hook:'أقرب ظل\n((مو)) مكان ستوبك.', subq:'الستوب يتحدد بالقيمة والسياق — لا بأقرب ذيل.', tag:'بيانات سوق حقيقية · GLD'},
  {kind:'content', eyebrow:'منطقة القيمة', chip:'Value Area', h1:'VAH فوق · POC وسط · VAL تحت',
   lead:'70% من الحجم يتداول داخل منطقة القيمة: VAH حدّها الأعلى، POC أعلى تنفيذ، VAL حدّها الأدنى.',
-  chart:{type:'volprofile', candles:cndl, va:{vah:S.vah,val:S.val}, profile:prof}, src:SRC},
+  chart:{type:"volprofile", candles:cndl, va:{vah:S.vah,val:S.val}, profile:prof}, src:SRC},
  {kind:'content', eyebrow:'القاعدة', h1:'الستوب فوق بطلان الفكرة',
   rows:[{i:'١',b:'حدّد قمة الخروج',s:'أعلى نقطة في محاولة الاختراق الفاشلة فوق VAH.'},
         {i:'٢',b:'ضعه فوقها + هامش',s:'فوق القمة بهامش تذبذب/سبريد، لا ملاصقًا للذيل.'},
         {i:'٣',b:'ليس أقرب ظل',s:'أقرب ذيل يُضرب بالضجيج، لا ببطلان الفكرة.'}],
   note:'موقع الستوب يقرّره السياق (القيمة والبنية)، لا المسافة لأقرب شمعة.'},
- {kind:'content', eyebrow:'مثال موثّق', chip:'GLD · يومي', h1:'خروج فوق VAH… ثم فشل قبول',
+ {kind:'content', eyebrow:'مثال موثّق', chip:'GLD · 1D', h1:'خروج فوق VAH… ثم فشل قبول',
   chart:{type:'candles', candles:cndl,
-    levels:[{p:S.exitHigh,label:'قمة الخروج',color:'#0B2635'},
-            {p:S.vah,label:'VAH',color:'#257A93'},
-            {p:S.poc,label:'POC',color:'#DF7573'},
-            {p:S.val,label:'VAL',color:'#257A93',side:'left'}],
-    markers:[{i:S.failIdx,p:S.entryPrice,type:'entry',label:'دخول '+S.entryPrice},
-             {i:S.exitIdx,p:S.slPrice,type:'sl',label:'ستوب '+S.slPrice}],
-    notes:[{i:S.valTargetIdx,p:S.val,text:'الأهداف: POC ثم VAL',tx:360,ty:150,anchor:'end'}]},
+    // كل خط يبدأ من الشمعة التي أنشأته وينتهي عند آخر امتداد منطقي — لا من حافة إلى حافة
+    levels:[{p:S.exitHigh,label:'قمة الخروج',color:'#0B2635',i1:S.exitIdx-1,i2:S.valTargetIdx},
+            {p:S.vah,label:'VAH',color:'#257A93',i1:S.rangeI0,i2:S.candles.length-1},
+            {p:S.poc,label:'POC',color:'#DF7573',i1:S.rangeI0,i2:S.pocTargetIdx+1,side:'left'},
+            {p:S.val,label:'VAL',color:'#257A93',i1:S.rangeI0,i2:S.valTargetIdx+1,side:'left'}],
+    markers:[{i:S.failIdx,p:S.entryPrice,type:'entry',label:'دخول '+S.entryPrice,i1:S.failIdx-1,i2:S.valTargetIdx},
+             {i:S.exitIdx,p:S.slPrice,type:'sl',label:'ستوب '+S.slPrice,i1:S.exitIdx-1,i2:S.valTargetIdx}],
+  },
   lead:'اخترق VAH ثم أغلق داخل القيمة (فشل قبول). الستوب فوق قمة الخروج، والأهداف POC ثم VAL.',
   note:'لغرض تعليمي — ليس توصية · Volume Profile تقديري (حجم يومي حقيقي).'},
  {kind:'content', eyebrow:'قبل وضع الستوب', chip:'Checklist', h1:'أربعة أسئلة',
@@ -57,7 +58,11 @@ function coverDecor(){let s=`<svg viewBox="0 0 1080 1350" xmlns="http://www.w3.o
  return s+`</svg>`;}
 function frameHead(pn){return `<div class="topbar"><div class="brand"><div style="width:44px;height:44px">${gemSVG('#F7FAFB','#20939E')}</div><span class="wm">Liquidity State</span></div><span class="counter num">0${pn} / 06</span></div>`;}
 function footer(pn){return `<div class="footer"><span>محتوى تعليمي · ليس توصية</span>${dots(pn)}<span class="num">${HANDLE}</span></div>`;}
-function chartCard(s){return `<div class="visual"><div class="chartcard"><div dir="ltr">${renderChart(s.chart)}</div><div class="cap"><span class="illus">${esc(s.src||'رسم من بيانات حقيقية')}</span><span class="num">GLD · 1D</span></div></div></div>`;}
+// رأس الشارت: الرمز · الفريم · المنطقة الزمنية — وتذييل: المصدر والفترة (متطلّب §9 الإفصاح)
+function chartCard(s){return `<div class="visual"><div class="chartcard">`+
+ `<div class="chhead"><span class="chsym num">GLD · 1D · ET (NYSE Arca)</span><span class="chnote">${esc(s.headnote||'إعادة رسم من بيانات سوق تاريخية')}</span></div>`+
+ `<div dir="ltr">${renderChart(s.chart)}</div>`+
+ `<div class="cap"><span class="illus">${esc(s.src||'')}</span><span class="num">VA 70%</span></div></div></div>`;}
 function rows(r){return `<div class="rows">`+r.map(x=>`<div class="row"><div class="idx num">${esc(x.i)}</div><div class="rtx"><b>${esc(x.b)}</b><span>${esc(x.s)}</span></div></div>`).join('')+`</div>`;}
 function checks(items){return `<div class="checklist">`+items.map(it=>`<div class="check"><span class="bx">✓</span><span>${esc(it.t)}</span></div>`).join('')+`</div>`;}
 

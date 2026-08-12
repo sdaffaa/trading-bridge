@@ -7,13 +7,15 @@ The three skills separate concerns so each can be reused and improved independen
 |---|---|---|
 | **ls-methodology-module** | *Which* methodologies to use and how to layer them (max 3), hooks & CTAs per school | a layer plan (primary + optional structure/context/confirmation) |
 | **verified-market-charts** | *What to draw* — real data, OHLC verification, Volume Profile, scenario scan, source disclosure | `scripts/build_scenario.mjs` → `data/scenario.json` (+ raw CSV) |
+| **chart-realism** | *How real it must look* — candle morphology, ER/Overlap/Pause, reversal & anti-robotic-pattern checks, markup sizing, and the pre-export QA gates | `scripts/chart_qa.mjs` → QA report + verdict |
 | **ls-reel-engine** | *How to animate & export* — deterministic 1080×1920 renderer, price axis, camera, timing, encode | `build_html → render_frames → encode` → MP4 (master + web) |
 
 ## Typical flow
 1. `ls-methodology-module` → pick primary + layers for the piece (e.g. Volume Profile + ICT structure).
 2. `verified-market-charts` → fetch real OHLCV (autonomously), verify, build the Volume Profile, scan for a
    valid scenario → `scenario.json`. Disclose the source mode (real data vs simulation) — never hide it.
-3. `ls-reel-engine` → render the scene from `scenario.json` to a silent H.264 reel + hand off the audio cue sheet.
+3. `chart-realism` → run `chart_qa.mjs` on the scenario; fix critical gates before drawing/exporting.
+4. `ls-reel-engine` → render the scene from `scenario.json` to a silent H.264 reel + hand off the audio cue sheet.
 
 ## Reference implementation
 `/reel` in this repo is a worked example end-to-end: `data/gld_daily.csv` (real GLD daily from Alpha Vantage) →

@@ -112,3 +112,8 @@ html,body{width:1080px;height:1350px}
   display:flex;align-items:center;justify-content:center;font-size:28px}
 .handle{margin-top:30px;display:flex;align-items:center;gap:14px;color:var(--teal);font-weight:700;font-size:30px}
 .handle .en{font-size:30px}
+
+/* chart header (Universal Chart Realism §9 disclosure) */
+.chhead{display:flex;justify-content:space-between;align-items:center;margin:2px 4px 12px;direction:rtl}
+.chhead .chsym{font-size:21px;font-weight:600;color:var(--head);direction:ltr}
+.chhead .chnote{font-size:19px;color:var(--muted)}

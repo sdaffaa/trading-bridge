@@ -59,11 +59,16 @@ function candles(spec){
     const last=spec.vwap[spec.vwap.length-1];
     s+=chip(cx(last.i)+6, y(last.p)-15, 76, 'VWAP', P.TEAL,'#fff',30);
   }
-  // horizontal levels (liquidity, POC...)
+  // horizontal levels — anchored to the candles that establish/consume them (never edge-to-edge).
+  // Chips are queued and drawn AFTER the candles so markup never gets painted over (and never hides price).
+  const chips=[];
   (spec.levels||[]).forEach(l=>{
     const yy=y(l.p), col=l.color||P.HEAD, dash=l.style==='solid'?'0':'7 6';
-    s+=`<line x1="${padL}" y1="${f(yy)}" x2="${padL+plotW}" y2="${f(yy)}" stroke="${col}" stroke-width="2" stroke-dasharray="${dash}"/>`;
-    if(l.label){ const w=cw(l.label); const lx = l.side==='left'? padL : padL+plotW-w; s+=chip(lx, f(yy)-30, w, l.label, col); }
+    const x1 = l.i1!=null ? padL+slot*l.i1 : padL;
+    const x2 = l.i2!=null ? padL+slot*(l.i2+1) : padL+plotW;
+    s+=`<line x1="${f(x1)}" y1="${f(yy)}" x2="${f(x2)}" y2="${f(yy)}" stroke="${col}" stroke-width="2" stroke-dasharray="${dash}"/>`;
+    if(l.label){ const w=cw(l.label); const lx = l.side==='left'? Math.max(padL,x1) : Math.min(padL+plotW-w, x2-w);
+      chips.push({x:lx,y:f(yy)-30,w,text:l.label,col}); }
   });
 
   // candles: wick then body
@@ -80,10 +85,12 @@ function candles(spec){
     const map={entry:[P.TEAL,'دخول'],sl:[P.RED,'إبطال'],target:[P.GREEN,'هدف'],sweep:[P.RED,'سحب']};
     const [col,def]=map[m.type]||[P.HEAD,''];
     const lab=m.label??def;
-    s+=`<line x1="${padL}" y1="${f(yy)}" x2="${padL+plotW}" y2="${f(yy)}" stroke="${col}" stroke-width="1.6" stroke-dasharray="2 5" opacity="0.8"/>`;
+    const mx1 = m.i1!=null ? padL+slot*m.i1 : padL;
+    const mx2 = m.i2!=null ? padL+slot*(m.i2+1) : padL+plotW;
+    s+=`<line x1="${f(mx1)}" y1="${f(yy)}" x2="${f(mx2)}" y2="${f(yy)}" stroke="${col}" stroke-width="1.6" stroke-dasharray="2 5" opacity="0.85"/>`;
     s+=`<circle cx="${f(x)}" cy="${f(yy)}" r="6.5" fill="${col}"/>`;
-    const lx = m.side==='right'? padL+plotW-cw(lab) : padL+2;
-    s+=chip(lx, f(yy)-30, cw(lab), lab, col);
+    const lx = m.side==='right'? Math.min(padL+plotW-cw(lab), mx2-cw(lab)) : Math.max(padL+2, mx1);
+    chips.push({x:lx,y:f(yy)-30,w:cw(lab),text:lab,col});
   });
   // annotations (callout arrow)
   (spec.notes||[]).forEach(a=>{
@@ -96,6 +103,18 @@ function candles(spec){
     s+=`<text x="${f(tx)}" y="${f(ty)-6}" font-size="20" font-weight="700" fill="${P.HEAD}" text-anchor="${anchor}" font-family="Tajawal,sans-serif" direction="rtl">${esc(a.text)}</text>`;
   });
 
+  // markup chips last: resolve overlaps so no label covers another or the price action
+  if(chips.length){
+    chips.sort((a,b)=>a.y-b.y);
+    for(let i=1;i<chips.length;i++){
+      for(let j=0;j<i;j++){
+        const a=chips[j],b=chips[i];
+        const overlapX = b.x < a.x+a.w+8 && a.x < b.x+b.w+8;
+        if(overlapX && Math.abs(b.y-a.y) < 32) b.y = a.y + 34;
+      }
+    }
+    chips.forEach(c=>{ s+=chip(c.x, Math.max(2,Math.min(c.y, padT+plotH-30)), c.w, c.text, c.col); });
+  }
   // volume sub-panel
   if(hasVol){
     const vy0 = padT+plotH+34, vmax=Math.max(...spec.volume.map(v=>v.v));
@@ -132,13 +151,18 @@ function volProfile(spec){
   // POC/VAH/VAL lines
   const marks=[]; if(spec.va){marks.push(['VAH',spec.va.vah,P.TEAL]);marks.push(['VAL',spec.va.val,P.TEAL]);}
   const poc=spec.profile.find(r=>r.poc); if(poc)marks.push(['POC',poc.p,P.RED]);
+  const vchips=[];
   marks.forEach(([lab,p,col])=>{const yy=y(p);
     s+=`<line x1="${padL}" y1="${f(yy)}" x2="${W-8}" y2="${f(yy)}" stroke="${col}" stroke-width="2" stroke-dasharray="${lab==='POC'?'0':'7 6'}"/>`;
-    s+=chip(padL+2, f(yy)-28, 62, lab, col,'#fff',26);});
+    vchips.push({y:f(yy)-28,lab,col});});
   cs.forEach((c,i)=>{const bull=c.c>=c.o,col=bull?P.BULL:P.BEAR,x=cx(i);
     s+=`<line x1="${f(x)}" y1="${f(y(c.h))}" x2="${f(x)}" y2="${f(y(c.l))}" stroke="${col}" stroke-width="2.2"/>`;
     const yo=y(c.o),yc=y(c.c);let top=Math.min(yo,yc),h=Math.abs(yc-yo);if(h<3)h=3;
     s+=`<rect x="${f(x-bw/2)}" y="${f(top)}" width="${f(bw)}" height="${f(h)}" fill="${col}" rx="2"/>`;});
+  // level chips on top of the candles so markup stays readable (and never hidden by price)
+  vchips.sort((a,b)=>a.y-b.y);
+  for(let i=1;i<vchips.length;i++) if(vchips[i].y-vchips[i-1].y<30) vchips[i].y=vchips[i-1].y+30;
+  vchips.forEach(c=>{s+=chip(padL+2,c.y,62,c.lab,c.col,'#fff',26);});
   (spec.notes||[]).forEach(a=>{const x=cx(a.i),yy=y(a.p);const tx=a.tx??x-8,ty=a.ty??yy-46;
     s+=`<line x1="${f(x)}" y1="${f(yy)}" x2="${f(tx)}" y2="${f(ty)}" stroke="${P.MUTED}" stroke-width="1.6"/><circle cx="${f(x)}" cy="${f(yy)}" r="4.5" fill="${P.MUTED}"/>`+
       `<text x="${f(tx)}" y="${f(ty)-6}" font-size="20" font-weight="700" fill="${P.HEAD}" text-anchor="${a.anchor||'end'}" font-family="Tajawal" direction="rtl">${esc(a.text)}</text>`;});
