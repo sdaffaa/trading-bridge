@@ -1,0 +1,367 @@
+<meta charset="utf-8">
+<title>Liquidity State — الظل اللي فوق القمة</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#8A8A8A; }
+  .stage { position:absolute; inset:0; width:1080px; height:1920px; overflow:hidden;
+           background:radial-gradient(120% 58% at 50% 26%, #06202E 0%, #010C17 74%); }
+
+  #wm { position:absolute; top:250px; left:0; right:0; text-align:center;
+        font-family:var(--ls-font-wordmark); font-size:26px; letter-spacing:.30em;
+        text-transform:uppercase; color:#7E96A1; }
+
+  /* The chart card is the platform. Nothing overlaps it that is not markup. */
+  #card { position:absolute; left:24px; right:24px; top:302px; height:800px;
+          background:#04121C; border:1.5px solid rgba(158,196,213,.22);
+          border-radius:14px; overflow:hidden; }
+  #chart { position:absolute; inset:0; }
+
+  /* Classification. Required on the page, not only in the caption. */
+  #sim { position:absolute; left:28px; right:28px; top:1116px; text-align:center;
+         font-family:var(--ls-font-ar); font-size:23px; font-weight:700;
+         color:#7E96A1; direction:rtl; line-height:1.5; }
+
+  /* The ladder takes the card when the flow is the subject. */
+  #fpwrap { position:absolute; left:96px; right:96px; top:352px; height:700px;
+            border-radius:14px; background:rgba(4,18,28,.94);
+            border:1.5px solid rgba(158,196,213,.30); opacity:0;
+            display:flex; align-items:center; justify-content:center; }
+  #fphead { position:absolute; left:0; right:0; top:18px; text-align:center;
+            font-family:var(--ls-font-ar); font-size:30px; font-weight:800;
+            color:#EAF4F8; direction:rtl; }
+  #fpfoot { position:absolute; left:0; right:0; bottom:14px; text-align:center;
+            font-family:var(--ls-font-ar); font-size:21px; font-weight:700;
+            color:#7E96A1; direction:rtl; }
+  #fp { margin-top:26px; }
+
+  .ttl { position:absolute; left:70px; right:70px; text-align:center;
+         font-family:var(--ls-font-ar); font-weight:800; line-height:1.24;
+         direction:rtl; opacity:0; color:#EAF4F8; }
+  #hook { top:1240px; font-size:96px; }
+  #hook em, #verdict em { font-style:normal; color:#5FC6DF; }
+  /* The verdict closes UNDER the numbers that earned it, not on top of them:
+     at 1240 it landed straight across the result cards. */
+  #verdict { top:1322px; font-size:78px; }
+  #verdict .q { margin-top:22px; font-size:40px; font-weight:700; color:#7E96A1; }
+
+  #beat { position:absolute; left:60px; right:60px; top:1330px; text-align:center;
+          font-family:var(--ls-font-ar); font-weight:800; font-size:60px;
+          line-height:1.26; direction:rtl; color:#EAF4F8; opacity:0; }
+  #beat em { font-style:normal; color:#5FC6DF; }
+  #beat b  { font-weight:800; color:#E15A5A; }
+  #beat.sm { font-size:50px; }
+
+  /* Numbers only once the chart has earned them. */
+  .cards { position:absolute; left:44px; right:44px; top:1190px; direction:rtl;
+           display:grid; grid-template-columns:repeat(4,1fr); gap:12px; opacity:0; }
+  .cards .p { border-radius:14px; padding:13px 8px; text-align:center;
+              background:rgba(255,255,255,.045);
+              border:1.5px solid rgba(158,196,213,.26); }
+  .cards .p .k { font-size:21px; font-weight:700; color:#7E96A1; direction:ltr; }
+  .cards .p .v { margin-top:5px; font-size:36px; font-weight:800; color:#EAF4F8;
+                 direction:ltr; font-variant-numeric:tabular-nums; }
+  .cards .p.risk .v { color:#E15A5A; }
+  .cards .p.win  .v { color:#5FC6DF; }
+  .cards .p.off  { opacity:.32; }
+
+  #disc { position:absolute; left:0; right:0; top:1626px; text-align:center;
+          font-family:var(--ls-font-ar); font-size:23px; font-weight:600;
+          color:#7E96A1; direction:rtl; line-height:1.6; }
+
+  /* Markup on a card this size is read at arm's length. */
+  #card .ls-mk-line     { stroke-width:3.4; }
+  #card .ls-mk-label    { font-size:25px; }
+  #card .ls-mk-sticker-t{ font-size:27px; }
+  #card .ls-mk-zone     { stroke-width:2.2; }
+</style>
+
+<div class="stage" data-ls-theme="cover">
+  <div id="wm">Liquidity State</div>
+
+  <div id="card"><div id="chart"></div></div>
+
+  <div id="fpwrap">
+    <div id="fphead"></div>
+    <div id="fp"></div>
+    <div id="fpfoot">محاكاة تعليمية لبيانات Order Flow</div>
+  </div>
+
+  <div id="sim"></div>
+
+  <div class="cards" id="cards">
+    <div class="p" id="c-entry"><div class="k">Entry</div><div class="v">—</div></div>
+    <div class="p risk" id="c-stop"><div class="k">Stop</div><div class="v">—</div></div>
+    <div class="p" id="c-tgt"><div class="k">Target</div><div class="v">—</div></div>
+    <div class="p win" id="c-r"><div class="k">R</div><div class="v">—</div></div>
+  </div>
+
+  <div class="ttl" id="hook"><span>الظل اللي فوق القمة<br><em>مو دايم شراء</em></span></div>
+  <div class="ttl" id="verdict"><span>الظل اللي فوق القمة<br><em>مو دايم شراء</em>
+    <div class="q">وكم مرة انخدعت بظل؟</div></span></div>
+  <div id="beat"><span></span></div>
+
+  <div id="disc">محاكاة تعليمية واقعية — ليست توصية تداول</div>
+</div>
+
+<script src="./markup.js"></script>
+<script src="./market.js"></script>
+<script src="./tvchrome.js"></script>
+<script src="./footprint.js"></script>
+<script>
+/* ==========================================================================
+   الظل اللي فوق القمة — امتصاص عند سحب السيولة
+   GC Futures · COMEX · M5        (CHART-PROTOCOL.md §2: تدفّق الأوامر → GC)
+
+   CHART_SOURCE_MODE = C · محاكاة تعليمية واقعية.
+   المسار B جُرّب أولاً وما زال مقفلاً على هذا الحساب: FMP مرفوض على مستوى
+   الخطة، وAlpha Vantage TIME_SERIES_INTRADAY وFX_INTRADAY مدفوعان، و
+   GOLD_SILVER_HISTORY يعطي سعر إغلاق يومياً بلا OHLC وبلا حجم.
+
+   والأهمّ — CHART-PROTOCOL.md §3: هذا السوق وُلّد أولاً بلا أي علم بموضوع
+   الريل، ثم بُحث فيه عن الدرس. البحث فحص **٢٢٣ سوقاً** (توقّف عند ثامن مرشّح،
+   وسقفه ٣٠٠٠) فوجد ٤٦ إعداداً بهذه الشروط، رفض ٢٣ لضعف العائد
+   و**رُفض ١٥ لأن الستوب ضُرب فيها**، وبقي ٨.
+   هذا واحد منها. الشموع ليست مكتوبة لتصل لهذه النتيجة — النتيجة قُرئت منها.
+   ========================================================================== */
+
+const M = LSMarket;
+const TICK = 0.1, DEC = 1, SEED = 1765950;
+
+/* ---- السوق: يُولَّد، لا يُكتب ------------------------------------------- */
+const ALL = M.series({ bars: 300, start: 2400, tick: TICK, decimals: DEC, minutes: 5,
+                       startMinute: 5 * 60, vol: 0.62, seed: SEED, baseVolume: 900,
+                       keepPath: true });
+const FLOW = M.attachFlow(ALL, { tick: TICK, rows: 9, seed: SEED ^ 0x5bf03635,
+                                 imbalanceRatio: 3.0, imbalanceMin: 45 });
+
+/* ---- ما وجده البحث، بأرقامه المطلقة ------------------------------------ */
+const gP = 106, gS = 140, gCONF = 141, gTL = 136;   // pivot · sweep · confirm · target low
+const VP_A = 100, VP_B = gS - 1;                    // نطاق البروفايل، معلن على الشاشة
+
+const LVL   = ALL[gP].h;                            // السيولة = طرف ظل القمة
+const SWEEP = ALL[gS].h;
+const STOP  = M.toTick(SWEEP + 0.3, TICK);
+const ENTRY = M.toTick(ALL[gCONF].c, TICK);
+const TGT   = ALL[gTL].l;
+const RISK  = +(STOP - ENTRY).toFixed(1);
+const R     = (ENTRY - TGT) / RISK;
+
+const FP = FLOW[gS];
+const topRow = FP.rows[0];                          // أعلى مستوى في الشمعة
+const PROF = M.profile({ candles: ALL, from: VP_A, to: VP_B, bins: 22,
+                         valueArea: 0.70, flow: FLOW, tick: TICK });
+
+/* الصفقة تُتحقّق مستقلاً عن كود الرسم: هل لُمس الستوب؟ متى وصل الهدف؟ */
+let stopHit = -1, tgtHit = -1;
+for (let i = gCONF + 1; i < ALL.length; i++) {
+  if (ALL[i].h >= STOP) { stopHit = i; break; }
+  if (tgtHit < 0 && ALL[i].l <= TGT) { tgtHit = i; break; }
+}
+
+const CHECK = {
+  liquidity:  ALL.slice(gP + 1, gS).every(c => c.h < LVL),      // القمة بقيت سليمة
+  sweep:      SWEEP > LVL && ALL[gS].c < LVL,                   // أُخذت ثم أُغلق تحتها
+  barPoc:     FP.poc === topRow.price,                          // نقطة تحكّم الشمعة عند قمتها
+  absorbed:   !!FP.absorption && FP.absorption.side === 'sell',
+  bidHeavy:   topRow.bid > topRow.ask,                          // ٢٢٢ مقابل ١٣٤
+  deltaDown:  FP.delta < 0,
+  outsideVA:  SWEEP > PROF.vah,                                 // السحب خارج منطقة القيمة
+  confirm:    ALL[gCONF].c < ALL[gS].l,
+  stopSafe:   stopHit === -1,
+  target:     tgtHit > 0
+};
+const ALL_OK = Object.values(CHECK).every(Boolean);
+
+/* ---- الشاشة ------------------------------------------------------------- */
+/* النافذة تبدأ قبل الحدث بكثير: ريل يفتح على جارت شبه فاضٍ يقول للمشاهد إن
+   ما سيراه مرسوم، لا مُشغَّل. الريبلاي يبدأ وعلى الشاشة ٣٠ شمعة سياق. */
+const W0 = 70, W1 = 156;                            // نافذة العرض
+const C  = ALL.slice(W0, W1);
+const j  = i => i - W0;
+const CW = 1032, CH = 800;
+
+const ch = LSChart({
+  mount: '#chart', width: CW, height: CH, candles: C,
+  padding: { top: 34, right: 158, bottom: 54, left: 14 },
+  barsVisible: 44, barsRight: 2, autoTerminate: true, tolerance: 0.06,
+  /* A panning chart: `to: 'edge'` has to mean the end of the series, and the
+     travelling layer has to stay inside the plot instead of running out over
+     the price axis. */
+  clipPan: true, edgeAtSeries: true,
+  anim: { labelLag: 0.20, labelDur: 0.30 }
+});
+ch.drawCandles();
+
+const TOTAL = 32.00, SEAM = 30.60;
+const REPLAY_AT = 3.60, RATE = 6.5, REPLAY_FROM = 30;
+
+/* الوقفات: `atBar` هي الشمعة التي يقف الريبلاي قبلها — فتكون الشمعة التي
+   قبلها هي آخر ما طُبع، وهي بالضبط الشمعة التي يتكلّم عنها البيت. */
+const HOLDS = [
+  { atBar: j(gP) + 3,     seconds: 2.00 },   // القمة تأكّدت بشمعتين بعدها
+  { atBar: j(gS) + 1,     seconds: 7.00 },   // شمعة السحب: الفوت برنت والبروفايل
+  { atBar: j(gCONF) + 1,  seconds: 2.80 },   // التأكيد: الدخول والستوب
+  { atBar: j(tgtHit) + 1, seconds: 2.60 }    // الهدف
+];
+ch.replay({ rate: RATE, window: 44, at: REPLAY_AT, start: REPLAY_FROM, rightPad: 4,
+            forming: true, follow: 0.055, holds: HOLDS });
+const T = {};                                        // متى تبدأ كل وقفة
+HOLDS.forEach((h, k) => { T[k] = h.t; });
+window.LS_T = T;
+
+LSChrome(ch, { candles: C, minutes: 5, decimals: DEC, timeEvery: 12 });
+
+/* ---- المارك أب: كل عنصر بعد الشمعة التي تبرّره ------------------------- */
+/* خط السيولة من طرف ظل القمة، ويُرسم بعد أن تأكّدت القمة بشمعتين بعدها —
+   لا لحظة تكوّنها، لأن القمة المحورية لا تُعرف إلا بعد ما يليها. */
+ch.level({ price: LVL, from: j(gP), label: 'سيولة', to: 'edge',
+           at: T[0] + 0.25, dur: 0.55 });
+
+/* حافّتا منطقة القيمة: مقيستان من أحجام الفوت برنت نفسها على النطاق المعلن،
+   ولذلك `edge: false` — حافة القيمة ليست سعراً صنعته شمعة. */
+ch.level({ price: PROF.vah, from: j(VP_A), to: 'edge', tone: 'muted',
+           dashed: true, edge: false, label: 'VAH', at: T[1] + 4.30, dur: 0.50 });
+ch.level({ price: PROF.val, from: j(VP_A), to: 'edge', tone: 'muted',
+           dashed: true, edge: false, label: 'VAL', at: T[1] + 4.30, dur: 0.50 });
+
+ch.sticker({ i: j(gS), price: SWEEP, text: 'سحب', dy: -52, dx: -46, at: T[1] + 0.35 });
+ch.zone({ from: j(gCONF), top: STOP, bottom: ENTRY, label: 'SL', tone: 'danger',
+          whole: false, align: 'right', to: 'edge', at: T[2] + 0.30, dur: 0.50 });
+ch.level({ price: TGT, from: j(gTL), label: 'الهدف', to: 'edge', tone: 'accent',
+           at: T[2] + 1.10, dur: 0.50 });
+ch.layout();
+
+/* ---- سلّم الشمعة -------------------------------------------------------- */
+const fp = LSFootprint({
+  mount: '#fp', variant: 'bars', width: 700, height: 560,
+  rows: FP.rows, labels: { bid: 'BID', ask: 'ASK', price: 'السعر' },
+  box: { from: 0, to: 0, col: 'bid' },
+  anim: { at: 0, rate: 13 }
+});
+document.getElementById('fphead').textContent =
+  'داخل شمعة السحب · ' + FP.total.toLocaleString('en-US') + ' عقد · Delta ' +
+  (FP.delta > 0 ? '+' : '') + FP.delta;
+
+document.getElementById('sim').textContent =
+  'GC Futures · COMEX · M5 · محاكاة تعليمية واقعية · البروفايل على ' +
+  (VP_B - VP_A + 1) + ' شمعة · منطقة القيمة ٧٠٪ · الحجم والدلتا مُولَّدان';
+
+/* ---- البيوت ------------------------------------------------------------- */
+const B = (a, b, txt, cls) => ({ a, b, txt, cls });
+const BEATS = [
+  B(2.55, T[0] - 0.15, 'السعر طلع… <em>والدلتا نزلت</em>'),
+  B(T[0] + 0.30, T[0] + 1.95, 'قمة… <em>وسيولة فوقها</em>'),
+  B(T[0] + 2.20, T[1] - 0.30, 'الكل ينتظر الاختراق'),
+  B(T[1] + 0.30, T[1] + 1.60, 'أخذها… <b>وسكّر تحتها</b>'),
+  B(T[1] + 1.90, T[1] + 4.10,
+    'عند القمة: <em>' + topRow.bid + '</em> بيع مقابل ' + topRow.ask + ' شراء', 'sm'),
+  B(T[1] + 4.40, T[1] + 6.85, 'والسحب صار <em>فوق منطقة القيمة</em>'),
+  B(T[2] + 0.30, T[2] + 2.70, 'الستوب فوق <b>الظل</b>، مو فوق القمة'),
+  /* البيت ١١ (اللوب) صار سطراً تحت البيت ٨، فالخاتمة واحدة لا اثنتان
+     تتنافسان على نفس اللحظة. */
+  B(T[3] + 0.30, T[3] + 2.50, 'الهدف: <em>آخر قاع</em>')
+];
+
+/* ---- الساعة الواحدة ----------------------------------------------------- */
+const ease = k => k * k * (3 - 2 * k);
+const seg  = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
+const band = (t, a, b, f) => ease(seg(t, a, f)) * (1 - ease(seg(t, b - f, f)));
+
+const beatEl = document.getElementById('beat');
+const hookEl = document.getElementById('hook');
+const verEl  = document.getElementById('verdict');
+const fpEl   = document.getElementById('fpwrap');
+const cardEl = document.getElementById('card');
+const cardsEl= document.getElementById('cards');
+const cE = document.getElementById('c-entry'), sE = document.getElementById('c-stop');
+const tE = document.getElementById('c-tgt'),   rE = document.getElementById('c-r');
+const f1 = x => x.toFixed(1);
+let lastBeat = -1;
+
+function seekAll(t) {
+  /* The scrub finishes one frame EARLY, at TOTAL − 1/30, because that is the
+     last frame the capture takes. Ending it at TOTAL leaves the final frame a
+     hair short of story-time zero, and the loop shows a seam. */
+  let te = t;
+  if (t > SEAM) te = SEAM * (1 - ease(seg(t, SEAM, TOTAL - SEAM - 1 / 30)));
+
+  ch.seek(te);
+  fp.seek(Math.max(0, te - (T[1] + 1.55)));
+
+  hookEl.style.opacity = (1 - ease(seg(te, 1.60, 0.45))).toFixed(3);
+  verEl.style.opacity  = band(te, T[3] + 2.80, 30.20, 0.34).toFixed(3);
+
+  /* السلّم يأخذ البطاقة، ولا يجلس فوق الجارت نصفَ شفاف: بطاقتان تقرآن معاً
+     ليستا لقطتين، بل لقطة واحدة مزدحمة. */
+  const onFp = band(te, T[1] + 1.55, T[1] + 4.15, 0.26);
+  fpEl.style.opacity = onFp.toFixed(3);
+  cardEl.style.opacity = (1 - onFp * 0.86).toFixed(3);
+
+  let cur = -1;
+  for (let i = 0; i < BEATS.length; i++) if (te >= BEATS[i].a && te < BEATS[i].b) cur = i;
+  if (cur !== lastBeat) {
+    beatEl.firstElementChild.innerHTML = cur < 0 ? '' : BEATS[cur].txt;
+    beatEl.className = cur < 0 ? '' : (BEATS[cur].cls || '');
+    lastBeat = cur;
+  }
+  const verOn = band(te, T[3] + 2.80, 30.20, 0.34);
+  beatEl.style.opacity = (cur < 0 ? 0
+    : band(te, BEATS[cur].a, BEATS[cur].b, 0.16) * (1 - verOn)).toFixed(3);
+
+  /* البطاقة بلا رقم حتى تستحقّه، والـR لا تظهر قبل وصول السعر فعلاً. */
+  const on = (el, x, val) => {
+    const lit = te > SEAM ? false : te >= x;
+    el.classList.toggle('off', !lit);
+    el.querySelector('.v').textContent = lit ? val : '—';
+  };
+  cardsEl.style.opacity = band(te, T[2] + 0.20, 30.20, 0.30).toFixed(3);
+  on(cE, T[2] + 0.20, f1(ENTRY));
+  on(sE, T[2] + 0.55, f1(STOP));
+  on(tE, T[2] + 1.10, f1(TGT));
+  on(rE, CHECK.target ? T[3] + 0.30 : 1e9, R.toFixed(2) + 'R');
+}
+
+/* ---- بوابات التسليم ----------------------------------------------------- */
+window.LS_SIZE = [1080, 1920];
+window.LS_DURATION = TOTAL;
+window.LS_TAIL = 0;
+window.LS_VIOLATIONS = ch.violations;
+/* بوابة البروتوكول: تُعيد اشتقاق كل رقم من الشموع، وتمنع ظهور أي رسم قبل
+   الثانية التي تُطبع فيها شمعته. */
+window.LS_QA = M.qa({
+  candles: ALL, flow: FLOW, prof: PROF,
+  vw: null, tick: TICK, decimals: DEC, minutes: 5,
+  replayRate: { timeOfBar: b => ch.timeOfBar(b) },
+  markup: [
+    { id: 'سيولة',  bar: j(gP) + 2,  at: T[0] + 0.25 },
+    { id: 'VAH',    bar: j(VP_B),    at: T[1] + 4.30 },
+    { id: 'VAL',    bar: j(VP_B),    at: T[1] + 4.30 },
+    { id: 'سحب',    bar: j(gS),      at: T[1] + 0.35 },
+    { id: 'SL',     bar: j(gCONF),   at: T[2] + 0.30 },
+    { id: 'الهدف',  bar: j(gCONF),   at: T[2] + 1.10 },
+    { id: 'R',      bar: j(tgtHit),  at: T[3] + 0.30 }
+  ]
+});
+window.LS_GATE = {
+  mode: 'C_REALISTIC_SIMULATION', market: 'GC Futures · COMEX', tf: 'M5',
+  seed: SEED, marketsSearched: 223, setups: 46, rejectedReward: 23, rejectedStopped: 15,
+  bars: ALL.length, window: [W0, W1],
+  pivot: gP, sweepBar: gS, confirmBar: gCONF, targetLowBar: gTL,
+  LVL, SWEEP, ENTRY, STOP, TGT, RISK, R: +R.toFixed(2),
+  sweepVol: FP.total, delta: FP.delta, barPoc: FP.poc,
+  topBid: topRow.bid, topAsk: topRow.ask,
+  absorption: FP.absorption, imbalances: FP.imbalances,
+  profile: { from: VP_A, to: VP_B, poc: PROF.poc, vah: PROF.vah, val: PROF.val,
+             total: PROF.total, source: PROF.source },
+  stopHit, tgtHit, check: CHECK, allOk: ALL_OK,
+  qaProblems: window.LS_QA.length
+};
+window.seekTo = t => { seekAll(t); return true; };
+seekAll(0);
+document.fonts.ready.then(() => { seekAll(0); window.LS_READY = true; });
+
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now) { seekAll(((now - t0) / 1000) % TOTAL); requestAnimationFrame(loop); })(t0);
+}
+</script>

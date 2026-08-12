@@ -173,6 +173,7 @@ reference build.
 | **H4 + M15 + M5** — SMC equal lows → CHoCH → order block | `reel-smc-choch.md` | `reel-smc-choch.html` |
 | **H4 + M15 + M5** — volume profile excess → POC, with a footprint ladder | `reel-value-poc.md` | `reel-value-poc.html` |
 | **M15 → M5** — where the stop goes, read off VAH/POC/VAL | `reel-stop-vp.md` | `reel-stop-vp.html` |
+| **M5, bar replay** — absorption at a liquidity sweep, read off the ladder | `reel-absorb-gc.md` | `reel-absorb-gc.html` |
 
 **Every trade is read on H4, located on M15 and entered on M5**, and the three
 charts are one market: the M5 candles are generated and the other two are
@@ -241,6 +242,7 @@ use these; the first three are left as they shipped.
 ![SMC two-frame reel](reel-smc-choch-poster.png)
 ![Volume profile two-frame reel](reel-value-poc-poster.png)
 ![Stop placement reel](reel-stop-vp-poster.png)
+![Order flow absorption reel](reel-absorb-gc-poster.png)
 
 The three multi-frame reels are standalone — no series, no callbacks — and each
 leads with a different school, named in English on the cards: **ICT**
@@ -268,6 +270,29 @@ bend there for measurable reasons, both written up in `reel-stop-vp.md`: a
 value-area edge is drawn where the distribution puts it rather than snapped to
 a wick tip, and the level names live in the price gutter instead of inside the
 line, because an inline label on a chart that dense lands on the candles.
+
+`reel-absorb-gc.html` is the first page built end to end under
+**[`CHART-PROTOCOL.md`](CHART-PROTOCOL.md)**, which is the rule that no chart
+asks the user for anything: the market, the timeframe and the scenario are all
+chosen from the topic, real historical data is attempted first, and a labelled
+realistic simulation is the fallback. What makes it different from every reel
+before it is the order of work — **the market is generated first and the lesson
+is found inside it**. `market.js` ran 223 independent markets with no idea
+what the reel was about, and `findSetup()` searched each one for a sweep, its
+order flow and its confirmation occurring in that order. Forty-six setups
+matched; twenty-three were dropped for reward and **fifteen were dropped because
+the stop was hit**. That last number cannot exist on a chart written backwards
+from its outcome, which is exactly why it is on the page.
+
+Everything downstream is derived from the same numbers: the footprint ladder
+sums to the bar's volume, delta is the difference, the bar POC is the level that
+actually traded most, the profile is built from those per-price volumes rather
+than a time-at-price guess, and `LSMarket.qa()` re-derives all of it independently
+and blocks the render on any mismatch — including a check that no drawing appears
+before the bar that justifies it has printed. `tvchrome.js` adds the furniture a
+trading screen has (axes, grid, live price tag, bar countdown) and `replay({
+forming: true })` builds the current candle out of its own intrabar path instead
+of revealing it whole.
 
 One trap the H4 layer introduces: searching the whole context for "the biggest
 impulse" finds a lucky run of drift instead of the real one, and every

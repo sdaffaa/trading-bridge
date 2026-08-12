@@ -773,3 +773,36 @@
 .ls-c .ls-mk-line      { stroke-width: 2; }
 .ls-c .ls-mk-zigzag    { stroke-width: 2.2; }
 .ls-c .ls-mk-marker    { stroke-width: 2.8; }
+
+/* ==========================================================================
+   Platform chrome  (see tvchrome.js)
+   The furniture of a trading screen: axes, grid, the live price tag, the bar
+   countdown. Quiet by construction — it has to be legible enough to be
+   believed and faint enough that the markup stays the subject.
+   ========================================================================== */
+.ls-tv-h       { stroke: var(--ls-gridline); stroke-width: 1; opacity: .55; }
+.ls-tv-v       { stroke: var(--ls-gridline); stroke-width: 1; opacity: .38; }
+.ls-tv-axis    { stroke: var(--ls-gridline); stroke-width: 1.2; opacity: .8; }
+.ls-tv-price   { font-family: var(--ls-font-ar); font-size: 20px; font-weight: 500;
+                 fill: var(--ls-text-secondary); direction: ltr;
+                 font-variant-numeric: tabular-nums; }
+.ls-tv-t       { font-family: var(--ls-font-ar); font-size: 19px; font-weight: 500;
+                 fill: var(--ls-text-secondary); direction: ltr;
+                 font-variant-numeric: tabular-nums; }
+
+/* The tag is the one loud thing on the axis, because on a live chart it is. */
+.ls-tv-tag-box { fill: var(--ls-text-accent); }
+.ls-tv-tag.dn .ls-tv-tag-box { fill: var(--ls-invalid); }
+.ls-tv-tag-t   { font-family: var(--ls-font-ar); font-size: 21px; font-weight: 800;
+                 fill: var(--ls-bg); direction: ltr; font-variant-numeric: tabular-nums; }
+.ls-tv-tag-l   { stroke: var(--ls-text-accent); stroke-width: 1.2;
+                 stroke-dasharray: 3 4; opacity: .8; }
+.ls-tv-tag-l.dn{ stroke: var(--ls-invalid); }
+.ls-tv-cd-box  { fill: color-mix(in srgb, var(--ls-text-secondary) 26%, transparent); }
+.ls-tv-cd-t    { font-family: var(--ls-font-ar); font-size: 18px; font-weight: 700;
+                 fill: var(--ls-text); direction: ltr; font-variant-numeric: tabular-nums; }
+
+/* At reel size the axis is read at arm's length, like everything else. */
+.ls-vr .ls-tv-price, .ls-vr .ls-tv-t { font-size: 24px; }
+.ls-vr .ls-tv-tag-t { font-size: 26px; }
+.ls-vr .ls-tv-cd-t  { font-size: 22px; }

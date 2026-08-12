@@ -151,6 +151,17 @@
       anim = null,             // pass {} for defaults, or override any CADENCE key
       autoTerminate = false,   // end levels/zones at the candle that broke them
       snapToCandle = false,    // pull levels onto wick tips, expand boxes to full candles
+      /* Two behaviours a PANNING chart needs and a static one does not, so
+         both are opt-in and nothing already built changes:
+           clipPan      keep the travelling layer inside the plot, so a level
+                        cannot run out across the price axis
+           edgeAtSeries `to: 'edge'` means the end of the SERIES, not the right
+                        edge of the plot. On a chart that pans, plotR is a
+                        window, not an edge: a drawing that stops there is
+                        carried backwards by the pan, and one that starts past
+                        it gets a negative width. */
+      clipPan = false,
+      edgeAtSeries = false,
       tolerance = 0
     } = opts;
 
@@ -199,9 +210,31 @@
        the viewport by whole candle pitches. Grid and price scale stay outside:
        they are horizontal and must not travel with the bars. */
     const gPan = el('g', { class: 'ls-layer-pan' });
+    /* The axis layer is the opposite of gPan: it must NOT travel. Price labels
+       live here rather than in gLabel because once the viewport can slide
+       vertically, a label inside the panning group keeps its pixel but stops
+       naming its price — it reads as an axis that lies. */
+    const gAxis = el('g', { class: 'ls-layer-axis' });
     svg.appendChild(gGrid);
     [gZone, gCandle, gStruct, gLabel].forEach(g => gPan.appendChild(g));
-    svg.appendChild(gPan);
+    /* The clip has to live on a wrapper, NOT on gPan itself. A clip-path is
+       resolved in the coordinate system its own element establishes — so a
+       clip put on gPan travels with the pan, and the window it cuts slides
+       left with the bars until it is amputating the newest candles, which are
+       the ones every beat is about. */
+    if (clipPan) {
+      const cid = `lspanclip${++uid}`;
+      const cp = el('clipPath', { id: cid });
+      cp.appendChild(el('rect', { x: padding.left, y: 0,
+        width: Math.max(0, width - padding.right - padding.left), height }));
+      defs.appendChild(cp);
+      const wrap = el('g', { class: 'ls-layer-panclip', 'clip-path': `url(#${cid})` });
+      wrap.appendChild(gPan);
+      svg.appendChild(wrap);
+    } else {
+      svg.appendChild(gPan);
+    }
+    svg.appendChild(gAxis);
 
     // ---- scales -----------------------------------------------------------
     let lo, hi;
@@ -218,11 +251,15 @@
     const step = (plotR - plotL) / n;
     const cw = candleWidth || Math.max(3, step * 0.58);
 
+    const seriesEdge = () => plotL + step * (candles.length - 0.5) + step / 2;
     const X = i => plotL + step * (i + 0.5);
     const Y = p => plotB - ((p - lo) / (hi - lo)) * (plotB - plotT);
 
+    const RIGHT = () => edgeAtSeries ? Math.max(plotR, seriesEdge()) : plotR;
+
     const candleNodes = [];  // one per bar, for replay reveal
     let panX = 0;            // current viewport offset, set by the replay handler
+    let panY = 0;            // vertical follow, so price stays in frame
     const jobs = [];        // deferred text measurement, run in layout()
     const track = [];       // animation entries
     let cursor = A ? A.start : 0;
@@ -262,6 +299,30 @@
         candleNodes.push(g);
       });
       return api;
+    }
+
+    /* Redraw one candle at a fraction of its own life. Needs the bar's
+       intrabar path (LSMarket.series({ keepPath: true })); without one it
+       falls back to a straight walk from open to close, which is honest about
+       being a fallback — it just cannot show a wick being built. */
+    function formBar(i, frac) {
+      const c = candles[i], g = candleNodes[i];
+      if (!g) return;
+      const path = c.path && c.path.length > 1 ? c.path : [c.o, c.c];
+      const k = Math.max(1, Math.min(path.length - 1, Math.round(frac * (path.length - 1))));
+      let h = -Infinity, l = Infinity;
+      for (let j = 0; j <= k; j++) { h = Math.max(h, path[j]); l = Math.min(l, path[j]); }
+      const cl = path[k];
+      /* the finished bar is the truth: on the last sub-step, snap to it */
+      const H = k === path.length - 1 ? c.h : Math.max(h, c.o, cl);
+      const L = k === path.length - 1 ? c.l : Math.min(l, c.o, cl);
+      const C = k === path.length - 1 ? c.c : cl;
+      g.setAttribute('class', C >= c.o ? 'ls-candle-up' : 'ls-candle-down');
+      const wick = g.children[0], body = g.children[1];
+      wick.setAttribute('y1', Y(H)); wick.setAttribute('y2', Y(L));
+      const yo = Y(c.o), yc = Y(C);
+      body.setAttribute('y', Math.min(yo, yc));
+      body.setAttribute('height', Math.max(1.5, Math.abs(yc - yo)));
     }
 
     // ---- 1. level line with inline centred label --------------------------
@@ -304,7 +365,7 @@
 
       const y = Y(price);
       const x1 = X(from) - step / 2;
-      const x2 = end === null ? plotR : X(end) + step / 2;
+      const x2 = end === null ? RIGHT() : X(end) + step / 2;
       const cls = `ls-mk-line ls-mk-${tone}` + (dashed ? ' ls-mk-dashed' : '');
 
       const lineA = el('line', { class: cls, x1, y1: y, x2, y2: y });
@@ -369,7 +430,7 @@
       });
 
       const x1 = X(from) - step / 2;
-      const x2 = end === null ? plotR : X(end) + step / 2;
+      const x2 = end === null ? RIGHT() : X(end) + step / 2;
       const yT = Y(top), yB = Y(bottom);
       const w = x2 - x1, h = Math.max(2, yB - yT);
 
@@ -807,7 +868,7 @@
 
        `window` is how many bars stay on screen before the jumping starts. */
     function replay({ rate = 4.71, window: win = 40, at = 0, start = 1,
-                      holds = [] } = {}) {
+                      holds = [], forming = false, follow = 0, rightPad = 0 } = {}) {
       if (!A) return api;
 
       /* Holds are the pauses where the story gets told: the replay freezes on
@@ -829,9 +890,44 @@
       const tEnd = tAcc + (candles.length - prevBar) / rate;
       segs.push({ run: true, b0: prevBar, t0: tAcc, t1: tEnd });
 
+      /* The vertical follow is precomputed per bar, not filtered per frame.
+         A low-pass that updates from its own previous value is a function of
+         PLAYBACK HISTORY, not of t: scrub backwards over the loop seam and it
+         lands on a different offset than it started from, so the last frame
+         no longer equals frame zero. Smoothed once over the bar index, it is
+         pure — seek(t) gives the same picture no matter how t was reached. */
+      let followY = null;
+      if (follow) {
+        const raw = [], want = (plotT + plotB) / 2;
+        for (let i = 0; i <= candles.length; i++) {
+          const a = Math.max(0, i - win), b = Math.min(candles.length - 1, i);
+          let wLo = Infinity, wHi = -Infinity;
+          for (let k = a; k <= b; k++) { wLo = Math.min(wLo, candles[k].l); wHi = Math.max(wHi, candles[k].h); }
+          raw.push(wLo < Infinity ? want - (Y(wLo) + Y(wHi)) / 2 : 0);
+        }
+        followY = raw.slice();
+        const k = Math.min(1, Math.max(0.001, follow));
+        for (let pass = 0; pass < 2; pass++) {          // forward then back: no lag
+          for (let i = 1; i < followY.length; i++) followY[i] = followY[i - 1] + (followY[i] - followY[i - 1]) * k;
+          for (let i = followY.length - 2; i >= 0; i--) followY[i] = followY[i + 1] + (followY[i] - followY[i + 1]) * k;
+        }
+      }
+
       track.push({ kind: 'replay', t0: at, dur: tEnd - at,
-                   rate, win, start, segs, nodes: candleNodes, pan: gPan });
+                   rate, win, start, segs, forming, follow, rightPad, followY,
+                   nodes: candleNodes, pan: gPan });
       api.holds = holds;
+      /* When each step's markup may first appear. The QA gate reads this to
+         prove nothing is drawn before the bar that justifies it has printed. */
+      api.timeOfBar = function (bar) {
+        let acc = at, prev = start;
+        for (const g of segs) {
+          if (!g.run) { if (bar <= g.b0) return g.t0; acc = g.t1; prev = g.b0; continue; }
+          if (bar <= g.b0 + (g.t1 - g.t0) * rate) return g.t0 + Math.max(0, bar - g.b0) / rate;
+          acc = g.t1; prev = g.b0;
+        }
+        return acc;
+      };
       return api;
     }
 
@@ -879,14 +975,41 @@
       track.forEach(e => {
         if (e.kind === 'replay') {
           // integer bar count → the pan lands on whole pitches by construction
-          let n;
+          let n, frac = 0;
           const seg = e.segs.find(g => t < g.t1) || e.segs[e.segs.length - 1];
           if (!seg.run) n = seg.b0;                       // frozen on this bar
-          else n = seg.b0 + Math.floor(Math.max(0, t - seg.t0) * e.rate);
+          else {
+            const raw = seg.b0 + Math.max(0, t - seg.t0) * e.rate;
+            n = Math.floor(raw); frac = raw - n;
+          }
           n = Math.max(0, Math.min(candles.length, n));
-          e.nodes.forEach((nd, i) => { nd.style.display = i < n ? '' : 'none'; });
-          panX = -Math.max(0, n - e.win) * step;
-          e.pan.setAttribute('transform', `translate(${panX},0)`);
+          /* The bar at index n is the one still trading. With `forming` on it
+             is not hidden and not shown whole: it is redrawn at the progress
+             its own intrabar path has reached, so the open is fixed from the
+             first frame and the high, the low and the close move the way they
+             do on a live chart. Revealing it whole is the tell that a replay
+             is a slideshow. */
+          const live = e.forming && n < candles.length ? n : -1;
+          e.nodes.forEach((nd, i) => {
+            nd.style.display = i < n || i === live ? '' : 'none';
+          });
+          if (live >= 0) formBar(live, frac);
+          /* `rightPad` is the breathing room every platform leaves in front of
+             the last bar. Without it the newest candle — the one the whole
+             beat is about — is pinned against the edge of the plot and half of
+             it disappears under the price axis. */
+          panX = -Math.max(0, n - e.win + (e.rightPad || 0)) * step;
+
+          /* Vertical follow. The price/pixel scale never changes — rescaling
+             would either distort the drawings or force a re-layout mid-reel —
+             so the window slides instead. Read out of the precomputed table
+             and interpolated across the bar, so it is smooth AND pure. */
+          if (e.followY) {
+            const a = e.followY[Math.min(n, e.followY.length - 1)];
+            const b = e.followY[Math.min(n + 1, e.followY.length - 1)];
+            panY = a + (b - a) * frac;
+          }
+          e.pan.setAttribute('transform', `translate(${panX},${panY})`);
           return;
         }
         const p = easeOut(clamp01(e.dur > 0 ? (t - e.t0) / e.dur : (t >= e.t0 ? 1 : 0)));
@@ -927,7 +1050,10 @@
     }
 
     const api = {
-      svg, X, Y, drawCandles, grid, level, zone, structure,
+      svg, gAxis, plot: { L: plotL, R: plotR, T: plotT, B: plotB, step, cw, n },
+      get priceLo() { return lo; }, get priceHi() { return hi; },
+      get panX() { return panX; }, get panY() { return panY; },
+      X, Y, drawCandles, grid, level, zone, structure,
       swing, fib, trend, invalid, volumeProfile, poc, position,
       anchor, sticker, priceScale, replay,
       layout, seek, play, duration,

@@ -115,10 +115,18 @@ print("frames done")
 
 FF = "/usr/local/lib/python3.11/dist-packages/imageio_ffmpeg/binaries/ffmpeg-linux-x86_64-v7.0.2"
 if SPEC:
-    # Delivery profile: H.264 High, Rec.709 tagged, VBR 15-20 Mbps, faststart.
-    # Frames are captured as PNG in this mode so the encoder is the only
-    # generation loss. Silent AAC track so the file carries the declared audio
-    # layout even before a music bed exists.
+    # Delivery profile: H.264 High, Rec.709 tagged, faststart. Frames are
+    # captured as PNG in this mode so the encoder is the only generation loss.
+    # Silent AAC track so the file carries the declared audio layout even
+    # before a music bed exists.
+    #
+    # The 15-20 Mbps figures below are a CEILING, not a target. Measured: a
+    # 32s reel at 1080x1920 comes out around 2.4 Mbps, and re-encoding it with
+    # these same flags still lands near 1.6 Mbps — flat dark charts and large
+    # areas of solid colour compress far below the cap, and x264 will not pad
+    # to a bitrate the picture does not need. Forcing it (nal-hrd=cbr plus
+    # filler) would multiply the file size for no visible gain, so the cap
+    # stays a cap.
     args = [FF, "-y", "-framerate", str(FPS), "-i", os.path.join(frames, "f%05d.png"),
             "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=48000",
             "-shortest",

@@ -176,6 +176,9 @@ this skill:
 | `FORMAT-CAROUSEL.md` | the carousel page architecture and the footprint method |
 | `FORMAT-REEL-VERTICAL.md` | the vertical reel design method (`.ls-vr`) |
 | `FORMAT-REEL-MTF.md` | the three-frame H4 → M15 → M5 reel method |
+| `CHART-PROTOCOL.md` | the self-sufficient chart protocol: source order, automatic market selection, realistic simulation, order-flow generation, and the QA gate |
+| `market.js` | market simulation, footprint, volume profile, VWAP, setup search, QA |
+| `tvchrome.js` | price axis, time axis, live price tag, bar countdown |
 | `timeframe.js` | derives the M15 and H4 series from the M5 one, and proves the stack agrees |
 | `footprint.js` | footprint / order-flow ladders — the four approved variants |
 | `capture-slides.py` | renders each carousel page to PNG, and fails if a drawing broke a rule |
