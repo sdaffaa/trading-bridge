@@ -1,0 +1,459 @@
+<meta charset="utf-8">
+<title>Liquidity State — Volume Profile · Excess إلى POC</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#8A8A8A; }
+
+  .tf { position:absolute; left:44px; right:44px;
+        border:1.5px solid color-mix(in srgb, var(--ls-card-border) 50%, transparent);
+        border-radius:20px; background:var(--ls-card-bg); box-sizing:border-box;
+        padding:10px 12px 6px; }
+  #tf15 { top:200px; height:300px; }
+  #tf5  { top:512px; height:380px; }
+  .tf .ls-mk-label     { font-size:19px; }
+  .tf .ls-mk-sticker-t { font-size:23px; }
+  .tf .ls-mk-va-t      { font-size:15px; }
+  .tf .badge { position:absolute; top:14px; right:22px; z-index:2;
+               font-family:var(--ls-font-wordmark); font-size:20px; letter-spacing:.18em;
+               font-weight:700; direction:ltr; color:var(--ls-text-accent);
+               background:color-mix(in srgb, var(--ls-text-accent) 10%, var(--ls-card-bg));
+               border:1px solid color-mix(in srgb, var(--ls-text-accent) 45%, transparent);
+               border-radius:999px; padding:3px 14px; }
+  .tf .role  { position:absolute; top:16px; left:22px; z-index:2;
+               font-size:23px; font-weight:800; color:var(--ls-text-secondary); }
+  #tf5.idle .role, #tf5.idle .badge { opacity:.4; }
+  #tf5 .hint { position:absolute; inset:0; display:flex; align-items:center;
+               justify-content:center; font-size:32px; font-weight:800;
+               color:var(--ls-text-secondary); opacity:.5; }
+  /* The lower card carries the M5 candles AND the ladder that opens the one
+     candle they turn on — the chart says where, the ladder says who. */
+  #tf5 .row { display:flex; gap:12px; align-items:center; margin-top:38px; }
+  #chart5 { width:592px; flex:none; }
+  #ladder { width:344px; flex:none; }
+
+  #hook    { top:300px; font-size:72px; }
+  #verdict { top:312px; font-size:60px; }
+  .ls-vr-scrim  { top:176px; height:730px; }
+
+  #schools { top:916px; gap:12px; }
+  .school  { border:1.5px solid color-mix(in srgb, var(--ls-card-border) 45%, transparent);
+             border-radius:18px; background:var(--ls-card-bg); padding:12px 16px; opacity:.42; }
+  .school .hd { display:flex; align-items:center; justify-content:space-between;
+                border-bottom:1px solid color-mix(in srgb, var(--ls-card-border) 35%, transparent);
+                padding-bottom:8px; margin-bottom:8px; }
+  .school .nm { font-family:var(--ls-font-wordmark); font-size:20px; letter-spacing:.13em;
+                font-weight:700; direction:ltr; color:var(--ls-text-secondary); }
+  .school .tf { position:static; border:0; background:none; padding:0;
+                font-family:var(--ls-font-wordmark); font-size:17px; letter-spacing:.12em;
+                direction:ltr; color:var(--ls-text-secondary); opacity:.7; }
+  .school .c  { display:flex; align-items:center; gap:10px; margin-top:7px; }
+  .school .c b{ flex:none; width:24px; height:24px; border-radius:999px; font-size:14px;
+                font-weight:800; line-height:22px; text-align:center;
+                border:1.5px solid color-mix(in srgb, var(--ls-text-secondary) 60%, transparent);
+                color:var(--ls-text-secondary); }
+  .school .c span { font-size:20px; font-weight:700; direction:ltr;
+                    color:var(--ls-text-secondary); }
+  .school .c em   { margin-right:auto; font-style:normal; font-size:19px; font-weight:700;
+                    direction:ltr; white-space:nowrap;
+                    color:var(--ls-text-secondary); opacity:.75; }
+
+  .school.on { opacity:1; border-color:var(--ls-text-accent);
+               background:color-mix(in srgb, var(--ls-text-accent) 8%, var(--ls-card-bg));
+               box-shadow:0 6px 26px -14px color-mix(in srgb, var(--ls-text-accent) 80%, transparent); }
+  .school.on .nm { color:var(--ls-text); }
+  .school.on .tf { color:var(--ls-text-accent); opacity:1; }
+  .school.on .c b { border-color:var(--ls-text-accent); color:var(--ls-text-accent); }
+  .school.on .c span { color:var(--ls-text); }
+  .school.on .c em   { color:var(--ls-text-accent); opacity:1; }
+
+  #stats   { top:1204px; grid-template-columns:1fr 1fr 1fr; }
+  .ls-vr-caps .ls-reel-caption { top:1368px; font-size:52px; }
+  .ls-vr-disc   { top:1470px; }
+  .ls-vr-beat { text-shadow:0 2px 26px var(--ls-bg), 0 0 12px var(--ls-bg); }
+</style>
+
+<div class="ls-vr">
+  <div class="ls-vr-ticker">XAUUSD · M15 → M5</div>
+  <div class="ls-vr-wm">Liquidity State</div>
+
+  <div class="tf" id="tf15">
+    <div class="badge">M15</div><div class="role">القيمة</div>
+    <div id="chart15"></div>
+  </div>
+  <div class="tf idle" id="tf5">
+    <div class="badge">M5</div><div class="role">الدخول · ومين نفّذ</div>
+    <div class="hint" id="hint">الشمعة وحدها ما تقول مين</div>
+    <div class="row">
+      <div id="chart5" class="pane"></div>
+      <div id="ladder" class="pane"></div>
+    </div>
+  </div>
+
+  <div class="ls-vr-scrim" id="scrim"></div>
+  <div class="ls-vr-beat" id="hook"><span>الكسر اللي<br>ما قِبل</span></div>
+  <div class="ls-vr-beat" id="verdict"><span>الكسر اللي ما قِبل<br>هو <em>الدخول</em></span></div>
+
+  <div class="ls-vr-grid" id="schools">
+    <div class="school">
+      <div class="hd"><div class="nm">Volume Profile</div><div class="tf">M15</div></div>
+      <div class="c"><b>1</b><span>Excess below VAL</span><em class="n1">—</em></div>
+      <div class="c"><b>2</b><span>Acceptance in value</span><em class="n2">—</em></div>
+    </div>
+    <div class="school">
+      <div class="hd"><div class="nm">Volume Profile</div><div class="tf">M15 → M5</div></div>
+      <div class="c"><b>3</b><span>VAL retest holds</span><em class="n1">—</em></div>
+      <div class="c"><b>4</b><span>POC as target</span><em class="n2">—</em></div>
+    </div>
+    <div class="school">
+      <div class="hd"><div class="nm">Footprint</div><div class="tf">M5</div></div>
+      <div class="c"><b>5</b><span>Negative delta</span><em class="n1">—</em></div>
+      <div class="c"><b>6</b><span>Absorption</span><em class="n2">—</em></div>
+    </div>
+    <div class="school">
+      <div class="hd"><div class="nm">Risk</div><div class="tf">M5</div></div>
+      <div class="c"><b>7</b><span>Risk ≤ 40% leg</span><em class="n1">—</em></div>
+      <div class="c"><b>8</b><span>Reward ≥ 2R</span><em class="n2">—</em></div>
+    </div>
+  </div>
+
+  <div class="ls-vr-grid" id="stats">
+    <div class="ls-vr-tile ls-vr-stat" id="st-entry"><div class="k">الشراء · VAL</div><div class="v">—</div></div>
+    <div class="ls-vr-tile ls-vr-stat" id="st-stop"><div class="k">الستوب</div><div class="v">—</div></div>
+    <div class="ls-vr-tile ls-vr-stat" id="st-r"><div class="k">النتيجة</div><div class="v">—</div></div>
+  </div>
+
+  <div class="ls-vr-caps" id="caps"></div>
+  <div class="ls-vr-disc">أرقام التدفّق توضيحية — الجارت لا يحمل بيانات تِك<br>مثال تخطيطي لغرض تعليمي — ليست توصية</div>
+</div>
+
+<script src="./markup.js"></script>
+<script src="./timeframe.js"></script>
+<script src="./footprint.js"></script>
+<script src="./captions.js"></script>
+<script>
+/* ==========================================================================
+   Volume Profile · Excess below VAL → back into value → POC
+
+   Standalone. The model is the oldest one the profile has: price leaves the
+   value area, fails to earn acceptance out there, and comes back — and the
+   point of control is where it goes when it does.
+
+     M15 — the profile itself: POC, VAH, VAL, the excess under the VAL, and
+           the closes that put price back inside value.
+     M5  — the rejection candle, magnified, WITH the footprint ladder for the
+           one thing the candle cannot tell you: that the selling into that low
+           was aggressive and got absorbed rather than followed.
+
+   The ladder rows are illustrative and the page says so — delta is not in
+   OHLC. What is not illustrative: the delta is summed from the rows, the
+   absorption ratio is computed at the heaviest row, and the candle closing in
+   the top sixth of its own range is read straight off the candle.
+
+   All 11 beats, 34.0s. Anchor noun: القيمة.
+   ========================================================================== */
+
+const TOTAL = 34.0, SEAM = 32.8;
+const r2 = v => Math.round(v * 100) / 100;
+
+/* A written leg from one price to another. Used instead of hand-typing the
+   approach and the rally: the endpoints are the numbers that matter, and a
+   deterministic wobble keeps the path from reading as a ruler. */
+function leg(from, to, n, wick, wob) {
+  const out = []; let o = from;
+  for (let i = 1; i <= n; i++) {
+    const c = r2(from + (to - from) * (i / n) + (wob || 0) * Math.sin(i * 1.9));
+    out.push({ o, c, h: r2(Math.max(o, c) + wick), l: r2(Math.min(o, c) - wick) });
+    o = c;
+  }
+  return out;
+}
+
+/* ---- pass one: the M5 balance, and the profile of the M15 above it ------- */
+function balance5(n) {
+  let s = 8814409, p = 100;
+  const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const o = p;
+    const c = Math.max(96.20, Math.min(103.80, o + (100 - o) * 0.13 + rnd() * 2.3));
+    const w = 0.18 + Math.abs(rnd()) * 0.55;
+    out.push({ o, c,
+      h: Math.min(104.30, Math.max(o, c) + Math.abs(rnd()) * w),
+      l: Math.max(95.70, Math.min(o, c) - Math.abs(rnd()) * w) });
+    p = c;
+  }
+  return out;
+}
+
+const BAL5  = balance5(72);                       // 72 M5 bars = 24 M15 bars
+const BAL15 = LSTF.aggregate(BAL5, 3);
+const q0    = BAL5[BAL5.length - 1].c;
+
+const probe = document.createElement('div');
+probe.style.cssText = 'position:absolute;left:-9999px;width:900px';
+document.body.appendChild(probe);
+const pc = LSChart({ mount: probe, width: 900, height: 500, candles: BAL15,
+                     padding: { top: 20, right: 20, bottom: 20, left: 20 }, barsRight: 1 });
+pc.drawCandles();
+pc.volumeProfile({ from: 0, to: BAL15.length - 1, bins: 26, valueArea: 0.70 });
+const POC = r2(pc.profile.poc), VAH = r2(pc.profile.vah), VAL = r2(pc.profile.val);
+probe.remove();
+
+/* Everything after the balance is written in fractions of U — the distance
+   from the value-area low to the point of control — rather than in absolute
+   points. U is measured, so the trade scales to whatever the profile actually
+   produced, and the two things that would otherwise be luck are structural:
+   the excess is shallower than the run to the POC, and nothing before the
+   entry trades up to the target. */
+const U = r2(POC - VAL);
+const u = d => r2(VAL + d * U);
+const EXC_D = 0.38;                               // excess depth, as a fraction of U
+
+const M5 = BAL5.concat(
+  leg(q0, u(0.30), 6, 0.05 * U, 0.04 * U),        // M15 24–25 — down to the edge of value
+  [
+    /* M15 26 — the excess: through the VAL, and refused */
+    { o: u(0.30), c: u(0.10), h: u(0.36), l: u(0)      },
+    { o: u(0.10), c: u(0),    h: u(0.16), l: u(-EXC_D) },   // 79 — the rejection candle
+    { o: u(0),    c: u(0.22), h: u(0.28), l: u(-0.08)  },
+    /* M15 27 — accepted back inside value, and still under the POC */
+    { o: u(0.22), c: u(0.38), h: u(0.44), l: u(0.16) },
+    { o: u(0.38), c: u(0.52), h: u(0.58), l: u(0.32) },
+    { o: u(0.52), c: u(0.62), h: u(0.68), l: u(0.46) },
+    /* M15 28 — the retest of the VAL from above: the entry */
+    { o: u(0.62), c: u(0.34), h: u(0.68), l: u(0.28) },
+    { o: u(0.34), c: u(0.20), h: u(0.40), l: u(0)    },    // 85 — taps the VAL exactly
+    { o: u(0.20), c: u(0.46), h: u(0.52), l: u(0.14) }
+  ],
+  leg(u(0.46), u(1.25), 12, 0.06 * U, 0.07 * U),  // M15 29–32 — up through the POC
+  leg(u(1.25), u(1.90), 9, 0.06 * U, 0.05 * U)
+);
+
+const M15 = LSTF.aggregate(M5, 3);
+const TF_ERRORS = LSTF.verify(M5, M15, 3);
+
+/* ---- the model ---------------------------------------------------------- */
+const excessBar5 = 79, excessBar15 = 26;
+const EXC   = M5[excessBar5].l;                   // the low the excess printed
+const ENTRY = VAL, STOP = r2(EXC), TGT = POC;
+const RISK  = r2(ENTRY - STOP), LEG_ = r2(TGT - STOP), R = (TGT - ENTRY) / RISK;
+
+const entryBar5 = M5.findIndex((c, i) => i > 81 && c.l <= ENTRY + 1e-9);
+const tgtBar5   = M5.findIndex((c, i) => i > entryBar5 && c.h >= TGT - 1e-9);
+let accepted = 0;
+for (let i = 27; i < 30; i++) if (M15[i].c > VAL) accepted++;
+
+/* ---- the fourth school --------------------------------------------------
+   ILLUSTRATIVE rows — the page says so, because delta is not in OHLC. The
+   arithmetic on them is not: delta is their sum, the heaviest row is found by
+   total, and the absorption ratio is that row's bid over its ask. The candle
+   fact underneath it — that price closed near the top of the very range the
+   selling happened in — is read off the candle itself. */
+const ROWS = [
+  [u(0.14),  120,  180], [u(0.06),  190,  240], [u(-0.02), 260,  320],
+  [u(-0.10), 380,  410], [u(-0.18), 720,  560], [u(-0.26), 1240, 560],
+  [u(-0.33), 940,  520], [u(-EXC_D), 520,  300]
+];
+const sum    = k => ROWS.reduce((a, r) => a + r[k], 0);
+const DELTA  = sum(2) - sum(1);                   // ask − bid: negative = sellers hitting
+const totals = ROWS.map(r => r[1] + r[2]);
+const hiRow  = totals.indexOf(Math.max(...totals));
+const ABS    = ROWS[hiRow][1] / ROWS[hiRow][2];   // bid over ask at the heaviest row
+const ex     = M5[excessBar5];
+const closePos = (ex.c - ex.l) / (ex.h - ex.l);   // where it closed in its own range
+const FP_ROWS = ROWS.map(([price, bid, ask], i) => ({ price, bid, ask, hi: i === hiRow }));
+
+const COND = [
+  { ok: M15[excessBar15].l < VAL && M15[excessBar15].c > VAL,
+                                          note: `−${r2(VAL - EXC).toFixed(2)}` },
+  { ok: accepted >= 3,                    note: `${accepted}/3 close` },
+  { ok: M5[entryBar5].l <= ENTRY + 1e-9 && M5[entryBar5].c > ENTRY,
+                                          note: `${ENTRY.toFixed(2)}` },
+  { ok: TGT > ENTRY,                      note: `POC ${POC.toFixed(2)}` },
+  { ok: DELTA < 0,                        note: `${(DELTA / 1000).toFixed(1)}K` },
+  { ok: DELTA < 0 && ABS >= 2 && closePos >= 0.66 && hiRow >= ROWS.length - 4,
+                                          note: `${ABS.toFixed(1)}:1` },
+  { ok: RISK <= 0.40 * LEG_,              note: `${(RISK / LEG_ * 100).toFixed(0)}%` },
+  { ok: R >= 2,                           note: `${R.toFixed(2)}R` }
+];
+const SCHOOL_OK = [0, 1, 2, 3].map(g => COND[g * 2].ok && COND[g * 2 + 1].ok);
+
+/* ---- the two charts ----------------------------------------------------- */
+const ch15 = LSChart({
+  mount: '#chart15', width: 1000, height: 284, candles: M15,
+  padding: { top: 40, right: 100, bottom: 20, left: 14 },
+  barsRight: 1, barsVisible: 39, autoTerminate: true, tolerance: 0.01, anim: {}
+});
+ch15.grid(2).drawCandles();
+
+const HOLD15 = [
+  { atBar: 26, seconds: 2.8 },   // the balance, and the profile measured on it
+  { atBar: 29, seconds: 4.2 },   // the excess, and the closes back inside
+  { atBar: 32, seconds: 10.0 }   // the pause the M5 card runs inside
+];
+ch15.replay({ rate: 3.0, window: 39, start: 2, at: 0, holds: HOLD15 });
+const H15 = Object.fromEntries(HOLD15.map(h => [h.atBar, h.t]));
+
+ch15.volumeProfile({ from: 0, to: 23, bins: 26, widthPct: 0.15, valueArea: 0.70,
+                     showVA: true, at: 7.6, dur: 1.2 });
+ch15.poc({ price: POC, from: 0, label: 'POC', at: 9.0, dur: 0.6 });
+ch15.sticker({ i: excessBar15, price: M15[excessBar15].l, text: 'Excess', dy: 46,
+               at: H15[29] + 0.8 });
+ch15.zone({ from: 30, spanBars: 3, to: 32,
+            top: Math.max(M15[30].h, M15[31].h, M15[32].h),
+            bottom: Math.min(M15[30].l, M15[31].l, M15[32].l),
+            label: 'M5 ↓', tone: 'primary', align: 'right',
+            at: H15[32] - 0.6, dur: 0.6 });
+ch15.layout();
+const END15 = ch15.duration();
+
+/* The lower chart is scaled to the bars it actually shows. Left to the whole
+   M5 series it would stretch from the balance's low to the rally's high and
+   flatten the 0.45-point excess this reel is about into a hairline. */
+const W0 = 76;
+let wLo = Infinity, wHi = -Infinity;
+for (let i = W0; i < M5.length; i++) { wHi = Math.max(wHi, M5[i].h); wLo = Math.min(wLo, M5[i].l); }
+const wPad = (wHi - wLo) * 0.10;
+
+const ch5 = LSChart({
+  mount: '#chart5', width: 620, height: 296, candles: M5,
+  /* the excess low is the lowest price on this card and its label hangs
+     under it, so the bottom padding has to leave room */
+  padding: { top: 30, right: 74, bottom: 58, left: 12 },
+  priceRange: [r2(wLo - wPad), r2(wHi + wPad)],
+  barsRight: 1, barsVisible: 32, autoTerminate: true, tolerance: 0.01, anim: {}
+});
+ch5.grid(2).drawCandles();
+
+const HOLD5 = [
+  { atBar: excessBar5 + 1, seconds: 2.6 },   // the rejection candle, and its ladder
+  { atBar: entryBar5 + 1,  seconds: 2.2 },   // the retest that held
+  { atBar: tgtBar5 + 1,    seconds: 2.6 }    // the POC
+];
+ch5.replay({ rate: 5.5, window: 32, start: W0, at: 0, holds: HOLD5 });
+const H5 = Object.fromEntries(HOLD5.map(h => [h.atBar, h.t]));
+
+ch5.level({ price: VAL, from: 0, label: 'VAL', target: true, at: 0.4, dur: 0.5 });
+ch5.sticker({ i: excessBar5, price: EXC, text: 'Absorption', dy: 44, dx: -70,
+              at: H5[excessBar5 + 1] + 2.2 });
+ch5.position({ from: entryBar5, to: tgtBar5, entry: ENTRY, stop: STOP, target: TGT,
+               at: H5[entryBar5 + 1] + 0.5, dur: 0.9 });
+ch5.sticker({ i: tgtBar5, price: TGT, text: 'POC', dy: -42, dx: -60,
+              at: H5[tgtBar5 + 1] + 0.6 });
+ch5.layout();
+const END5 = ch5.duration();
+
+const M5_START = H15[32];
+const FP_IN    = M5_START + H5[excessBar5 + 1] + 0.3;
+const fp = LSFootprint({
+  mount: '#ladder', variant: 'ladder', width: 344, height: 286,
+  rows: FP_ROWS, compact: false, heatKey: 'total', panel: false,
+  anim: { at: 0, panel: 0.35, rowStagger: 0.15, rowDur: 0.28 }
+});
+const STORY_END = Math.max(END15, M5_START + END5);
+
+const f2 = v => v.toFixed(2);
+document.querySelector('#st-entry .v').textContent = f2(ENTRY);
+document.querySelector('#st-stop .v').textContent  = f2(STOP);
+const R_TEXT = '+' + R.toFixed(2) + 'R';
+document.querySelectorAll('.school').forEach((el, g) => {
+  el.querySelector('.n1').textContent = COND[g * 2].note;
+  el.querySelector('.n2').textContent = COND[g * 2 + 1].note;
+});
+
+const caps = LSCaptions({
+  mount: '#caps',
+  track: LSCaptions.pace([
+    ['السعر كسر تحت', 1.15], ['ورجع', 0.75],
+    ['الكسر اللي ما قِبل', 1.35], ['هو الدخول', 1.10],
+    ['شلون؟', 0.60], ['تعال اقولك', 0.75],
+    ['الكل ينتظر الكسر يكمل', 1.45], ['والسوق يرجع للقيمة', 1.35],
+    ['لكن بالواقع؟', 0.85],
+    ['<em>Volume Profile</em> على الـ M15', 1.65],
+    ['يعطيك <em>POC</em> و<em>VAH</em> و<em>VAL</em>', 1.70],
+    ['السعر نزل تحت الـ VAL', 1.45], ['وما قِبل — <em>Excess</em>', 1.50],
+    ['ورجع قفل داخل القيمة', 1.45],
+    ['نزّل على الـ M5', 1.15], ['شمعة الرفض', 1.05],
+    ['والفوت برنت يقول مين نفّذ', 1.55],
+    ['دلتا سالبة والسعر ما نزل', 1.65], ['هذا <em>Absorption</em>', 1.35],
+    ['هني الشراء من الـ VAL', 1.50],
+    ['شوف — راح حق الـ POC', 1.55],
+    ['الكسر اللي ما قِبل', 1.35], ['هو الدخول', 1.00],
+    ['برّا القيمة مو اتجاه', 1.40],
+    ['ومتى يصير كسر حقيقي؟ تابع', 1.70]
+  ], { start: 0.1 })
+});
+
+/* ---- the overlay clock ------------------------------------------------ */
+const hookEl = document.getElementById('hook'), verdEl = document.getElementById('verdict');
+const scrimEl = document.getElementById('scrim');
+const tf5El = document.getElementById('tf5'), hintEl = document.getElementById('hint');
+const rowEl = document.querySelector('#tf5 .row');
+const stEntry = document.getElementById('st-entry'), stStop = document.getElementById('st-stop');
+const stR = document.getElementById('st-r');
+const schoolEls = [...document.querySelectorAll('.school')];
+const ease = k => k * k * (3 - 2 * k);
+const seg  = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
+const wipe = (el, p) => { el.firstElementChild.style.clipPath = `inset(0 0 0 ${(1 - p) * 100}%)`; };
+
+const SCHOOL_AT = [H15[29] + 4.4,                       // the excess, and acceptance
+                   M5_START + H5[entryBar5 + 1] + 1.0,  // the retest, and the POC target
+                   FP_IN + 1.9,                         // delta, and absorption
+                   M5_START + H5[tgtBar5 + 1] + 0.8];   // risk arithmetic
+
+function seekAll(t) {
+  let te = t;
+  if (t > SEAM) te = SEAM * (1 - ease(seg(t, SEAM, TOTAL - SEAM)));
+  ch15.seek(Math.min(te, END15));
+  ch5.seek(Math.min(Math.max(te - M5_START, 0), END5));
+  fp.seek(Math.max(te - FP_IN, 0));
+  caps.seek(t > SEAM ? -1 : t);
+
+  const past = x => (t > SEAM ? false : t >= x);
+  const open = ease(seg(te, M5_START - 0.5, 0.7));
+  tf5El.classList.toggle('idle', open < 0.5);
+  rowEl.style.opacity = open;
+  hintEl.style.opacity = (1 - open) * 0.5;
+
+  schoolEls.forEach((el, g) => el.classList.toggle('on', past(SCHOOL_AT[g]) && SCHOOL_OK[g]));
+
+  stEntry.classList.toggle('on', past(M5_START + H5[entryBar5 + 1] + 0.7));
+  stStop.classList.toggle('on', past(M5_START + H5[entryBar5 + 1] + 0.7));
+  const hit = past(M5_START + H5[tgtBar5 + 1] + 1.0);
+  stR.classList.toggle('on', hit);
+  stR.querySelector('.v').textContent = hit ? R_TEXT : '—';
+
+  const hIn = ease(seg(t, 0.35, 0.55));
+  wipe(hookEl, hIn);
+  hookEl.style.opacity = hIn * (1 - ease(seg(t, 3.4, 0.4)));
+
+  const vIn = ease(seg(t, 27.0, 0.5)), vOut = ease(seg(t, 29.7, 0.5));
+  wipe(verdEl, vIn);
+  verdEl.style.opacity = vIn * (1 - vOut);
+  scrimEl.style.opacity = (vIn * (1 - vOut) * 0.96).toFixed(3);
+}
+
+window.LS_SIZE = [1080, 1920];
+window.LS_DURATION = TOTAL;
+window.LS_TAIL = 0;
+window.LS_VIOLATIONS = ch15.violations.concat(ch5.violations,
+  TF_ERRORS.map(e => ({ id: 'M15÷M5', kind: 'timeframe', status: 'mismatch', message: e.message })));
+window.LS_M5 = M5; window.LS_M15 = M15;
+window.LS_GATE = {
+  POC, VAH, VAL, EXC: r2(EXC), ENTRY, STOP, TGT, RISK, LEG: LEG_, R: +R.toFixed(3),
+  accepted, DELTA, ABS: +ABS.toFixed(2), hiRow, closePos: +closePos.toFixed(3),
+  entryBar5, tgtBar5, n5: M5.length, n15: M15.length, tfErrors: TF_ERRORS.length,
+  conditions: COND.map((c, i) => ({ n: i + 1, ok: c.ok, note: c.note })),
+  schools: SCHOOL_OK, allPass: COND.every(c => c.ok),
+  end15: END15, end5: END5, m5Start: M5_START, fpIn: FP_IN, storyEnd: STORY_END,
+  caps: caps.duration(), h15: H15, h5: H5
+};
+window.seekTo = t => { seekAll(t); return true; };
+seekAll(0);
+document.fonts.ready.then(() => { seekAll(0); window.LS_READY = true; });
+
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now) { seekAll(((now - t0) / 1000) % TOTAL); requestAnimationFrame(loop); })(t0);
+}
+</script>

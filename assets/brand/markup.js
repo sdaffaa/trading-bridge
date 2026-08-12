@@ -15,6 +15,13 @@
   'use strict';
 
   const NS = 'http://www.w3.org/2000/svg';
+
+  /* SVG ids are document-global, so this counter must be too. Per-instance it
+     restarts at zero for every chart, and on a page with two charts — an M15
+     card above an M5 card — the second chart's clip-paths resolve by id to the
+     FIRST chart's. Its wipes then reveal nothing, silently: the boxes are in
+     the DOM, correctly placed, and paint no pixels. */
+  let uid = 0;
   const el = (n, a = {}) => {
     const e = document.createElementNS(NS, n);
     for (const k in a) e.setAttribute(k, a[k]);
@@ -219,7 +226,6 @@
     const jobs = [];        // deferred text measurement, run in layout()
     const track = [];       // animation entries
     let cursor = A ? A.start : 0;
-    let uid = 0;
 
     /* Register an animation entry and advance the timeline cursor.
        kind: 'stroke' (dash reveal) | 'fade' | 'wipe' (clip-rect grow) */
@@ -722,11 +728,17 @@
 
       jobs.push(() => {
         const w = label.getComputedTextLength() + 34, h = 42;
-        /* Keep the box inside the plot. A sticker that runs off the edge loses
-           the end of its own label, and the offset that was fine on one bar is
-           wrong once the viewport pans. */
+        /* Keep the box inside the SERIES, not inside the plot. On a replayed
+           chart that pans, the bars run far past plotR and travel into view on
+           gPan, so clamping to plotR pins a mid-series sticker to the right of
+           the plot — and the pan then carries it off-screen to the left, where
+           seek()'s visibility test hides it for good. Clamping to the drawn
+           series is identical on a chart that does not pan, and correct on one
+           that does; the viewport edges are already handled at seek time. */
+        const seriesL = Math.min(plotL, X(0) - step / 2);
+        const seriesR = Math.max(plotR, X(candles.length - 1) + step / 2);
         let bx = cx - w / 2;
-        bx = Math.max(plotL + 4, Math.min(bx, plotR - w - 4));
+        bx = Math.max(seriesL + 4, Math.min(bx, seriesR - w - 4));
         const cxc = bx + w / 2;
         label.setAttribute('x', cxc);
         box.setAttribute('x', bx);         box.setAttribute('y', cy - h / 2);

@@ -19,6 +19,8 @@ assets/brand/
 ├── reel-split-demo.html/.mp4 ← the split-screen reel template
 ├── FORMAT-CAROUSEL.md     ← carousel page architecture + the footprint method
 ├── FORMAT-REEL-VERTICAL.md ← the vertical reel design method (.ls-vr) — read before building one
+├── FORMAT-REEL-MTF.md     ← the two-frame (M15 → M5) reel method — read with the above
+├── timeframe.js           ← M5 → M15 aggregation, and the check that proves they agree
 ├── footprint.js           ← footprint ladders: ladder / heat / inside / bars
 ├── carousel-demo.html     ← the 7-page carousel template — copy it, swap the content
 ├── carousel/              ← its render, 7 × 1080×1350
@@ -167,6 +169,16 @@ reference build.
 | Order flow joins the other three (cream) | `reel-orderflow.md` | `reel-orderflow.html` |
 | The schools disagree — no trade (cream) | `reel-no-trade.md` | `reel-no-trade.html` |
 | The same gate mirrored on a short (cream) | `reel-sell-edge.md` | `reel-sell-edge.html` |
+| **M15 + M5** — ICT sweep → FVG → OTE | `reel-ict-mtf.md` | `reel-ict-mtf.html` |
+| **M15 + M5** — SMC equal lows → CHoCH → order block | `reel-smc-choch.md` | `reel-smc-choch.html` |
+| **M15 + M5** — volume profile excess → POC, with a footprint ladder | `reel-value-poc.md` | `reel-value-poc.html` |
+
+**Every trade is read on M15 and entered on M5**, and the two charts are one
+market: the M5 candles are generated and the M15 candles are
+`LSTF.aggregate(M5, 3)` — never written by hand. `LSTF.verify` runs before the
+render and a mismatch is treated as a drawing violation. The method is written
+up in **[`FORMAT-REEL-MTF.md`](FORMAT-REEL-MTF.md)**; `timeframe.js` is the
+module.
 
 **Every reel gets its own chart.** No two share a `balance()` seed or a structure — the seeds
 in use are `41071`, `20260811`, `5150411`, `771103`, `6420733`, `9174253`. Reusing candles under
@@ -221,6 +233,27 @@ use these; the first three are left as they shipped.
 ![Order flow reel](reel-orderflow-poster.png)
 ![No-trade reel](reel-no-trade-poster.png)
 ![Sell-edge reel](reel-sell-edge-poster.png)
+![ICT two-frame reel](reel-ict-mtf-poster.png)
+![SMC two-frame reel](reel-smc-choch-poster.png)
+![Volume profile two-frame reel](reel-value-poc-poster.png)
+
+The three two-frame reels are standalone — no series, no callbacks — and each
+leads with a different school, named in English on the cards: **ICT**
+(liquidity sweep, displacement, fair value gap, OTE 0.705), **SMC** (equal
+lows, sweep, CHoCH, order block, mitigation), and **Volume Profile +
+Footprint** (excess below VAL, acceptance, POC as target, negative delta,
+absorption). The upper card answers *where* and the lower answers *when*: on
+M15 the whole entry is one wick, and the level the trade turns on is passed to
+both charts as the same variable rather than re-derived. `reel-value-poc.html`
+puts the footprint ladder beside the M5 candles in the same card — the chart
+says where, the ladder says who.
+
+Building these surfaced two engine bugs that only appear with two charts on one
+page, both now fixed in `markup.js`: SVG ids were counted per chart instance
+though they are document-global, so the second chart's clip-paths resolved to
+the first chart's and its reveals painted nothing; and sticker boxes were
+clamped to the plot rather than to the series, so on a panning chart a
+mid-series sticker was pinned past the right edge and then carried off-screen.
 
 `reel-orderflow.html` is part seven, and the answer to the question part six ended on. Three
 schools live on the chart; the fourth gets a **footprint ladder card** of its own below it. The
