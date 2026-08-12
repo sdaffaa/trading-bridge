@@ -1,0 +1,428 @@
+<meta charset="utf-8">
+<title>Liquidity State — كل الشروط تحققت والستوب انضرب</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#8A8A8A; }
+
+  .tf { position:absolute; left:44px; right:44px;
+        border:1.5px solid color-mix(in srgb, var(--ls-card-border) 50%, transparent);
+        border-radius:18px; background:var(--ls-card-bg); box-sizing:border-box;
+        padding:8px 12px 4px; }
+  #tf4  { top:192px; height:176px; }
+  #tf15 { top:380px; height:286px; }
+  #tf5  { top:678px; height:262px; }
+  .tf .pane { margin-top:26px; }
+  .tf .ls-mk-label     { font-size:18px; }
+  .tf .ls-mk-sticker-t { font-size:21px; }
+  .tf .ls-mk-fib       { font-size:13px; }
+  .tf .badge { position:absolute; top:11px; right:20px; z-index:2;
+               font-family:var(--ls-font-wordmark); font-size:18px; letter-spacing:.18em;
+               font-weight:700; direction:ltr; color:var(--ls-text-accent);
+               background:color-mix(in srgb, var(--ls-text-accent) 10%, var(--ls-card-bg));
+               border:1px solid color-mix(in srgb, var(--ls-text-accent) 45%, transparent);
+               border-radius:999px; padding:2px 12px; }
+  .tf .role  { position:absolute; top:13px; left:20px; z-index:2;
+               font-size:21px; font-weight:800; color:var(--ls-text-secondary); }
+  .tf.idle .role, .tf.idle .badge { opacity:.4; }
+  .tf .hint  { position:absolute; inset:0; display:flex; align-items:center;
+               justify-content:center; font-size:26px; font-weight:800;
+               color:var(--ls-text-secondary); opacity:.5; }
+
+  #hook    { top:284px; font-size:70px; }
+  #verdict { top:290px; font-size:62px; }
+  .ls-vr-scrim { top:172px; height:782px; }
+  .ls-vr-beat  { text-shadow:0 2px 26px var(--ls-bg), 0 0 12px var(--ls-bg); }
+
+  /* Four conditions. Every one of them is true — that is the whole point, so
+     they light green and stay lit while the trade dies underneath them. */
+  #conds { top:964px; gap:12px; }
+  .cond { border:1.5px solid color-mix(in srgb, var(--ls-card-border) 45%, transparent);
+          border-radius:16px; background:var(--ls-card-bg); padding:12px 15px; opacity:.42; }
+  .cond .hd { display:flex; align-items:center; justify-content:space-between;
+              border-bottom:1px solid color-mix(in srgb, var(--ls-card-border) 35%, transparent);
+              padding-bottom:6px; margin-bottom:7px; }
+  .cond .nm { font-family:var(--ls-font-wordmark); font-size:19px; letter-spacing:.11em;
+              font-weight:700; direction:ltr; color:var(--ls-text-secondary); }
+  .cond .fr { font-family:var(--ls-font-wordmark); font-size:16px; letter-spacing:.12em;
+              direction:ltr; color:var(--ls-text-secondary); opacity:.7; }
+  .cond .v  { font-size:26px; font-weight:800; direction:ltr;
+              font-variant-numeric:tabular-nums; color:var(--ls-text-secondary); }
+  .cond .t  { margin-top:3px; font-size:19px; font-weight:700; color:var(--ls-text-secondary); }
+  .cond.on  { opacity:1; border-color:var(--ls-text-accent);
+              background:color-mix(in srgb, var(--ls-text-accent) 8%, var(--ls-card-bg)); }
+  .cond.on .nm, .cond.on .v { color:var(--ls-text); }
+  .cond.on .fr { color:var(--ls-text-accent); opacity:1; }
+  .cond.on .t  { color:var(--ls-text-accent); }
+
+  /* Conditions are two rows of ~110px from 964, so they end near 1196 — the
+     stats row sat on top of them at 1194. The three lower blocks never coexist
+     (stats 15.7–26.2, funnel 26.4–29.3, result 29.5–32.3), so they share one
+     slot instead of stacking into the caption. */
+  #stats { top:1216px; grid-template-columns:1fr 1fr 1fr; }
+  .ls-vr-stat.bad .v { color:var(--ls-invalid); }
+
+  /* The funnel — the number that cannot exist on a chart written backwards. */
+  #funnel { position:absolute; left:44px; right:44px; top:1216px; direction:rtl;
+            display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; opacity:0; }
+  #funnel div { border-radius:16px; padding:14px 8px; text-align:center;
+                background:var(--ls-card-bg);
+                border:1.5px solid color-mix(in srgb, var(--ls-card-border) 45%, transparent); }
+  #funnel .k { font-size:20px; font-weight:700; color:var(--ls-text-secondary); }
+  #funnel .n { margin-top:5px; font-size:44px; font-weight:800;
+               direction:ltr; font-variant-numeric:tabular-nums; color:var(--ls-text); }
+  #funnel .win  .n { color:var(--ls-bullish); }
+  #funnel .lose .n { color:var(--ls-invalid); }
+
+  #exp { position:absolute; left:60px; right:60px; top:1216px; text-align:center;
+         direction:rtl; opacity:0; font-size:50px; font-weight:800; line-height:1.35;
+         color:var(--ls-text); }
+  #exp b { color:var(--ls-invalid); }
+
+  .ls-vr-caps .ls-reel-caption { top:1372px; font-size:46px; }
+  .ls-vr-disc { top:1486px; }
+</style>
+
+<div class="ls-vr">
+  <div class="ls-vr-ticker">XAUUSD · H4 → M15 → M5</div>
+  <div class="ls-vr-wm">Liquidity State</div>
+
+  <div class="tf" id="tf4">
+    <div class="badge">H4</div><div class="role">مع مين</div>
+    <div id="chart4" class="pane"></div>
+  </div>
+  <div class="tf idle" id="tf15">
+    <div class="badge">M15</div><div class="role">وين</div>
+    <div class="hint" id="hint15">شمعة H4 = ١٦ شمعة M15</div>
+    <div id="chart15" class="pane"></div>
+  </div>
+  <div class="tf idle" id="tf5">
+    <div class="badge">M5</div><div class="role">متى</div>
+    <div class="hint" id="hint5">شمعة M15 = ٣ شمعات M5</div>
+    <div id="chart5" class="pane"></div>
+  </div>
+
+  <div class="ls-vr-scrim" id="scrim"></div>
+  <div class="ls-vr-beat" id="hook"><span>كل الشروط تحققت<br><em>والستوب انضرب</em></span></div>
+  <div class="ls-vr-beat" id="verdict"><span>مثال واحد<br><em>ما يثبت شي</em></span></div>
+
+  <div class="ls-vr-grid" id="conds">
+    <div class="cond" id="c1">
+      <div class="hd"><div class="nm">LIQUIDITY</div><div class="fr">M15</div></div>
+      <div class="v">—</div><div class="t">قمة ما انكسرت</div>
+    </div>
+    <div class="cond" id="c2">
+      <div class="hd"><div class="nm">PREMIUM</div><div class="fr">H4</div></div>
+      <div class="v">—</div><div class="t">السحب داخل شمعة H4</div>
+    </div>
+    <div class="cond" id="c3">
+      <div class="hd"><div class="nm">DISPLACEMENT + FVG</div><div class="fr">M15</div></div>
+      <div class="v">—</div><div class="t">إزاحة ثم فجوة</div>
+    </div>
+    <div class="cond" id="c4">
+      <div class="hd"><div class="nm">OTE 0.705</div><div class="fr">M5</div></div>
+      <div class="v">—</div><div class="t">الدخول جوّه الفجوة</div>
+    </div>
+  </div>
+
+  <div class="ls-vr-grid" id="stats">
+    <div class="ls-vr-tile ls-vr-stat" id="st-entry"><div class="k">الدخول</div><div class="v">—</div></div>
+    <div class="ls-vr-tile ls-vr-stat" id="st-stop"><div class="k">الستوب</div><div class="v">—</div></div>
+    <div class="ls-vr-tile ls-vr-stat bad" id="st-res"><div class="k">النتيجة</div><div class="v">—</div></div>
+  </div>
+
+  <div id="funnel">
+    <div class="lose"><div class="k">ضُرب ستوبها</div><div class="n">33</div></div>
+    <div class="win"><div class="k">وصلت الهدف</div><div class="n">4</div></div>
+    <div><div class="k">إعداد مكتمل</div><div class="n">37</div></div>
+  </div>
+
+  <div id="exp">على هذه العيّنة المُولَّدة<br>المحصّلة <b>−0.45R</b> للصفقة</div>
+
+  <div class="ls-vr-caps" id="caps"></div>
+  <div class="ls-vr-disc">محاكاة تعليمية واقعية — ليست توصية تداول</div>
+</div>
+
+<script src="./markup.js"></script>
+<script src="./market.js"></script>
+<script src="./captions.js"></script>
+<script>
+/* ==========================================================================
+   كل الشروط تحققت — والستوب انضرب
+   XAUUSD · H4 → M15 → M5     (CHART-PROTOCOL.md §2: ICT/السيولة → XAUUSD)
+
+   CHART_SOURCE_MODE = C · محاكاة تعليمية واقعية. المسار B ما زال مقفلاً على
+   هذا الحساب (FMP مرفوض على مستوى الخطة، وAlpha Vantage داخل اليوم مدفوع،
+   وGOLD_SILVER_HISTORY سعر إغلاق يومي بلا OHLC وبلا حجم).
+
+   وهذا أول ريل يمرّ على **مسطرة `CHART-REALISM.md`** كاملة، لا على بوابة
+   السلامة وحدها: الفريمات الثلاثة المعروضة تُقاس بـ`LSMarket.realism()`
+   وتُفحص بـ`realismGate()` قبل التصيير.
+
+   البحث: **٥٠٠٠ سوق** وُلّدت بلا علم بموضوع الريل، ثم بُحث فيها عن التسلسل.
+   ١١٩٩ إعداداً · ١١٢٨ اجتاز شرط الـH4 · ٦١ وقع الدخول فيها داخل الفجوة ·
+   ٥٠ كان مداها كافياً للعرض · **٣٧ حُسمت: ٤ وصلت الهدف و٣٣ ضُرب ستوبها.**
+   هذا واحد من الثلاثة والثلاثين.
+
+   وبهذه القواعد الميكانيكية بالضبط، على هذه العيّنة المُولَّدة، **المحصلة
+   سالبة: ‎−0.45R للصفقة**. وهذا ليس حكماً على مدرسة — هو قياسٌ لسوقٍ مُولَّد
+   ليس فيه ميزة أصلاً، ونتيجتُه أن **مثالاً واحداً رابحاً لا يثبت شيئاً**.
+   ========================================================================== */
+
+const M = LSMarket;
+const TICK = 0.1, DEC = 1, SEED = 4400339;
+
+/* ---- السوق يُولَّد أولاً ------------------------------------------------- */
+const M5  = M.series({ bars: 960, start: 2400, tick: TICK, decimals: DEC, minutes: 5,
+                       startMinute: 0, vol: 0.55, seed: SEED, baseVolume: 900,
+                       keepPath: true });
+const M15 = M.aggregate(M5, 3);          // 320
+const H4  = M.aggregate(M15, 16);        // 20
+
+/* السلسلة تُثبت لا يُوثق بها: كل شمعة عليا تُعاد من شموعها السفلى وتُطابَق. */
+const TF_ERR = [];
+function chainCheck(lo, hi, k, name) {
+  if (lo.length % k) TF_ERR.push(`${name}: ${lo.length} ليست من مضاعفات ${k}`);
+  for (let i = 0; i < hi.length; i++) {
+    const g = lo.slice(i * k, i * k + k);
+    if (Math.abs(hi[i].o - g[0].o) > 1e-9 || Math.abs(hi[i].c - g[k-1].c) > 1e-9 ||
+        Math.abs(hi[i].h - Math.max(...g.map(c => c.h))) > 1e-9 ||
+        Math.abs(hi[i].l - Math.min(...g.map(c => c.l))) > 1e-9)
+      TF_ERR.push(`${name}: شمعة ${i} لا تطابق مجموعتها`);
+  }
+}
+chainCheck(M5, M15, 3, 'M5÷M15');
+chainCheck(M15, H4, 16, 'M15÷H4');
+
+/* ---- ما وجده البحث ------------------------------------------------------ */
+const P = 207, S = 220, D = 222, G = 223, H4I = 13;
+
+const LVL   = M15[P].h;                       // السيولة = طرف ظل القمة
+const AGE   = S - P;                          // كم شمعة صمدت
+const SW    = M15[S].h;                        // قمة السحب
+const HC    = H4[H4I];
+const H4POS = (SW - HC.l) / (HC.h - HC.l);     // أين وقع السحب داخل شمعة H4
+const DISP  = (M15[D].o - M15[D].c) /
+              (M15.slice(D - 11, D).reduce((a, c) => a + Math.abs(c.c - c.o), 0) / 11);
+const FVG_LO = M15[G].h, FVG_HI = M15[D - 1].l;
+/* قمة الساق، لا قمة شمعة السحب: بين السحب والإزاحة قد تتداول شمعة — وتُغلق —
+   فوق المستوى المسحوب، فيصير الستوب الموضوع على شمعة السحب وحدها **داخل**
+   النطاق، تحت قمة طُبعت فعلاً. هذا ليس ستوباً ضيّقاً، هذا ستوب انتُهك قبل أن
+   يوجد الدخول بثلاث شمعات. */
+const LEG_HI = Math.max(...M15.slice(S, D + 1).map(c => c.h)), LEG_LO = M15[D].l;
+const OTE   = M.toTick(LEG_LO + (LEG_HI - LEG_LO) * 0.705, TICK);
+const STOP  = M.toTick(LEG_HI + 0.2, TICK);
+const TGT   = M.toTick(LEG_LO - (LEG_HI - LEG_LO) * 0.6, TICK);
+const RISK  = +(STOP - OTE).toFixed(1);
+const RR    = (OTE - TGT) / RISK;
+
+/* التنفيذ يُمشى على المسار الداخلي للشمعة، لا على قممها وقيعانها: قمة الشمعة
+   وقاعها لا يرتّبان ما حدث بداخلها، فشمعة لمست الدخول ثم ركضت عشرة أضعاف
+   المخاطرة في صالحك تُقرأ مثل شمعة ركضت أولاً ولمست الدخول وهي راجعة. */
+let ENTRY5 = -1, STOP5 = -1, TGT5 = -1, best = null;
+outer:
+for (let i = (G + 1) * 3; i < M5.length; i++) {
+  for (const x of (M5[i].path || [M5[i].o, M5[i].h, M5[i].l, M5[i].c])) {
+    if (ENTRY5 < 0) { if (x >= OTE) { ENTRY5 = i; best = x; } continue; }
+    if (x < best) best = x;
+    if (x >= STOP) { STOP5 = i; break outer; }
+    if (x <= TGT)  { TGT5  = i; break outer; }
+  }
+}
+const MFE = (OTE - best) / RISK;               // كم راح لصالحك قبل ما يموت
+
+const CHECK = {
+  liquidity:  M15.slice(P + 1, S).every(c => c.h < LVL),
+  h4:         H4POS > 0.50,                    // السحب في النصف العلوي من شمعة H4
+  sweep:      SW > LVL && M15[S].c < LVL,
+  displaced:  DISP >= 2.2 && M15[D].c < M15[S].l,
+  gap:        FVG_HI > FVG_LO + TICK,
+  oteInGap:   OTE >= FVG_LO && OTE <= FVG_HI,
+  filled:     ENTRY5 > 0,
+  stopped:    STOP5 > 0 && TGT5 < 0,           // النتيجة: خسارة، ومعلنة
+  chain:      TF_ERR.length === 0
+};
+const ALL_OK = Object.values(CHECK).every(Boolean);
+
+/* ---- الفريمات الثلاثة ---------------------------------------------------- */
+const W15A = 199, W15B = 243, W5A = 657, W5B = 697;
+const C15 = M15.slice(W15A, W15B), C5 = M5.slice(W5A, W5B);
+const j15 = i => i - W15A, j5 = i => i - W5A;
+const CW = 944;
+
+const ch4 = LSChart({ mount: '#chart4', width: CW, height: 138, candles: H4,
+  padding: { top: 12, right: 92, bottom: 10, left: 10 }, barsRight: 1,
+  autoTerminate: true, tolerance: 0.05, anim: { labelLag: 0.20, labelDur: 0.30 } });
+ch4.drawCandles();
+/* الـH4 يكسب مكانه برقم مقيس عليه ويُختبر على شمعة من الحركة: الشمعة التي وقع
+   فيها السحب، وأين وقع داخلها. */
+/* بلا ملصق: الصندوق يلفّ شمعة واحدة على بطاقة ارتفاعها ١٣٨px، فالملصق داخله
+   يقع فوق الشموع — والملصق الذي يغطّي شمعة ممنوع. الملصق التالي يسمّيها. */
+ch4.zone({ from: H4I, top: HC.h, bottom: HC.l, tone: 'accent',
+           to: H4I, at: 2.90, dur: 0.55 });
+ch4.sticker({ i: H4I, price: HC.h, text: (H4POS * 100).toFixed(0) + '٪ من مداها',
+              dy: -34, dx: -58, at: 3.70 });
+ch4.layout();
+
+const ch15 = LSChart({ mount: '#chart15', width: CW, height: 248, candles: C15,
+  padding: { top: 16, right: 96, bottom: 14, left: 10 }, barsRight: 1,
+  autoTerminate: true, tolerance: 0.05, anim: { labelLag: 0.20, labelDur: 0.30 } });
+ch15.drawCandles();
+ch15.level({ price: LVL, from: j15(P), label: 'سيولة', at: 6.10, dur: 0.55 });
+ch15.sticker({ i: j15(S), price: SW, text: 'سحب', dy: -40, dx: -40, at: 9.00 });
+/* الفجوة: نفس السعرين على الفريمين، متغيّران لا رقمان. المرساة هي الشمعة
+   الثالثة — قمتها هي قاع الفجوة، فهي تلمسها. */
+ch15.zone({ from: j15(G), top: FVG_HI, bottom: FVG_LO, label: 'FVG', tone: 'primary',
+            whole: false, to: 'edge', at: 11.60, dur: 0.55 });
+ch15.layout();
+
+const ch5 = LSChart({ mount: '#chart5', width: CW, height: 224, candles: C5,
+  padding: { top: 16, right: 96, bottom: 12, left: 10 }, barsRight: 1,
+  autoTerminate: true, tolerance: 0.05, anim: { labelLag: 0.20, labelDur: 0.30 } });
+ch5.drawCandles();
+ch5.zone({ from: j5(671), top: FVG_HI, bottom: FVG_LO, label: 'فجوة M15', tone: 'primary',
+           whole: false, align: 'left', to: 'edge', at: 14.40, dur: 0.50 });
+/* الـOTE ارتداد لا مستوى — ما صنعته شمعة، فيُرسم بـ`edge: false` مثل حافة
+   منطقة القيمة، لا مُلصقاً على أقرب ظل. */
+ch5.level({ price: OTE, from: j5(ENTRY5), label: 'OTE 0.705', to: 'edge', edge: false,
+            at: 15.40, dur: 0.50 });
+ch5.zone({ from: j5(ENTRY5), top: STOP, bottom: OTE, label: 'SL', tone: 'danger',
+           whole: false, align: 'right', to: 'edge', at: 17.60, dur: 0.50 });
+ch5.sticker({ i: j5(STOP5), price: STOP, text: 'انضرب', dy: -38, dx: -46, at: 22.10 });
+ch5.layout();
+
+/* ---- بوابة الواقعية على ما يُعرض فعلاً ---------------------------------- */
+const RE = {
+  H4:  M.realism(H4,  { medianWin: 6 }),
+  M15: M.realism(C15, { medianWin: 12 }),
+  M5:  M.realism(C5,  { medianWin: 14 })
+};
+const RE_PROBLEMS = []
+  .concat(M.realismGate(RE.H4).map(x => ({ frame: 'H4', ...x })))
+  .concat(M.realismGate(RE.M15).map(x => ({ frame: 'M15', ...x })))
+  .concat(M.realismGate(RE.M5).map(x => ({ frame: 'M5', ...x })));
+
+/* ---- النصّ --------------------------------------------------------------- */
+const f1 = x => x.toFixed(1);
+document.querySelector('#c1 .v').textContent = f1(LVL);
+document.querySelector('#c1 .t').textContent = 'قمة صمدت ' + AGE + ' شمعة';
+document.querySelector('#c2 .v').textContent = (H4POS * 100).toFixed(0) + '%';
+document.querySelector('#c2 .t').textContent = 'السحب داخل شمعة H4';
+document.querySelector('#c3 .v').textContent = DISP.toFixed(1) + '×';
+/* نطاق رقمي داخل سطر عربي: بلا `dir="ltr"` يقلبه المتصفّح فيقرأ الأعلى أولاً
+   ويبدو الحدّان معكوسين. */
+document.querySelector('#c3 .t').innerHTML =
+  '<span dir="ltr">' + f1(FVG_LO) + ' – ' + f1(FVG_HI) + '</span>';
+document.querySelector('#c4 .v').textContent = f1(OTE);
+document.querySelector('#c4 .t').textContent = 'جوّه الفجوة';
+
+const TOTAL = 34.00, SEAM = 32.60;
+const ease = k => k * k * (3 - 2 * k);
+const seg  = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
+const band = (t, a, b, f) => ease(seg(t, a, f)) * (1 - ease(seg(t, b - f, f)));
+
+const CAPS = LSCaptions({ mount: '#caps', track: [
+  [0.10, 2.30, 'كل الشروط تحققت… <em>والستوب انضرب</em>'],
+  [2.60, 4.90, 'الـ<em>H4</em> يقول: السحب بالنصف الأعلى'],
+  [5.90, 8.60, 'الـ<em>M15</em>: سيولة صمدت ' + AGE + ' شمعة'],
+  [8.90, 11.30, 'أخذها… <b>وأغلق تحتها</b>'],
+  [11.60, 14.00, 'إزاحة ' + DISP.toFixed(1) + '× <em>وفجوة</em>'],
+  [14.30, 17.20, 'الـ<em>M5</em>: دخول 0.705 جوّه الفجوة'],
+  [17.60, 20.60, 'الستوب فوق قمة السحب — <b>' + f1(STOP) + '</b>'],
+  [20.90, 23.40, 'راح لك <em>' + MFE.toFixed(1) + 'R</em>… ثم رجع'],
+  [23.70, 26.30, 'كل شرط كان <em>صحيحاً</em> — والنتيجة <b>−1R</b>'],
+  /* لا بيت أخير هنا: الحكم النهائي والسطر الإحصائي يشغلان الشريحة نفسها،
+     وثلاثة أسطر في مكان واحد ليست خاتمة بل ازدحام. */
+  [26.60, 29.40, 'من ٣٧ إعداداً مكتملاً: <b>٣٣ خسرت</b>']
+].map(([t, end, text]) => ({ t, end, text })) });
+
+const el = id => document.getElementById(id);
+const tf15El = el('tf15'), tf5El = el('tf5');
+const hint15 = el('hint15'), hint5 = el('hint5');
+const pane15 = el('chart15'), pane5 = el('chart5');
+const hookEl = el('hook'), verEl = el('verdict'), scrimEl = el('scrim');
+const condsEl = el('conds'), statsEl = el('stats');
+const funEl = el('funnel'), expEl = el('exp');
+const cE = [el('c1'), el('c2'), el('c3'), el('c4')];
+const sEntry = el('st-entry'), sStop = el('st-stop'), sRes = el('st-res');
+const CON_AT = [6.60, 3.70, 12.10, 15.90];
+
+function seekAll(t) {
+  let te = t;
+  if (t > SEAM) te = SEAM * (1 - ease(seg(t, SEAM, TOTAL - SEAM - 1 / 30)));
+
+  ch4.seek(te);
+  ch15.seek(te);
+  ch5.seek(te);
+
+  /* البطاقة السفلى مطفية حتى تُسلَّم لها الشاشة: `seek(0)` يعرض كل شموعها
+     فوراً، فإخفاء الشارة وحدها يترك الشموع تحرق القصة من الإطار صفر. */
+  const on15 = te >= 5.40, on5 = te >= 13.90;
+  tf15El.classList.toggle('idle', !on15);
+  tf5El.classList.toggle('idle', !on5);
+  hint15.style.opacity = on15 ? 0 : 1;
+  hint5.style.opacity = on5 ? 0 : 1;
+  pane15.style.opacity = on15 ? 1 : 0;
+  pane5.style.opacity = on5 ? 1 : 0;
+
+  scrimEl.style.opacity = Math.max(band(te, 0.00, 2.40, 0.30),
+                                   band(te, 29.90, 32.40, 0.34)).toFixed(3);
+  hookEl.style.opacity = band(te, 0.00, 2.40, 0.30).toFixed(3);
+  hookEl.firstElementChild.style.clipPath =
+    `inset(0 0 0 ${(100 * (1 - ease(seg(te, 0.10, 0.55)))).toFixed(1)}%)`;
+  verEl.style.opacity = band(te, 29.90, 32.40, 0.34).toFixed(3);
+  verEl.firstElementChild.style.clipPath =
+    `inset(0 0 0 ${(100 * (1 - ease(seg(te, 30.00, 0.55)))).toFixed(1)}%)`;
+
+  condsEl.style.opacity = band(te, 3.40, 32.30, 0.32).toFixed(3);
+  cE.forEach((e, k) => e.classList.toggle('on', te >= CON_AT[k] && te <= SEAM));
+
+  statsEl.style.opacity = band(te, 15.70, 26.20, 0.30).toFixed(3);
+  const lit = (e, x, val) => {
+    const ok = te >= x && te <= SEAM;
+    e.classList.toggle('on', ok);
+    e.querySelector('.v').textContent = ok ? val : '—';
+  };
+  lit(sEntry, 15.90, f1(OTE));
+  lit(sStop, 17.80, f1(STOP));
+  /* النتيجة لا تظهر قبل أن يقع الحدث — والحدث هنا خسارة، لا تُخفى. */
+  lit(sRes, 22.30, CHECK.stopped ? '−1R' : '—');
+
+  funEl.style.opacity = band(te, 26.40, 29.30, 0.30).toFixed(3);
+  expEl.style.opacity = band(te, 29.50, 32.30, 0.30).toFixed(3);
+
+  CAPS.seek(te);
+}
+
+/* ---- بوابات التسليم ------------------------------------------------------ */
+window.LS_SIZE = [1080, 1920];
+window.LS_DURATION = TOTAL;
+window.LS_TAIL = 0;
+window.LS_VIOLATIONS = ch4.violations.concat(ch15.violations, ch5.violations,
+  TF_ERR.map(m => ({ id: 'H4÷M15÷M5', kind: 'timeframe', status: 'mismatch', message: m })));
+window.LS_QA = M.qa({ candles: M5, tick: TICK, decimals: DEC, minutes: 5 });
+window.LS_REALISM = { stats: RE, problems: RE_PROBLEMS };
+window.LS_GATE = {
+  mode: 'C_REALISTIC_SIMULATION', market: 'XAUUSD', frames: 'H4 → M15 → M5',
+  seed: SEED, marketsSearched: 5000, setups: 1199, passedH4: 1128, oteInGap: 61,
+  chartable: 50, resolved: 37, won: 4, lost: 33,
+  winRate: 0.108, avgWinnerR: 4.05, expectancyR: -0.454,
+  bars: { M5: M5.length, M15: M15.length, H4: H4.length },
+  LVL, age: AGE, sweep: SW, h4Pos: +H4POS.toFixed(3),
+  displacement: +DISP.toFixed(2), fvg: [FVG_LO, FVG_HI],
+  ENTRY: OTE, STOP, TGT, RISK, R: +RR.toFixed(2),
+  entryBar5: ENTRY5, stopBar5: STOP5, targetBar5: TGT5,
+  barsInTrade: STOP5 - ENTRY5, mfeR: +MFE.toFixed(2),
+  check: CHECK, allOk: ALL_OK,
+  violations: window.LS_VIOLATIONS.length,
+  qaProblems: window.LS_QA.length,
+  realismProblems: RE_PROBLEMS.length
+};
+window.seekTo = t => { seekAll(t); return true; };
+seekAll(0);
+document.fonts.ready.then(() => { seekAll(0); window.LS_READY = true; });
+
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now) { seekAll(((now - t0) / 1000) % TOTAL); requestAnimationFrame(loop); })(t0);
+}
+</script>

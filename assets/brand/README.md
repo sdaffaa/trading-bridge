@@ -174,6 +174,7 @@ reference build.
 | **H4 + M15 + M5** — volume profile excess → POC, with a footprint ladder | `reel-value-poc.md` | `reel-value-poc.html` |
 | **M15 → M5** — where the stop goes, read off VAH/POC/VAL | `reel-stop-vp.md` | `reel-stop-vp.html` |
 | **M5, bar replay** — absorption at a liquidity sweep, read off the ladder | `reel-absorb-gc.md` | `reel-absorb-gc.html` |
+| **H4 + M15 + M5** — a complete setup that still lost, with the sample behind it | `reel-valid-loss.md` | `reel-valid-loss.html` |
 
 **Every trade is read on H4, located on M15 and entered on M5**, and the three
 charts are one market: the M5 candles are generated and the other two are
@@ -243,6 +244,7 @@ use these; the first three are left as they shipped.
 ![Volume profile two-frame reel](reel-value-poc-poster.png)
 ![Stop placement reel](reel-stop-vp-poster.png)
 ![Order flow absorption reel](reel-absorb-gc-poster.png)
+![Valid setup, losing trade reel](reel-valid-loss-poster.png)
 
 The three multi-frame reels are standalone — no series, no callbacks — and each
 leads with a different school, named in English on the cards: **ICT**
@@ -278,10 +280,10 @@ Universal Chart Realism System v1.0, transcribed in full from the PDF kept in
 type, candle size against a rolling median, reversal ratios, similarity and
 cyclicity limits, the QA matrix, and the final sign-off list. Its own closing
 rule is the shortest statement of the whole method: *a convincing chart does not
-look perfect, it looks verifiable.* Four of its checks — ER, body ratios,
-reversal ratios, and similarity/cyclicity — are **not implemented in code yet**,
-and §16 of that file says so rather than letting the document read as if they
-were.
+look perfect, it looks verifiable.* Its four style checks — ER, body ratios,
+reversal ratios, and similarity/cyclicity — are now implemented in
+`LSMarket.realism()` and gated by `realismGate()`, and `reel-valid-loss` is the
+first work to pass all of them on every frame it shows.
 
 **[`CHART-PROTOCOL.md`](CHART-PROTOCOL.md)** is the production method, and
 `reel-absorb-gc.html` is the first page built end to end under it, under the rule that no chart asks the
@@ -305,6 +307,26 @@ before the bar that justifies it has printed. `tvchrome.js` adds the furniture a
 trading screen has (axes, grid, live price tag, bar countdown) and `replay({
 forming: true })` builds the current candle out of its own intrabar path instead
 of revealing it whole.
+
+`reel-valid-loss.html` is the first reel here whose subject is a **losing**
+trade, and the reason is a measurement rather than a mood. Every reel before it
+showed a setup that worked, which is a selection bias no amount of rigour inside
+one chart can fix. So the search kept the whole distribution: 5000 generated
+markets, 1199 matching setups, 37 that resolved — 4 reached target and 33 were
+stopped, for −0.45R per trade. The reel shows one of the 33, the one that ran
+2.81R in favour (67% of the way to its target) before coming all the way back.
+The claim it makes is narrow and stated as such: this is a mechanical rule
+measured on a generated sample with no edge in it, not a verdict on a school.
+What it demonstrates is that one winning example proves nothing.
+
+Two modelling errors surfaced while building it, and both changed the numbers
+rather than the presentation. The liquidity condition only proved the level was
+intact up to the *approach* bar, so a chart claiming "a high that held 21
+candles" was describing a high that had already been taken; and the stop was
+measured from the sweep bar rather than the leg, which placed it under a high
+that had printed three candles before the entry existed. Fixing the second moved
+the sample from 85 trades at −0.04R to 37 at −0.45R — the prettier number was
+the one produced by the bug.
 
 One trap the H4 layer introduces: searching the whole context for "the biggest
 impulse" finds a lucky run of drift instead of the real one, and every
