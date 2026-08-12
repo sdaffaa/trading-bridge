@@ -1,0 +1,11 @@
+{
+  "name": "liquidity-state-carousels",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Liquidity State Instagram carousels batch — 5 carousels x 6 pages",
+  "dependencies": {
+    "pdf-lib": "^1.17.1",
+    "sharp": "^0.35.3"
+  }
+}

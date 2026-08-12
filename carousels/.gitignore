@@ -1,0 +1,3 @@
+node_modules/
+dist/liquidity-state-carousels/
+dist/*.zip

@@ -1,0 +1,182 @@
+[
+  {
+    "carousel": "01",
+    "page": 1,
+    "file": "out/png/01_01_absorption-footprint.png",
+    "kind": "cover"
+  },
+  {
+    "carousel": "01",
+    "page": 2,
+    "file": "out/png/01_02_absorption-footprint.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "01",
+    "page": 3,
+    "file": "out/png/01_03_absorption-footprint.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "01",
+    "page": 4,
+    "file": "out/png/01_04_absorption-footprint.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "01",
+    "page": 5,
+    "file": "out/png/01_05_absorption-footprint.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "01",
+    "page": 6,
+    "file": "out/png/01_06_absorption-footprint.png",
+    "kind": "cta"
+  },
+  {
+    "carousel": "02",
+    "page": 1,
+    "file": "out/png/02_01_ict-fvg-discount-entry.png",
+    "kind": "cover"
+  },
+  {
+    "carousel": "02",
+    "page": 2,
+    "file": "out/png/02_02_ict-fvg-discount-entry.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "02",
+    "page": 3,
+    "file": "out/png/02_03_ict-fvg-discount-entry.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "02",
+    "page": 4,
+    "file": "out/png/02_04_ict-fvg-discount-entry.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "02",
+    "page": 5,
+    "file": "out/png/02_05_ict-fvg-discount-entry.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "02",
+    "page": 6,
+    "file": "out/png/02_06_ict-fvg-discount-entry.png",
+    "kind": "cta"
+  },
+  {
+    "carousel": "03",
+    "page": 1,
+    "file": "out/png/03_01_vwap-touch-loss.png",
+    "kind": "cover"
+  },
+  {
+    "carousel": "03",
+    "page": 2,
+    "file": "out/png/03_02_vwap-touch-loss.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "03",
+    "page": 3,
+    "file": "out/png/03_03_vwap-touch-loss.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "03",
+    "page": 4,
+    "file": "out/png/03_04_vwap-touch-loss.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "03",
+    "page": 5,
+    "file": "out/png/03_05_vwap-touch-loss.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "03",
+    "page": 6,
+    "file": "out/png/03_06_vwap-touch-loss.png",
+    "kind": "cta"
+  },
+  {
+    "carousel": "04",
+    "page": 1,
+    "file": "out/png/04_01_smc-inducement-choch.png",
+    "kind": "cover"
+  },
+  {
+    "carousel": "04",
+    "page": 2,
+    "file": "out/png/04_02_smc-inducement-choch.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "04",
+    "page": 3,
+    "file": "out/png/04_03_smc-inducement-choch.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "04",
+    "page": 4,
+    "file": "out/png/04_04_smc-inducement-choch.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "04",
+    "page": 5,
+    "file": "out/png/04_05_smc-inducement-choch.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "04",
+    "page": 6,
+    "file": "out/png/04_06_smc-inducement-choch.png",
+    "kind": "cta"
+  },
+  {
+    "carousel": "05",
+    "page": 1,
+    "file": "out/png/05_01_psych-moving-stop.png",
+    "kind": "cover"
+  },
+  {
+    "carousel": "05",
+    "page": 2,
+    "file": "out/png/05_02_psych-moving-stop.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "05",
+    "page": 3,
+    "file": "out/png/05_03_psych-moving-stop.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "05",
+    "page": 4,
+    "file": "out/png/05_04_psych-moving-stop.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "05",
+    "page": 5,
+    "file": "out/png/05_05_psych-moving-stop.png",
+    "kind": "content"
+  },
+  {
+    "carousel": "05",
+    "page": 6,
+    "file": "out/png/05_06_psych-moving-stop.png",
+    "kind": "cta"
+  }
+]
