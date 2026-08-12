@@ -58,7 +58,9 @@
      stats row sat on top of them at 1194. The three lower blocks never coexist
      (stats 15.7–26.2, funnel 26.4–29.3, result 29.5–32.3), so they share one
      slot instead of stacking into the caption. */
-  #stats { top:1216px; grid-template-columns:1fr 1fr 1fr; }
+  #stats { top:1216px; grid-template-columns:repeat(4,1fr); }
+  #stats .ls-vr-stat .k { font-size:21px; }
+  #stats .ls-vr-stat .v { font-size:33px; }
   .ls-vr-stat.bad .v { color:var(--ls-invalid); }
 
   /* The funnel — the number that cannot exist on a chart written backwards. */
@@ -127,6 +129,7 @@
   <div class="ls-vr-grid" id="stats">
     <div class="ls-vr-tile ls-vr-stat" id="st-entry"><div class="k">الدخول</div><div class="v">—</div></div>
     <div class="ls-vr-tile ls-vr-stat" id="st-stop"><div class="k">الستوب</div><div class="v">—</div></div>
+    <div class="ls-vr-tile ls-vr-stat" id="st-tgt"><div class="k">الهدف · 4.21R</div><div class="v">—</div></div>
     <div class="ls-vr-tile ls-vr-stat bad" id="st-res"><div class="k">النتيجة</div><div class="v">—</div></div>
   </div>
 
@@ -343,7 +346,7 @@ const hookEl = el('hook'), verEl = el('verdict'), scrimEl = el('scrim');
 const condsEl = el('conds'), statsEl = el('stats');
 const funEl = el('funnel'), expEl = el('exp');
 const cE = [el('c1'), el('c2'), el('c3'), el('c4')];
-const sEntry = el('st-entry'), sStop = el('st-stop'), sRes = el('st-res');
+const sEntry = el('st-entry'), sStop = el('st-stop'), sTgt = el('st-tgt'), sRes = el('st-res');
 const CON_AT = [6.60, 3.70, 12.10, 15.90];
 
 function seekAll(t) {
@@ -384,6 +387,10 @@ function seekAll(t) {
   };
   lit(sEntry, 15.90, f1(OTE));
   lit(sStop, 17.80, f1(STOP));
+  /* الهدف يظهر هنا لا لأن الترتيب يقتضيه، بل لأن ما بين 18.6 و20.6 كان ساكناً
+     تماماً — ٥٩ إطاراً متطابقاً قاسها فاحص الخياطة. ثانيتان بلا تغيّر في ريل
+     ليستا هدوءاً، هي توقّف. */
+  lit(sTgt, 19.20, f1(TGT));
   /* النتيجة لا تظهر قبل أن يقع الحدث — والحدث هنا خسارة، لا تُخفى. */
   lit(sRes, 22.30, CHECK.stopped ? '−1R' : '—');
 
