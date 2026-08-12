@@ -4,6 +4,7 @@ const faces=[['Plex',400,'fonts/IBMPlexSansArabic-Regular.ttf'],['Plex',500,'fon
  ['Plex',600,'fonts/IBMPlexSansArabic-SemiBold.ttf'],['Plex',700,'fonts/IBMPlexSansArabic-Bold.ttf']];
 let fontcss=faces.map(([f,w,p])=>`@font-face{font-family:'${f}';font-weight:${w};font-display:block;src:url(data:font/ttf;base64,${b64(p)}) format('truetype')}`).join('\n');
 const scene=fs.readFileSync('scene.js','utf8');
+const scenario=fs.readFileSync('data/scenario.json','utf8');
 
 const css=`
 *{margin:0;padding:0;box-sizing:border-box}
@@ -42,7 +43,7 @@ html,body{width:1080px;height:1920px;overflow:hidden;background:#04121c}
 .cta .handle{margin-top:16px;font-size:40px;font-weight:700;color:#1c8f86;direction:ltr}
 `;
 const html=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>${fontcss}\n${css}</style></head>`+
-`<body><div id="stage"></div><script>${scene}</script>`+
+`<body><div id="stage"></div><script>window.__DATA=${scenario};</script><script>${scene}</script>`+
 `<script>window.__ready=true;window.renderFrame=function(t){document.getElementById('stage').innerHTML=window.buildStage(t);};</script></body></html>`;
 fs.writeFileSync('index.html',html);
 console.log('index.html',(html.length/1e6).toFixed(2),'MB');
