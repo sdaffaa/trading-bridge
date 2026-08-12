@@ -174,6 +174,7 @@ this skill:
 | `markup.js` | chart markup engine — levels, zones, structure, volume profile, position tool |
 | `MARKUP.md` | the approved markup method and its drawing rhythm |
 | `FORMAT-CAROUSEL.md` | the carousel page architecture and the footprint method |
+| `FORMAT-REEL-VERTICAL.md` | the vertical reel design method (`.ls-vr`) |
 | `footprint.js` | footprint / order-flow ladders — the four approved variants |
 | `capture-slides.py` | renders each carousel page to PNG, and fails if a drawing broke a rule |
 | `tools/check-rules-parity.js` | proves the JS and Python rule implementations agree |

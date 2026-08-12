@@ -3,6 +3,10 @@
 Canonical brand identity for **@liquidity.state**: logo, approved color palette, typography,
 and ready-to-use design tokens.
 
+> **Standing rules live in [`../../CLAUDE.md`](../../CLAUDE.md)** — read it first. The one that
+> governs every analysis: **three or four schools, always**, and they must agree on the *same
+> price*, not merely appear side by side.
+
 ```
 assets/brand/
 ├── colors.json            ← design tokens (source of truth for color + type)
@@ -14,6 +18,7 @@ assets/brand/
 ├── FORMAT-REEL-SPLIT.md   ← split-screen reel format (face + chart + karaoke captions)
 ├── reel-split-demo.html/.mp4 ← the split-screen reel template
 ├── FORMAT-CAROUSEL.md     ← carousel page architecture + the footprint method
+├── FORMAT-REEL-VERTICAL.md ← the vertical reel design method (.ls-vr) — read before building one
 ├── footprint.js           ← footprint ladders: ladder / heat / inside / bars
 ├── carousel-demo.html     ← the 7-page carousel template — copy it, swap the content
 ├── carousel/              ← its render, 7 × 1080×1350
@@ -142,6 +147,12 @@ Pass `autoTerminate: true` and every level and box ends itself at the candle tha
 ---
 
 ## 6. Reel formats
+
+**Default for any new reel: the vertical `.ls-vr` format.** Its design method — the vertical
+bands, the one-clock rule, holds and the `atBar: N+1` correction, self-proving tiles, the
+withheld result, the scrim, the measured loop seam, and the pre-delivery checklist — is written
+up in **[`FORMAT-REEL-VERTICAL.md`](FORMAT-REEL-VERTICAL.md)**. `reel-confluence.html` is the
+reference build.
 
 | Format | Spec | Template |
 |---|---|---|
