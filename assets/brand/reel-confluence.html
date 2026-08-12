@@ -1,0 +1,365 @@
+<meta charset="utf-8">
+<title>Liquidity State — بوابة التوافق</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#8A8A8A; }
+
+  /* Same method as the last two reels: cream identity, .ls-vr components,
+     chart in a bordered card, only the vertical rhythm lives here. */
+  .ls-vr-chart  { top:222px; height:566px; }
+  #hook    { top:340px; font-size:80px; }
+  #verdict { top:352px; font-size:68px; }
+  .ls-vr-scrim  { top:196px; height:604px; }
+
+  /* Four schools, two by two. The grouping IS the argument: one school
+     agreeing with itself is not confluence. */
+  #schools { top:814px; gap:14px; }
+  .school  { border:1.5px solid color-mix(in srgb, var(--ls-card-border) 45%, transparent);
+             border-radius:18px; background:var(--ls-card-bg); padding:16px 18px;
+             opacity:.42; }
+  .school .hd { display:flex; align-items:center; justify-content:space-between;
+                border-bottom:1px solid color-mix(in srgb, var(--ls-card-border) 35%, transparent);
+                padding-bottom:11px; margin-bottom:11px; }
+  .school .nm { font-size:27px; font-weight:800; color:var(--ls-text-secondary); }
+  .school .tag{ font-family:var(--ls-font-wordmark); font-size:19px; letter-spacing:.16em;
+                text-transform:uppercase; color:var(--ls-text-secondary); direction:ltr; }
+  .school .c  { display:flex; align-items:center; gap:11px; margin-top:9px; }
+  .school .c b{ flex:none; width:26px; height:26px; border-radius:999px; font-size:15px;
+                font-weight:800; line-height:24px; text-align:center;
+                border:1.5px solid color-mix(in srgb, var(--ls-text-secondary) 60%, transparent);
+                color:var(--ls-text-secondary); }
+  .school .c span { font-size:24px; font-weight:700; color:var(--ls-text-secondary); }
+  .school .c em   { margin-right:auto; font-style:normal; font-size:20px; font-weight:700;
+                    direction:ltr; white-space:nowrap;
+                    color:var(--ls-text-secondary); opacity:.75; }
+
+  .school.on { opacity:1; border-color:var(--ls-text-accent);
+               background:color-mix(in srgb, var(--ls-text-accent) 8%, var(--ls-card-bg));
+               box-shadow:0 6px 26px -14px color-mix(in srgb, var(--ls-text-accent) 80%, transparent); }
+  .school.on .nm  { color:var(--ls-text); }
+  .school.on .tag { color:var(--ls-text-accent); }
+  .school.on .c b { border-color:var(--ls-text-accent); color:var(--ls-text-accent); }
+  .school.on .c span { color:var(--ls-text); }
+  .school.on .c em   { color:var(--ls-text-accent); opacity:1; }
+
+  #stats   { top:1216px; grid-template-columns:1fr 1fr 1fr; }
+  .ls-vr-caps .ls-reel-caption { top:1364px; font-size:54px; }
+  .ls-vr-disc   { top:1486px; }
+
+  .ls-vr-beat { text-shadow:0 2px 26px var(--ls-bg), 0 0 12px var(--ls-bg); }
+</style>
+
+<div class="ls-vr">
+  <div class="ls-vr-ticker">XAUUSD · H1</div>
+  <div class="ls-vr-wm">Liquidity State</div>
+
+  <div class="ls-vr-chart"><div id="chart"></div></div>
+
+  <div class="ls-vr-scrim" id="scrim"></div>
+  <div class="ls-vr-beat" id="hook"><span>مدرسة وحدة<br>ما تكفي</span></div>
+  <div class="ls-vr-beat" id="verdict"><span>ثلاث مدارس تتفق<br>على <em>نفس السعر</em></span></div>
+
+  <div class="ls-vr-grid" id="schools">
+    <div class="school" data-i="0">
+      <div class="hd"><div class="nm">الهيكل</div><div class="tag">SMC</div></div>
+      <div class="c"><b>1</b><span>BOS بإغلاق</span><em class="n1">—</em></div>
+      <div class="c"><b>2</b><span>Order Block</span><em class="n2">—</em></div>
+    </div>
+    <div class="school" data-i="1">
+      <div class="hd"><div class="nm">التسليم</div><div class="tag">ICT</div></div>
+      <div class="c"><b>3</b><span>Displacement</span><em class="n1">—</em></div>
+      <div class="c"><b>4</b><span>FVG</span><em class="n2">—</em></div>
+    </div>
+    <div class="school" data-i="2">
+      <div class="hd"><div class="nm">القيمة</div><div class="tag">Volume Profile</div></div>
+      <div class="c"><b>5</b><span>قبول فوق VAH</span><em class="n1">—</em></div>
+      <div class="c"><b>6</b><span>VAH صار دعم</span><em class="n2">—</em></div>
+    </div>
+    <div class="school" data-i="3">
+      <div class="hd"><div class="nm">المخاطرة</div><div class="tag">Risk</div></div>
+      <div class="c"><b>7</b><span>الخطر ≤ ٤٠٪ الساق</span><em class="n1">—</em></div>
+      <div class="c"><b>8</b><span>العائد ≥ ٢R</span><em class="n2">—</em></div>
+    </div>
+  </div>
+
+  <div class="ls-vr-grid" id="stats">
+    <div class="ls-vr-tile ls-vr-stat" id="st-entry"><div class="k">الدخول</div><div class="v">—</div></div>
+    <div class="ls-vr-tile ls-vr-stat" id="st-stop"><div class="k">الستوب</div><div class="v">—</div></div>
+    <div class="ls-vr-tile ls-vr-stat" id="st-r"><div class="k">النتيجة</div><div class="v">—</div></div>
+  </div>
+
+  <div class="ls-vr-caps" id="caps"></div>
+  <div class="ls-vr-disc">مثال تخطيطي لغرض تعليمي — ليست توصية</div>
+</div>
+
+<script src="./markup.js"></script>
+<script src="./captions.js"></script>
+<script>
+/* ==========================================================================
+   بوابة التوافق — three schools on one price
+
+   Part six. The gate again, but the eight conditions are now grouped by the
+   school that owns them, and six of the eight carry that school's own name.
+   One school agreeing with itself is not confluence; the grouping is the
+   argument, which is why the tiles are school cards rather than a flat list.
+
+   The fourth school of this account — Footprint / order flow — is deliberately
+   NOT on the card. Delta and imbalance cannot be derived from OHLC, and this
+   chart has no order-flow data, so claiming them would be inventing numbers.
+   It is what the closing question hands to the next post instead.
+
+   All 11 beats, 34.0s. Anchor noun: المدرسة.
+     1  HOOK      مدرسة وحدة ما تكفي
+     2  PARADOX   نموذج صحيح بمدرسة، وخاطئ بالثانية
+     3  PIVOT     شلون؟
+     4  INVITE    تعال اقولك
+     5+6 BELIEF   كل واحد يتعلم مدرسة ويحكم فيها على كل شي
+     7  TURN      لكن بالواقع؟ الصفقة اللي تستاهل، ثلاث مدارس تتفق عليها …
+     8  VERDICT   ثلاث مدارس تتفق على نفس السعر            ← reuses beat 1
+     9  PROOF     شوف — الثمانية تحققوا، وراح حق الهدف
+     10 CARE      تتفق مدرستين بس؟ ما فيه صفقة
+     11 LOOP      والمدرسة الرابعة؟ تابع البوست الجاي
+   ========================================================================== */
+
+const TOTAL = 34.0;
+const SEAM  = 32.8;
+
+/* ---- pass one: measure the balance --------------------------------------
+   The value area has to exist before the trade can be built on it, and it is
+   computed from the range bars alone. A throwaway chart does the measuring so
+   the real series can be written against real VAH/POC numbers instead of
+   numbers chosen to look right. */
+function balance(n) {
+  let s = 5150411, p = 100;
+  const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const o = p;
+    const c = Math.max(94.20, Math.min(105.80, o + (100 - o) * 0.19 + rnd() * 6.6));
+    const w = 0.5 + Math.abs(rnd()) * 1.4;
+    out.push({ o, c,
+      h: Math.min(106.40, Math.max(o, c) + Math.abs(rnd()) * w),
+      l: Math.max(93.60, Math.min(o, c) - Math.abs(rnd()) * w) });
+    p = c;
+  }
+  return out;
+}
+
+const RANGE = balance(34);
+const probe = document.createElement('div');
+probe.style.cssText = 'position:absolute;left:-9999px;width:900px';
+document.body.appendChild(probe);
+const pc = LSChart({ mount: probe, width: 900, height: 500, candles: RANGE,
+                     padding: { top: 20, right: 20, bottom: 20, left: 20 }, barsRight: 1 });
+pc.drawCandles();
+pc.volumeProfile({ from: 0, to: 33, bins: 30, valueArea: 0.70 });
+const P = pc.profile;
+const POC = P.poc, VAH = P.vah, VAL = P.val;
+probe.remove();
+
+/* ---- pass two: the trade, written against those numbers -----------------
+   Every bar below is placed relative to the measured VAH. The impulse leaves
+   a real gap, the pullback lands on the value-area high, and the two are the
+   same price — which is the entire point of the page. */
+const r2 = v => Math.round(v * 100) / 100;
+const V  = d => r2(VAH + d);          // every bar below is written against the VAH
+
+/* Bar 35 tops out EXACTLY at the VAH without closing through the structure,
+   and bar 37's low is the other side of the gap. That is what makes the claim
+   on screen true rather than nearly true: the floor of the ICT gap and the top
+   of the value area are the same price, and that price is the entry. */
+const OB = { o: V(-1.9), c: V(-2.8), h: V(-1.6), l: V(-3.0) };
+
+const C = RANGE.concat([
+  OB,                                                        // 34 — the order block
+  { o: V(-2.8), c: V(-0.6), h: V(0),    l: V(-2.9) },        // 35 — high IS the VAH
+  { o: V(-0.6), c: V(4.2),  h: V(4.6),  l: V(-0.8) },        // 36 — displacement + BOS
+  { o: V(4.2),  c: V(5.8),  h: V(6.4),  l: V(1.0)  },        // 37 — low is the gap's top
+  { o: V(5.8),  c: V(5.0),  h: V(6.1),  l: V(4.6)  },
+  { o: V(5.0),  c: V(5.6),  h: V(5.9),  l: V(4.7)  },
+  { o: V(5.6),  c: V(4.0),  h: V(5.7),  l: V(3.6)  },
+  { o: V(4.0),  c: V(2.7),  h: V(4.2),  l: V(2.3)  },
+  { o: V(2.7),  c: V(1.5),  h: V(2.9),  l: V(1.2)  },
+  { o: V(1.5),  c: V(0.7),  h: V(1.7),  l: V(0.3)  },        // 43 — trades into the gap
+  { o: V(0.7),  c: V(1.3),  h: V(1.5),  l: V(0)    },        // 44 — taps the VAH: the entry
+  { o: V(1.3),  c: V(2.4),  h: V(2.7),  l: V(1.1)  },
+  { o: V(2.4),  c: V(1.9),  h: V(2.7),  l: V(1.6)  },
+  { o: V(1.9),  c: V(3.2),  h: V(3.4),  l: V(1.7)  },
+  { o: V(3.2),  c: V(4.4),  h: V(4.7),  l: V(3.0)  },
+  { o: V(4.4),  c: V(3.9),  h: V(4.6),  l: V(3.6)  },
+  { o: V(3.9),  c: V(5.3),  h: V(5.6),  l: V(3.7)  },
+  { o: V(5.3),  c: V(6.2),  h: V(6.4),  l: V(5.1)  },        // 51 — the target is reached
+  { o: V(6.2),  c: V(5.7),  h: V(6.6),  l: V(5.4)  },
+  { o: V(5.7),  c: V(6.9),  h: V(7.2),  l: V(5.5)  },
+  { o: V(6.9),  c: V(6.4),  h: V(7.3),  l: V(6.1)  }
+]);
+
+/* ---- the trade ---------------------------------------------------------
+   ENTRY the value-area high, which is also the floor of the ICT gap
+   STOP  under the order block
+   TGT   the high the displacement printed                                  */
+const ENTRY = VAH;
+const STOP  = OB.l;
+const TGT   = C[37].h;
+const RISK  = ENTRY - STOP;
+const LEG   = TGT - STOP;
+const R     = (TGT - ENTRY) / RISK;
+
+const body = i => Math.abs(C[i].c - C[i].o);
+const meanBody = (a, b) => { let s = 0; for (let i = a; i <= b; i++) s += body(i); return s / (b - a + 1); };
+
+/* Structure high = the highest high of the balance, which is what a break of
+   structure out of a range actually means. */
+let BOS = -Infinity, bosIdx = 0;
+RANGE.forEach((c, i) => { if (c.h > BOS) { BOS = c.h; bosIdx = i; } });
+const bosBar   = C.findIndex((c, i) => i > 33 && c.c > BOS);
+const dispR    = body(bosBar) / meanBody(bosBar - 10, bosBar - 1);
+const fvgLo    = C[35].h, fvgHi = C[37].l;          // bullish gap: 35's high < 37's low
+const entryBar = C.findIndex((c, i) => i > 37 && c.l <= ENTRY + 1e-9);
+let accepted = 0;
+for (let i = bosBar; i < bosBar + 3; i++) if (C[i].c > VAH) accepted++;
+
+const COND = [
+  { ok: C[bosBar].c > BOS,                     note: `bar ${bosBar}` },
+  { ok: C[34].c < C[34].o && C[35].c > C[35].o && C[36].c > C[36].o,
+                                               note: 'bar 34' },
+  { ok: dispR >= 1.5,                          note: `${dispR.toFixed(2)}×` },
+  { ok: fvgHi > fvgLo,                         note: `${(fvgHi - fvgLo).toFixed(2)}` },
+  { ok: accepted >= 3,                         note: `${accepted}/3 إغلاق` },
+  { ok: C[entryBar].l <= ENTRY + 1e-9 && C[entryBar].c > ENTRY,
+                                               note: `${VAH.toFixed(2)}` },
+  { ok: RISK <= 0.40 * LEG,                    note: `${(RISK / LEG * 100).toFixed(0)}%` },
+  { ok: R >= 2,                                note: `${R.toFixed(2)}R` }
+];
+const SCHOOL_OK = [0, 1, 2, 3].map(g => COND[g * 2].ok && COND[g * 2 + 1].ok);
+
+const ch = LSChart({
+  mount: '#chart', width: 1000, height: 566, candles: C,
+  padding: { top: 40, right: 116, bottom: 26, left: 18 },
+  barsRight: 1, barsVisible: 56,
+  autoTerminate: true, tolerance: 0.01, anim: {}
+});
+ch.grid(3).drawCandles();
+
+const HOLDS = [
+  { atBar: 35, seconds: 4.0 },   // the balance, measured        → Volume Profile
+  { atBar: 38, seconds: 4.2 },   // the break and its size       → SMC + ICT
+  { atBar: 45, seconds: 5.6 },   // the retest: one price, three schools
+  { atBar: 52, seconds: 4.4 }    // the target
+];
+ch.replay({ rate: 3.9, window: 56, start: 18, at: 0, holds: HOLDS });
+const H = Object.fromEntries(HOLDS.map(h => [h.atBar, h.t]));
+
+ch.volumeProfile({ from: 0, to: 33, bins: 30, widthPct: 0.16, valueArea: 0.70,
+                   showVA: true, at: H[35] + 0.2, dur: 1.2 });
+ch.level({ price: BOS, from: bosIdx, label: 'قمة الهيكل', mode: 'close',
+           at: H[35] + 1.8, dur: 0.6 });
+ch.sticker({ i: bosBar, price: C[bosBar].c, text: 'BOS', dy: -70, at: H[38] + 0.5 });
+ch.zone({ from: 34, top: C[34].h, bottom: C[34].l, label: 'OB', tone: 'accent',
+          align: 'right', at: H[38] + 1.4, dur: 0.8 });
+ch.zone({ from: 37, top: fvgHi, bottom: fvgLo, label: 'FVG', tone: 'accent',
+          whole: false, align: 'left', at: H[38] + 2.4, dur: 0.8 });
+ch.position({ from: entryBar, to: 51, entry: ENTRY, stop: STOP, target: TGT,
+              at: H[45] + 0.6, dur: 1.0 });
+ch.sticker({ i: 51, price: TGT, text: 'وصل الهدف', dy: -70, dx: -84, at: H[52] + 0.6 });
+
+ch.layout();
+const CHART_END = ch.duration();
+
+const f2 = v => v.toFixed(2);
+document.querySelector('#st-entry .v').textContent = f2(ENTRY);
+document.querySelector('#st-stop .v').textContent  = f2(STOP);
+const R_TEXT = '+' + R.toFixed(2) + 'R';
+document.querySelectorAll('.school').forEach((el, g) => {
+  el.querySelector('.n1').textContent = COND[g * 2].note;
+  el.querySelector('.n2').textContent = COND[g * 2 + 1].note;
+});
+
+const caps = LSCaptions({
+  mount: '#caps',
+  track: LSCaptions.pace([
+    ['مدرسة وحدة', 0.85], ['ما تكفي', 0.85],
+    ['نموذج صحيح بمدرسة', 1.25], ['وخاطئ بالثانية', 1.10],
+    ['شلون؟', 0.60], ['تعال اقولك', 0.75],
+    ['كل واحد يتعلم مدرسة', 1.25], ['ويحكم فيها على كل شي', 1.35],
+    ['لكن بالواقع؟', 0.95],
+    ['<em>Volume Profile</em> يقول:', 1.25], ['وين القيمة', 0.95],
+    ['السعر قِبل فوق الـ VAH', 1.40],
+    ['<em>SMC</em> يقول:', 1.05], ['كسر هيكل وخلّى بلوك', 1.40],
+    ['<em>ICT</em> يقول:', 1.05], ['الاندفاع خلّى فجوة', 1.30],
+    ['والثلاثة', 0.75], ['يشيرون لنفس السعر', 1.35],
+    ['الـ VAH هو قاع الفجوة', 1.45],
+    ['هني الدخول', 0.95], ['والستوب تحت البلوك', 1.30],
+    ['شوف — راح حق الهدف', 1.35],
+    ['ثلاث مدارس', 0.95], ['تتفق على نفس السعر', 1.35],
+    ['تتفق مدرستين بس؟', 1.25], ['ما فيه صفقة', 1.00],
+    ['والمدرسة الرابعة؟', 1.20], ['تابع البوست الجاي', 1.35]
+  ], { start: 0.1 })
+});
+
+/* ---- the overlay clock ------------------------------------------------ */
+const hookEl  = document.getElementById('hook');
+const verdEl  = document.getElementById('verdict');
+const scrimEl = document.getElementById('scrim');
+const stEntry = document.getElementById('st-entry');
+const stStop  = document.getElementById('st-stop');
+const stR     = document.getElementById('st-r');
+const schoolEls = [...document.querySelectorAll('.school')];
+const ease = k => k * k * (3 - 2 * k);
+const seg  = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
+const wipe = (el, p) => { el.firstElementChild.style.clipPath = `inset(0 0 0 ${(1 - p) * 100}%)`; };
+
+/* A school lights when the chart has satisfied BOTH of its conditions — in
+   the order the chart can answer them: value first, then structure and
+   delivery together at the break, then the risk arithmetic at the entry. */
+const SCHOOL_AT = [H[35] + 1.4, H[38] + 1.0, H[38] + 2.8, H[45] + 1.4];
+
+function seekAll(t) {
+  let ct = t;
+  if (t > SEAM) ct = CHART_END * (1 - ease(seg(t, SEAM, TOTAL - SEAM)));
+  ch.seek(Math.min(ct, CHART_END));
+  caps.seek(t > SEAM ? -1 : t);
+
+  const past = x => (t > SEAM ? false : t >= x);
+  /* order on screen: SMC · ICT · VP · Risk — order lit: VP, SMC, ICT, Risk */
+  const litAt = [SCHOOL_AT[1], SCHOOL_AT[2], SCHOOL_AT[0], SCHOOL_AT[3]];
+  schoolEls.forEach((el, g) => el.classList.toggle('on', past(litAt[g]) && SCHOOL_OK[g]));
+
+  stEntry.classList.toggle('on', past(H[45] + 0.8));
+  stStop.classList.toggle('on', past(H[45] + 0.8));
+  const hit = past(H[52] + 1.0);
+  stR.classList.toggle('on', hit);
+  stR.querySelector('.v').textContent = hit ? R_TEXT : '—';
+
+  const hIn = ease(seg(t, 0.35, 0.55));
+  wipe(hookEl, hIn);
+  hookEl.style.opacity = hIn * (1 - ease(seg(t, 3.6, 0.4)));
+
+  const vIn = ease(seg(t, 26.0, 0.5)), vOut = ease(seg(t, 29.2, 0.5));
+  wipe(verdEl, vIn);
+  verdEl.style.opacity = vIn * (1 - vOut);
+  scrimEl.style.opacity = (vIn * (1 - vOut) * 0.96).toFixed(3);
+}
+
+window.LS_SIZE = [1080, 1920];
+window.LS_DURATION = TOTAL;
+window.LS_TAIL = 0;
+window.LS_VIOLATIONS = ch.violations;
+window.LS_GATE = {
+  POC: r2(POC), VAH: r2(VAH), VAL: r2(VAL), BOS: r2(BOS), bosIdx, bosBar,
+  OB: [OB.l, OB.h], FVG: [r2(fvgLo), r2(fvgHi)], entryBar,
+  ENTRY: r2(ENTRY), STOP: r2(STOP), TGT: r2(TGT),
+  RISK: r2(RISK), LEG: r2(LEG), R: +R.toFixed(3), dispR: +dispR.toFixed(3), accepted,
+  conditions: COND.map((c, i) => ({ n: i + 1, ok: c.ok, note: c.note })),
+  schools: SCHOOL_OK, allPass: COND.every(c => c.ok),
+  chartEnd: CHART_END, caps: caps.duration(), holds: H
+};
+window.seekTo = t => { seekAll(t); return true; };
+seekAll(0);
+document.fonts.ready.then(() => { seekAll(0); window.LS_READY = true; });
+
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now) { seekAll(((now - t0) / 1000) % TOTAL); requestAnimationFrame(loop); })(t0);
+}
+</script>

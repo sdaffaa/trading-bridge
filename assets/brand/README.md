@@ -152,6 +152,7 @@ Pass `autoTerminate: true` and every level and box ends itself at the candle tha
 | Range + volume profile, value-edge entry | `reel-value.md` | `reel-value.html` |
 | Trend continuation from an order block (cream) | `reel-orderblock.md` | `reel-orderblock.html` |
 | The entry as an eight-condition gate (cream) | `reel-entry-gate.md` | `reel-entry-gate.html` |
+| Four-school confluence gate (cream) | `reel-confluence.md` | `reel-confluence.html` |
 
 The footprint reel is the worked example of the whole system on one clock: bar replay, markup,
 a footprint that builds price by price, and captions all driven by the same `seek(t)`. Runtime
@@ -198,6 +199,19 @@ use these; the first three are left as they shipped.
 ![Value reel](reel-value-poster.png)
 ![Order block reel](reel-orderblock-poster.png)
 ![Entry gate reel](reel-entry-gate-poster.png)
+![Confluence reel](reel-confluence-poster.png)
+
+`reel-confluence.html` is part six: the same eight-condition gate, but grouped by the school
+that owns each pair, and six of the eight carry that school's name — BOS and Order Block (SMC),
+Displacement and FVG (ICT), acceptance above VAH and VAH-as-support (Volume Profile), with risk
+size and R as the fourth card. A card lights only when **both** of its conditions hold; one
+school agreeing with itself is not confluence.
+
+The value area is measured from the range bars first, and the trade's candles are then written
+against the measured VAH — so the claim on screen is literally true rather than nearly true:
+the floor of the ICT gap, the top of the value area, and the entry are all **105.91**, one
+number. Footprint is deliberately absent: delta and imbalance cannot be derived from OHLC, and
+that limit is handed to the closing question instead of being papered over.
 
 `reel-entry-gate.html` is part five: the same order-block trade, but the subject is the **eight
 conditions** it has to pass rather than the pattern. Each condition is evaluated in code against
