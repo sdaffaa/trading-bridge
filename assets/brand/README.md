@@ -245,6 +245,7 @@ use these; the first three are left as they shipped.
 ![Volume profile two-frame reel](reel-value-poc-poster.png)
 ![Stop placement reel](reel-stop-vp-poster.png)
 ![Order flow absorption reel](reel-absorb-gc-poster.png)
+![Order flow absorption reel, 27.5s recut](reel-absorb-gc-v2-poster.png)
 ![Valid setup, losing trade reel](reel-valid-loss-poster.png)
 
 The three multi-frame reels are standalone — no series, no callbacks — and each
