@@ -10,3 +10,12 @@
 
 # صور الجارت الأصلي (تُرسل ولا تُرفع)
 .claude/skills/*/scripts/chart_orig_*.png
+
+# تشغيلة ٥٥: ما يُعاد توليده بأمر واحد لا يُرفع.
+# الـHTML وحده ٢٫٥ م.ب لأن الخطوط مضمَّنة base64، وصور الرندر بضعف الدقّة
+# وسيطة، والـZIP تجميعةُ ما هو مرفوع أصلاً. المرفوع: الثلاثون صفحة النهائية
+# والـPDF والREADME وورقة التواصل — وهي المخرَج الذي يُنشر.
+.claude/skills/*/scripts/out55/*.html
+.claude/skills/*/scripts/out55/png/
+.claude/skills/*/scripts/out55/final/*.zip
+.claude/skills/*/scripts/out55/contact_sheet.png
