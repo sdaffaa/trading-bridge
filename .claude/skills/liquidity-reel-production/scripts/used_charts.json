@@ -7724,6 +7724,30 @@
    "end": "2026-08-10 13:00",
    "label": "VWAP — امتداد ٢σ وجفاف حجم ثم عودة للقيمة",
    "video": "run57-vwap"
+  },
+  {
+   "symbol": "ES=F",
+   "timeframe": "1d",
+   "start": "2020-09-09",
+   "end": "2020-11-09",
+   "label": "run58-masader",
+   "video": "run58-factory-2026-08-12"
+  },
+  {
+   "symbol": "SPY",
+   "timeframe": "1d",
+   "start": "2021-01-19",
+   "end": "2021-03-11",
+   "label": "run58-muqarana",
+   "video": "run58-factory-2026-08-12"
+  },
+  {
+   "symbol": "RB=F",
+   "timeframe": "1d",
+   "start": "2023-01-25",
+   "end": "2023-03-30",
+   "label": "run58-tabyeet",
+   "video": "run58-factory-2026-08-12"
   }
  ]
 }
