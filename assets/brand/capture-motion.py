@@ -14,6 +14,15 @@ FPS = int(sys.argv[3]) if len(sys.argv) > 3 else 30
 # 15-20 Mbps VBR, silent 48k AAC track. The default stays as it was so the
 # reels already rendered stay reproducible byte for byte.
 SPEC = "--spec" in sys.argv[4:]
+# --deliver renders a 2x master (2160x3840 for a 1080x1920 page) by raising the
+# device pixel ratio rather than the layout size — every CSS length, font and
+# stroke stays exactly where it was, there is just twice the sampling — then
+# downscales with lanczos and encodes 2-pass VBR. Supersampling is the one
+# "enhancement" that cannot invent a detail, which is why it is the only one
+# used on a page whose candles are the subject.
+DELIVER = "--deliver" in sys.argv[4:]
+if DELIVER:
+    SPEC = True
 # Default is the 4:5 post canvas; a page that is a different shape says so in
 # window.LS_SIZE and the viewport is re-fitted to it after load.
 W, H = 1080, 1350
@@ -65,7 +74,7 @@ def ev(expr):
 cmd("Page.enable")
 cmd("Runtime.enable")
 cmd("Emulation.setDeviceMetricsOverride",
-    {"width": W, "height": H, "deviceScaleFactor": 1, "mobile": False})
+    {"width": W, "height": H, "deviceScaleFactor": 2 if DELIVER else 1, "mobile": False})
 cmd("Page.navigate", {"url": f"file://{os.path.abspath(PAGE)}?static"})
 
 for _ in range(120):
@@ -79,8 +88,8 @@ size = ev("JSON.stringify(window.LS_SIZE || null)")
 if size:
     W, H = json.loads(size)
     cmd("Emulation.setDeviceMetricsOverride",
-        {"width": W, "height": H, "deviceScaleFactor": 1, "mobile": False})
-    print(f"canvas {W}x{H}")
+        {"width": W, "height": H, "deviceScaleFactor": 2 if DELIVER else 1, "mobile": False})
+    print(f"canvas {W}x{H}" + (f" → master {W*2}x{H*2}" if DELIVER else ""))
 
 viol = json.loads(ev("JSON.stringify(window.LS_VIOLATIONS || [])"))
 if viol:
@@ -127,15 +136,34 @@ if SPEC:
     # to a bitrate the picture does not need. Forcing it (nal-hrd=cbr plus
     # filler) would multiply the file size for no visible gain, so the cap
     # stays a cap.
-    args = [FF, "-y", "-framerate", str(FPS), "-i", os.path.join(frames, "f%05d.png"),
-            "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=48000",
-            "-shortest",
-            "-c:v", "libx264", "-profile:v", "high", "-level", "4.0",
-            "-pix_fmt", "yuv420p",
-            "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709",
-            "-b:v", "17M", "-maxrate", "20M", "-minrate", "15M", "-bufsize", "34M",
-            "-c:a", "aac", "-b:a", "256k", "-ar", "48000",
-            "-movflags", "+faststart", OUT]
+    common = ["-c:v", "libx264", "-profile:v", "high", "-level", "4.0",
+              "-pix_fmt", "yuv420p",
+              "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709",
+              # a keyframe every second, so scrubbing lands where the viewer aimed
+              "-g", str(FPS), "-keyint_min", str(FPS), "-sc_threshold", "0"]
+    if DELIVER:
+        # 2-pass VBR off the 2x master. The bitrate figures are a CEILING, not a
+        # floor — see the note below.
+        vf = ["-vf", f"scale={W}:{H}:flags=lanczos"]
+        rate = ["-b:v", "14M", "-maxrate", "20M", "-bufsize", "28M"]
+        log = os.path.join(os.path.dirname(OUT) or ".", "_x264")
+        subprocess.run([FF, "-y", "-framerate", str(FPS), "-i", os.path.join(frames, "f%05d.png")]
+                       + vf + common + rate + ["-pass", "1", "-passlogfile", log,
+                                               "-an", "-f", "mp4", os.devnull],
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        args = ([FF, "-y", "-framerate", str(FPS), "-i", os.path.join(frames, "f%05d.png"),
+                 "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=48000",
+                 "-shortest"] + vf + common + rate
+                + ["-pass", "2", "-passlogfile", log,
+                   "-c:a", "aac", "-b:a", "256k", "-ar", "48000",
+                   "-movflags", "+faststart", OUT])
+    else:
+        args = ([FF, "-y", "-framerate", str(FPS), "-i", os.path.join(frames, "f%05d.png"),
+                 "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=48000",
+                 "-shortest"] + common
+                + ["-b:v", "17M", "-maxrate", "20M", "-minrate", "15M", "-bufsize", "34M",
+                   "-c:a", "aac", "-b:a", "256k", "-ar", "48000",
+                   "-movflags", "+faststart", OUT])
 else:
     args = [FF, "-y", "-framerate", str(FPS), "-i", os.path.join(frames, "f%05d.jpg"),
             "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18",

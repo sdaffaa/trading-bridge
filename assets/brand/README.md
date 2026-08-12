@@ -174,6 +174,7 @@ reference build.
 | **H4 + M15 + M5** — volume profile excess → POC, with a footprint ladder | `reel-value-poc.md` | `reel-value-poc.html` |
 | **M15 → M5** — where the stop goes, read off VAH/POC/VAL | `reel-stop-vp.md` | `reel-stop-vp.html` |
 | **M5, bar replay** — absorption at a liquidity sweep, read off the ladder | `reel-absorb-gc.md` | `reel-absorb-gc.html` |
+| **M5, recut** — the same trade in 27.5s, rebuilt from source rather than re-edited | `reel-absorb-gc-v2.md` | `reel-absorb-gc-v2.html` |
 | **H4 + M15 + M5** — a complete setup that still lost, with the sample behind it | `reel-valid-loss.md` | `reel-valid-loss.html` |
 
 **Every trade is read on H4, located on M15 and entered on M5**, and the three
@@ -307,6 +308,24 @@ before the bar that justifies it has printed. `tvchrome.js` adds the furniture a
 trading screen has (axes, grid, live price tag, bar countdown) and `replay({
 forming: true })` builds the current candle out of its own intrabar path instead
 of revealing it whole.
+
+`reel-absorb-gc-v2.html` is that reel recut to 27.5 seconds, and the interesting
+part is what "recut" means here. The brief forbade generating, deleting or
+altering a single candle, and forbade generative fill, optical flow and frame
+blending — the usual hazards of re-editing a finished video. None of them apply,
+because the source is a **page**, not just an MP4: the same seed, the same pinned
+generator parameters and the same slice produce the same series, so the candles
+are not a copy of the originals, they are the originals. `window.LS_MATCH` states
+that as ten published numbers copied out of `reel-absorb-gc.md` — entry, stop,
+target, R, sweep high, bar volume, delta, both ladder sides, risk and reward —
+and compares them against what the page computes; the render is gated on all ten
+matching. The 4.5 seconds came out of dead time, not content: the replay runs at
+11 bars/second instead of 8, the ladder's single 7-second hold became a
+five-step reveal, and the opening leads with the result. Two wording choices in
+the brief were corrected on the page: the ladder beat says "selling pressure
+inside the candle that failed the break" rather than *Seller Absorption*, and
+delta is presented as corroboration awaiting confirmation rather than a sell
+signal of its own. See [`reel-absorb-gc-v2.md`](reel-absorb-gc-v2.md).
 
 `reel-valid-loss.html` is the first reel here whose subject is a **losing**
 trade, and the reason is a measurement rather than a mood. Every reel before it

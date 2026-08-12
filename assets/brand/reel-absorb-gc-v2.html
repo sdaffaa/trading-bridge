@@ -1,0 +1,557 @@
+<meta charset="utf-8">
+<title>Liquidity State — هذا الاختراق كان فخ</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#8A8A8A; }
+  .stage { position:absolute; inset:0; width:1080px; height:1920px; overflow:hidden; }
+
+  /* Two identities on one page: the cold open is navy, everything after it is
+     warm off-white with the chart in a dark card. One progress value drives the
+     swap so nothing can get out of step. */
+  #navy  { position:absolute; inset:0;
+           background:radial-gradient(120% 58% at 50% 26%, #06202E 0%, #010C17 74%); }
+  #cream { position:absolute; inset:0; opacity:0;
+           background:radial-gradient(120% 90% at 20% 0%, #F5F0E7 0%, #EDE6DA 100%); }
+
+  #wm { position:absolute; top:252px; left:0; right:0; text-align:center;
+        font-family:var(--ls-font-wordmark); font-size:26px; letter-spacing:.30em;
+        text-transform:uppercase; color:#8FA3AC; }
+
+  /* The hero is its own chart: the cold open shows the result, and the main
+     chart must not be wound forward to do it — winding it forward would carry
+     its markup timeline with it and put conclusions on screen before the bars
+     that justify them. Same slice of the same candles, drawn static. */
+  /* The hero is inset to the same safe box as the card. Full-bleed put its
+     price axis at x≈1029 — inside the 130px strip Instagram's own UI sits on,
+     which is exactly where a number must never be. */
+  #hero { position:absolute; left:80px; right:130px; top:300px; height:780px; overflow:hidden;
+          background:#04121C; }
+  #heroCam { position:absolute; inset:0; transform-origin:52% 34%; will-change:transform; }
+
+  #card { position:absolute; left:80px; right:130px; top:300px; height:780px;
+          background:#04121C; overflow:hidden; opacity:0;
+          border:0 solid color-mix(in srgb,#9EC4D5 30%,transparent); }
+  #cam  { position:absolute; inset:0; transform-origin:50% 50%; will-change:transform; }
+  #chart { position:absolute; inset:0; }
+
+  /* Chart-scale markup: this page is 1032px of chart inside a 1080px frame. */
+  #card .ls-mk-line, #hero .ls-mk-line { stroke-width:4; }
+  #card .ls-mk-label, #hero .ls-mk-label { font-size:31px; }
+  #card .ls-mk-sticker-t { font-size:32px; }
+  #card .ls-mk-zone { stroke-width:2.4; }
+  #card .ls-tv-price, #card .ls-tv-t { font-size:29px; }
+  #card .ls-tv-tag-t { font-size:30px; }
+  #card .ls-tv-cd-t  { font-size:25px; }
+
+  .ttl { position:absolute; left:80px; right:130px; text-align:center; direction:rtl;
+         font-family:var(--ls-font-ar); font-weight:800; line-height:1.26; opacity:0; }
+  /* Hook 68–78px, headings 52–60, secondary 32–38, chart data 28–34,
+     disclaimer 26–30 — all inside the 250/320/130/80 safe box. */
+  #hookA { top:1210px; font-size:74px; color:#EAF4F8; }
+  #hookB { top:1330px; font-size:66px; color:#5FC6DF; }
+
+  #beat { position:absolute; left:80px; right:130px; top:1352px; text-align:center;
+          direction:rtl; font-family:var(--ls-font-ar); font-weight:800; font-size:56px;
+          line-height:1.28; opacity:0; color:#15222E; }
+  #beat em { font-style:normal; color:#2C7F9E; }
+  #beat b  { font-weight:800; color:#C35758; }
+  #beat2 { position:absolute; left:80px; right:130px; top:1448px; text-align:center;
+           direction:rtl; font-family:var(--ls-font-ar); font-weight:800; font-size:52px;
+           line-height:1.28; opacity:0; color:#15222E; }
+  #beat2 em { font-style:normal; color:#2C7F9E; }
+  #beat2 b  { font-weight:800; color:#C35758; }
+
+  /* Number cards. Latin figures and prices are their own LTR runs so a minus
+     sign never migrates to the wrong end of the number. */
+  .chip { position:absolute; border-radius:14px; padding:11px 18px; opacity:0;
+          background:rgba(255,255,255,.72);
+          border:1.6px solid color-mix(in srgb,#2C7F9E 40%,transparent);
+          font-family:var(--ls-font-ar); font-weight:800; font-size:36px; color:#15222E; }
+  .chip .n { direction:ltr; unicode-bidi:isolate; font-variant-numeric:tabular-nums;
+             color:#2C7F9E; }
+  .chip.bad .n { color:#C35758; }
+  #cardHi { top:1200px; right:130px; }
+  #cardDl { top:1200px; left:80px; }
+
+  /* The ladder takes the frame when the flow is the subject: 65–70% of the
+     usable width, and the rest of the rows fall to 35% so the row that matters
+     is the only one lit. */
+  #fp { position:absolute; left:80px; right:130px; top:320px; height:740px; opacity:0;
+        border-radius:18px; background:rgba(4,18,28,.96);
+        border:1.6px solid color-mix(in srgb,#9EC4D5 34%,transparent); }
+  #fpHead { position:absolute; left:0; right:0; top:20px; text-align:center; direction:rtl;
+            font-family:var(--ls-font-ar); font-weight:800; font-size:34px; color:#EAF4F8; }
+  #fpWrap { position:absolute; left:0; right:0; top:78px; display:flex; justify-content:center; }
+  #fpFoot { position:absolute; left:0; right:0; bottom:16px; text-align:center; direction:rtl;
+            font-family:var(--ls-font-ar); font-weight:700; font-size:27px; color:#7E96A1; }
+  #fpRow  { position:absolute; left:26px; right:26px; height:0; opacity:0;
+            border-radius:9px; border:2.4px solid #5FC6DF;
+            background:color-mix(in srgb,#5FC6DF 12%,transparent); }
+
+  /* Level read-outs, revealed one at a time. */
+  /* Two columns, not four stacked rows: stacked, the block ran from 1136 to
+     1400 and sat straight on top of the teaching line it belongs to. */
+  .lvl { position:absolute; width:426px; box-sizing:border-box;
+         display:flex; justify-content:space-between; align-items:center;
+         direction:rtl; opacity:0;
+         border-radius:14px; padding:11px 18px; background:rgba(255,255,255,.66);
+         border:1.6px solid color-mix(in srgb,#9EC4D5 46%,transparent); }
+  .lvl .k { font-family:var(--ls-font-ar); font-weight:800; font-size:34px; color:#15222E; }
+  .lvl .v { direction:ltr; unicode-bidi:isolate; font-variant-numeric:tabular-nums;
+            font-weight:800; font-size:38px; color:#2C7F9E; }
+  .lvl .s { font-family:var(--ls-font-ar); font-weight:700; font-size:28px; color:#8FA0A9; }
+  .lvl.risk .v { color:#C35758; }
+  #l1 { top:1190px; right:130px; } #l2 { top:1190px; left:80px; }
+  #l3 { top:1268px; right:130px; } #l4 { top:1268px; left:80px; }
+
+  /* نفس خانة شريط التصنيف: الاثنان يقولان الشيء نفسه، فلا يظهران معاً. */
+  #edu { position:absolute; left:80px; right:130px; top:1096px; text-align:center;
+         direction:rtl; font-family:var(--ls-font-ar); font-weight:700; font-size:28px;
+         color:#8FA0A9; opacity:0; }
+
+  /* Three chips under the closing line. */
+  #chips { position:absolute; left:80px; right:130px; top:1448px; direction:rtl;
+           display:flex; gap:14px; justify-content:center; opacity:0; }
+  #chips div { border-radius:999px; padding:12px 26px; background:rgba(255,255,255,.72);
+               border:1.6px solid color-mix(in srgb,#2C7F9E 42%,transparent);
+               font-family:var(--ls-font-ar); font-weight:800; font-size:38px; color:#15222E; }
+
+  #cta { position:absolute; left:80px; right:130px; top:1150px; text-align:center;
+         direction:rtl; opacity:0; }
+  #cta .a { font-family:var(--ls-font-ar); font-size:72px; font-weight:800;
+            line-height:1.24; color:#15222E; }
+  #cta .a em { font-style:normal; color:#2C7F9E; }
+  #cta .b { margin-top:22px; font-family:var(--ls-font-ar); font-size:36px;
+            font-weight:700; color:#8FA0A9; line-height:1.5; }
+
+  #sim { position:absolute; left:80px; right:130px; top:1096px; text-align:center;
+         direction:rtl; font-family:var(--ls-font-ar); font-weight:700; font-size:27px;
+         color:#8FA3AC; opacity:0; line-height:1.5; }
+  #disc { position:absolute; left:0; right:0; top:1550px; text-align:center; direction:rtl;
+          font-family:var(--ls-font-ar); font-weight:600; font-size:28px; color:#8FA3AC; }
+</style>
+
+<div class="stage">
+  <div id="navy"></div>
+  <div id="cream"></div>
+
+  <div id="hero"><div id="heroCam"><div id="chartHero"></div></div></div>
+  <div id="card" data-ls-theme="cover"><div id="cam"><div id="chart"></div></div></div>
+
+  <div id="wm">Liquidity State</div>
+  <div id="sim"></div>
+
+  <div class="ttl" id="hookA"><span>هذا الاختراق كان فخ.</span></div>
+  <div class="ttl" id="hookB"><span>شنو فضحه؟</span></div>
+  <div id="beat"><span></span></div>
+  <div id="beat2"><span></span></div>
+
+  <div class="chip" id="cardHi">قمة أعلى</div>
+  <div class="chip bad" id="cardDl">Delta <span class="n">-140</span></div>
+
+  <div id="fp" data-ls-theme="cover">
+    <div id="fpHead"></div>
+    <div id="fpWrap"><div id="fpChart"></div><div id="fpRow"></div></div>
+    <div id="fpFoot">محاكاة تعليمية لبيانات Order Flow</div>
+  </div>
+
+  <div id="edu">مثال تعليمي — ليس توصية تداول</div>
+  <div class="lvl" id="l1"><div class="k">الدخول</div><div class="v">2401.8</div></div>
+  <div class="lvl risk" id="l2"><div class="k">الستوب</div><div class="s">Buffer +0.3</div><div class="v">2406.7</div></div>
+  <div class="lvl" id="l3"><div class="k">الهدف</div><div class="v">2390.7</div></div>
+  <div class="lvl" id="l4"><div class="k">النتيجة</div><div class="v">2.27R</div></div>
+
+  <div id="chips"><div>الموقع</div><div>الإغلاق</div><div>الـDelta</div></div>
+
+  <div id="cta">
+    <div class="a">اكتب «<em>دلتا</em>»<br>إذا تبي الجزء الثاني</div>
+    <div class="b">احفظ الريل عشان ترجع لشروط التأكيد<br>وأرسله لمتداول يعتبر كل اختراق دخول</div>
+  </div>
+
+  <div id="disc">محاكاة تعليمية واقعية — ليست توصية تداول</div>
+</div>
+
+<script src="./markup.js"></script>
+<script src="./market.js"></script>
+<script src="./tvchrome.js"></script>
+<script src="./footprint.js"></script>
+<script>
+/* ==========================================================================
+   هذا الاختراق كان فخ — إعادة مونتاج لـ reel-absorb-gc
+   GC Futures · COMEX · M5 · ٢٧.٥ ثانية
+
+   **قاعدة الصفر مُحقّقة بالبناء لا بالمقارنة.** المصدر متاح كصفحة، لا كفيديو
+   فقط — فالشموع هنا ليست نسخة من الشموع القديمة، بل **هي هي**: نفس البذرة،
+   ونفس معاملات المولّد المثبّتة، ونفس الشريحة. لا إعادة رسم، ولا استيفاء
+   بصري، ولا Frame Blending، ولا أي أداة توليدية — لأن لا شيء منها يُحتاج
+   أصلاً حين يُعاد التصيير من المصدر. ويُفحص ذلك رقمياً في `window.LS_MATCH`:
+   الشموع تُقارن شمعةً بشمعة بأربع قيم مع القيم المنشورة في `reel-absorb-gc.md`.
+
+   والأرقام المحفوظة حرفياً: الدخول 2401.8 · الستوب 2406.7 · الهدف 2390.7 ·
+   2.27R · قمة السحب 2406.4 · حجم الشمعة 1,394 · دلتا −140 · عند 2406.4
+   بيع 222 مقابل شراء 134 · الخطر 4.9 · العائد 11.1.
+   ========================================================================== */
+
+const M = LSMarket;
+const TICK = 0.1, DEC = 1, SEED = 1765950;
+
+/* نفس السوق حرفياً — القيم مثبّتة كما في النسخة الأولى. */
+const ALL = M.series({ bars: 300, start: 2400, tick: TICK, decimals: DEC, minutes: 5,
+                       startMinute: 5 * 60, vol: 0.62, seed: SEED, baseVolume: 900,
+                       subSteps: 12, spikeP: 0.06, spikeBase: 2.6, spikeVar: 2.2,
+                       wickP: 0, regimeDrift: 0.16, regimeHold: 0.985, magnetPull: 0.22,
+                       keepPath: true });
+const FLOW = M.attachFlow(ALL, { tick: TICK, rows: 9, seed: SEED ^ 0x5bf03635,
+                                 imbalanceRatio: 3.0, imbalanceMin: 45 });
+
+const gP = 106, gS = 140, gCONF = 141, gTL = 136;
+const VP_A = 100, VP_B = gS - 1;
+
+const LVL   = ALL[gP].h;
+const SWEEP = ALL[gS].h;
+const STOP  = M.toTick(SWEEP + 0.3, TICK);
+const ENTRY = M.toTick(ALL[gCONF].c, TICK);
+const TGT   = ALL[gTL].l;
+const RISK  = +(STOP - ENTRY).toFixed(1);
+const REWARD= +(ENTRY - TGT).toFixed(1);
+const R     = REWARD / RISK;
+
+const FP = FLOW[gS];
+const topRow = FP.rows[0];
+const LVLDIFF = topRow.ask - topRow.bid;              // 134 − 222 = −88
+const PROF = M.profile({ candles: ALL, from: VP_A, to: VP_B, bins: 22,
+                         valueArea: 0.70, flow: FLOW, tick: TICK });
+
+let stopHit = -1, tgtHit = -1;
+for (let i = gCONF + 1; i < ALL.length; i++) {
+  if (ALL[i].h >= STOP) { stopHit = i; break; }
+  if (tgtHit < 0 && ALL[i].l <= TGT) { tgtHit = i; break; }
+}
+
+/* بوابة التطابق مع النسخة المنشورة — قيم منسوخة من ورقة التسجيل، لا من الكود. */
+const PUBLISHED = { ENTRY: 2401.8, STOP: 2406.7, TGT: 2390.7, R: 2.27, SWEEP: 2406.4,
+                    vol: 1394, delta: -140, bid: 222, ask: 134, RISK: 4.9, REWARD: 11.1 };
+const MATCH = {
+  entry:  Math.abs(ENTRY - PUBLISHED.ENTRY) < 1e-9,
+  stop:   Math.abs(STOP  - PUBLISHED.STOP)  < 0.05,
+  target: Math.abs(TGT   - PUBLISHED.TGT)   < 1e-9,
+  r:      Math.abs(+R.toFixed(2) - PUBLISHED.R) < 1e-9,
+  sweep:  Math.abs(SWEEP - PUBLISHED.SWEEP) < 1e-9,
+  vol:    FP.total === PUBLISHED.vol,
+  delta:  FP.delta === PUBLISHED.delta,
+  ladder: topRow.bid === PUBLISHED.bid && topRow.ask === PUBLISHED.ask,
+  risk:   Math.abs(RISK - PUBLISHED.RISK) < 0.05,
+  reward: Math.abs(REWARD - PUBLISHED.REWARD) < 0.05
+};
+const MATCH_OK = Object.values(MATCH).every(Boolean);
+
+const CHECK = {
+  liquidity:  ALL.slice(gP + 1, gS).every(c => c.h < LVL),
+  sweep:      SWEEP > LVL && ALL[gS].c < LVL,
+  barPoc:     FP.poc === topRow.price,
+  bidHeavy:   topRow.bid > topRow.ask,
+  deltaDown:  FP.delta < 0,
+  outsideVA:  SWEEP > PROF.vah,
+  confirm:    ALL[gCONF].c < ALL[gS].l,
+  stopSafe:   stopHit === -1,
+  target:     tgtHit > 0,
+  identical:  MATCH_OK
+};
+const ALL_OK = Object.values(CHECK).every(Boolean);
+
+/* ---- الشاشة ------------------------------------------------------------- */
+const W0 = 70, W1 = 156;
+const C  = ALL.slice(W0, W1);
+const j  = i => i - W0;
+const CW = 870, CH = 780;
+
+/* الهيرو: نفس الشموع، نافذة أضيق، ساكن — الافتتاحية تعرض النتيجة أولاً. */
+const HA = j(gS) - 22, HB = j(gS) + 11;
+const chHero = LSChart({
+  mount: '#chartHero', width: CW, height: CH, candles: C.slice(HA, HB),
+  padding: { top: 40, right: 168, bottom: 46, left: 40 },
+  barsRight: 1, autoTerminate: true, tolerance: 0.06
+});
+chHero.grid(3).drawCandles();
+chHero.level({ price: LVL, from: 0, label: '', to: 'edge', edge: false });
+chHero.layout();
+
+const ch = LSChart({
+  mount: '#chart', width: CW, height: CH, candles: C,
+  padding: { top: 34, right: 176, bottom: 54, left: 56 },
+  barsVisible: 40, barsRight: 2, autoTerminate: true, tolerance: 0.06,
+  clipPan: true, edgeAtSeries: true,
+  anim: { labelLag: 0.18, labelDur: 0.26 }
+});
+ch.drawCandles();
+
+const TOTAL = 27.50, SEAM = 26.20;
+const REPLAY_AT = 1.45, RATE = 11.0, REPLAY_FROM = 34;
+const HOLDS = [
+  { atBar: j(gP) + 3,     seconds: 1.70 },   // القمة والسيولة
+  { atBar: j(gS) + 1,     seconds: 1.89 },   // السحب والإغلاق الرجوعي
+  { atBar: j(gCONF) + 1,  seconds: 10.31 },  // الفوت برنت · منطقة القيمة · الخطة
+  { atBar: j(tgtHit) + 1, seconds: 2.86 }    // الهدف
+];
+ch.replay({ rate: RATE, window: 40, at: REPLAY_AT, start: REPLAY_FROM, rightPad: 4,
+            forming: true, follow: 0.06, holds: HOLDS });
+const T = {}; HOLDS.forEach((h, k) => { T[k] = h.t; });
+window.LS_T = T;
+LSChrome(ch, { candles: C, minutes: 5, decimals: DEC, timeEvery: 12 });
+
+/* ---- المارك أب: كل عنصر بعد الشمعة التي تبرّره ------------------------- */
+ch.level({ price: LVL, from: j(gP), label: 'سيولة', to: 'edge',
+           at: T[0] + 0.15, dur: 0.38 });                     // 10–12 إطاراً
+ch.sticker({ i: j(gS), price: SWEEP, text: 'سحب', dy: -56, dx: -44, at: T[1] + 0.25 });
+ch.level({ price: PROF.vah, from: j(VP_A), label: 'VAH', to: 'edge', edge: false,
+           tone: 'muted', dashed: true, at: 12.15, dur: 0.42 });
+ch.level({ price: PROF.val, from: j(VP_A), label: 'VAL', to: 'edge', edge: false,
+           tone: 'muted', dashed: true, at: 12.55, dur: 0.42 });
+/* الدخول إغلاقُ شمعة التأكيد، لا طرف ظل — فهو `edge: false` مثل حافة منطقة
+   القيمة والـOTE. لصقه بأقرب ظل يحرّكه إلى 2400.1 ويكسر الرقم المنشور. */
+ch.level({ price: ENTRY, from: j(gCONF), label: 'Entry', to: 'edge', edge: false,
+           at: 15.10, dur: 0.40 });
+ch.zone({ from: j(gCONF), top: STOP, bottom: ENTRY, label: 'SL', tone: 'danger',
+          whole: false, align: 'right', to: 'edge', at: 16.05, dur: 0.42 });
+ch.level({ price: TGT, from: j(gTL), label: 'Target', to: 'edge', tone: 'accent',
+           at: 17.20, dur: 0.42 });
+ch.layout();
+
+/* منطقة القيمة: شريط بـ٧٪ شفافية داخل طبقة الجارت نفسها، فيتحرّك معها. */
+(function () {
+  const NS = 'http://www.w3.org/2000/svg';
+  const r = document.createElementNS(NS, 'rect');
+  const y1 = ch.Y(PROF.vah), y2 = ch.Y(PROF.val);
+  r.setAttribute('x', ch.plot.L); r.setAttribute('y', Math.min(y1, y2));
+  r.setAttribute('width', Math.max(0, ch.plot.R - ch.plot.L));
+  r.setAttribute('height', Math.abs(y2 - y1));
+  r.setAttribute('fill', '#5FC6DF'); r.setAttribute('opacity', '0');
+  r.setAttribute('id', 'vaBand');
+  ch.svg.querySelector('.ls-layer-pan').insertBefore(r, ch.svg.querySelector('.ls-layer-zone'));
+})();
+const vaBand = ch.svg.querySelector('#vaBand');
+
+/* ---- السلّم -------------------------------------------------------------- */
+const fp = LSFootprint({
+  mount: '#fpChart', variant: 'bars', width: 700, height: 572,
+  rows: FP.rows, labels: { bid: 'BID', ask: 'ASK', price: 'السعر' }
+});
+document.getElementById('fpHead').textContent = 'داخل شمعة السحب';
+document.getElementById('sim').textContent =
+  'GC Futures · COMEX · M5 · محاكاة تعليمية واقعية · البروفايل على ' +
+  (VP_B - VP_A + 1) + ' شمعة · منطقة القيمة ٧٠٪ · الحجم والدلتا مُولَّدان';
+
+/* بقية الصفوف إلى ٣٥٪ — بستارة على ما دون الصف الأول، لا بتعتيم السلّم كلّه.
+   تعتيم السلّم كله يخفض الصف المقصود معه، فيبقى «الأوضح» نسبياً وهو باهت
+   فعلياً — وهذا عكس المطلوب بالضبط. */
+(function () {
+  const NS = 'http://www.w3.org/2000/svg';
+  const y0 = fp.rowY(1), y1 = fp.rowY(FP.rows.length);
+  const sc = document.createElementNS(NS, 'rect');
+  sc.setAttribute('x', 0); sc.setAttribute('y', y0);
+  sc.setAttribute('width', 700); sc.setAttribute('height', Math.max(0, y1 - y0));
+  sc.setAttribute('fill', '#04121C'); sc.setAttribute('opacity', '0');
+  sc.setAttribute('id', 'fpScrim');
+  fp.svg.appendChild(sc);
+})();
+const fpScrim = fp.svg.querySelector('#fpScrim');
+
+/* الصف المقصود: مستطيل يُوضع على صف 2406.4 بعد قياس موضعه من الـDOM. */
+const fpRowEl = document.getElementById('fpRow');
+const fpRows = [...document.querySelectorAll('#fpChart .ls-fp-price')];
+function placeRow() {
+  const host = document.getElementById('fpWrap').getBoundingClientRect();
+  const cell = fpRows[0].getBoundingClientRect();          // الصف الأعلى = 2406.4
+  fpRowEl.style.top = (cell.top - host.top - 5) + 'px';
+  fpRowEl.style.height = (cell.height + 10) + 'px';
+}
+
+/* ---- الساعة الواحدة ----------------------------------------------------- */
+const ease = k => k * k * (3 - 2 * k);
+const seg  = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
+const band = (t, a, b, f) => ease(seg(t, a, f)) * (1 - ease(seg(t, b - f, f)));
+/* الظهور: Fade من ٥ إلى ٧ إطارات مع إزاحة رأسية ≤ 14px، بلا Bounce. */
+const F = n => n / 30;
+const rise = (t, a, b) => {
+  const o = band(t, a, b, F(6));
+  return { o, y: (1 - ease(seg(t, a, F(6)))) * 14 };
+};
+
+const el = id => document.getElementById(id);
+const heroEl = el('hero'), heroCam = el('heroCam'), cardEl = el('card'), camEl = el('cam');
+const creamEl = el('cream'), wmEl = el('wm'), simEl = el('sim'), discEl = el('disc');
+const hookA = el('hookA'), hookB = el('hookB');
+const beatEl = el('beat'), beat2El = el('beat2');
+const chipHi = el('cardHi'), chipDl = el('cardDl');
+const fpEl = el('fp'), eduEl = el('edu'), chipsEl = el('chips'), ctaEl = el('cta');
+const L = [el('l1'), el('l2'), el('l3'), el('l4')];
+
+/* البيوت: سطران رئيسيان كحد أقصى، و٦–٩ كلمات على الشاشة. */
+const B1 = [
+  [1.55, 3.55, 'قمة واضحة.'],
+  [3.70, 6.15, 'السعر صنع قمة أعلى…'],
+  [6.30, 8.35, 'سحب السيولة…'],
+  [8.55, 11.95, 'ضغط بيع داخل شمعة <b>فشل الاختراق</b>'],
+  [12.10, 14.45, 'السحب حصل فوق <em>VAH</em>…'],
+  [14.60, 18.75, 'الستوب فوق <b>الذيل</b>.'],
+  [18.90, 22.25, 'الهدف عند <em>آخر قاع</em>.'],
+  [22.40, 24.75, 'الذيل وحده <b>ما يكفي</b>.']
+];
+const B2 = [
+  [1.95, 3.55, 'وسيولة فوقها.'],
+  [4.65, 6.15, 'لكن الـ<em>Delta</em> بقيت سالبة.'],
+  [7.20, 8.35, 'وأغلق <b>تحت القمة</b>.'],
+  [13.05, 14.45, 'خارج <em>منطقة القيمة</em>.'],
+  [16.10, 18.75, 'والهدف عند آخر قاع.']
+];
+let lb1 = -1, lb2 = -1;
+const setBeat = (node, list, cur, last) => {
+  if (cur !== last) node.firstElementChild.innerHTML = cur < 0 ? '' : list[cur][2];
+  return cur;
+};
+
+/* السلّم يُكشف على خمس خطوات لا دفعة واحدة. */
+const FP_STEPS = [
+  [8.60,  'شمعة السحب: <span dir="ltr">1,394</span> عقد'],
+  [9.35,  'Delta الشمعة: <span dir="ltr">-140</span>'],
+  [10.05, 'عند <span dir="ltr">2406.4</span>'],
+  [10.75, '<span dir="ltr">222</span> BID مقابل <span dir="ltr">134</span> ASK'],
+  [11.35, 'فرق المستوى: <span dir="ltr">' + LVLDIFF + '</span>']
+];
+const fpHeadEl = el('fpHead');
+let lastStep = -1;
+
+function seekAll(t) {
+  let te = t;
+  if (t > SEAM) te = SEAM * (1 - ease(seg(t, SEAM, TOTAL - SEAM - 1 / 30)));
+
+  ch.seek(te);
+
+  /* الافتتاحية: زووم 108٪ → 114٪ على الذيل والسحب، ثم تسليم للشارت الرئيسي. */
+  const heroOn = 1 - ease(seg(te, 1.25, 0.30));
+  heroEl.style.opacity = heroOn.toFixed(3);
+  const hz = 1.08 + 0.06 * ease(seg(te, 0.00, 1.40));
+  heroCam.style.transform = `scale(${hz.toFixed(4)})`;
+
+  /* تبديل الهوية سريع: خلطة طويلة بين خلفيتين تقضي معظم وقتها لا هذه ولا تلك. */
+  const cream = ease(seg(te, 1.30, 0.45));
+  creamEl.style.opacity = cream.toFixed(3);
+  wmEl.style.color = cream > 0.5 ? '#8FA0A9' : '#8FA3AC';
+  cardEl.style.opacity = cream.toFixed(3);
+  cardEl.style.borderWidth = (1.6 * cream).toFixed(2) + 'px';
+  cardEl.style.borderRadius = (20 * cream).toFixed(1) + 'px';
+  const eduOn = band(te, 14.60, 18.70, 0.28);
+  simEl.style.opacity = (cream * 0.9 * (1 - band(te, 24.60, 27.40, 0.30)) * (1 - eduOn)).toFixed(3);
+  discEl.style.opacity = (0.75 + 0.25 * cream).toFixed(3);
+  const bt = cream > 0.5 ? '#15222E' : '#EAF4F8';
+  beatEl.style.color = bt; beat2El.style.color = bt;
+
+  /* الكاميرا: 100–106٪ في المشاهد العادية، و114٪ حداً أقصى عند الذيل. */
+  /* 1.04 لا 1.06، والمركز مركز البطاقة: التكبير حول نقطة خارج المنتصف يدفع
+     أقصى ملصق زمني إلى ما قبل حدّ الـ80px فيُقصّ نصفه. النطاق المطلوب
+     100–106٪، و1.04 داخله ويترك للمحاور مكانها. */
+  let s = 1;
+  if (te >= 3.70 && te < 8.40) s = 1 + 0.04 * ease(seg(te, 3.70, 1.30));
+  else if (te >= 8.40 && te < 12.00) s = 1.04;
+  else if (te >= 12.00) s = 1.04 - 0.04 * ease(seg(te, 12.00, 0.60));
+  /* Match Cut: العودة لتكوين الإطار الأول خلال ٦–٨ إطارات. */
+  const mc = ease(seg(te, SEAM - F(8), F(8)));
+  camEl.style.transformOrigin = '50% 50%';
+  camEl.style.transform = `scale(${(s + (1.06 - s) * mc).toFixed(4)})`;
+
+  const hA = rise(te, 0.00, 1.45), hB = rise(te, 0.40, 1.45);
+  hookA.style.opacity = hA.o.toFixed(3);
+  hookA.style.transform = `translateY(${hA.y.toFixed(1)}px)`;
+  hookB.style.opacity = hB.o.toFixed(3);
+  hookB.style.transform = `translateY(${hB.y.toFixed(1)}px)`;
+
+  let c1 = -1, c2 = -1;
+  for (let i = 0; i < B1.length; i++) if (te >= B1[i][0] && te < B1[i][1]) c1 = i;
+  for (let i = 0; i < B2.length; i++) if (te >= B2[i][0] && te < B2[i][1]) c2 = i;
+  lb1 = setBeat(beatEl, B1, c1, lb1);
+  lb2 = setBeat(beat2El, B2, c2, lb2);
+  const r1 = c1 < 0 ? { o: 0, y: 0 } : rise(te, B1[c1][0], B1[c1][1]);
+  const r2 = c2 < 0 ? { o: 0, y: 0 } : rise(te, B2[c2][0], B2[c2][1]);
+  beatEl.style.opacity = r1.o.toFixed(3);
+  beatEl.style.transform = `translateY(${r1.y.toFixed(1)}px)`;
+  beat2El.style.opacity = r2.o.toFixed(3);
+  beat2El.style.transform = `translateY(${r2.y.toFixed(1)}px)`;
+
+  const cHi = rise(te, 4.15, 6.15), cDl = rise(te, 4.85, 6.15);
+  chipHi.style.opacity = cHi.o.toFixed(3);
+  chipHi.style.transform = `translateY(${cHi.y.toFixed(1)}px)`;
+  chipDl.style.opacity = cDl.o.toFixed(3);
+  chipDl.style.transform = `translateY(${cDl.y.toFixed(1)}px)`;
+
+  /* السلّم يأخذ الإطار، والجارت يختفي — بطاقتان تُقرآن معاً ليستا لقطتين. */
+  const onFp = band(te, 8.50, 12.00, 0.26);
+  fpEl.style.opacity = onFp.toFixed(3);
+  cardEl.style.opacity = (cream * (1 - onFp)).toFixed(3);
+  let step = -1;
+  for (let i = 0; i < FP_STEPS.length; i++) if (te >= FP_STEPS[i][0]) step = i;
+  if (step !== lastStep) {
+    fpHeadEl.innerHTML = step < 0 ? 'داخل شمعة السحب' : FP_STEPS[step][1];
+    lastStep = step;
+  }
+  const dim = ease(seg(te, 10.05, 0.30)) * (1 - ease(seg(te, 11.95, 0.20)));
+  fpScrim.setAttribute('opacity', (0.65 * dim).toFixed(3));
+  fpRowEl.style.opacity = dim.toFixed(3);
+
+  vaBand.setAttribute('opacity',
+    (0.07 * ease(seg(te, 12.15, 0.45)) * (1 - ease(seg(te, 22.40, 0.40)))).toFixed(4));
+
+  eduEl.style.opacity = eduOn.toFixed(3);
+  const LT = [15.05, 16.00, 17.15, 19.55];
+  L.forEach((e, k) => {
+    const r = rise(te, LT[k], 22.25);
+    e.style.opacity = r.o.toFixed(3);
+    e.style.transform = `translateY(${r.y.toFixed(1)}px)`;
+  });
+
+  const ch3 = rise(te, 23.10, 24.75);
+  chipsEl.style.opacity = ch3.o.toFixed(3);
+  chipsEl.style.transform = `translateY(${ch3.y.toFixed(1)}px)`;
+
+  const cta = rise(te, 24.90, 27.30);
+  ctaEl.style.opacity = cta.o.toFixed(3);
+  ctaEl.style.transform = `translateY(${cta.y.toFixed(1)}px)`;
+}
+
+/* ---- بوابات التسليم ----------------------------------------------------- */
+window.LS_SIZE = [1080, 1920];
+window.LS_DURATION = TOTAL;
+window.LS_TAIL = 0;
+window.LS_VIOLATIONS = ch.violations.concat(chHero.violations);
+window.LS_QA = M.qa({ candles: ALL, flow: FLOW, prof: PROF,
+                      tick: TICK, decimals: DEC, minutes: 5,
+                      replayRate: { timeOfBar: b => ch.timeOfBar(b) },
+                      markup: [
+                        { id: 'سيولة', bar: j(gP) + 2, at: T[0] + 0.15 },
+                        { id: 'سحب',   bar: j(gS),     at: T[1] + 0.25 },
+                        { id: 'VAH',   bar: j(VP_B),   at: 12.15 },
+                        { id: 'VAL',   bar: j(VP_B),   at: 12.55 },
+                        { id: 'Entry', bar: j(gCONF),  at: 15.10 },
+                        { id: 'SL',    bar: j(gCONF),  at: 16.05 },
+                        { id: 'Target',bar: j(gCONF),  at: 17.20 },
+                        { id: 'R',     bar: j(tgtHit), at: 19.55 }
+                      ] });
+window.LS_MATCH = { published: PUBLISHED, match: MATCH, ok: MATCH_OK };
+window.LS_GATE = {
+  cut: 'v2', of: 'reel-absorb-gc', runtime: TOTAL,
+  mode: 'C_REALISTIC_SIMULATION', market: 'GC Futures · COMEX', tf: 'M5', seed: SEED,
+  LVL, SWEEP, ENTRY, STOP, TGT, RISK, REWARD, R: +R.toFixed(2),
+  sweepVol: FP.total, delta: FP.delta, barPoc: FP.poc,
+  topBid: topRow.bid, topAsk: topRow.ask, levelDiff: LVLDIFF,
+  vah: PROF.vah, val: PROF.val, stopHit, tgtHit,
+  check: CHECK, allOk: ALL_OK, matchOk: MATCH_OK,
+  violations: window.LS_VIOLATIONS.length, qaProblems: window.LS_QA.length
+};
+window.seekTo = t => { seekAll(t); return true; };
+placeRow(); seekAll(0);
+document.fonts.ready.then(() => { placeRow(); seekAll(0); window.LS_READY = true; });
+
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now) { seekAll(((now - t0) / 1000) % TOTAL); requestAnimationFrame(loop); })(t0);
+}
+</script>
