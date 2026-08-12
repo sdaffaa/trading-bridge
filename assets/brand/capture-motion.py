@@ -10,6 +10,10 @@ PORT = 9333
 PAGE = sys.argv[1]
 OUT = sys.argv[2]
 FPS = int(sys.argv[3]) if len(sys.argv) > 3 else 30
+# --spec switches to the delivery encode: PNG frames, H.264 High, Rec.709,
+# 15-20 Mbps VBR, silent 48k AAC track. The default stays as it was so the
+# reels already rendered stay reproducible byte for byte.
+SPEC = "--spec" in sys.argv[4:]
 # Default is the 4:5 post canvas; a page that is a different shape says so in
 # window.LS_SIZE and the viewport is re-fitted to it after load.
 W, H = 1080, 1350
@@ -99,8 +103,9 @@ print(f"timeline {dur:.2f}s → capturing {n} frames at {FPS}fps ({total:.2f}s)"
 for k in range(n):
     t = k / FPS
     ev(f"window.seekTo({t})")
-    shot = cmd("Page.captureScreenshot", {"format": "jpeg", "quality": 92})
-    with open(os.path.join(frames, f"f{k:05d}.jpg"), "wb") as fh:
+    shot = cmd("Page.captureScreenshot",
+               {"format": "png"} if SPEC else {"format": "jpeg", "quality": 92})
+    with open(os.path.join(frames, f"f{k:05d}." + ("png" if SPEC else "jpg")), "wb") as fh:
         fh.write(base64.b64decode(shot["data"]))
     if k % 60 == 0:
         print(f"  {t:5.1f}s  frame {k}/{n}")
@@ -109,9 +114,24 @@ ws.close(); proc.terminate(); proc.wait(timeout=10)
 print("frames done")
 
 FF = "/usr/local/lib/python3.11/dist-packages/imageio_ffmpeg/binaries/ffmpeg-linux-x86_64-v7.0.2"
-subprocess.run([FF, "-y", "-framerate", str(FPS), "-i", os.path.join(frames, "f%05d.jpg"),
-                "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18",
-                "-movflags", "+faststart", OUT], check=True,
-               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+if SPEC:
+    # Delivery profile: H.264 High, Rec.709 tagged, VBR 15-20 Mbps, faststart.
+    # Frames are captured as PNG in this mode so the encoder is the only
+    # generation loss. Silent AAC track so the file carries the declared audio
+    # layout even before a music bed exists.
+    args = [FF, "-y", "-framerate", str(FPS), "-i", os.path.join(frames, "f%05d.png"),
+            "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=48000",
+            "-shortest",
+            "-c:v", "libx264", "-profile:v", "high", "-level", "4.0",
+            "-pix_fmt", "yuv420p",
+            "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709",
+            "-b:v", "17M", "-maxrate", "20M", "-minrate", "15M", "-bufsize", "34M",
+            "-c:a", "aac", "-b:a", "256k", "-ar", "48000",
+            "-movflags", "+faststart", OUT]
+else:
+    args = [FF, "-y", "-framerate", str(FPS), "-i", os.path.join(frames, "f%05d.jpg"),
+            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18",
+            "-movflags", "+faststart", OUT]
+subprocess.run(args, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 shutil.rmtree(frames, ignore_errors=True)
 print("wrote", OUT, os.path.getsize(OUT), "bytes")

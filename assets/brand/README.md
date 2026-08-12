@@ -172,6 +172,7 @@ reference build.
 | **H4 + M15 + M5** — ICT sweep → FVG → OTE | `reel-ict-mtf.md` | `reel-ict-mtf.html` |
 | **H4 + M15 + M5** — SMC equal lows → CHoCH → order block | `reel-smc-choch.md` | `reel-smc-choch.html` |
 | **H4 + M15 + M5** — volume profile excess → POC, with a footprint ladder | `reel-value-poc.md` | `reel-value-poc.html` |
+| **M15 → M5** — where the stop goes, read off VAH/POC/VAL | `reel-stop-vp.md` | `reel-stop-vp.html` |
 
 **Every trade is read on H4, located on M15 and entered on M5**, and the three
 charts are one market: the M5 candles are generated and the other two are
@@ -239,6 +240,7 @@ use these; the first three are left as they shipped.
 ![ICT two-frame reel](reel-ict-mtf-poster.png)
 ![SMC two-frame reel](reel-smc-choch-poster.png)
 ![Volume profile two-frame reel](reel-value-poc-poster.png)
+![Stop placement reel](reel-stop-vp-poster.png)
 
 The three multi-frame reels are standalone — no series, no callbacks — and each
 leads with a different school, named in English on the cards: **ICT**
@@ -252,6 +254,20 @@ card carries its own tie to the entry — the M15 sweep landing inside the H4
 order block, the equal lows sitting inside H4 demand, the M15 target being the
 H4 point of control. `reel-value-poc.html` puts the footprint ladder beside the
 M5 candles in the same card — the chart says where, the ladder says who.
+
+`reel-stop-vp.html` is the exception in this group and says so on its own
+face: two frames, not three, and the chart is 992×820 — the whole card — with
+the M5 **replacing** the M15 for the confirmation beat rather than sitting
+beside it. It is also the first page rendered under `CHART_SOURCE_MODE`, a
+three-step preference: the original chart, else a rebuild from verified market
+data, else a labelled educational simulation. Both intraday data routes on this
+account are behind a paid tier, so it is a simulation — and the chart carries
+the words, the range the profile was measured over, and the fact that the
+volume is a time-at-price approximation derived from the candles. Two rules
+bend there for measurable reasons, both written up in `reel-stop-vp.md`: a
+value-area edge is drawn where the distribution puts it rather than snapped to
+a wick tip, and the level names live in the price gutter instead of inside the
+line, because an inline label on a chart that dense lands on the candles.
 
 One trap the H4 layer introduces: searching the whole context for "the biggest
 impulse" finds a lucky run of drift instead of the real one, and every

@@ -1,0 +1,554 @@
+<meta charset="utf-8">
+<title>Liquidity State — الستوب بمنطقة القيمة</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#8A8A8A; }
+
+  /* Two identities in one page. Phase A is navy-black and full bleed; phase B
+     is warm off-white with the chart inside a dark card. The swap is a single
+     progress value, so nothing can get out of step with anything else. */
+  .stage { position:absolute; inset:0; overflow:hidden; }
+  #page  { position:absolute; inset:0; background:#0B1A22; }
+  #cream { position:absolute; inset:0; background:
+             radial-gradient(120% 90% at 20% 0%, #F5F0E7 0%, #EDE6DA 100%); opacity:0; }
+
+  /* The chart card. Its inset, radius and border animate from full bleed to a
+     card; the camera is a transform on the wrapper INSIDE it, so the card
+     itself never moves and the logo and headline never ride the zoom. */
+  #card { position:absolute; background:#0B1A22; overflow:hidden;
+          border:0 solid color-mix(in srgb, #9EC4D5 34%, transparent); }
+  #cam  { position:absolute; inset:0; transform-origin:50% 50%; will-change:transform; }
+  #chart { position:absolute; left:0; right:0; top:0; }
+  #chart5 { position:absolute; left:0; right:0; top:0; opacity:0; }
+
+  .ttl { position:absolute; left:70px; right:70px; text-align:center;
+         font-family:var(--ls-font-ar); font-weight:800; line-height:1.24;
+         direction:rtl; opacity:0; }
+  #hook { top:1180px; font-size:100px; color:#EAF4F8;
+          text-shadow:0 6px 40px rgba(0,0,0,.55); }
+  #hook em { font-style:normal; color:#5FC6DF; }
+
+  /* Teaching line. Dark on the cream page, never over the candles. */
+  #beat { position:absolute; left:64px; right:64px; top:1430px; text-align:center;
+          font-family:var(--ls-font-ar); font-weight:800; font-size:64px;
+          line-height:1.26; direction:rtl; opacity:0;
+          color:var(--bt,#15222E); }
+  #beat.sm  { font-size:52px; }
+  #beat.low { top:1478px; }
+  #beat em { font-style:normal; color:var(--bem,#2C7F9E); }
+  #beat b  { font-weight:800; color:#C35758; }
+
+  #wm { position:absolute; top:252px; left:0; right:0; text-align:center;
+        font-family:var(--ls-font-wordmark); font-size:26px; letter-spacing:.30em;
+        text-transform:uppercase; color:#8FA3AC; opacity:0; }
+
+  /* Step cards appear one at a time and leave when their job is done. */
+  .step { position:absolute; left:64px; right:64px; top:1230px;
+          display:flex; gap:12px; justify-content:center; opacity:0; }
+  .step .p { flex:1; max-width:300px; border-radius:16px; padding:14px 16px;
+             background:#FBF8F3; border:1.5px solid color-mix(in srgb,#9EC4D5 45%,transparent);
+             text-align:center; }
+  .step .p .k { font-size:22px; font-weight:700; color:#8FA0A9; direction:ltr; }
+  .step .p .v { margin-top:6px; font-size:38px; font-weight:800; color:#15222E;
+                direction:ltr; font-variant-numeric:tabular-nums; }
+  .step .p.risk .v { color:#C35758; }
+  .step .p.tgt  .v { color:#2C7F9E; }
+  .step .p.off  { opacity:.34; }
+
+  /* Three-point summary — only in its own beat. */
+  #sum { position:absolute; left:96px; right:96px; top:1226px; direction:rtl;
+         opacity:0; }
+  #sum div { display:flex; align-items:center; gap:16px; margin-top:14px;
+             font-family:var(--ls-font-ar); font-size:44px; font-weight:700;
+             color:#15222E; }
+  #sum i { flex:none; width:38px; height:38px; border-radius:999px; font-style:normal;
+           font-size:22px; font-weight:800; line-height:36px; text-align:center;
+           color:#2C7F9E; border:2px solid #9EC4D5; }
+
+  #cta { position:absolute; left:70px; right:70px; top:980px; text-align:center;
+         direction:rtl; opacity:0; }
+  #cta .a { font-family:var(--ls-font-ar); font-size:92px; font-weight:800;
+            line-height:1.32; color:#15222E; }
+  #cta .a em { font-style:normal; color:#2C7F9E; }
+  #cta .b { margin-top:26px; font-family:var(--ls-font-ar); font-size:44px;
+            font-weight:700; color:#8FA0A9; line-height:1.5; }
+
+  /* Mode C requires this on the chart itself, not in a strip at the bottom. */
+  #sim { position:absolute; text-align:center; font-family:var(--ls-font-ar);
+         font-size:24px; font-weight:700; color:#8FA3AC; opacity:0; direction:rtl; }
+
+  /* The three names ride the price gutter, not the middle of the line. The
+     engine's inline label centres itself in the rail, which on a chart this
+     dense lands on top of the candles — and MARKUP.md's rule is that a label
+     never covers one. So the rails run clean and the naming happens in the
+     gutter the padding reserves for it — and outside #cam, because a tag that
+     rides a zoom gets pushed off the card and clipped. It is re-aimed at its
+     rail every frame instead, through the same transform the camera applies. */
+  .lvl { position:absolute; right:12px; display:flex; align-items:center; gap:10px;
+         padding:6px 12px; border-radius:10px; direction:ltr; opacity:0;
+         font-family:var(--ls-font-ar); font-variant-numeric:tabular-nums;
+         background:color-mix(in srgb,#0B1A22 82%,transparent); }
+  .lvl b { font-size:25px; font-weight:800; letter-spacing:.06em; }
+  .lvl s { text-decoration:none; font-size:25px; font-weight:700; color:#CFE3EB; }
+  #lv-vah, #lv-val { border:2px solid #22D3DC; }
+  #lv-vah b, #lv-val b { color:#22D3DC; }
+  #lv-poc { border:2px solid #E0A33C; }
+  #lv-poc b { color:#E0A33C; }
+
+  /* Markup sizing. The engine's defaults are calibrated for a chart that fills
+     a page; here one 952×664 chart carries the whole reel, and the three
+     levels ARE the subject — the brief asks for 4–6px rails and they have to
+     read at arm's length. */
+  #card .ls-mk-line     { stroke-width:5; }
+  #card .ls-mk-poc      { stroke-width:5; }
+  #card .ls-mk-label    { font-size:27px; }
+  #card .ls-mk-sticker-t{ font-size:29px; }
+  #card .ls-mk-poc-t    { font-size:27px; }
+  #card .ls-mk-zone     { stroke-width:2.4; }
+  /* The histogram is a backdrop to the candles it was measured from, never a
+     lid on them. */
+  #card .ls-mk-vp-bar   { opacity:.42; }
+  #card .ls-mk-vp-box   { stroke-width:1.6; }
+</style>
+
+<div class="stage">
+  <div id="page"></div>
+  <div id="cream"></div>
+
+  <div id="card" data-ls-theme="cover">
+    <div id="cam">
+      <div id="chart"></div>
+      <div id="chart5"></div>
+    </div>
+    <div class="lvl" id="lv-vah"><b>VAH</b><s></s></div>
+    <div class="lvl" id="lv-poc"><b>POC</b><s></s></div>
+    <div class="lvl" id="lv-val"><b>VAL</b><s></s></div>
+  </div>
+
+  <div id="wm">Liquidity State</div>
+  <div id="sim"></div>
+
+  <div class="ttl" id="hook"><span>أقرب ظل<br>يضرب <em>ستوبك</em></span></div>
+  <div id="beat"><span></span></div>
+
+  <div class="step" id="steps">
+    <div class="p" id="s-entry"><div class="k">Entry</div><div class="v">—</div></div>
+    <div class="p risk" id="s-stop"><div class="k">Stop</div><div class="v">—</div></div>
+    <div class="p tgt" id="s-t1"><div class="k">POC</div><div class="v">—</div></div>
+    <div class="p tgt" id="s-t2"><div class="k">VAL</div><div class="v">—</div></div>
+  </div>
+
+  <div id="sum">
+    <div><i>1</i><span>رينج واضح</span></div>
+    <div><i>2</i><span>فشل قبول خارج الـ VAH</span></div>
+    <div><i>3</i><span>ستوب فوق قمة الخروج</span></div>
+  </div>
+
+  <div id="cta">
+    <div class="a">اكتب «<em>ستوب</em>»<br>إذا تبي مثالاً ثاني</div>
+    <div class="b">احفظها قبل صفقتك الجاية<br>وأرسلها لمتداول يحط الستوب عشوائي</div>
+  </div>
+</div>
+
+<script src="./markup.js"></script>
+<script src="./timeframe.js"></script>
+<script>
+/* ==========================================================================
+   الستوب بمنطقة القيمة — VAH · POC · VAL
+
+   PRIMARY_TOPIC     = VOLUME_PROFILE
+   STRUCTURE_METHOD  = ICT   (failed auction → return to value)
+   CONFIRMATION_LAYER= NONE  — a third tool would repeat what these two say,
+                              and the brief's own rule deletes a tool that adds
+                              nothing.
+
+   CHART_SOURCE_MODE = C_EDUCATIONAL_SIMULATION.
+   Mode A needs the original chart and none was supplied. Mode B was attempted
+   first and is unavailable: every intraday route on this account is gated
+   (FMP commodity/chart require a paid tier; Alpha Vantage TIME_SERIES_INTRADAY
+   and FX_INTRADAY are premium endpoints on this key). So this is a written
+   dataset, and the page says so on the chart — no symbol, no venue, no date,
+   no data provider, and nothing here is presented as a recorded trade.
+
+   The series is written once on M5 and the M15 is LSTF.aggregate(M5, 3), so
+   the two frames the reel moves between are one market. Every number on
+   screen — VAH, POC, VAL, entry, stop, both targets, both R values — is read
+   back off those candles, and the reel is 23.50s.
+   ========================================================================== */
+
+const TOTAL = 23.50, SEAM = 22.30;
+const r2 = v => Math.round(v * 100) / 100;
+const ease = k => k * k * (3 - 2 * k);
+const seg  = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
+const band = (t, a, b, f) => {          // 0 → 1 → 0 across a beat, with a fade f
+  const inn = ease(seg(t, a, f)), out = ease(seg(t, b - f, f));
+  return inn * (1 - out);
+};
+
+/* ---- the dataset ------------------------------------------------------- */
+/* A balance, and nothing but a balance: mean-reverting inside ±amp. This is
+   what makes a value area worth measuring — and it is why the profile's range
+   stops here and does not reach into the excursion that follows it. */
+function balance5(n, start, mid, amp, seed) {
+  let s = seed, p = start;
+  const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const o = p;
+    /* Barely any pull to the middle: a balance that snaps back to its mean
+       piles 70% of the time into a sliver, and then the value area is a
+       hairline instead of the area the whole reel is about. */
+    const c = r2(Math.max(mid - amp, Math.min(mid + amp,
+                 o + (mid - o) * 0.03 + rnd() * amp * 0.74)));
+    const w = amp * (0.08 + Math.abs(rnd()) * 0.30);
+    out.push({ o, c,
+      h: r2(Math.max(o, c) + Math.abs(rnd()) * w),
+      l: r2(Math.min(o, c) - Math.abs(rnd()) * w) });
+    p = c;
+  }
+  return out;
+}
+function leg(from, to, n, wick, wob) {
+  const out = []; let o = from;
+  for (let i = 1; i <= n; i++) {
+    const c = r2(from + (to - from) * (i / n) + (wob || 0) * Math.sin(i * 1.9));
+    out.push({ o, c, h: r2(Math.max(o, c) + wick), l: r2(Math.min(o, c) - wick) });
+    o = c;
+  }
+  return out;
+}
+
+const LEAD5 = leg(1998.60, 1999.80, 18, 0.10, 0.16);              // 6 M15 bars in
+const BAL5  = balance5(72, 1999.80, 2000, 1.58, 6624131);         // 24 M15 bars
+const PRE5  = LEAD5.concat(BAL5);                                 // 90 M5 = 30 M15
+const PRE15 = LSTF.aggregate(PRE5, 3);
+
+/* The fixed range the profile is calculated on — declared on screen, because a
+   profile without its range is a picture, not a measurement. It is the balance
+   and only the balance: extend it into the move that follows and the VAH stops
+   being the edge that move broke. */
+const RNG_A = 6, RNG_B = 29;                                      // M15 6 … 29
+const probe = document.createElement('div');
+probe.style.cssText = 'position:absolute;left:-9999px;width:900px';
+document.body.appendChild(probe);
+const pc = LSChart({ mount: probe, width: 900, height: 520,
+                     candles: PRE15.slice(RNG_A, RNG_B + 1),
+                     padding: { top: 20, right: 20, bottom: 20, left: 20 }, barsRight: 1 });
+pc.drawCandles();
+pc.volumeProfile({ from: 0, to: RNG_B - RNG_A, bins: 26, valueArea: 0.70 });
+const VAH = r2(pc.profile.vah), POC = r2(pc.profile.poc), VAL = r2(pc.profile.val);
+probe.remove();
+
+const V = r2(VAH - VAL);                 // the height of value — everything scales to it
+const v = d => r2(VAH + d * V);          // written in fractions of it
+
+const EXC_D = 0.26;                      // how far the excursion pokes above the VAH
+const BUF_D = 0.08;                      // the declared volatility margin above it
+
+const M5 = PRE5.concat(
+  leg(PRE5[PRE5.length - 1].c, v(-0.05), 6, 0.03 * V, 0.04 * V),  // M15 30–31, out of value
+  [
+    /* M15 32 — the excursion above the VAH */
+    { o: v(-0.05), c: v(0.06),   h: v(0.09),   l: v(-0.06) },
+    { o: v(0.06),  c: v(0.15),   h: v(0.19),   l: v(0.05)  },
+    { o: v(0.15),  c: v(0.20),   h: v(EXC_D),  l: v(0.14)  },   // the high of the poke
+    /* M15 33 — it cannot hold up there */
+    { o: v(0.20),  c: v(0.16),   h: v(0.21),   l: v(0.14)  },
+    { o: v(0.16),  c: v(0.09),   h: v(0.17),   l: v(0.08)  },
+    { o: v(0.09),  c: v(0.03),   h: v(0.10),   l: v(0.02)  },
+    /* M15 34 — closes back INSIDE value: the failed auction */
+    { o: v(0.03),  c: v(-0.04),  h: v(0.04),   l: v(-0.06) },
+    { o: v(-0.04), c: v(-0.09),  h: v(-0.03),  l: v(-0.11) },
+    { o: v(-0.09), c: v(-0.13),  h: v(-0.08),  l: v(-0.15) },
+    /* M15 35 — the retest of the VAH from below, and it fails: the trigger */
+    { o: v(-0.13), c: v(-0.06),  h: v(-0.04),  l: v(-0.14) },
+    { o: v(-0.06), c: v(-0.02),  h: v(0),      l: v(-0.07) },   // tags the VAH exactly
+    { o: v(-0.02), c: v(-0.10),  h: v(-0.01),  l: v(-0.12) }
+  ],
+  leg(v(-0.10), v(-1.16), 42, 0.022 * V, 0.038 * V)             // M15 36–49
+);
+
+const M15 = LSTF.aggregate(M5, 3);
+const TF_ERR = LSTF.verify(M5, M15, 3);
+
+/* ---- the model, all of it read back off the candles --------------------- */
+const excB15  = 32, failB15 = 34, trigB15 = 35;
+const EXC_HI  = M15[excB15].h;                    // the high of the excursion
+const ENTRY   = VAH;                              // the failed retest of the VAH
+const BUF     = r2(BUF_D * V);
+const STOP    = r2(EXC_HI + BUF);
+const RISK    = r2(STOP - ENTRY);
+const T1 = POC, T2 = VAL;
+const R1 = (ENTRY - T1) / RISK, R2 = (ENTRY - T2) / RISK;
+
+let acc = 0;                                      // closes that stayed above the VAH
+for (let i = excB15; i <= failB15; i++) if (M15[i].c > VAH) acc++;
+
+const trigB5 = M5.findIndex((c, i) => i >= trigB15 * 3 && c.h >= ENTRY - 1e-9);
+const t1B5   = M5.findIndex((c, i) => i > trigB5 && c.l <= T1 + 1e-9);
+const t2B5   = M5.findIndex((c, i) => i > t1B5   && c.l <= T2 + 1e-9);
+const t1B15  = Math.floor(t1B5 / 3), t2B15 = Math.floor(t2B5 / 3);
+let stopHit  = -1;
+for (let i = trigB5; i < M5.length; i++) if (M5[i].h >= STOP - 1e-9) { stopHit = i; break; }
+
+const CHECK = {
+  excursion:  M15[excB15].h > VAH,
+  noAccept:   acc < 3 && M15[failB15].c < VAH,
+  failRetest: M15[trigB15].h >= ENTRY - 1e-9 && M15[trigB15].c < ENTRY,
+  stopClear:  STOP > EXC_HI,
+  t1:         t1B5 > 0,
+  t2:         t2B5 > 0,
+  stopSafe:   stopHit === -1,
+  tf:         TF_ERR.length === 0
+};
+const ALL_OK = Object.values(CHECK).every(Boolean);
+
+/* ---- the chart ---------------------------------------------------------- */
+const W0 = 0, W1 = M15.length;                    // the window shows the whole series
+const j  = i => i - W0;
+const CW = 992, CH = 820;                        // the chart IS the reel
+
+const ch = LSChart({
+  mount: '#chart', width: CW, height: CH, candles: M15.slice(W0, W1),
+  padding: { top: 46, right: 176, bottom: 40, left: 16 },
+  barsRight: 1, autoTerminate: true, tolerance: 0.01,
+  /* Default label lag is 0.7s — three levels in a row would land their names
+     after the beat that names them had already left. */
+  anim: { labelLag: 0.20, labelDur: 0.30 }
+});
+ch.grid(3).drawCandles();
+
+/* Levels: 4–6px, cyan for the edges, a quieter amber for the POC, each named
+   once in Arabic. Drawn in sequence, and only after the profile that produced
+   them is on screen.
+
+   `edge: false` on the two value-area edges is the same exemption the POC and
+   the OTE fib already carry: MARKUP.md snaps a level onto a wick tip because a
+   level is normally a price some candle MADE. A value-area edge is not — it is
+   the 70% boundary of the distribution over the declared range, and it lands
+   wherever the volume says, mid-candle as often as not. Snapping it to the
+   nearest wick would move the number the whole reel is about. So it is drawn
+   where it was measured, and the measurement is on screen (range + 70%). */
+ch.volumeProfile({ from: j(RNG_A), to: j(RNG_B), bins: 26, widthPct: 0.21,
+                   valueArea: 0.70, showVA: false, box: true, at: 3.40, dur: 0.90 });
+ch.level({ price: VAH, from: j(RNG_A), to: 'edge', edge: false, at: 4.75, dur: 0.40 });
+ch.poc({ price: POC, from: j(RNG_A), label: '', at: 5.25, dur: 0.40 });
+ch.level({ price: VAL, from: j(RNG_A), to: 'edge', edge: false, at: 5.75, dur: 0.40 });
+
+ch.sticker({ i: j(excB15), price: EXC_HI, text: 'قمة الخروج', dy: -56, dx: -70,
+             at: 7.10 });
+/* No label on this box: it would have to run right from the candle, straight
+   across the VAH rail and over the fall. Beat 6 says what it is. */
+ch.zone({ from: j(failB15), top: M15[failB15].h, bottom: M15[failB15].l,
+          tone: 'accent', to: j(failB15), at: 8.60, dur: 0.50 });
+ch.zone({ from: j(trigB15), top: STOP, bottom: ENTRY, label: 'SL', tone: 'danger',
+          whole: false, align: 'right', to: 'edge', at: 13.80, dur: 0.50 });
+/* The rail tags already name these two prices; what the stickers add is WHEN
+   price got there, so they say that instead of repeating the name. */
+ch.sticker({ i: j(t1B15), price: T1, text: 'الهدف ١', dy: 54, dx: -46, at: 16.60 });
+ch.sticker({ i: j(t2B15), price: T2, text: 'الهدف ٢', dy: 54, dx: -46, at: 17.50 });
+ch.layout();
+
+/* The lower frame, shown only for the confirmation beat: the same market, the
+   same two prices, three times the resolution. */
+/* The window starts at the excursion, not before it: the descent into value
+   spans four times the height of the action, and including it would squash the
+   0.5-point difference between the VAH and the retest wick into nothing. */
+const F0 = excB15 * 3, F1 = trigB15 * 3 + 9;
+const ch5 = LSChart({
+  mount: '#chart5', width: CW, height: CH, candles: M5.slice(F0, F1),
+  padding: { top: 46, right: 176, bottom: 40, left: 16 },
+  barsRight: 1, autoTerminate: true, tolerance: 0.01,
+  anim: { labelLag: 0.20, labelDur: 0.30 }
+});
+ch5.grid(3).drawCandles();
+ch5.level({ price: VAH, from: 0, label: 'VAH', to: 'edge', edge: false,
+            at: 0.10, dur: 0.30 });
+ch5.sticker({ i: trigB5 - F0, price: ENTRY, text: 'رجع للـ VAH وما قفل فوقه',
+              dy: -54, dx: -150, at: 0.70 });
+ch5.layout();
+
+/* Camera: three moves and nothing else, each aimed with the engine's own
+   coordinates so it lands on the candle it is named after. */
+const pt = (i, p) => [ch.X(j(i)), ch.Y(p)];
+const CAM_EXC  = pt(excB15, EXC_HI);
+const CAM_FAIL = pt(failB15, M15[failB15].c);
+const lerpO = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+
+/* The three rail tags: welded to the price they name, revealed with the rail
+   that carries them. Inside #cam, so a camera move never separates a name from
+   its line. */
+const TAGS = [['lv-vah', VAH, 5.15], ['lv-poc', POC, 5.65], ['lv-val', VAL, 6.15]];
+TAGS.forEach(([id, price]) => {
+  document.getElementById(id).querySelector('s').textContent = price.toFixed(2);
+});
+
+const f2 = x => x.toFixed(2);
+document.getElementById('sim').textContent =
+  'محاكاة تعليمية لحركة السوق · M15 → M5 · نطاق البروفايل ' +
+  (RNG_B - RNG_A + 1) + ' شمعة M15 · منطقة القيمة ٧٠٪ · بروفايل تقديري مبني على بيانات الفريم';
+
+/* ---- the beats ---------------------------------------------------------- */
+const BEATS = [
+  /* No beat straddles the identity swap — a line that changes colour halfway
+     through itself reads as a glitch. */
+  [2.55,  3.55, 'وين مكانه المنطقي؟'],
+  [3.55,  4.65, 'فوق <em>بطلان الفكرة</em>… مو فوق أي ظل'],
+  [4.65,  6.40, 'VAH فوق · POC وسط · VAL تحت'],
+  [6.40,  8.20, 'السعر خرج فوق الـ <em>VAH</em>'],
+  [8.20, 10.20, 'ثم أغلق <em>داخل منطقة القيمة</em>'],
+  [10.20,11.70, 'هذا <em>فشل قبول</em>… مو اختراق'],
+  [11.70,13.60, 'الدخول بعد رجوع للـ VAH <em>بلا إغلاق فوقه</em>', 'sm'],
+  [13.60,15.70, 'الستوب فوق <b>قمة الخروج</b>'],
+  [15.70,18.20, 'الهدف الأول <em>POC</em>… ثم <em>VAL</em>'],
+  [18.40,20.00, 'السياق يحدد الستوب، مو أقرب ظل', 'sm low']
+];
+const beatEl = document.getElementById('beat');
+const hookEl = document.getElementById('hook');
+const pageEl = document.getElementById('page'), creamEl = document.getElementById('cream');
+const cardEl = document.getElementById('card'), camEl = document.getElementById('cam');
+const wmEl = document.getElementById('wm'), simEl = document.getElementById('sim');
+const stepsEl = document.getElementById('steps'), sumEl = document.getElementById('sum');
+const ctaEl = document.getElementById('cta');
+const ch5El = document.getElementById('chart5'), chEl = document.getElementById('chart');
+const sEntry = document.getElementById('s-entry'), sStop = document.getElementById('s-stop');
+const sT1 = document.getElementById('s-t1'), sT2 = document.getElementById('s-t2');
+let lastBeat = -1;
+
+function seekAll(t) {
+  let te = t;
+  if (t > SEAM) te = SEAM * (1 - ease(seg(t, SEAM, TOTAL - SEAM)));
+
+  ch.seek(te);
+  ch5.seek(Math.max(te - 11.70, 0));
+
+  /* Identity swap. Fast on purpose: two full-bleed backgrounds cross-fading
+     over a second and a half spend most of that second and a half as neither
+     of them — a grey-green nobody chose. The camera keeps pulling out through
+     it, so the cut has motion under it. */
+  const cream = ease(seg(te, 2.00, 0.50));
+  creamEl.style.opacity = cream.toFixed(3);
+  wmEl.style.opacity = (cream * 0.9).toFixed(3);
+  simEl.style.opacity = (cream * 0.85).toFixed(3);
+
+  /* the card grows its inset as the page turns cream */
+  /* The card holds its box; only its edge changes. Growing the box would mean
+     re-laying out the chart mid-reel, and the chart is the one thing on this
+     page that must not move. In phase A the page behind it is the same navy,
+     so it reads full bleed until the border draws itself on. */
+  const inset = 44, top = 300;
+  cardEl.style.left = cardEl.style.right = inset + 'px';
+  cardEl.style.top = top + 'px';
+  cardEl.style.height = CH + 'px';
+  cardEl.style.borderRadius = (26 * cream).toFixed(1) + 'px';
+  cardEl.style.borderWidth = (1.6 * cream).toFixed(2) + 'px';
+  simEl.style.top = (top + CH + 16) + 'px';
+  simEl.style.left = simEl.style.right = (inset + 8) + 'px';
+
+  /* Camera — exactly three moves, and the origin never cuts. Switching the
+     origin while zoomed in reads as a jump, so it travels: the second move
+     drifts from the swept wick to the candle that closed back inside, holds
+     through the stop, and only then releases. */
+  let s = 1, o = CAM_EXC;
+  if (te < 3.30) {                       // 1 · in on the wick that got swept
+    s = 2.55 - 1.55 * ease(seg(te, 1.80, 1.50));
+  } else if (te >= 6.40) {
+    o = lerpO(CAM_EXC, CAM_FAIL, ease(seg(te, 8.20, 0.80)));   // 2 · in, and hold
+    s = 1 + 0.14 * ease(seg(te, 6.40, 0.55))
+                 * (1 - ease(seg(te, 15.70, 0.70)));           // 3 · out, both targets
+  }
+  camEl.style.transformOrigin = `${o[0]}px ${o[1]}px`;
+  camEl.style.transform = `scale(${s.toFixed(4)})`;
+
+  /* Same transform, applied by hand, so a tag keeps sitting on its rail — and
+     the tags leave with the frame they belong to, because the M5 chart carries
+     its own price scale and its own VAH. */
+  const toM5 = band(te, 11.70, 13.60, 0.22);
+  TAGS.forEach(([id, price, t0]) => {
+    const e = document.getElementById(id);
+    e.style.opacity = (ease(seg(te, t0, 0.30)) * (1 - toM5)).toFixed(3);
+    e.style.top = (o[1] + (ch.Y(price) - o[1]) * s - 24).toFixed(1) + 'px';
+  });
+
+  /* the lower frame takes the card for the confirmation beat only */
+  ch5El.style.opacity = toM5.toFixed(3);
+  /* All the way off, not down to a ghost: two price scales showing through
+     each other put two VAH lines on screen at two different heights. */
+  chEl.style.opacity = (1 - toM5).toFixed(3);
+
+  /* the failed-acceptance beat dims everything except the two candles */
+  const dim = band(te, 10.20, 11.70, 0.25);
+  ch.svg.querySelector('.ls-layer-candle').style.opacity = (1 - 0.15 * dim).toFixed(3);
+
+  /* The hook is up from frame zero — a fade-in would spend the first beat of
+     a 23s reel on nothing — and leaves before the first teaching line. */
+  hookEl.style.opacity = (1 - ease(seg(te, 1.60, 0.40))).toFixed(3);
+
+  /* Beats 1–3 play while the page is still navy, so the teaching line has to
+     cross the identity swap with it instead of sitting there in ink. */
+  beatEl.style.setProperty('--bt',  cream > 0.5 ? '#15222E' : '#EAF4F8');
+  beatEl.style.setProperty('--bem', cream > 0.5 ? '#2C7F9E' : '#5FC6DF');
+
+  let cur = -1;
+  for (let i = 0; i < BEATS.length; i++) if (te >= BEATS[i][0] && te < BEATS[i][1]) cur = i;
+  if (cur !== lastBeat) {
+    beatEl.firstElementChild.innerHTML = cur < 0 ? '' : BEATS[cur][2];
+    beatEl.className = cur < 0 ? '' : (BEATS[cur][3] || '');
+    lastBeat = cur;
+  }
+  beatEl.style.opacity = cur < 0 ? 0
+    : band(te, BEATS[cur][0], BEATS[cur][1], 0.16).toFixed(3);
+
+  /* step cards: each appears when the chart has earned it, and leaves after */
+  const stepOn = band(te, 11.90, 18.30, 0.30);
+  stepsEl.style.opacity = stepOn.toFixed(3);
+  /* A card that has not been earned shows no number. Dimming it still puts the
+     stop on screen before the chart has said where it goes. */
+  const on = (el, x, val) => {
+    const lit = te > SEAM ? false : te >= x;
+    el.classList.toggle('off', !lit);
+    el.querySelector('.v').textContent = lit ? val : '—';
+  };
+  on(sEntry, 11.90, f2(ENTRY)); on(sStop, 13.90, f2(STOP));
+  on(sT1, t1B5 > 0 ? 16.50 : 1e9, f2(T1));
+  on(sT2, t2B5 > 0 ? 17.40 : 1e9, f2(T2));
+  document.querySelector('#s-t1 .k').textContent = te >= 16.50 && CHECK.t1
+    ? 'POC · ' + R1.toFixed(2) + 'R' : 'POC';
+  document.querySelector('#s-t2 .k').textContent = te >= 17.40 && CHECK.t2
+    ? 'VAL · ' + R2.toFixed(2) + 'R' : 'VAL';
+
+  const cta = ease(seg(te, 20.00, 0.45)) * (1 - ease(seg(te, SEAM - 0.5, 0.4)));
+  sumEl.style.opacity = (band(te, 18.45, 20.10, 0.28) * (1 - cta)).toFixed(3);
+  ctaEl.style.opacity = cta.toFixed(3);
+  /* The CTA owns the screen: a chart still readable underneath it is two
+     things asking to be read at once, and the strip that names the chart has
+     nothing left to name. */
+  cardEl.style.opacity = (1 - cta * 0.95).toFixed(3);
+  simEl.style.opacity = (cream * 0.85 * (1 - cta)).toFixed(3);
+  beatEl.style.opacity = cur < 0 ? 0 : (band(te, BEATS[cur][0], BEATS[cur][1], 0.16) * (1 - cta)).toFixed(3);
+  stepsEl.style.opacity = (stepOn * (1 - cta)).toFixed(3);
+}
+
+window.LS_SIZE = [1080, 1920];
+window.LS_DURATION = TOTAL;
+window.LS_TAIL = 0;
+window.LS_VIOLATIONS = ch.violations.concat(ch5.violations,
+  TF_ERR.map(e => ({ id: 'M15÷M5', kind: 'timeframe', status: 'mismatch', message: e.message })));
+window.LS_M5 = M5; window.LS_M15 = M15;
+window.LS_GATE = {
+  mode: 'C_EDUCATIONAL_SIMULATION',
+  range: [RNG_A, RNG_B], rangeBars: RNG_B - RNG_A + 1, valueArea: 0.70,
+  VAH, POC, VAL, V, EXC_HI: r2(EXC_HI), BUF, ENTRY, STOP, RISK,
+  T1, T2, R1: +R1.toFixed(3), R2: +R2.toFixed(3), acceptedCloses: acc,
+  trigB5, t1B5, t2B5, stopHit, n5: M5.length, n15: M15.length,
+  tfErrors: TF_ERR.length, check: CHECK, allOk: ALL_OK
+};
+window.seekTo = t => { seekAll(t); return true; };
+seekAll(0);
+document.fonts.ready.then(() => { seekAll(0); window.LS_READY = true; });
+
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now) { seekAll(((now - t0) / 1000) % TOTAL); requestAnimationFrame(loop); })(t0);
+}
+</script>
