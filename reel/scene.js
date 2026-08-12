@@ -29,10 +29,14 @@ for(let i=0;i<N;i++){
 const INW=884, INH=912, HEADER=96, PX0=76, PY0=HEADER+8, PLOTH=INH-PY0-18;
 let lo=Math.min(...C.map(c=>c.l)), hi=Math.max(...C.map(c=>c.h), SL);
 const pad=(hi-lo)*0.06; lo-=pad; hi+=pad;
-const PROFW=150, GAP=14, CAX1=INW-PROFW-GAP-8, CAW=CAX1-PX0;
+const AXW=48, PROFW=118, GAP=12, CAX1=INW-AXW-PROFW-GAP-8, CAW=CAX1-PX0;
 const yP=p=>PY0+(hi-p)/(hi-lo)*PLOTH;
 const slot=CAW/N, BW=Math.min(slot*0.58,22);
 const xi=i=>PX0+(i+0.5)*slot;
+// "nice" round price ticks for a TradingView-style axis
+function niceStep(raw){const p=Math.pow(10,Math.floor(Math.log10(raw)));const n=raw/p;return (n<1.5?1:n<3?2:n<7?5:10)*p;}
+const TICKS=(()=>{const step=niceStep((hi-lo)/6);const out=[];for(let v=Math.ceil(lo/step)*step; v<=hi; v+=step)out.push(+v.toFixed(2));return out;})();
+const lastRevealed=t=>{let k=0;for(let i=0;i<N;i++)if(t>=revealAt[i])k=i;return k;};
 
 // ---- camera ----
 const CEN={full:[INW/2,PY0+PLOTH/2,1], exit:[xi(EXIT),yP(EXITHI-1),1.15],
@@ -51,7 +55,7 @@ function cam(t){let a,b,x=0;
 
 const CY='#2FC6C6',STEEL='#90A7AF',AMBER='#E0A458',RED='#DF7573',TGT='#57C7A6',WHITE='#EAF2F3',MUT='#7E97A0';
 function line(p,col,on){ if(on<=0)return '';const y=yP(p);
-  return `<line x1="${PX0}" y1="${y.toFixed(1)}" x2="${CAX1}" y2="${y.toFixed(1)}" stroke="${col}" stroke-width="4.5" opacity="${on}"/>`; }
+  return `<line x1="${PX0}" y1="${y.toFixed(1)}" x2="${INW-AXW}" y2="${y.toFixed(1)}" stroke="${col}" stroke-width="4.5" opacity="${on}"/>`; }
 // price-axis chip pinned to the screen (survives camera zoom/pan) — Latin, no RTL
 function pchip(scrY,lab,price,col,on){ if(on<=0||scrY<PY0-18||scrY>INH-4)return '';
   return `<rect x="4" y="${(scrY-15).toFixed(1)}" rx="6" width="132" height="30" fill="${col}" opacity="${on}"/>`+
@@ -62,7 +66,7 @@ function chartSVG(t){
   const scrY=p=>cm.ty+cm.s*yP(p);
   const dim=seg(t,10.2,10.6)*(1-seg(t,15.5,15.9));
   let g='';
-  for(let k=0;k<=4;k++){const y=PY0+PLOTH*k/4;g+=`<line x1="${PX0}" y1="${y}" x2="${CAX1}" y2="${y}" stroke="#1d3a44" stroke-width="1"/>`;}
+  TICKS.forEach(p=>{const y=yP(p);g+=`<line x1="${PX0}" y1="${y.toFixed(1)}" x2="${INW-AXW}" y2="${y.toFixed(1)}" stroke="#173039" stroke-width="1"/>`;});
   // fixed-range bracket
   const frOn=fade(t,3.5,0.4);
   if(frOn>0){const x1=xi(R1)-slot*0.4,x2=xi(R2)+slot*0.4,yb=PY0-2;
@@ -74,15 +78,15 @@ function chartSVG(t){
   const vaOn=fade(t,4.9,0.4);
   if(vaOn>0)g+=`<rect x="${PX0}" y="${yP(VAH).toFixed(1)}" width="${CAW}" height="${(yP(VAL)-yP(VAH)).toFixed(1)}" fill="${CY}" opacity="${0.05*vaOn}"/>`;
   // profile histogram (real volume, تقديري distribution)
-  const pOn=fade(t,4.0,0.5), pr=D.profile.filter(x=>x.p>=lo&&x.p<=hi), pmax=Math.max(...pr.map(x=>x.v)), pxr=INW-6, bh=Math.max(4,PLOTH/((hi-lo)/0.5)-1);
+  const pOn=fade(t,4.0,0.5), pr=D.profile.filter(x=>x.p>=lo&&x.p<=hi), pmax=Math.max(...pr.map(x=>x.v)), pxr=INW-AXW-6, bh=Math.max(4,PLOTH/((hi-lo)/0.5)-1);
   pr.forEach(x=>{const w=(x.v/pmax)*(PROFW-8);const inVA=x.p<=VAH&&x.p>=VAL;const col=Math.abs(x.p-POC)<0.26?AMBER:(inVA?CY:STEEL);
     g+=`<rect x="${(pxr-w).toFixed(1)}" y="${(yP(x.p)-bh/2).toFixed(1)}" width="${w.toFixed(1)}" height="${bh.toFixed(1)}" fill="${col}" opacity="${(col===AMBER?0.9:0.5)*pOn}" rx="2"/>`;});
   // level LINES (chips are drawn screen-pinned below)
   g+=line(VAH,CY,fade(t,4.9))+line(POC,AMBER,fade(t,5.4))+line(VAL,CY,fade(t,5.9));
   // SL band+line (above exit high)
   const slOn=fade(t,13.8,0.35);
-  if(slOn>0){g+=`<rect x="${PX0}" y="${yP(SL).toFixed(1)}" width="${CAW}" height="${(yP(EXITHI)-yP(SL)).toFixed(1)}" fill="${RED}" opacity="${0.20*slOn}"/>`+
-    `<line x1="${PX0}" y1="${yP(SL).toFixed(1)}" x2="${CAX1}" y2="${yP(SL).toFixed(1)}" stroke="${RED}" stroke-width="2.5" opacity="${slOn}"/>`;}
+  if(slOn>0){g+=`<rect x="${PX0}" y="${yP(SL).toFixed(1)}" width="${INW-AXW-PX0}" height="${(yP(EXITHI)-yP(SL)).toFixed(1)}" fill="${RED}" opacity="${0.20*slOn}"/>`+
+    `<line x1="${PX0}" y1="${yP(SL).toFixed(1)}" x2="${INW-AXW}" y2="${yP(SL).toFixed(1)}" stroke="${RED}" stroke-width="2.5" opacity="${slOn}"/>`;}
   // candles
   for(let i=0;i<N;i++){const op=reveal(i); if(op<=0)continue;
     const c=C[i], bull=c.c>=c.o, col=bull?CY:STEEL, x=xi(i);
@@ -114,6 +118,18 @@ function chartSVG(t){
   const hOn=fade(t,2.0,0.4);
   let hd=`<text x="${INW/2}" y="30" font-size="23" font-weight="700" fill="#CFE0E4" text-anchor="middle" font-family="Plex" direction="rtl" unicode-bidi="plaintext" opacity="${hOn}">الذهب (GLD) · إطار يومي — إعادة رسم من بيانات سوق تاريخية</text>`+
     `<text x="${INW/2}" y="60" font-size="17" fill="#728b95" text-anchor="middle" font-family="Plex" direction="rtl" unicode-bidi="plaintext" opacity="${hOn}">المصدر: Alpha Vantage · Volume Profile تقديري · حجم يومي حقيقي · VA 70% · ${D.firstDate}→${D.lastDate}</text>`;
+  // right price axis (TradingView-style): vertical rule + round-number ticks (screen-pinned)
+  const axOn=fade(t,3.2,0.5), axX=INW-AXW;
+  hd+=`<line x1="${axX}" y1="${PY0-4}" x2="${axX}" y2="${INH-8}" stroke="#20404a" stroke-width="1.5" opacity="${axOn}"/>`;
+  TICKS.forEach(p=>{const y=cm.ty+cm.s*yP(p); if(y<PY0-2||y>INH-6)return;
+    hd+=`<line x1="${axX}" y1="${y.toFixed(1)}" x2="${axX+5}" y2="${y.toFixed(1)}" stroke="#3a5a64" stroke-width="1.5" opacity="${axOn}"/>`+
+      `<text x="${INW-4}" y="${(y+5).toFixed(1)}" font-size="17" fill="#8fa8b0" text-anchor="end" font-family="Plex" direction="ltr" opacity="${axOn}">${fmtP(p)}</text>`;});
+  // live last-price tag on the axis (moves as candles reveal)
+  const li=lastRevealed(t), lc=C[li], lpY=cm.ty+cm.s*yP(lc.c), up=lc.c>=lc.o, lpc=up?CY:STEEL;
+  if(li>=0&&lpY>PY0-2&&lpY<INH-6&&fade(t,revealAt[0]||0,0.2)>0){
+    hd+=`<line x1="${PX0}" y1="${lpY.toFixed(1)}" x2="${axX}" y2="${lpY.toFixed(1)}" stroke="${lpc}" stroke-width="1" stroke-dasharray="3 4" opacity="0.55"/>`+
+      `<rect x="${axX+2}" y="${(lpY-13).toFixed(1)}" width="${AXW-4}" height="26" rx="4" fill="${lpc}"/>`+
+      `<text x="${INW-4}" y="${(lpY+5).toFixed(1)}" font-size="16" font-weight="700" fill="#06222b" text-anchor="end" font-family="Plex" direction="ltr">${fmtP(lc.c)}</text>`;}
   hd+=pchip(scrY(VAH),'VAH',VAH,CY,fade(t,4.9))+pchip(scrY(POC),'POC',POC,AMBER,fade(t,5.4))+pchip(scrY(VAL),'VAL',VAL,CY,fade(t,5.9))+pchip(scrY(SL),'SL',SL,RED,fade(t,13.8,0.35));
   return `<svg viewBox="0 0 ${INW} ${INH}" width="${INW}" height="${INH}">`+
     `<g transform="translate(${cm.tx.toFixed(2)},${cm.ty.toFixed(2)}) scale(${cm.s.toFixed(4)})">${g}</g>${hd}</svg>`;

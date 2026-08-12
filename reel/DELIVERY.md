@@ -1,8 +1,14 @@
 # Liquidity State — ريل «تحديد وقف الخسارة بالـVolume Profile» (الوضع B: بيانات سوق حقيقية)
 
+> **تحديث (إعادة تصميم + سكِلز):** أُعيد تصميم الشارت بمحور أسعار على غرار TradingView (أرقام مدوّرة + وسم سعر
+> حي) وشبكة أنظف. النسخة المعاد تصميمها: `out/liquidity-state-stop-vp-B2.mp4` (ماستر) و`_B2_web.mp4` (عرض).
+> كامل النظام صار **حزمة سكِلز داخل المستودع** (`.claude/skills/`): `ls-methodology-module` (اختيار الأدوات) +
+> `verified-market-charts` (بيانات حقيقية + تحقق + Volume Profile + اختيار سيناريو) + `ls-reel-engine` (محرّك
+> الرندر والتصدير). الريل النهائي أُنتج بالكامل عبر سكربتات هذه السكِلز (dogfood).
+
 الملف النهائي (صامت · بلا علامة مائية):
-- ماستر مطابق للبِت‑ريت: `out/liquidity-state-stop-vp-B.mp4` (~16 Mbps)
-- نسخة عرض للمحادثة: `out/liquidity-state-stop-vp-B_web.mp4` (~4.5 MB · نفس الجودة البصرية)
+- ماستر معاد تصميمه: `out/liquidity-state-stop-vp-B2.mp4` (~16 Mbps)
+- نسخة عرض للمحادثة: `out/liquidity-state-stop-vp-B2_web.mp4` (~4.8 MB · نفس الجودة البصرية)
 
 ## تصنيف المصدر — CHART_SOURCE_MODE = B_VERIFIED_MARKET_DATA
 «إعادة رسم من بيانات سوق تاريخية موثقة».
