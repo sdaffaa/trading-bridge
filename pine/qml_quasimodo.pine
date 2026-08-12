@@ -1,0 +1,177 @@
+//@version=6
+// QML — Quasimodo Level
+//
+// Mirrors qml/detector.py. A quasimodo is a head-and-shoulders variant whose
+// right shoulder returns to the LEFT shoulder's extreme; that extreme is the QML.
+//
+//   Bullish   L1 -> H1 -> L2 (L2 < L1) -> H2 (H2 > H1, the CHoCH)
+//             QML = L1, target = H2 (external range liquidity / EQH)
+//   Bearish   H1 -> L1 -> H2 (H2 > H1) -> L2 (L2 < L1, the CHoCH)
+//             QML = H1, target = L2
+//
+// Fires alert() with the JSON body that tv_claude_bridge.py's /webhook accepts.
+// Set the alert to "Any alert() function call" and leave the message box empty.
+
+indicator("QML — Quasimodo Level", overlay = true, max_lines_count = 500, max_boxes_count = 500, max_labels_count = 500)
+
+// ── Inputs ───────────────────────────────────────────────────────────────────
+grpS        = "Structure"
+swingLeft   = input.int(3, "Swing left", minval = 1, group = grpS)
+swingRight  = input.int(3, "Swing right", minval = 1, group = grpS)
+maxRetrace  = input.int(100, "Max bars to retrace", minval = 1, group = grpS)
+
+grpR        = "Risk"
+atrPeriod   = input.int(14, "ATR period", minval = 1, group = grpR)
+atrMult     = input.float(0.15, "Stop buffer (ATR)", minval = 0.0, step = 0.05, group = grpR)
+minRR       = input.float(1.5, "Minimum R:R", minval = 0.0, step = 0.1, group = grpR)
+
+grpD        = "Display"
+showBull    = input.bool(true, "Bullish setups", group = grpD)
+showBear    = input.bool(true, "Bearish setups", group = grpD)
+bullColor   = input.color(color.teal, "Bullish", group = grpD)
+bearColor   = input.color(color.maroon, "Bearish", group = grpD)
+
+grpW        = "Webhook"
+secretInput = input.string("", "Shared secret (WEBHOOK_SECRET)", group = grpW)
+
+// ta.* must be evaluated on every bar, never inside a conditional branch.
+float atrValue = ta.atr(atrPeriod)
+
+// ── Swing series, collapsed so highs and lows strictly alternate ─────────────
+var array<float> sPrice  = array.new<float>()
+var array<int>   sBar    = array.new<int>()
+var array<bool>  sIsHigh = array.new<bool>()
+
+pushSwing(float price, int barIdx, bool isHigh) =>
+    bool changed = false
+    int n = array.size(sPrice)
+    if n > 0 and array.get(sIsHigh, n - 1) == isHigh
+        // Same kind as the previous swing: keep only the more extreme one.
+        float prev = array.get(sPrice, n - 1)
+        if (isHigh and price > prev) or (not isHigh and price < prev)
+            array.set(sPrice, n - 1, price)
+            array.set(sBar, n - 1, barIdx)
+            changed := true
+    else
+        array.push(sPrice, price)
+        array.push(sBar, barIdx)
+        array.push(sIsHigh, isHigh)
+        changed := true
+        if array.size(sPrice) > 12
+            array.shift(sPrice)
+            array.shift(sBar)
+            array.shift(sIsHigh)
+    changed
+
+float ph = ta.pivothigh(swingLeft, swingRight)
+float pl = ta.pivotlow(swingLeft, swingRight)
+
+bool newSwing = false
+if not na(ph)
+    newSwing := pushSwing(ph, bar_index - swingRight, true)
+if not na(pl)
+    newSwing := pushSwing(pl, bar_index - swingRight, false) or newSwing
+
+// ── Live setup state ─────────────────────────────────────────────────────────
+var int   dir        = 0     //  1 bullish, -1 bearish, 0 idle
+var float qmlLevel   = na
+var float chochLevel = na
+var float headLevel  = na
+var float tpLevel    = na
+var int   armedBar   = na
+var int   lastAnchor = na    // s4 bar index of the setup already taken
+var line  qmlLine    = na
+var line  chochLine  = na
+var line  tpLine     = na
+var box   riskBox    = na
+
+buildJson(string status, float entry, float sl, float rr) =>
+    string s = '{"secret":"' + secretInput + '","symbol":"' + syminfo.ticker
+    s := s + '","tf":"' + timeframe.period
+    s := s + '","direction":"' + (dir > 0 ? "BULLISH" : "BEARISH")
+    s := s + '","status":"' + status
+    s := s + '","qml":' + str.tostring(qmlLevel, format.mintick)
+    s := s + ',"choch":' + str.tostring(chochLevel, format.mintick)
+    s := s + ',"head":' + str.tostring(headLevel, format.mintick)
+    s := s + ',"entry":' + str.tostring(entry, format.mintick)
+    s := s + ',"sl":' + str.tostring(sl, format.mintick)
+    s := s + ',"tp":' + str.tostring(tpLevel, format.mintick)
+    s := s + ',"rr":' + str.tostring(rr, "#.##") + '}'
+    s
+
+clearDrawings() =>
+    if not na(qmlLine)
+        line.delete(qmlLine)
+    if not na(chochLine)
+        line.delete(chochLine)
+    if not na(tpLine)
+        line.delete(tpLine)
+    if not na(riskBox)
+        box.delete(riskBox)
+
+// ── Arm a setup when a fresh four-swing window completes the pattern ─────────
+if newSwing and array.size(sPrice) >= 4
+    int n = array.size(sPrice)
+    float p1 = array.get(sPrice, n - 4)
+    float p2 = array.get(sPrice, n - 3)
+    float p3 = array.get(sPrice, n - 2)
+    float p4 = array.get(sPrice, n - 1)
+    int b1 = array.get(sBar, n - 4)
+    int b2 = array.get(sBar, n - 3)
+    int b4 = array.get(sBar, n - 1)
+    bool firstIsHigh = array.get(sIsHigh, n - 4)
+
+    bool bull = not firstIsHigh and p3 < p1 and p4 > p2 and showBull
+    bool bear = firstIsHigh and p3 > p1 and p4 < p2 and showBear
+
+    if (bull or bear) and (na(lastAnchor) or lastAnchor != b4)
+        clearDrawings()
+        dir        := bull ? 1 : -1
+        qmlLevel   := p1
+        chochLevel := p2
+        headLevel  := p3
+        tpLevel    := p4
+        armedBar   := bar_index
+        lastAnchor := b4
+
+        color c = bull ? bullColor : bearColor
+        qmlLine   := line.new(b1, qmlLevel, bar_index, qmlLevel, color = c, width = 2, extend = extend.right)
+        chochLine := line.new(b2, chochLevel, bar_index, chochLevel, color = color.new(c, 40), style = line.style_dashed)
+        tpLine    := line.new(b4, tpLevel, bar_index, tpLevel, color = color.new(c, 40), style = line.style_dotted, extend = extend.right)
+        label.new(b1, qmlLevel, "QML", style = bull ? label.style_label_up : label.style_label_down, color = color.new(c, 20), textcolor = color.white, size = size.small)
+
+        float armedSl = bull ? qmlLevel - atrMult * atrValue : qmlLevel + atrMult * atrValue
+        float armedRisk = math.abs(qmlLevel - armedSl)
+        float armedRr = armedRisk > 0 ? math.abs(tpLevel - qmlLevel) / armedRisk : na
+        alert(buildJson("ARMED", qmlLevel, armedSl, armedRr), alert.freq_once_per_bar_close)
+
+// ── Resolve an armed setup: head break, retrace into the QML, or expiry ──────
+if dir != 0
+    bool brokeHead = dir > 0 ? close < headLevel : close > headLevel
+    bool reached = dir > 0 ? low <= qmlLevel : high >= qmlLevel
+
+    if brokeHead
+        // A close through the head kills it, even if the same bar tagged the QML.
+        dir := 0
+        clearDrawings()
+    else if reached
+        float buffer = atrMult * atrValue
+        float entry = qmlLevel
+        // Live equivalent of the detector's sweep lookahead: this bar's extreme.
+        float sl = dir > 0 ? math.min(low, qmlLevel) - buffer : math.max(high, qmlLevel) + buffer
+        float risk = math.abs(entry - sl)
+        float rr = risk > 0 ? math.abs(tpLevel - entry) / risk : na
+
+        color c = dir > 0 ? bullColor : bearColor
+        riskBox := box.new(bar_index, math.max(entry, sl), bar_index + 10, math.min(entry, sl), border_color = color.new(c, 40), bgcolor = color.new(color.red, 80))
+        string tag = (dir > 0 ? "BUY" : "SELL") + " QML  R:R " + str.tostring(rr, "#.##") + (na(rr) or rr >= minRR ? "" : " !")
+        label.new(bar_index, entry, tag, style = dir > 0 ? label.style_label_up : label.style_label_down, color = color.new(c, 10), textcolor = color.white, size = size.small)
+
+        alert(buildJson("TRIGGERED", entry, sl, rr), alert.freq_once_per_bar_close)
+        dir := 0
+    else if bar_index - armedBar > maxRetrace
+        dir := 0
+        clearDrawings()
+
+plotshape(not na(ph), title = "Pivot high", style = shape.triangledown, location = location.abovebar, color = color.new(color.gray, 50), size = size.tiny, offset = -swingRight)
+plotshape(not na(pl), title = "Pivot low", style = shape.triangleup, location = location.belowbar, color = color.new(color.gray, 50), size = size.tiny, offset = -swingRight)
