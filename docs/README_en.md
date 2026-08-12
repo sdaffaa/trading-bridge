@@ -177,6 +177,7 @@ this skill:
 | `FORMAT-REEL-VERTICAL.md` | the vertical reel design method (`.ls-vr`) |
 | `FORMAT-REEL-MTF.md` | the three-frame H4 → M15 → M5 reel method |
 | `CHART-PROTOCOL.md` | the self-sufficient chart protocol: source order, automatic market selection, realistic simulation, order-flow generation, and the QA gate |
+| `CHART-REALISM.md` | the Universal Chart Realism System v1.0 — the numeric yardstick: market states, ER bands, candle-size ratios, reversal ratios, similarity limits, QA matrix (source PDF in `reference/`) |
 | `market.js` | market simulation, footprint, volume profile, VWAP, setup search, QA |
 | `tvchrome.js` | price axis, time axis, live price tag, bar countdown |
 | `timeframe.js` | derives the M15 and H4 series from the M5 one, and proves the stack agrees |

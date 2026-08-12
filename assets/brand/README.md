@@ -271,10 +271,22 @@ value-area edge is drawn where the distribution puts it rather than snapped to
 a wick tip, and the level names live in the price gutter instead of inside the
 line, because an inline label on a chart that dense lands on the candles.
 
-`reel-absorb-gc.html` is the first page built end to end under
-**[`CHART-PROTOCOL.md`](CHART-PROTOCOL.md)**, which is the rule that no chart
-asks the user for anything: the market, the timeframe and the scenario are all
-chosen from the topic, real historical data is attempted first, and a labelled
+Two documents govern charts now, and they answer different questions.
+**[`CHART-REALISM.md`](CHART-REALISM.md)** is the numeric yardstick — the
+Universal Chart Realism System v1.0, transcribed in full from the PDF kept in
+`reference/`: market states and their lengths, efficiency-ratio bands per wave
+type, candle size against a rolling median, reversal ratios, similarity and
+cyclicity limits, the QA matrix, and the final sign-off list. Its own closing
+rule is the shortest statement of the whole method: *a convincing chart does not
+look perfect, it looks verifiable.* Four of its checks — ER, body ratios,
+reversal ratios, and similarity/cyclicity — are **not implemented in code yet**,
+and §16 of that file says so rather than letting the document read as if they
+were.
+
+**[`CHART-PROTOCOL.md`](CHART-PROTOCOL.md)** is the production method, and
+`reel-absorb-gc.html` is the first page built end to end under it, under the rule that no chart asks the
+user for anything: the market, the timeframe and the scenario are all chosen
+from the topic, real historical data is attempted first, and a labelled
 realistic simulation is the fallback. What makes it different from every reel
 before it is the order of work — **the market is generated first and the lesson
 is found inside it**. `market.js` ran 223 independent markets with no idea
