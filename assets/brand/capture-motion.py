@@ -129,13 +129,16 @@ if SPEC:
     # Silent AAC track so the file carries the declared audio layout even
     # before a music bed exists.
     #
-    # The 15-20 Mbps figures below are a CEILING, not a target. Measured: a
-    # 32s reel at 1080x1920 comes out around 2.4 Mbps, and re-encoding it with
-    # these same flags still lands near 1.6 Mbps — flat dark charts and large
-    # areas of solid colour compress far below the cap, and x264 will not pad
-    # to a bitrate the picture does not need. Forcing it (nal-hrd=cbr plus
-    # filler) would multiply the file size for no visible gain, so the cap
-    # stays a cap.
+    # The bitrate figures below are a CEILING, not a target. Measured: a 32s
+    # reel captured at scale 1 comes out around 2.4 Mbps, and re-encoding it
+    # with these same flags still lands near 1.6 Mbps; the same page rendered
+    # through --deliver (2x master, lanczos down) reaches 4.8 Mbps because the
+    # supersampled edges genuinely carry more detail. Either way it sits far
+    # under the cap — flat dark charts and large areas of solid colour compress
+    # cheaply, and x264 will not pad to a bitrate the picture does not need.
+    # Forcing it (nal-hrd=cbr plus filler) would multiply the file size for no
+    # visible gain, so the cap stays a cap.
+    PASSLOG = os.path.join(os.path.dirname(OUT) or ".", "_x264")
     common = ["-c:v", "libx264", "-profile:v", "high", "-level", "4.0",
               "-pix_fmt", "yuv420p",
               "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709",
@@ -146,15 +149,14 @@ if SPEC:
         # floor — see the note below.
         vf = ["-vf", f"scale={W}:{H}:flags=lanczos"]
         rate = ["-b:v", "14M", "-maxrate", "20M", "-bufsize", "28M"]
-        log = os.path.join(os.path.dirname(OUT) or ".", "_x264")
         subprocess.run([FF, "-y", "-framerate", str(FPS), "-i", os.path.join(frames, "f%05d.png")]
-                       + vf + common + rate + ["-pass", "1", "-passlogfile", log,
+                       + vf + common + rate + ["-pass", "1", "-passlogfile", PASSLOG,
                                                "-an", "-f", "mp4", os.devnull],
                        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         args = ([FF, "-y", "-framerate", str(FPS), "-i", os.path.join(frames, "f%05d.png"),
                  "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=48000",
                  "-shortest"] + vf + common + rate
-                + ["-pass", "2", "-passlogfile", log,
+                + ["-pass", "2", "-passlogfile", PASSLOG,
                    "-c:a", "aac", "-b:a", "256k", "-ar", "48000",
                    "-movflags", "+faststart", OUT])
     else:
@@ -170,4 +172,9 @@ else:
             "-movflags", "+faststart", OUT]
 subprocess.run(args, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 shutil.rmtree(frames, ignore_errors=True)
+# the two-pass log is scratch: leaving it behind puts a build artefact in the repo
+if DELIVER:
+    for suffix in ("", ".mbtree", ".temp", ".mbtree.temp"):
+        try: os.remove(PASSLOG + suffix)
+        except OSError: pass
 print("wrote", OUT, os.path.getsize(OUT), "bytes")

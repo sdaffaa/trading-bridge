@@ -5,3 +5,4 @@ __pycache__/
 
 # frame scratch from capture-motion.py — the mp4 is the artifact, not the frames
 assets/brand/_frames/
+assets/brand/_x264*
