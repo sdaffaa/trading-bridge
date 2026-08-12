@@ -164,6 +164,13 @@ reference build.
 | Trend continuation from an order block (cream) | `reel-orderblock.md` | `reel-orderblock.html` |
 | The entry as an eight-condition gate (cream) | `reel-entry-gate.md` | `reel-entry-gate.html` |
 | Four-school confluence gate (cream) | `reel-confluence.md` | `reel-confluence.html` |
+| Order flow joins the other three (cream) | `reel-orderflow.md` | `reel-orderflow.html` |
+| The schools disagree — no trade (cream) | `reel-no-trade.md` | `reel-no-trade.html` |
+| The same gate mirrored on a short (cream) | `reel-sell-edge.md` | `reel-sell-edge.html` |
+
+**Every reel gets its own chart.** No two share a `balance()` seed or a structure — the seeds
+in use are `41071`, `20260811`, `5150411`, `771103`, `6420733`, `9174253`. Reusing candles under
+a new title is the one thing an audience spots instantly; see `CLAUDE.md` §3.
 
 The footprint reel is the worked example of the whole system on one clock: bar replay, markup,
 a footprint that builds price by price, and captions all driven by the same `seek(t)`. Runtime
@@ -211,6 +218,33 @@ use these; the first three are left as they shipped.
 ![Order block reel](reel-orderblock-poster.png)
 ![Entry gate reel](reel-entry-gate-poster.png)
 ![Confluence reel](reel-confluence-poster.png)
+![Order flow reel](reel-orderflow-poster.png)
+![No-trade reel](reel-no-trade-poster.png)
+![Sell-edge reel](reel-sell-edge-poster.png)
+
+`reel-orderflow.html` is part seven, and the answer to the question part six ended on. Three
+schools live on the chart; the fourth gets a **footprint ladder card** of its own below it. The
+rows are stated on the page as illustrative — delta and imbalance are not in OHLC — but every
+number derived from them is real: the delta is summed from the rows (**+1810**), the lit row is
+genuinely the heaviest, the imbalance is a computed ratio (**2.39**), and the heaviest row sits
+at the entry price, which is the condition the school is being asked about. The FVG floor, the
+VAH and the entry are one number, **101.82**. See [`reel-orderflow.md`](reel-orderflow.md).
+
+`reel-no-trade.html` is part eight, and the one the account owed its audience: every reel before
+it ended with all the boxes lit. This one asks the **same eight questions** and gets two schools
+yes, two no — the break never earned acceptance above the VAH (2/3 closes), the pullback closed
+back inside value (100.55 < 101.35), the structural stop is 51% of the leg, and the return would
+have been 0.95R. Nothing is staged to fail: the candles are written first and then interrogated.
+It introduces a third tile state, `.school.no` — **refuted** in the invalidation red, carrying
+the number it failed on, because dim-and-silent already means "not checked yet". The proof is
+that the stop would have been hit on bar 39 and the target never reached, verified by scanning
+the candles independently of the drawing code. See [`reel-no-trade.md`](reel-no-trade.md).
+
+`reel-sell-edge.html` is part nine: the whole gate mirrored onto a short, with each condition
+carrying the buy-side word it replaces, struck through beside it — VAL for VAH, resistance for
+support, a bullish order block, the stop above. The claim has the same shape as part six's and
+is just as literal: the **ceiling** of the bearish ICT gap, the low edge of the value area, and
+the sell are all **96.08**. +2.15R, stop never touched. See [`reel-sell-edge.md`](reel-sell-edge.md).
 
 `reel-confluence.html` is part six: the same eight-condition gate, but grouped by the school
 that owns each pair, and six of the eight carry that school's name — BOS and Order Block (SMC),

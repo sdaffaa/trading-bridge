@@ -2,3 +2,6 @@
 # byte-compiled artifacts from the session hook validation
 __pycache__/
 *.pyc
+
+# frame scratch from capture-motion.py — the mp4 is the artifact, not the frames
+assets/brand/_frames/

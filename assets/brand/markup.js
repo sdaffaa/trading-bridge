@@ -548,9 +548,18 @@
       });
       gZone.appendChild(g);
 
-      if (box) gZone.appendChild(el('rect', {
-        class: 'ls-mk-vp-box', x: x1, y: Y(pHi), width: x2 - x1, height: Y(pLo) - Y(pHi)
-      }));
+      /* Everything the profile draws besides the histogram — the range box, the
+         value-area shading, its edges and their labels — is scheduled with the
+         histogram. Left uncued it would sit on the chart from frame zero and
+         announce the value area before the profile that measured it exists. */
+      const chrome = [];
+
+      if (box) {
+        const r = el('rect', {
+          class: 'ls-mk-vp-box', x: x1, y: Y(pHi), width: x2 - x1, height: Y(pLo) - Y(pHi)
+        });
+        gZone.appendChild(r); chrome.push(r);
+      }
 
       const s = schedule('vp', at, dur);
       if (A) {
@@ -568,22 +577,26 @@
       if (showVA) {
         // insertBefore(g): the profile's own bars have to stay readable, so the
         // shading goes underneath them rather than on top
-        gZone.insertBefore(el('rect', {
+        const band = el('rect', {
           class: 'ls-mk-va-band', x: x1, y: Y(VAH),
           width: plotR - x1, height: Math.max(2, Y(VAL) - Y(VAH))
-        }), g);
+        });
+        gZone.insertBefore(band, g); chrome.push(band);
         [['VAH', VAH], ['VAL', VAL]].forEach(([nm, pv]) => {
-          gStruct.appendChild(el('line', {
+          const ln = el('line', {
             class: 'ls-mk-va-edge', x1, x2: plotR, y1: Y(pv), y2: Y(pv)
-          }));
+          });
+          gStruct.appendChild(ln); chrome.push(ln);
           const t = el('text', {
             class: 'ls-mk-va-t', x: plotR - 8, y: Y(pv), dy: nm === 'VAH' ? -8 : 16,
             'text-anchor': 'end'
           });
           t.textContent = nm;
-          gLabel.appendChild(t);
+          gLabel.appendChild(t); chrome.push(t);
         });
       }
+
+      if (A && chrome.length) cue(chrome, 'fade', s.t0 + s.dur * 0.45, s.dur * 0.55);
 
       /* HVN / LVN are drawn as BANDS the thickness of the rows that form them.
          Drawn as a line they claim a precision the profile does not have — a

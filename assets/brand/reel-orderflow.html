@@ -1,0 +1,325 @@
+<meta charset="utf-8">
+<title>Liquidity State — المدرسة الرابعة</title>
+<link rel="stylesheet" href="./brand.css">
+<style>
+  html,body { margin:0; padding:0; background:#8A8A8A; }
+
+  .ls-vr-chart  { top:220px; height:456px; }
+  #hook    { top:326px; font-size:80px; }
+  #verdict { top:338px; font-size:70px; }
+  .ls-vr-scrim  { top:196px; height:496px; }
+
+  /* The ladder gets a card of its own, because it is the school being added
+     and the other three already have the chart. */
+  .fp { position:absolute; top:696px; left:44px; right:44px; height:346px;
+        border:1.5px solid color-mix(in srgb, var(--ls-card-border) 50%, transparent);
+        border-radius:20px; background:var(--ls-card-bg); box-sizing:border-box;
+        padding:14px 24px; display:flex; align-items:center; gap:18px; opacity:0; }
+  .fp .lede { flex:1; text-align:center; }
+  .fp .lede .t { font-size:31px; font-weight:800; color:var(--ls-text-accent); line-height:1.4; }
+  .fp .lede .d { margin-top:18px; font-size:58px; font-weight:800; color:var(--ls-text);
+                 direction:ltr; font-variant-numeric:tabular-nums; }
+  .fp .lede .n { margin-top:10px; font-size:24px; font-weight:700; color:var(--ls-text-secondary); }
+
+  /* Four schools as one row of chips — the chart already carries three of
+     them, so they need naming, not explaining. */
+  #schools { top:1066px; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .sc { border:1.5px solid color-mix(in srgb, var(--ls-card-border) 45%, transparent);
+        border-radius:14px; background:var(--ls-card-bg); padding:14px 8px;
+        text-align:center; opacity:.38; }
+  .sc .g { font-family:var(--ls-font-wordmark); font-size:17px; letter-spacing:.13em;
+           text-transform:uppercase; color:var(--ls-text-secondary); direction:ltr; }
+  .sc .w { margin-top:7px; font-size:25px; font-weight:800; color:var(--ls-text-secondary); }
+  .sc.on { opacity:1; border-color:var(--ls-text-accent);
+           background:color-mix(in srgb, var(--ls-text-accent) 9%, var(--ls-card-bg));
+           box-shadow:0 6px 24px -14px color-mix(in srgb, var(--ls-text-accent) 80%, transparent); }
+  .sc.on .g { color:var(--ls-text-accent); }
+  .sc.on .w { color:var(--ls-text); }
+
+  #stats   { top:1194px; grid-template-columns:1fr 1fr 1fr; }
+  .ls-vr-caps .ls-reel-caption { top:1352px; font-size:54px; }
+  .ls-vr-disc   { top:1474px; }
+  .ls-vr-beat { text-shadow:0 2px 26px var(--ls-bg), 0 0 12px var(--ls-bg); }
+</style>
+
+<div class="ls-vr">
+  <div class="ls-vr-ticker">XAUUSD · H1</div>
+  <div class="ls-vr-wm">Liquidity State</div>
+
+  <div class="ls-vr-chart"><div id="chart"></div></div>
+
+  <div class="ls-vr-scrim" id="scrim"></div>
+  <div class="ls-vr-beat" id="hook"><span>الشي اللي<br>ما يبيّن بالجارت</span></div>
+  <div class="ls-vr-beat" id="verdict"><span>هذا الشي اللي<br>ما يبيّن <em>بالجارت</em></span></div>
+
+  <div class="fp" id="fp">
+    <div id="ladder"></div>
+    <div class="lede">
+      <div class="t">داخل شمعة الدخول</div>
+      <div class="d" id="delta">—</div>
+      <div class="n" id="imb">—</div>
+    </div>
+  </div>
+
+  <div class="ls-vr-grid" id="schools">
+    <div class="sc"><div class="g">SMC</div><div class="w">الهيكل</div></div>
+    <div class="sc"><div class="g">ICT</div><div class="w">التسليم</div></div>
+    <div class="sc"><div class="g">Profile</div><div class="w">القيمة</div></div>
+    <div class="sc"><div class="g">Footprint</div><div class="w">التدفّق</div></div>
+  </div>
+
+  <div class="ls-vr-grid" id="stats">
+    <div class="ls-vr-tile ls-vr-stat" id="st-entry"><div class="k">الدخول</div><div class="v">—</div></div>
+    <div class="ls-vr-tile ls-vr-stat" id="st-stop"><div class="k">الستوب</div><div class="v">—</div></div>
+    <div class="ls-vr-tile ls-vr-stat" id="st-r"><div class="k">النتيجة</div><div class="v">—</div></div>
+  </div>
+
+  <div class="ls-vr-caps" id="caps"></div>
+  <div class="ls-vr-disc">أرقام التدفّق توضيحية — الجارت لا يحمل بيانات تِك<br>مثال تخطيطي لغرض تعليمي — ليست توصية</div>
+</div>
+
+<script src="./markup.js"></script>
+<script src="./footprint.js"></script>
+<script src="./captions.js"></script>
+<script>
+/* ==========================================================================
+   المدرسة الرابعة — order flow joins the other three
+
+   Part seven, and the answer to the question part six ended on. The chart can
+   carry SMC, ICT and Volume Profile; it cannot carry order flow, because delta
+   and imbalance are not in OHLC. So the ladder is stated for what it is —
+   ILLUSTRATIVE order-flow numbers, said on screen — and everything about it
+   that CAN be made honest, is: the delta is summed from the rows, the lit row
+   is genuinely the heaviest, and the imbalance ratio is computed, not claimed.
+
+   All 11 beats, 33.0s. Anchor noun: الفوت برنت.
+   ========================================================================== */
+
+const TOTAL = 33.0;
+const SEAM  = 31.8;
+
+function balance(n) {
+  let s = 771103, p = 100;
+  const rnd = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296 - 0.5;
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const o = p;
+    const c = Math.max(94.60, Math.min(105.40, o + (100 - o) * 0.20 + rnd() * 6.2));
+    const w = 0.5 + Math.abs(rnd()) * 1.3;
+    out.push({ o, c,
+      h: Math.min(106.00, Math.max(o, c) + Math.abs(rnd()) * w),
+      l: Math.max(94.00, Math.min(o, c) - Math.abs(rnd()) * w) });
+    p = c;
+  }
+  return out;
+}
+
+/* pass one — the value area, measured before anything is built on it */
+const RANGE = balance(32);
+const probe = document.createElement('div');
+probe.style.cssText = 'position:absolute;left:-9999px;width:900px';
+document.body.appendChild(probe);
+const pc = LSChart({ mount: probe, width: 900, height: 500, candles: RANGE,
+                     padding: { top: 20, right: 20, bottom: 20, left: 20 }, barsRight: 1 });
+pc.drawCandles();
+pc.volumeProfile({ from: 0, to: 31, bins: 30, valueArea: 0.70 });
+/* Rounded to the tick right here, before anything is built on it: a profile
+   edge is a bin boundary, and left at full float the claim "the gap floor and
+   the VAH are the same price" holds only to two decimals. Rounded once, the
+   three numbers are one number. */
+const r2 = v => Math.round(v * 100) / 100;
+const VAH = r2(pc.profile.vah), POC = r2(pc.profile.poc), VAL = r2(pc.profile.val);
+probe.remove();
+
+/* pass two — the trade, written against the measured VAH */
+const V  = d => r2(VAH + d);
+const OB = { o: V(-1.8), c: V(-2.7), h: V(-1.5), l: V(-2.9) };
+
+const C = RANGE.concat([
+  OB,                                                  // 32 — order block
+  { o: V(-2.7), c: V(-0.5), h: V(0),    l: V(-2.8) },  // 33 — high IS the VAH
+  { o: V(-0.5), c: V(4.0),  h: V(4.4),  l: V(-0.7) },  // 34 — displacement + BOS
+  { o: V(4.0),  c: V(5.6),  h: V(6.2),  l: V(0.9)  },  // 35 — its low tops the gap
+  { o: V(5.6),  c: V(4.8),  h: V(5.9),  l: V(4.4)  },
+  { o: V(4.8),  c: V(5.4),  h: V(5.7),  l: V(4.5)  },
+  { o: V(5.4),  c: V(3.8),  h: V(5.5),  l: V(3.4)  },
+  { o: V(3.8),  c: V(2.5),  h: V(4.0),  l: V(2.1)  },
+  { o: V(2.5),  c: V(1.3),  h: V(2.7),  l: V(1.1)  },
+  { o: V(1.3),  c: V(0.6),  h: V(1.5),  l: V(0.3)  },  // 41 — into the gap
+  { o: V(0.6),  c: V(1.2),  h: V(1.4),  l: V(0)    },  // 42 — taps the VAH: the entry
+  { o: V(1.2),  c: V(2.3),  h: V(2.6),  l: V(1.0)  },
+  { o: V(2.3),  c: V(1.8),  h: V(2.6),  l: V(1.5)  },
+  { o: V(1.8),  c: V(3.1),  h: V(3.3),  l: V(1.6)  },
+  { o: V(3.1),  c: V(4.3),  h: V(4.6),  l: V(2.9)  },
+  { o: V(4.3),  c: V(3.8),  h: V(4.5),  l: V(3.5)  },
+  { o: V(3.8),  c: V(5.2),  h: V(5.5),  l: V(3.6)  },
+  { o: V(5.2),  c: V(6.0),  h: V(6.2),  l: V(5.0)  },  // 49 — the target is reached
+  { o: V(6.0),  c: V(5.5),  h: V(6.4),  l: V(5.2)  },
+  { o: V(5.5),  c: V(6.7),  h: V(7.0),  l: V(5.3)  },
+  { o: V(6.7),  c: V(6.2),  h: V(7.1),  l: V(5.9)  }
+]);
+
+const ENTRY = VAH, STOP = OB.l, TGT = C[35].h;
+const RISK  = ENTRY - STOP, R = (TGT - ENTRY) / RISK;
+
+let BOS = -Infinity, bosIdx = 0;
+RANGE.forEach((c, i) => { if (c.h > BOS) { BOS = c.h; bosIdx = i; } });
+const bosBar   = C.findIndex((c, i) => i > 31 && c.c > BOS);
+const fvgLo    = C[33].h, fvgHi = C[35].l;
+const entryBar = C.findIndex((c, i) => i > 35 && c.l <= ENTRY + 1e-9);
+
+/* ---- the fourth school ---------------------------------------------------
+   These rows are ILLUSTRATIVE — the page says so — because OHLC cannot
+   produce them. What is NOT illustrative is the arithmetic: delta is summed
+   from the rows, the lit row is the heaviest by total, and the imbalance is a
+   computed ratio. A teaching diagram still has to add up. */
+const ROWS = [
+  [V(0.5),  120,  210], [V(0.4),  180,  340], [V(0.2),  260,  520],
+  [V(0),    410,  980],                                   // the entry price
+  [V(-0.2), 350,  720], [V(-0.4), 240,  430],
+  [V(-0.6), 160,  260], [V(-0.8), 110,  180]
+];
+const sum = k => ROWS.reduce((a, r) => a + r[k], 0);
+const DELTA   = sum(2) - sum(1);
+const totals  = ROWS.map(r => r[1] + r[2]);
+const hiRow   = totals.indexOf(Math.max(...totals));
+const IMB     = ROWS[hiRow][2] / ROWS[hiRow][1];
+const FP_ROWS = ROWS.map(([price, bid, ask], i) => ({ price, bid, ask, hi: i === hiRow }));
+
+const COND = {
+  smc:  C[bosBar].c > BOS && C[32].c < C[32].o && C[33].c > C[33].o,
+  ict:  fvgHi > fvgLo,
+  vp:   C[entryBar].l <= ENTRY + 1e-9 && C[entryBar].c > ENTRY,
+  flow: DELTA > 0 && IMB >= 2 && hiRow === 3          // heaviest row IS the entry price
+};
+const SCHOOLS = [COND.smc, COND.ict, COND.vp, COND.flow];
+
+const ch = LSChart({
+  mount: '#chart', width: 1000, height: 456, candles: C,
+  padding: { top: 34, right: 108, bottom: 22, left: 18 },
+  barsRight: 1, barsVisible: 54,
+  autoTerminate: true, tolerance: 0.01, anim: {}
+});
+ch.grid(2).drawCandles();
+
+const HOLDS = [
+  { atBar: 33, seconds: 3.4 },   // the value area
+  { atBar: 36, seconds: 3.6 },   // structure + delivery
+  { atBar: 43, seconds: 6.2 },   // the entry — and the ladder that opens it
+  { atBar: 50, seconds: 4.0 }    // the target
+];
+ch.replay({ rate: 4.0, window: 54, start: 16, at: 0, holds: HOLDS });
+const H = Object.fromEntries(HOLDS.map(h => [h.atBar, h.t]));
+
+ch.volumeProfile({ from: 0, to: 31, bins: 28, widthPct: 0.15, valueArea: 0.70,
+                   showVA: true, at: H[33] + 0.2, dur: 1.1 });
+ch.level({ price: BOS, from: bosIdx, label: 'الهيكل', mode: 'close',
+           at: H[33] + 1.6, dur: 0.5 });
+ch.sticker({ i: bosBar, price: C[bosBar].c, text: 'BOS', dy: -62, at: H[36] + 0.5 });
+ch.zone({ from: 35, top: fvgHi, bottom: fvgLo, label: 'FVG', tone: 'accent',
+          whole: false, align: 'left', at: H[36] + 1.6, dur: 0.7 });
+ch.position({ from: entryBar, to: 49, entry: ENTRY, stop: STOP, target: TGT,
+              at: H[43] + 0.5, dur: 0.9 });
+ch.sticker({ i: 49, price: TGT, text: 'وصل الهدف', dy: -62, dx: -80, at: H[50] + 0.6 });
+ch.layout();
+const CHART_END = ch.duration();
+
+const FP_IN = H[43] + 1.9;      // يهبط على «بس الفوت برنت» بالضبط
+const fp = LSFootprint({
+  mount: '#ladder', variant: 'ladder', width: 372, height: 300,
+  rows: FP_ROWS, compact: false, heatKey: 'total', panel: false,
+  anim: { at: FP_IN, panel: 0.35, rowStagger: 0.17, rowDur: 0.30 }
+});
+
+const f2 = v => v.toFixed(2);
+document.querySelector('#st-entry .v').textContent = f2(ENTRY);
+document.querySelector('#st-stop .v').textContent  = f2(STOP);
+document.getElementById('delta').textContent = 'Delta +' + (DELTA / 1000).toFixed(1) + 'K';
+document.getElementById('imb').textContent   = 'اختلال ' + IMB.toFixed(1) + ':1 عند الدخول';
+const R_TEXT = '+' + R.toFixed(2) + 'R';
+
+const caps = LSCaptions({
+  mount: '#caps',
+  track: LSCaptions.pace([
+    ['تبي تعرف الشي', 0.95], ['اللي ما يبيّن بالجارت؟', 1.30],
+    ['ثلاث مدارس تقول ادخل', 1.35], ['والرابعة تقول انتظر', 1.30],
+    ['شلون؟', 0.60], ['تعال اقولك', 0.75],
+    ['الجارت يعطيك السعر', 1.20], ['ما يعطيك مين نفّذ', 1.30],
+    ['لكن بالواقع؟', 0.95],
+    ['الهيكل كسر', 1.00], ['والتسليم خلّى فجوة', 1.30],
+    ['والقيمة تقول: هني الحافة', 1.45],
+    ['ثلاثة اتفقوا', 1.00], ['على نفس السعر', 1.15],
+    ['بس <em>الفوت برنت</em>', 1.20], ['يفتح الشمعة نفسها', 1.35],
+    ['ويقول مين نفّذ فيها', 1.40],
+    ['دلتا موجبة', 1.00], ['واختلال عند الدخول', 1.35],
+    ['هني الأربعة اتفقوا', 1.35],
+    ['شوف — راح حق الهدف', 1.35],
+    ['هذا الشي', 0.85], ['اللي ما يبيّن بالجارت', 1.40],
+    ['بس الدلتا وحدها ما تكفي', 1.50],
+    ['تعرف متى تكذب الدلتا؟', 1.45], ['تابع البوست الجاي', 1.35]
+  ], { start: 0.1 })
+});
+
+const hookEl = document.getElementById('hook'), verdEl = document.getElementById('verdict');
+const scrimEl = document.getElementById('scrim'), fpEl = document.getElementById('fp');
+const stEntry = document.getElementById('st-entry'), stStop = document.getElementById('st-stop');
+const stR = document.getElementById('st-r');
+const scEls = [...document.querySelectorAll('.sc')];
+const ease = k => k * k * (3 - 2 * k);
+const seg  = (t, t0, d) => Math.max(0, Math.min(1, (t - t0) / d));
+const wipe = (el, p) => { el.firstElementChild.style.clipPath = `inset(0 0 0 ${(1 - p) * 100}%)`; };
+
+/* SMC and ICT at the break, Profile at the retest, Footprint only once the
+   ladder has finished building — it is the school being added, so it lands
+   last and alone. */
+const SC_AT = [H[36] + 1.4, H[36] + 2.6, H[43] + 0.6, FP_IN + 2.6];
+
+function seekAll(t) {
+  let ct = t;
+  if (t > SEAM) ct = CHART_END * (1 - ease(seg(t, SEAM, TOTAL - SEAM)));
+  ch.seek(Math.min(ct, CHART_END));
+  fp.seek(t > SEAM ? -1 : t);
+  caps.seek(t > SEAM ? -1 : t);
+
+  const past = x => (t > SEAM ? false : t >= x);
+  scEls.forEach((el, i) => el.classList.toggle('on', past(SC_AT[i]) && SCHOOLS[i]));
+
+  const fIn = ease(seg(t, FP_IN - 0.35, 0.45)) * (1 - ease(seg(t, SEAM - 0.7, 0.5)));
+  fpEl.style.opacity = fIn;
+  fpEl.style.transform = `translateY(${(1 - fIn) * 34}px)`;
+
+  stEntry.classList.toggle('on', past(H[43] + 0.7));
+  stStop.classList.toggle('on', past(H[43] + 0.7));
+  const hit = past(H[50] + 1.0);
+  stR.classList.toggle('on', hit);
+  stR.querySelector('.v').textContent = hit ? R_TEXT : '—';
+
+  const hIn = ease(seg(t, 0.35, 0.55));
+  wipe(hookEl, hIn);
+  hookEl.style.opacity = hIn * (1 - ease(seg(t, 3.9, 0.4)));
+
+  const vIn = ease(seg(t, 25.4, 0.5)), vOut = ease(seg(t, 28.4, 0.5));
+  wipe(verdEl, vIn);
+  verdEl.style.opacity = vIn * (1 - vOut);
+  scrimEl.style.opacity = (vIn * (1 - vOut) * 0.96).toFixed(3);
+}
+
+window.LS_SIZE = [1080, 1920];
+window.LS_DURATION = TOTAL;
+window.LS_TAIL = 0;
+window.LS_VIOLATIONS = ch.violations;
+window.LS_GATE = { VAH: r2(VAH), POC: r2(POC), VAL: r2(VAL), BOS: r2(BOS), bosBar,
+  FVG: [r2(fvgLo), r2(fvgHi)], entryBar, ENTRY: r2(ENTRY), STOP: r2(STOP), TGT: r2(TGT),
+  RISK: r2(RISK), R: +R.toFixed(3), DELTA, IMB: +IMB.toFixed(2), hiRow,
+  sumBid: sum(1), sumAsk: sum(2), schools: SCHOOLS,
+  chartEnd: CHART_END, caps: caps.duration(), holds: H, fpIn: FP_IN, scAt: SC_AT };
+window.LS_C = C;                       // للتحقّق المستقل من مسار الصفقة
+window.seekTo = t => { seekAll(t); return true; };
+seekAll(0);
+document.fonts.ready.then(() => { seekAll(0); window.LS_READY = true; });
+
+if (!location.search.includes('static')) {
+  const t0 = performance.now();
+  (function loop(now) { seekAll(((now - t0) / 1000) % TOTAL); requestAnimationFrame(loop); })(t0);
+}
+</script>

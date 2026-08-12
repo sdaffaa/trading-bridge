@@ -400,6 +400,20 @@ const vp = ch.volumeProfile({ from, to, valueArea: 0.70, showVA: true, nodes: tr
 vp.pocPrice; vp.vah; vp.val; vp.hvn; vp.lvn;
 ```
 
+On an animated chart the profile's **histogram, its range box, the value-area shading, its edges
+and their labels are all one cue** — pass `at`/`dur` and none of them exists before that moment.
+A value area sitting on the chart from frame zero announces a measurement the profile that made
+it has not yet been drawn.
+
+And a value-area edge is a **bin boundary, not a price the market printed**. Round it to the
+instrument's tick before building anything on it, or every "the gap floor and the VAH are the
+same price" claim is true only to as many decimals as you happen to display:
+
+```js
+const r2  = v => Math.round(v * 100) / 100;
+const VAH = r2(ch.profile.vah);        // ← then write the levels against this
+```
+
 ### Confluence, and the language rule
 
 Rank **at most three** zones. For each: the liquidity present, the volume level, the rejection
