@@ -147,13 +147,18 @@ def _unregister(slugs):
     ويُمسح معها قيدُ `run32_desk` للوحدة نفسها: الريل يُبنى أولاً فيقيّد
     نافذته باسم `run32-<الوحدة>`، ثم يأتي دليلُ الوحدة على النافذة عينها
     فيراها مأخوذة. و§12 يُجيز مشاركة نافذة الوحدة بين تصميمها ودليلها —
-    فالقيد يُوحَّد باسم هذه التشغيلة بدل أن يُحسب مرّتين."""
+    فالقيد يُوحَّد باسم هذه التشغيلة بدل أن يُحسب مرّتين.
+
+    والمسح **بالوحدات المطلوبة لا بالتشغيلة كلّها**: المسح بـ`video ==
+    RUN_ID` يُسقط قيودَ وحداتٍ بُنيت قبل قليل ولم يُطلَب بناؤها الآن، فتعود
+    نوافذُها «حرّة» كذباً وتُستعمل مرّةً ثانية في تشغيلةٍ قادمة — وهذا نقضُ
+    قاعدة عدم التكرار من حيث لا يُرى (وقع اليوم حين أُعيد بناء الريلين
+    وحدهما فسقط قيدا «ميتة» و«تعلّق»)."""
     p = os.path.join(HERE, "used_charts.json")
     d = json.load(open(p, encoding="utf-8"))
-    drop = {RUN_ID} | {f"run32-{s}" for s in slugs}
+    drop = {f"run59-{s}" for s in slugs} | {f"run32-{s}" for s in slugs}
     for k in ("synthetic", "real"):
-        d[k] = [e for e in d[k]
-                if e.get("video") not in drop and e.get("label") not in drop]
+        d[k] = [e for e in d[k] if e.get("label") not in drop]
     json.dump(d, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
 
