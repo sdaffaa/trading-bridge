@@ -180,6 +180,16 @@
     "sweep.pool",
     "signal.close_top"
    ]
+  },
+  {
+   "tag": "cl_sc_2026-08-31_1327",
+   "keys": [
+    "4H.ma_run",
+    "1D.pd_mid",
+    "1h.struct",
+    "sweep.sweep",
+    "signal.range"
+   ]
   }
  ]
 }
