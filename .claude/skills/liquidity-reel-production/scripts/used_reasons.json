@@ -220,6 +220,16 @@
     "sweep.sweep",
     "signal.wick"
    ]
+  },
+  {
+   "tag": "bz_sc_2026-09-03_1230",
+   "keys": [
+    "4H.ma_run",
+    "1D.pd_room",
+    "1h.room",
+    "sweep.depth",
+    "signal.close_top"
+   ]
   }
  ]
 }
