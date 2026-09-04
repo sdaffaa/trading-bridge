@@ -7780,6 +7780,14 @@
    "end": "2026-08-19 16:00",
    "label": "run59-thania",
    "video": "run59-factory-2026-09-04"
+  },
+  {
+   "symbol": "YM=F",
+   "timeframe": "15m",
+   "start": "2026-07-15 06:45",
+   "end": "2026-07-15 16:15",
+   "label": "run59-taklifa",
+   "video": "run59-factory-2026-09-04"
   }
  ]
 }
