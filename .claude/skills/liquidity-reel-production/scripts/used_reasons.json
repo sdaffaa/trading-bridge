@@ -190,6 +190,16 @@
     "sweep.sweep",
     "signal.range"
    ]
+  },
+  {
+   "tag": "hg_sc_2026-09-03_1221",
+   "keys": [
+    "4H.expand_4h",
+    "1D.pd_low",
+    "1h.room",
+    "sweep.depth",
+    "signal.close_top"
+   ]
   }
  ]
 }
