@@ -7750,19 +7750,19 @@
    "video": "run58-factory-2026-08-12"
   },
   {
-   "symbol": "SI=F",
-   "timeframe": "1h",
-   "start": "2026-07-22 07:00",
-   "end": "2026-07-22 19:00",
-   "label": "run59-mayta",
+   "symbol": "AUDUSD=X",
+   "timeframe": "15m",
+   "start": "2026-06-19 08:45",
+   "end": "2026-06-19 16:30",
+   "label": "run59-nafida",
    "video": "run59-factory-2026-09-04"
   },
   {
-   "symbol": "SI=F",
-   "timeframe": "1h",
-   "start": "2026-08-12 01:00",
-   "end": "2026-08-12 06:00",
-   "label": "run59-taalluq",
+   "symbol": "AUDUSD=X",
+   "timeframe": "15m",
+   "start": "2026-08-19 04:45",
+   "end": "2026-08-19 16:00",
+   "label": "run59-thania",
    "video": "run59-factory-2026-09-04"
   }
  ]

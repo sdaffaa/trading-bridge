@@ -141,12 +141,19 @@ def build_gd(slug, C, r, ok):
     return out, build_guide(cfg, out), tk
 
 
-def _unregister():
-    """قيود هذه التشغيلة تُمسح قبل إعادة البناء — وإلا صدّت التشغيلةُ نفسَها."""
+def _unregister(slugs):
+    """قيود هذه التشغيلة تُمسح قبل إعادة البناء — وإلا صدّت التشغيلةُ نفسَها.
+
+    ويُمسح معها قيدُ `run32_desk` للوحدة نفسها: الريل يُبنى أولاً فيقيّد
+    نافذته باسم `run32-<الوحدة>`، ثم يأتي دليلُ الوحدة على النافذة عينها
+    فيراها مأخوذة. و§12 يُجيز مشاركة نافذة الوحدة بين تصميمها ودليلها —
+    فالقيد يُوحَّد باسم هذه التشغيلة بدل أن يُحسب مرّتين."""
     p = os.path.join(HERE, "used_charts.json")
     d = json.load(open(p, encoding="utf-8"))
+    drop = {RUN_ID} | {f"run32-{s}" for s in slugs}
     for k in ("synthetic", "real"):
-        d[k] = [e for e in d[k] if e.get("video") != RUN_ID]
+        d[k] = [e for e in d[k]
+                if e.get("video") not in drop and e.get("label") not in drop]
     json.dump(d, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
 
@@ -175,8 +182,9 @@ def build(slug, C):
 
 def main(slugs=None):
     units = _units()
-    _unregister()
-    for slug in (slugs or list(units)):
+    slugs = slugs or list(units)
+    _unregister(slugs)
+    for slug in slugs:
         try:
             build(slug, units[slug])
         except Exception as e:

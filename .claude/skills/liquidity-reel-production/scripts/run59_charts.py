@@ -240,9 +240,129 @@ def q_all(r, Wd=880, H=250):
     return svg + badge(Wd, "حدود النافذة", True) + "</svg>"
 
 
+
+# ═════════════════ ٣ · تكلفة — الداو جونز · ١٥ دقيقة ═════════════════
+# النافذة ٥٤: YM=F 15m · 2026-07-15 06:45 → 16:15 بتوقيت الكويت.
+# درسُ هذه الوحدة **مسافةٌ سعرية** لا مدىً زمني، فمقياسها عمودي: كم نقطة
+# بين الدخول والوقف، وكم تساوي تلك المسافة من شمعةٍ اعتيادية.
+
+
+def vspan(xx, y0, y1, txt, col=INK, fs=16):
+    """قوسٌ رأسي بطرفين — يقيس مسافةً سعرية، ووسمُه إلى جانبه لا فوقه."""
+    s = RC._SC[0]
+    yl, yh = min(y0, y1), max(y0, y1)
+    return (f'<line x1="{xx:.1f}" y1="{yl:.1f}" x2="{xx:.1f}" y2="{yh:.1f}" '
+            f'stroke="{col}" stroke-width="1.6"/>'
+            f'<line x1="{xx-7:.1f}" y1="{yl:.1f}" x2="{xx+7:.1f}" y2="{yl:.1f}" '
+            f'stroke="{col}" stroke-width="2.4"/>'
+            f'<line x1="{xx-7:.1f}" y1="{yh:.1f}" x2="{xx+7:.1f}" y2="{yh:.1f}" '
+            f'stroke="{col}" stroke-width="2.4"/>'
+            + htext(xx, (yl + yh) / 2 - 6, rt(txt), col, round(fs * s)))
+
+
+def _risk(W, r):
+    """مسافة المخاطرة بنفس حساب `run32_desk.plan_numbers` — لا حساباً آخر."""
+    iob, ir = r["iob"], r["ir"]
+    seg = W[:ir + 1]
+    rng = max(c["h"] for c in seg) - min(c["l"] for c in seg)
+    ent = round(W[ir]["c"])
+    stp = round(min(W[j]["l"] for j in range(iob, ir + 1)) - rng * 0.006)
+    return ent, stp, ent - stp
+
+
+def c_dist(r, Wd=880, H=250):
+    """مسافة المخاطرة نفسها: خمس وخمسون نقطة — والتكلفة تُقتطع منها."""
+    W = r["w"]
+    ent, stp, risk = _risk(W, r)
+    assert risk == 55 and ent == 52791, f"{ent}/{stp}/{risk}"
+    bp = risk / ent * 1e4
+    assert 10.0 < bp < 11.0, f"{bp:.1f}"
+    svg, x, y, slot = _g(r, Wd, H)
+    svg += hl(x(0) - slot * .5, x(len(W) - 1) + slot * .5, y(ent), TEAL_D, 1.8)
+    svg += hl(x(0) - slot * .5, x(len(W) - 1) + slot * .5, y(stp), RED, 1.8, "6 6")
+    svg += band(x(0) - slot * .5, x(len(W) - 1) + slot * .5, y(ent), y(stp), TEAL, 0.10)
+    # القوس يوضع حيث لا تعبر شمعةٌ الشريطَ: أبعدُ شمعةٍ قاعُها فوق الدخول.
+    # وضعُه عند طرف اللوحة كان يحشره في الحافة ويركب على آخر الشموع.
+    # ويبقى داخل اللوحة: وسمُه يُوسَّط على موضعه، فطرفُ اللوحة يقصّه.
+    lo_, hi_ = 4, len(W) - 7
+    clear = max(range(lo_, hi_), key=lambda j: W[j]["l"] - ent)
+    assert W[clear]["l"] > ent, "لا موضع خالٍ للقوس فوق الشريط"
+    svg += vspan(x(clear), y(ent), y(stp), f'{ar(risk)} نقطة', TEAL_D)
+    svg += RC._title(Wd, rt("المسافة التي تدفع عليها"))
+    svg += why(Wd, H, f'من {ent} إلى {stp} — {ar(risk)} نقطة', INK)
+    svg += sm(Wd, H, f'أي ⁦{bp:.1f}⁩ نقطة أساس من السعر — وهذي وحدة قياسك')
+    return svg + badge(Wd, "مسافة المخاطرة", True) + "</svg>"
+
+
+def c_med(r, Wd=880, H=250):
+    """المخاطرة تساوي شمعةً ونصف — لا عشر شمعات."""
+    W = r["w"]
+    rg, med = ranges(W)
+    _, _, risk = _risk(W, r)
+    k = risk / med
+    assert 1.4 < k < 1.7, f"{k:.2f}"
+    mid = min(range(len(W)), key=lambda j: abs(rg[j] - med))
+    svg, x, y, slot = _g(r, Wd, H)
+    svg += mark(x(mid), slot, y(W[mid]["h"]), y(W[mid]["l"]), GREY, 0.26)
+    svg += tag(x(mid), y(W[mid]["h"]), y(W[mid]["l"]), f'⁦{med:.0f}⁩', GREY)
+    svg += RC._title(Wd, rt("شمعة اعتيادية… ومخاطرتك"))
+    svg += why(Wd, H, f'وسيط الشمعة ⁦{med:.0f}⁩ نقطة والمخاطرة {ar(risk)}', INK)
+    svg += sm(Wd, H, f'أي {xr(k)} الشمعة — ومن هذي المسافة تُقتطع تكلفتك', TEAL_D)
+    return svg + badge(Wd, "المخاطرة بالشمعات", True) + "</svg>"
+
+
+def c_small(r, Wd=880, H=250):
+    """أكثر الشمعات لا تقطع مسافة مخاطرتك أصلاً."""
+    W = r["w"]
+    rg, med = ranges(W)
+    _, _, risk = _risk(W, r)
+    small = [j for j in range(len(W)) if rg[j] < risk]
+    assert len(small) == 31 and len(W) == 39, f"{len(small)}/{len(W)}"
+    svg, x, y, slot = _g(r, Wd, H)
+    for j in small:
+        svg += mark(x(j), slot, y(W[j]["h"]), y(W[j]["l"]), GREY, 0.15)
+    svg += RC._title(Wd, rt("أغلب الشمعات أقصر من وقفك"))
+    svg += why(Wd, H, f'{ar(len(small))} شمعة من {ar(len(W))} مداها أقلّ من '
+                      f'{ar(risk)} نقطة', GREY)
+    svg += sm(Wd, H, f'أي {ar(round(len(small)/len(W)*100))}٪ — والتكلفة تُدفع عليها كلّها')
+    return svg + badge(Wd, "شمعات أقصر من الوقف", False) + "</svg>"
+
+
+def c_big(r, Wd=880, H=250):
+    """شمعة واحدة حملت النتيجة — والتكلفة نفسها دُفعت قبلها."""
+    W = r["w"]
+    rg, med = ranges(W)
+    hi = max(range(len(W)), key=lambda j: rg[j])
+    k = rg[hi] / med
+    assert W[hi]["d"] == "15:30" and 3.5 < k < 4.0, f"{W[hi]['d']} {k:.2f}"
+    svg, x, y, slot = _g(r, Wd, H)
+    svg += mark(x(hi), slot, y(W[hi]["h"]), y(W[hi]["l"]), TEAL_D, 0.22)
+    svg += tag(x(hi), y(W[hi]["h"]), y(W[hi]["l"]), xr(k), TEAL_D)
+    svg += RC._title(Wd, rt("شمعة واحدة حملت النتيجة"))
+    svg += why(Wd, H, f'الساعة ١٥:٣٠ — مداها ⁦{rg[hi]:.0f}⁩ نقطة', TEAL_D)
+    svg += sm(Wd, H, f'{xr(k)} وسيط الشمعة — ومع ذلك التكلفة دُفعت قبلها')
+    return svg + badge(Wd, "شمعة النتيجة", True) + "</svg>"
+
+
+def c_all(r, Wd=880, H=250):
+    """النافذة كاملة بحدودها — مرجعُ كل رقمٍ في الوحدة."""
+    W = r["w"]
+    rg, med = ranges(W)
+    tot = max(c["h"] for c in W) - min(c["l"] for c in W)
+    assert len(W) == 39 and W[0]["d"] == "06:45" and W[-1]["d"] == "16:15"
+    assert 235 < tot < 245, f"{tot:.0f}"
+    svg, x, y, slot = _g(r, Wd, H)
+    svg += hl(x(0) - slot * .5, x(len(W) - 1) + slot * .5, y(W[0]["c"]), GREY, 1.4, "5 6")
+    svg += RC._title(Wd, rt("النافذة كاملة"))
+    svg += why(Wd, H, f'{ar(len(W))} شمعة ١٥ دقيقة · من ٠٦:٤٥ إلى ١٦:١٥ بتوقيت الكويت', INK)
+    svg += sm(Wd, H, f'مداها ⁦{tot:.0f}⁩ نقطة ووسيط الشمعة ⁦{med:.0f}⁩ — وإليهما تُنسب الأرقام')
+    return svg + badge(Wd, "حدود النافذة", True) + "</svg>"
+
+
 SETS = {"mayta": [k_four, k_quiet, k_gap, k_break, k_all],
-        "taalluq": [q_one, q_wait, q_after, q_quiet, q_all]}
-WIN = {"mayta": 49, "taalluq": 52}
+        "taalluq": [q_one, q_wait, q_after, q_quiet, q_all],
+        "taklifa": [c_dist, c_med, c_small, c_big, c_all]}
+WIN = {"mayta": 49, "taalluq": 52, "taklifa": 54}
 
 
 def unit_charts(slug):
