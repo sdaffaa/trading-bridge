@@ -170,6 +170,16 @@
     "sweep.depth",
     "signal.wick"
    ]
+  },
+  {
+   "tag": "ng_sc_2026-09-02_1800",
+   "keys": [
+    "4H.ma_gap",
+    "1D.pd_room",
+    "1h.hl",
+    "sweep.pool",
+    "signal.close_top"
+   ]
   }
  ]
 }
