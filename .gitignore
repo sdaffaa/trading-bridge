@@ -45,3 +45,6 @@
 .claude/skills/*/scripts/out58/car_*/[0-9][0-9].png
 .claude/skills/*/scripts/out58/guide_*/
 .claude/skills/*/scripts/out58/*.zip
+.claude/skills/*/scripts/out59/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out59/guide_*/
+.claude/skills/*/scripts/out59/*.zip

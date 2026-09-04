@@ -81,7 +81,7 @@ def k_four(r, Wd=880, H=250):
     svg += mark(x(b), slot, y(W[b]["h"]), y(W[b]["l"]), TEAL_D, 0.22)
     top = min(y(W[k]["h"]) for k in ks) - 26
     svg += spanx(x(ks[0]) - slot * .5, x(ks[-1]) + slot * .5, top + 26,
-                 f'مجموعها ⁦{tot:.3f}⁩', GREY)
+                 f'⁦{tot:.3f}⁩', GREY)
     svg += tag(x(b), y(W[b]["h"]), y(W[b]["l"]), f'⁦{rg[b]:.3f}⁩', TEAL_D)
     svg += RC._title(Wd, rt("أربع ساعات… وساعة واحدة"))
     svg += why(Wd, H, f'من {dd("٢٢:٠٠")} إلى {dd("٠٢:٠٠")} — أربع ساعات مجموعها ⁦{tot:.3f}⁩', GREY)
