@@ -200,6 +200,16 @@
     "sweep.depth",
     "signal.close_top"
    ]
+  },
+  {
+   "tag": "hg_sc_2026-08-31_1300",
+   "keys": [
+    "4H.expand_4h",
+    "1D.pd_mid",
+    "1h.hl",
+    "sweep.pool",
+    "signal.range"
+   ]
   }
  ]
 }
