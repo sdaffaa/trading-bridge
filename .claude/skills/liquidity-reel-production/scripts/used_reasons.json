@@ -230,6 +230,16 @@
     "sweep.depth",
     "signal.close_top"
    ]
+  },
+  {
+   "tag": "gc_sc_2026-09-03_1024",
+   "keys": [
+    "4H.ma_gap",
+    "1D.pd_mid",
+    "1h.hl",
+    "sweep.pool",
+    "signal.range"
+   ]
   }
  ]
 }
