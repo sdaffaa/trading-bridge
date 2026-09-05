@@ -240,6 +240,16 @@
     "sweep.pool",
     "signal.range"
    ]
+  },
+  {
+   "tag": "bz_sc_2026-09-02_0836",
+   "keys": [
+    "4H.ma_run",
+    "1D.pd_room",
+    "1h.struct",
+    "sweep.sweep",
+    "signal.wick"
+   ]
   }
  ]
 }

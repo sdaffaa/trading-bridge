@@ -115,7 +115,8 @@ def ring(id, cx, cy, r=15, col=TEAL_D, label_html=""):
 
 
 def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", lbl_t="الهدف",
-            col_t=TEAL_D, col_s=RED, col_e="#ECF3F6", anchor_e="end", fs=22, ya=False):
+            col_t=TEAL_D, col_s=RED, col_e="#ECF3F6", anchor_e="end", fs=22, ya=False,
+            s_below=False):
     """بوكس هدف/ستوب بستايل TradingView: خط دخول يترسم ← الستوب يتمدد لتحت ← الهدف يتمدد لفوق.
 
     `fs` حجم وسوم الهدف/الستوب/الدخول: افتراضه ٢٢ كما كان، ويكبر في الريلات
@@ -124,7 +125,14 @@ def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", 
     `ya=True` (مع محور متنفّس): المستطيلان يتمدّدان مع المقياس — وهذا
     صوابه، فهما يمثّلان مسافتي المخاطرة والهدف — أمّا الوسوم الثلاثة
     فيبقى كلٌّ منها ملاصقاً لحافّته بحجمه: كلٌّ يُعزل عند سعره هو، لا
-    عند سعرٍ واحد، وإلا انفصل وسم الهدف عن حافة الصندوق العليا."""
+    عند سعرٍ واحد، وإلا انفصل وسم الهدف عن حافة الصندوق العليا.
+
+    `s_below=True` ينقل وسم الوقف تحت حافة الصندوق السفلى بدل فوقها.
+    الوسم يجلس افتراضاً في الشريط الذي يعلو سعر الوقف مباشرة، وهو شريطٌ
+    قد يعبره خطُّ مستوىً آخر: على برنت كان الوقف 94.60 والقيعان المتساوية
+    94.62 — سنتان — فمرّ الخطّ الكحلي في منتصف «الوقف 94.60» وشطب الرقم.
+    والنقل تحت الحافة يضعه في فراغٍ لا خطّ فيه، والقرار عند النداء لأن
+    من ينادي هو من يعرف بقيّة الخطوط على الرسم."""
     _u = (lambda s, a: us(s, a)) if ya else (lambda s, a: s)
     w = x1 - x0
     ln = w
@@ -137,7 +145,7 @@ def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", 
             f'stroke="{col_e}" stroke-width="2.2"/>'
             f'<g class="pl" opacity="0">'
             + _u(htext((x0+x1)/2, yt + 8 + fs, lbl_t, col_t, fs), yt)
-            + _u(htext((x0+x1)/2, ys - fs, lbl_s, col_s, fs), ys)
+            + _u(htext((x0+x1)/2, ys + fs + 6 if s_below else ys - fs, lbl_s, col_s, fs), ys)
             + _u(htext(x1 - 12, ye - 12, lbl_e, col_e, fs - 1, anchor=anchor_e), ye)
             + '</g></g>')
 
@@ -702,6 +710,14 @@ window.__setFrame = function(t) {{
       $("lpp").setAttribute("y", ly2 - 15);
       $("lpv").setAttribute("y", ly2 + 6);
       $("lpv").textContent = pv2.toFixed(LPD);
+      // رقم الشبكة الذي تحته شارة السعر الحيّ يُخفى، لا يُطبع تحتها:
+      // الشارة معتمة فيظهر نصفُ الرقم من تحتها كأنه رقمان متراكبان
+      // (رُصد على برنت: «95.00» تحت «95.01»). والمنصّة تخفيه كذلك.
+      // يُخفى النصّ وحده — خطُّ الشبكة يبقى، فالمستوى قائمٌ وإن سُتر رقمه.
+      const pxg = $("pax");
+      if (pxg) for (const tn of pxg.querySelectorAll("text")) {{
+        tn.style.opacity = Math.abs(+tn.getAttribute("y") - 6 - ly2) < 19 ? 0 : 1;
+      }}
     }}
   }}
   if (!RPL)
