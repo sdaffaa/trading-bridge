@@ -121,6 +121,11 @@ def mtf_structure(D):
     hi = max(range(len(seg) - 1), key=lambda j: seg[j]["h"])
     after = seg[hi + 1:]
     assert after, "لا شموع بعد القمة"
+    # القمة أوّلَ الشريحة تعني أنه لا قاعَ قبلها **داخل ما نراه**، فلا
+    # يمكن أن نقول «قاعٌ أعلى» — والحكم رفضٌ بسببه لا انهيارُ `min()` على
+    # تسلسلٍ فارغ (وقع أربع مرّات في مسح 2026-09-05 فظهر عيبُ أداة في
+    # عمود أسباب الرفض كأنه حكمُ سوق).
+    assert hi > 0, "القمة أوّل الشريحة — لا قاع قبلها يُقاس عليه"
     lo = hi + 1 + min(range(len(after)), key=lambda j: after[j]["l"])
     prev_lo = min(seg[j]["l"] for j in range(hi))
     assert seg[lo]["l"] > prev_lo, \
