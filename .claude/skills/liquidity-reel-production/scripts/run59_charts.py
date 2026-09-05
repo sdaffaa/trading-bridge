@@ -247,17 +247,27 @@ def q_all(r, Wd=880, H=250):
 # بين الدخول والوقف، وكم تساوي تلك المسافة من شمعةٍ اعتيادية.
 
 
-def vspan(xx, y0, y1, txt, col=INK, fs=16):
-    """قوسٌ رأسي بطرفين — يقيس مسافةً سعرية، ووسمُه إلى جانبه لا فوقه."""
+def vspan(xx, y0, y1, txt, col=INK, fs=16, H=None):
+    """قوسٌ رأسي بطرفين — يقيس مسافةً سعرية، ووسمُه **تحت طرفه الأدنى**.
+
+    كان الوسم في منتصف القوس، فيمرّ خطُّ القوس نفسه في وسط الحروف ويلتقي
+    عندها الخطُّ الأفقي الذي يبدأ منه القياس (رُصد 2026-09-05 على «٣٠٪»
+    في `p_mae`: القوس والخطّ والشمعة المظللة كلّها على الرقم). وتحت الطرف
+    الأدنى فراغٌ في العادة — وهو موضع `tag` نفسه، فيُقرأ الرقم وسمَ شمعة.
+    و`H` (ارتفاع اللوحة) يجعل القرار مقيساً: إن لم يبقَ تحت الطرف الأدنى
+    ما يسع الوسم قبل الشريط السفلي، رُفع فوق الطرف الأعلى."""
     s = RC._SC[0]
     yl, yh = min(y0, y1), max(y0, y1)
+    ly = yh + round(26 * s)
+    if H is not None and ly + round(6 * s) > H - round(50 * s):
+        ly = yl - round(14 * s)
     return (f'<line x1="{xx:.1f}" y1="{yl:.1f}" x2="{xx:.1f}" y2="{yh:.1f}" '
             f'stroke="{col}" stroke-width="1.6"/>'
             f'<line x1="{xx-7:.1f}" y1="{yl:.1f}" x2="{xx+7:.1f}" y2="{yl:.1f}" '
             f'stroke="{col}" stroke-width="2.4"/>'
             f'<line x1="{xx-7:.1f}" y1="{yh:.1f}" x2="{xx+7:.1f}" y2="{yh:.1f}" '
             f'stroke="{col}" stroke-width="2.4"/>'
-            + htext(xx, (yl + yh) / 2 - 6, rt(txt), col, round(fs * s)))
+            + htext(xx, ly, rt(txt), col, round(fs * s)))
 
 
 def _risk(W, r):
@@ -287,7 +297,7 @@ def c_dist(r, Wd=880, H=250):
     lo_, hi_ = 4, len(W) - 7
     clear = max(range(lo_, hi_), key=lambda j: W[j]["l"] - ent)
     assert W[clear]["l"] > ent, "لا موضع خالٍ للقوس فوق الشريط"
-    svg += vspan(x(clear), y(ent), y(stp), f'{ar(risk)} نقطة', TEAL_D)
+    svg += vspan(x(clear), y(ent), y(stp), f'{ar(risk)} نقطة', TEAL_D, H=H)
     svg += RC._title(Wd, rt("المسافة التي تدفع عليها"))
     svg += why(Wd, H, f'من {ent} إلى {stp} — {ar(risk)} نقطة', INK)
     svg += sm(Wd, H, f'أي ⁦{bp:.1f}⁩ نقطة أساس من السعر — وهذي وحدة قياسك')

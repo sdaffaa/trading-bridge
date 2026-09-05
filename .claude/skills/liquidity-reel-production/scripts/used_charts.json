@@ -7788,6 +7788,30 @@
    "end": "2026-07-15 16:15",
    "label": "run59-taklifa",
    "video": "run59-factory-2026-09-04"
+  },
+  {
+   "symbol": "PL=F",
+   "timeframe": "1h",
+   "start": "2026-07-30 21:00",
+   "end": "2026-07-30 19:00",
+   "label": "run60-routine",
+   "video": "run60-factory-2026-09-05"
+  },
+  {
+   "symbol": "6B=F",
+   "timeframe": "1h",
+   "start": "2025-11-07 11:00",
+   "end": "2025-11-07 20:00",
+   "label": "run60-shakhsi",
+   "video": "run60-factory-2026-09-05"
+  },
+  {
+   "symbol": "NQ=F",
+   "timeframe": "15m",
+   "start": "2026-07-29 04:15",
+   "end": "2026-07-29 12:45",
+   "label": "run60-iidaa",
+   "video": "run60-factory-2026-09-05"
   }
  ]
 }
