@@ -211,6 +211,13 @@ def a_consol(r, W, x, y, slot, P):
                 S=dict(ca=ca, cb=cb, bk=bk, ZT=W[iob]["o"], iob=iob))
 
 
+def _on_line(l, xx):
+    """ارتفاع الخطّ عند سينٍ ما — كي يُزاح وسمُه عن الخطّ لا عن طرفه."""
+    x0, y0, x1, y1 = l
+    t = 0.0 if x1 == x0 else (xx - x0) / (x1 - x0)
+    return y0 + (y1 - y0) * t
+
+
 def a_chan(r, W, x, y, slot, P):
     """قناة هابطة: قمم وقيعان متدرّجة معاً، ثم اختراق السقف بإغلاق."""
     hi, lo = r["chi"], r["clo"]
@@ -223,10 +230,15 @@ def a_chan(r, W, x, y, slot, P):
     l2 = (x(lo[0]), y(W[lo[0]]["l"]), x(lo[1]), y(W[lo[1]]["l"]))
     zt, zb = W[iob]["o"], W[iob]["l"]
     zn = (x(iob) - slot * .6, y(zt), x(min(ir + 3, len(W) - 1)) + slot * .5, y(zb))
+    # وسمُ الخطّ يُزاح عن **الخطّ عند موضعه هو**، لا عن نقطة ارتسائه:
+    # الوسم يُكتب بعد الارتساء بسلوتين ونصف، والخطّ في تلك المسافة قد
+    # هبط أكثر من إزاحة الوسم — فيمرّ في وسط الحروف (رُصد 2026-09-05 على
+    # نافذة البتكوين ٥٣: «قاع القناة» يشطبه الخطُّ الذي يسمّيه).
+    xa, xb = x(hi[0]) + slot * 2.4, x(lo[0]) + slot * 2.4
     els = [line_el(*l1, INK, 2.4, id="A1"),
-           _lbl("A1L", x(hi[0]) + slot * 2.4, y(W[hi[0]]["h"]) - 16, "سقف القناة", INK),
+           _lbl("A1L", xa, _on_line(l1, xa) - 16, "سقف القناة", INK),
            line_el(*l2, INK, 2.2, id="A2"),
-           _lbl("A2L", x(lo[0]) + slot * 2.4, y(W[lo[0]]["l"]) + 34, "قاع القناة", INK)]
+           _lbl("A2L", xb, _on_line(l2, xb) + 34, "قاع القناة", INK)]
     return dict(key="chan", name="قناة هابطة تُخترَق", tool1=1,
                 els=els, l1=l1, l2=l2, zn=zn,
                 zn_lbl=htext(x(iob) + slot * 3.2, y(zb) + 32, "منطقة الأصل", TEAL_D, 24),
