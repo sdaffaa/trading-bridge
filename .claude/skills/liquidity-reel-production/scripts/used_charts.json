@@ -7812,6 +7812,14 @@
    "end": "2026-07-29 12:45",
    "label": "run60-iidaa",
    "video": "run60-factory-2026-09-05"
+  },
+  {
+   "symbol": "NG=F",
+   "timeframe": "1h",
+   "start": "2026-07-30 16:00",
+   "end": "2026-07-30 20:00",
+   "label": "run60-qaa",
+   "video": "run60-factory-2026-09-05"
   }
  ]
 }
