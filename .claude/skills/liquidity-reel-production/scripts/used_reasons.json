@@ -250,6 +250,16 @@
     "sweep.sweep",
     "signal.wick"
    ]
+  },
+  {
+   "tag": "eth_sc_2026-09-06_0848",
+   "keys": [
+    "4H.expand_4h",
+    "1D.pd_low",
+    "1h.room",
+    "sweep.depth",
+    "signal.close_top"
+   ]
   }
  ]
 }
