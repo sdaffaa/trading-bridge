@@ -1,0 +1,26 @@
+name: vo-bridge
+on:
+  push:
+    paths:
+      - 'assets/vo/request.json'
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: fetch and verify
+        run: |
+          URL=$(jq -r '.url' assets/vo/request.json)
+          MD5=$(jq -r '.md5' assets/vo/request.json)
+          OUT=$(jq -r '.out' assets/vo/request.json)
+          curl -fL "$URL" -o "assets/vo/$OUT"
+          echo "$MD5  assets/vo/$OUT" | md5sum -c -
+      - name: commit
+        run: |
+          git config user.name "vo-bridge"
+          git config user.email "vo-bridge@users.noreply.github.com"
+          git add assets/vo/
+          git commit -m "Add bridged audio"
+          git push
