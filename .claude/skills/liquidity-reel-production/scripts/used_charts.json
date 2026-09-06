@@ -7828,6 +7828,46 @@
    "end": "2026-08-19 19:00",
    "label": "run60-asbab",
    "video": "run60-factory-2026-09-05"
+  },
+  {
+   "symbol": "ETH-USD",
+   "timeframe": "30m",
+   "start": "2026-07-11 01:30",
+   "end": "2026-07-11 16:00",
+   "label": "run61-asl",
+   "video": "run61-factory-2026-09-06"
+  },
+  {
+   "symbol": "BTC-USD",
+   "timeframe": "30m",
+   "start": "2026-09-03 16:30",
+   "end": "2026-09-03 10:00",
+   "label": "run61-irtifaa",
+   "video": "run61-factory-2026-09-06"
+  },
+  {
+   "symbol": "6B=F",
+   "timeframe": "1h",
+   "start": "2026-07-29 05:00",
+   "end": "2026-07-29 01:00",
+   "label": "run61-mablagh",
+   "video": "run61-factory-2026-09-06"
+  },
+  {
+   "symbol": "BTC-USD",
+   "timeframe": "1h",
+   "start": "2026-05-10 02:00",
+   "end": "2026-05-10 03:00",
+   "label": "run61-saa",
+   "video": "run61-factory-2026-09-06"
+  },
+  {
+   "symbol": "NZDUSD=X",
+   "timeframe": "1h",
+   "start": "2025-11-13 16:00",
+   "end": "2025-11-13 08:00",
+   "label": "run61-waqf",
+   "video": "run61-factory-2026-09-06"
   }
  ]
 }
