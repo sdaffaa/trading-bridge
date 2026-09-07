@@ -136,6 +136,16 @@ def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", 
     _u = (lambda s, a: us(s, a)) if ya else (lambda s, a: s)
     w = x1 - x0
     ln = w
+
+    def _cx(lbl):
+        """مركز وسمٍ مقصوصٌ داخل اللوحة لا موسَّطٌ على الصندوق وحده.
+
+        الصندوق يبدأ عند شمعة الدخول وينتهي عند حافّة اللوحة، فقد يكون
+        أضيق من نصّه بكثير (٤٤px مقابل ١٥٨px على البتكوين ٦٥) — والتوسيط
+        الأعمى يدفع نصفَ الرقم يمينَ الحافّة حيث أرقامُ محور السعر،
+        فيُقرأ رقمان متراكبان («الوقف 64,191.10» فوق «64,200.00»)."""
+        hw = len(lbl) * fs * 0.5 / 2
+        return min(max((x0 + x1) / 2, hw + 8), x1 - hw)
     return (f'<g id="{id}" opacity="0">'
             f'<rect class="pt" x="{x0:.1f}" y="{yt:.1f}" width="{w:.1f}" height="{ye-yt:.1f}" '
             f'fill="{col_t}" fill-opacity="0.13" stroke="{col_t}" stroke-width="1.4" stroke-opacity="0.85"/>'
@@ -144,8 +154,8 @@ def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", 
             f'<line class="pe" data-len="{ln:.0f}" x1="{x0:.1f}" y1="{ye:.1f}" x2="{x1:.1f}" y2="{ye:.1f}" '
             f'stroke="{col_e}" stroke-width="2.2"/>'
             f'<g class="pl" opacity="0">'
-            + _u(htext((x0+x1)/2, yt + 8 + fs, lbl_t, col_t, fs), yt)
-            + _u(htext((x0+x1)/2, ys + fs + 6 if s_below else ys - fs, lbl_s, col_s, fs), ys)
+            + _u(htext(_cx(lbl_t), yt + 8 + fs, lbl_t, col_t, fs), yt)
+            + _u(htext(_cx(lbl_s), ys + fs + 6 if s_below else ys - fs, lbl_s, col_s, fs), ys)
             + _u(htext(x1 - 12, ye - 12, lbl_e, col_e, fs - 1, anchor=anchor_e), ye)
             + '</g></g>')
 

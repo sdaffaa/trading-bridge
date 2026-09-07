@@ -183,12 +183,22 @@ def a_sweep(r, W, x, y, slot, P):
            _lbl("A1L", x(i1) + slot * 2.2, y(hi) - 16, "قمّتان متساويتان", INK),
            line_el(*l2, RED, 2.2, dash="8 7", id="A2"),
            _lbl("A2L", x(ipdl) + slot * 2.2, y(zbot) + 64, "قاعٌ مكنوس", RED),
-           xmark(x(sw), y(W[sw]["l"]) + 46, id="A3", r=15)]
+           xmark(x(sw), _sw_y(y(W[sw]["l"]) + 46, y(P["tgt"])), id="A3", r=15)]
     return dict(key="sweep", name="سحب سيولة ثم انعكاس", tool1=2,
                 els=els, l1=l1, l2=l2, zn=zn, extra_mark=("A3", 9.05, 9.45, "drawx"),
                 fade=["A2", "A2L", "A3"],
                 zn_lbl=htext(x(iob) + slot * 3.4, y(zbot) + 30, "منطقة التنفيذ", TEAL_D, 24),
                 S=dict(i1=i1, i2=i2, ipdl=ipdl, bk=bk, ZT=zt, iob=iob, LH=W[r["iH"]]["h"]))
+
+
+def _sw_y(ay, ytgt, clear=40):
+    """ارتفاع ✗ القاع المكنوس يُقاس على وسم الهدف لا يُفترض.
+
+    ✗ يجلس تحت القاع المكنوس بـ٤٦px، ووسم «الهدف» يُطبع على خطّ الهدف —
+    والسعران مستقلّان، فقد يلتقي الرمزان على حرفٍ واحد (وقع على البتكوين
+    ٦٥: الفارق ١٧px، فمرّ ✗ الأحمر في وسط «64,338.49»). فإن تقاربا دُفع
+    ✗ أسفل الوسم بمسافةٍ مقروءة."""
+    return ay if abs(ay - ytgt) >= clear else ytgt + clear + 28
 
 
 def a_consol(r, W, x, y, slot, P):

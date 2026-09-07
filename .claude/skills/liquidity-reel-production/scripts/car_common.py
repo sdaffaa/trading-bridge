@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # مكونات الكاروسيل المشتركة (مصنع المحتوى اليومي) — مستخلصة من carousel3_build.py
 # الاستخدام: from car_common import *  ثم build_carousel(SLIDES_HTML_LIST, title, out)
-import math, os
+import math, os, re
 from reel_build import (CREAM, INK, TEAL, TEAL_D, TEAL_L, BULL, BEAR, RED, MUTE, GREY,
                         FONT_CSS, chart, htext, hend, GEM)
 
@@ -26,12 +26,19 @@ def eyebrow(t):
     return f'<div class="eyebrow"><span class="dash"></span>{t}<span class="dash"></span></div>'
 
 def cover_slide(eyeb, title_html, tag_html, hero_svg, total=8):
+    """غلافٌ داكن — ومقاسُ عنوانه يتبع طولَه.
+
+    الحاوية محدودة من تحت (فوق شارة «اسحب»)، فعنوانٌ من أربعة أسطر بمقاس
+    ٩٦px يأكل المساحة ويترك للجارت شريطاً بارتفاع أصبع — رُصد على غلافَي
+    «دوجي» و«رجوع» 2026-09-07. فالعنوان الطويل يُصغَّر مرّةً واحدة."""
+    n = len(re.sub(r"<[^>]+>", "", title_html))
+    big = "dbig sm" if n > 40 else "dbig"
     return f'''<div class="slide dark" {CW}>
   {counter(1, total)}
   <div class="dhd"><div class="hgem">{GEM}</div><div class="hwm"><span class="hln"></span>LIQUIDITY STATE<span class="hln" style="transform:scaleX(-1)"></span></div></div>
   <div class="dcover">
     <div class="deyeb"><span class="dsh"></span>{eyeb}<span class="dsh"></span></div>
-    <h1 class="dbig">{title_html}</h1>
+    <h1 class="{big}">{title_html}</h1>
     <div class="tbar"></div>
     <p class="dtag">{tag_html}</p>
     <div class="dchart">{hero_svg}</div>
@@ -200,19 +207,25 @@ body{{background:#cfcabf;font-family:'Tajawal',sans-serif}}
 .hwm{{display:flex;align-items:center;gap:12px;font-weight:700;font-size:18px;letter-spacing:8px;
   background:linear-gradient(180deg,#ffffff,#C4D4DB 55%,#8FA6AF);-webkit-background-clip:text;background-clip:text;color:transparent}}
 .hln{{display:block;width:70px;height:1px;background:linear-gradient(90deg,transparent,rgba(67,212,220,0.7))}}
-.dcover{{position:absolute;top:250px;left:80px;right:80px;display:flex;flex-direction:column;align-items:center;text-align:center}}
+.dcover{{position:absolute;top:206px;left:80px;right:80px;bottom:180px;
+  display:flex;flex-direction:column;align-items:center;text-align:center}}
 .deyeb{{display:flex;align-items:center;gap:12px;color:{CYAN};font-weight:800;font-size:27px}}
 .dsh{{display:block;width:30px;height:2px;background:{CYAN};box-shadow:0 0 8px rgba(67,212,220,0.5)}}
 .dbig{{margin-top:20px;font-size:96px;font-weight:900;line-height:1.12;letter-spacing:-1px;
   background:linear-gradient(180deg,#ffffff,#C4D4DB 60%,#7F97A1);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 0 26px rgba(67,212,220,0.22))}}
-.tbar{{width:430px;height:3px;margin:24px auto 0;
+.dbig.sm{{font-size:76px}}
+.tbar{{width:430px;height:3px;margin:20px auto 0;
   background:linear-gradient(90deg,transparent,{CYAN},transparent);box-shadow:0 0 10px rgba(67,212,220,0.4)}}
-.dtag{{margin-top:24px;font-size:36px;color:#B9CBD3;font-weight:500;line-height:1.5}}
+.dtag{{margin-top:20px;font-size:36px;color:#B9CBD3;font-weight:500;line-height:1.5}}
 .dtag b{{color:{CYAN};font-weight:800}}
-.dchart{{margin-top:44px;width:100%;background:transparent;border:0;
-  border-radius:0;padding:10px 0}}
-.dchart svg{{width:78%;height:auto;display:block;margin:0 auto}}
+/* الغلاف محدود من تحت: شارة «اسحب» ثابتة عند 96px من القاع، وجارتُ
+   الغلاف كان يمتدّ تحتها فيمرّ إطارُ الشارة على الشموع ويلتقي «اسحب»
+   بوسم «منطقة الطلب» (رُصد على غلاف «دوجي» 2026-09-07). فالحاوية
+   انتهت فوق الشارة، والجارت يتقلّص داخلها بدل أن يغزوها. */
+.dchart{{margin-top:28px;width:100%;background:transparent;border:0;
+  border-radius:0;padding:6px 0;flex:0 1 auto;min-height:0}}
+.dchart svg{{width:78%;height:auto;max-height:100%;display:block;margin:0 auto}}
 '''
 
 def build_carousel(slides, title, out_path, extra_css=""):
