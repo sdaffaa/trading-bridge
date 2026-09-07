@@ -529,12 +529,34 @@ def m5_svg():
                       col_e="#ECF3F6" if DK else INK, fs=S_FS, ya=True, s_below=S_BELOW))
     t = 13
     YE = y(PLAN["ENT"])
+    # وسمُ «تنفيذ» يمتدّ يساراً نحو ١٤٤ بكسلاً من رأس السهم، ودوائرُ
+    # القيعان المتساوية تجلس على مستوىً قد لا يبعد عن الدخول إلا سنتات
+    # (إيثيريوم 2026-09-07: الدخول 2,510.70 والمستوى 2,510.40 — ثلاثون
+    # سنتاً أي خمسة عشر بكسلاً) فيقع الوسم على دائرة ويطمسها. فيُقاس
+    # التقاطع ويُزاح الوسم رأسياً — فوق أوّلاً ثم تحت — وإن لم يخلُ موضعٌ
+    # سقط البناء بدل أن يُسلَّم رسمٌ يطمس دليلَه.
+    CH_FS = 30
+    CH_W = len("تنفيذ") * CH_FS * 0.58 + 26
+    CH_H = CH_FS + 16
+    CH_XR = x(FILL) - t * 2.4
+
+    def _chip_hits(dy):
+        top, bot = YE - dy - CH_H / 2, YE - dy + CH_H / 2
+        for j in eq:
+            cx_, cy_ = x(j), y(M5[j]["l"])
+            if not (cx_ + 13 < CH_XR - CH_W or cx_ - 13 > CH_XR) \
+                    and not (cy_ + 13 < top or cy_ - 13 > bot):
+                return True
+        return False
+
+    CH_DY = next((d for d in (0, CH_H / 2 + 21, -(CH_H / 2 + 21)) if not _chip_hits(d)), None)
+    assert CH_DY is not None, "لا موضع لوسم «تنفيذ» يخلو من دوائر القيعان"
     ex.append(f'<g id="ex" opacity="0">'
               + us(f'<path d="M {x(FILL)-t*2.2:.1f} {YE-t:.1f} L {x(FILL)-t*.5:.1f} {YE:.1f} '
                    f'L {x(FILL)-t*2.2:.1f} {YE+t:.1f} Z" fill="{TEAL_D}"/>'
                    f'<circle cx="{x(FILL):.1f}" cy="{YE:.1f}" r="5.5" fill="{TEAL_D}"/>'
                    # ملاصقٌ للسهم: مركزه على سعر الدخول ويمينه عند رأس السهم.
-                   + chip(x(FILL) - t * 2.4, YE, "تنفيذ", TEAL_D), YE) + '</g>')
+                   + chip(CH_XR, YE - CH_DY, "تنفيذ", TEAL_D), YE) + '</g>')
     ex.append(checkmark(x(HIT), y(PLAN["TGT"]) - 42, id="ck", ya=True))
     return "".join(ex), x, y, slot
 

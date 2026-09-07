@@ -391,6 +391,20 @@ def build_reel(cfg, out_html):
           const tt = xh.querySelector(".xht");
           tt.style.transform = `translateX(${(cx - 52).toFixed(1)}px)`;
           tt.textContent = TLAB[bi] || "";
+          // ورقمُ الشبكة تحت بطاقة الكروسهير يُخفى كما يُخفى تحت بطاقة
+          // السعر الحيّ: البطاقة معتمة فيطلّ نصفُ الرقم من تحتها ويُقرأ
+          // رقمان متراكبان (رُصد على إيثيريوم: «2,500.00» تحت «2500.22»).
+          // الإخفاء هنا **إضافيٌّ فقط**: `asApply` يعيد ضبط كل الأرقام في
+          // أوّل كل إطار، وهذا يجري بعده، فلا يُعيد إظهار ما أخفاه غيرُه.
+          const _pax = $("pax");
+          if (_pax) {
+            const ab = pp.getBoundingClientRect();
+            for (const tn of _pax.querySelectorAll("text")) {
+              const bb = tn.getBoundingClientRect();
+              if (bb.height && !(bb.bottom < ab.top - 1 || bb.top > ab.bottom + 1))
+                tn.style.opacity = 0;
+            }
+          }
         }
         // بطاقتان على المحور عند السعر نفسه تُقرآن بطاقةً مكرّرة: بطاقة
         // الكروسهير وبطاقة السعر الحيّ (على الغاز التقتا عند 2.784 فبدت

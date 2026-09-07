@@ -192,5 +192,10 @@
   "file": "eth_sc_2026-09-07_0212.json",
   "sym": "ETH-USD",
   "anchor": "2026-09-07 02:12"
+ },
+ {
+  "file": "eth_sc_2026-09-07_0018.json",
+  "sym": "ETH-USD",
+  "anchor": "2026-09-07 00:18"
  }
 ]
