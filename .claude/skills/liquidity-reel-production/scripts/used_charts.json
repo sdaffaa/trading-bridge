@@ -7239,6 +7239,37 @@
    ],
    "label": "run62-tarteeb",
    "video": "run62-factory-2026-09-07"
+  },
+  {
+   "seed": 7349,
+   "anchors": [
+    [
+     0,
+     40.0
+    ],
+    [
+     7,
+     40.4
+    ],
+    [
+     13,
+     40.1
+    ],
+    [
+     15,
+     41.6
+    ],
+    [
+     21,
+     40.9
+    ],
+    [
+     28,
+     41.4
+    ]
+   ],
+   "label": "run63-akhbar",
+   "video": "run63-factory-2026-09-07"
   }
  ],
  "real": [
@@ -7977,6 +8008,14 @@
    "end": "2026-07-26 13:00",
    "label": "run62-mutasawiya",
    "video": "run62-factory-2026-09-07"
+  },
+  {
+   "symbol": "HG=F",
+   "timeframe": "1d",
+   "start": "2026-07-14",
+   "end": "2026-08-31",
+   "label": "run63-usbou3i",
+   "video": "run63-factory-2026-09-07"
   }
  ]
 }
