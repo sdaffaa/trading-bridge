@@ -280,6 +280,16 @@
     "sweep.sweep",
     "signal.wick"
    ]
+  },
+  {
+   "tag": "ng_sc_2026-09-08_1242",
+   "keys": [
+    "4H.ma_run",
+    "1D.pd_low",
+    "1h.room",
+    "sweep.depth",
+    "signal.close_top"
+   ]
   }
  ]
 }
