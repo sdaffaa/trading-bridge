@@ -523,10 +523,37 @@ def m5_svg():
     # وبلا زوم (تشغيلة ٢٩) يضيق ما تبقّى، فأُبعدت الوسوم إلى يسار الصندوق.
     ex.append(f'<g id="wicklbl" opacity="0">'
               + us(htext(LX, wy, wick_txt, RED, 30), wy) + '</g>')
+    # وسمُ الهدف يجلس داخل الصندوق تحت حافّته العليا مباشرة، وهو شريطٌ
+    # تملؤه الشموع حين يقترب الهدف من الدخول: على النحاس 2026-09-08 مرّت
+    # فتائلُ خمسِ شمعات في وسط «الهدف ٢R 6.8258» فقطعت أرقامه (رُصد
+    # بالفحص البصري). فيُقاس التقاطع على كلّ لحظة يظهر فيها الصندوق —
+    # المحور يتنفّس فما يخلو في إطارٍ يمتلئ في إطارٍ بعده — ويُنقل الوسم
+    # إلى يسار الصندوق حيث لا شمعة، لأن الصندوق يبدأ عند شمعة الدخول.
+    T_FS = S_FS
+    T_TXT = f'الهدف ٢R  {PLAN["TGT"]:,.{DP}f}'
+    T_HW = T_FS * 0.56 * len(T_TXT) / 2
+    T_X0 = x(FILL) - slot * .6
+    T_CX = min(max((T_X0 + BR) / 2, T_HW + 8), BR - T_HW)
+
+    def _t_hits(p):
+        yt = mapy(y(PLAN["TGT"]), p)
+        top, bot = yt + 8, yt + 12 + T_FS
+        for j in range(len(M5)):
+            if x(j) + slot * .5 < T_CX - T_HW or x(j) - slot * .5 > T_CX + T_HW:
+                continue
+            a, b = mapy(y(M5[j]["h"]), p), mapy(y(M5[j]["l"]), p)
+            if not (b < top or a > bot):
+                return True
+        return False
+
+    T_LEFT = any(_t_hits(p) for p in range(int(_rp_p(22.40)), len(M5)))
+    assert not T_LEFT or T_X0 - 14 - 2 * T_HW >= 8, \
+        f'وسم «الهدف» المنقول يساراً يخرج من اللوحة ({T_X0 - 14 - 2 * T_HW:.0f})'
     ex.append(pos_box("box", x(FILL) - slot * .6, BR, y(PLAN["ENT"]), y(PLAN["STP"]), y(PLAN["TGT"]),
                       lbl_e=f'الدخول {PLAN["ENT"]:,.{DP}f}', lbl_s=f'الوقف {PLAN["STP"]:,.{DP}f}',
                       lbl_t=f'الهدف ٢R  {PLAN["TGT"]:,.{DP}f}', anchor_e="start",
-                      col_e="#ECF3F6" if DK else INK, fs=S_FS, ya=True, s_below=S_BELOW))
+                      col_e="#ECF3F6" if DK else INK, fs=S_FS, ya=True,
+                      s_below=S_BELOW, t_left=T_LEFT))
     t = 13
     YE = y(PLAN["ENT"])
     # وسمُ «تنفيذ» يمتدّ يساراً نحو ١٤٤ بكسلاً من رأس السهم، ودوائرُ
