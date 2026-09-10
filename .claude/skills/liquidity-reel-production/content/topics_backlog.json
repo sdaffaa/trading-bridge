@@ -1459,11 +1459,13 @@
    "pillar": "علم نفس التداول",
    "topic": "خمس خسائر ورا بعض: عادية ولا نظامك انكسر؟",
    "keyword": "سلسلة",
-   "status": "queued",
+   "status": "done",
    "cat": "نفسية",
    "added": "2026-09-09",
    "source": "تجديد البنك 2026-09-09 (تشغيلة ٦٤)",
-   "media": "carousel"
+   "media": "carousel",
+   "done_date": "2026-09-10",
+   "run": 65
   },
   {
    "id": 120,
@@ -1525,22 +1527,26 @@
    "pillar": "هيكل السوق",
    "topic": "الهضم بعد الاندفاع: شمعات ضيّقة معناها استكمال ولا نهاية؟",
    "keyword": "هضم",
-   "status": "queued",
+   "status": "done",
    "cat": "فنية",
    "added": "2026-09-09",
    "source": "تجديد البنك 2026-09-09 (تشغيلة ٦٤)",
-   "media": "reel"
+   "media": "carousel",
+   "done_date": "2026-09-10",
+   "run": 65
   },
   {
    "id": 126,
-   "pillar": "السيولة",
+   "pillar": "هيكل السوق",
    "topic": "چم مرة انرفض السعر عند نفس الحدّ قبل لا يعبره",
    "keyword": "رفض",
-   "status": "queued",
+   "status": "done",
    "cat": "فنية",
    "added": "2026-09-09",
    "source": "تجديد البنك 2026-09-09 (تشغيلة ٦٤)",
-   "media": "carousel"
+   "media": "carousel",
+   "done_date": "2026-09-10",
+   "run": 65
   },
   {
    "id": 127,
@@ -1569,11 +1575,13 @@
    "pillar": "إدارة رأس المال",
    "topic": "اشتراكاتك وأدواتك: چم صفقة رابحة تروح على الفاتورة",
    "keyword": "اشتراك",
-   "status": "queued",
+   "status": "done",
    "cat": "مالية",
    "added": "2026-09-09",
    "source": "تجديد البنك 2026-09-09 (تشغيلة ٦٤)",
-   "media": "carousel"
+   "media": "carousel",
+   "done_date": "2026-09-10",
+   "run": 65
   },
   {
    "id": 130,
@@ -1602,11 +1610,13 @@
    "pillar": "التوقيت",
    "topic": "متى يبدأ يومك على الجارت: إغلاق الشمعة يفرق من منصة لمنصة",
    "keyword": "بداية",
-   "status": "queued",
+   "status": "done",
    "cat": "أساسية",
    "added": "2026-09-09",
    "source": "تجديد البنك 2026-09-09 (تشغيلة ٦٤)",
-   "media": "carousel"
+   "media": "carousel",
+   "done_date": "2026-09-10",
+   "run": 65
   }
  ],
  "covered_before_backlog": [
