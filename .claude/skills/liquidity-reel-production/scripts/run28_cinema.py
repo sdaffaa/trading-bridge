@@ -561,31 +561,60 @@ def m5_svg():
     # بالفحص البصري). فيُقاس التقاطع على كلّ لحظة يظهر فيها الصندوق —
     # المحور يتنفّس فما يخلو في إطارٍ يمتلئ في إطارٍ بعده — ويُنقل الوسم
     # إلى يسار الصندوق حيث لا شمعة، لأن الصندوق يبدأ عند شمعة الدخول.
+    # واليسار ليس فراغاً بحكم البداية: الصندوق يبدأ عند شمعة الدخول لكن
+    # ما قبلها شموعٌ ترتفع إلى شريط الهدف حين يقترب الهدف — على الخام
+    # 2026-09-11 مرّت شمعاتُ ما قبل الدخول في وسط «الهدف ٢R 102.57»
+    # (رُصد بالفحص البصري). فيُمسح الشريط: داخل الصندوق أولاً، ثم يساره،
+    # ثم يساراً بخطوة نصف سلوت حتى أوّل مركزٍ خالٍ في كلّ لحظة.
     T_FS = S_FS
     T_TXT = f'الهدف ٢R  {PLAN["TGT"]:,.{DP}f}'
     T_HW = T_FS * 0.56 * len(T_TXT) / 2
+    T_CW = (len(T_TXT) * T_FS * 0.58 + 26) / 2     # نصف عرض الشريحة المعتمة
     T_X0 = x(FILL) - slot * .6
-    T_CX = min(max((T_X0 + BR) / 2, T_HW + 8), BR - T_HW)
+    T_RP = range(int(_rp_p(22.40)), len(M5))
 
-    def _t_hits(p):
+    def _t_cross(cx, hw, p):
         yt = mapy(y(PLAN["TGT"]), p)
         top, bot = yt + 8, yt + 12 + T_FS
-        for j in range(len(M5)):
-            if x(j) + slot * .5 < T_CX - T_HW or x(j) - slot * .5 > T_CX + T_HW:
+        n = 0
+        for j in range(min(p + 1, len(M5))):       # الشمعة التي لم تُطبع لا تحجب
+            if x(j) + slot * .5 < cx - hw or x(j) - slot * .5 > cx + hw:
                 continue
             a, b = mapy(y(M5[j]["h"]), p), mapy(y(M5[j]["l"]), p)
             if not (b < top or a > bot):
-                return True
-        return False
+                n += 1
+        return n
 
-    T_LEFT = any(_t_hits(p) for p in range(int(_rp_p(22.40)), len(M5)))
-    assert not T_LEFT or T_X0 - 14 - 2 * T_HW >= 8, \
-        f'وسم «الهدف» المنقول يساراً يخرج من اللوحة ({T_X0 - 14 - 2 * T_HW:.0f})'
+    # الحدّ الأيسر يجمع `RSHIFT`: القصّ يقع عند `PL` من اللوحة الثابتة
+    # والطبقة تنزلق يساراً، فوسمٌ يسارَ الصندوق يسلم عند البناء ويُقصّ بعد
+    # الانزلاق — وقع على الخام 2026-09-11 في أول بناء.
+    def _t_span(hw):
+        lo, hi, out = PL + RSHIFT + 10 + hw, CVW - PR - hw, []
+        c = lo
+        while c <= hi:
+            out.append(c)
+            c += slot * .5
+        return out
+
+    T_PREF = min(max((T_X0 + BR) / 2, T_HW + 8), BR - T_HW)
+    T_CX = next((c for c in sorted(_t_span(T_HW), key=lambda c: abs(c - T_PREF))
+                 if not any(_t_cross(c, T_HW, p) for p in T_RP)), None)
+    # ولا يسقط البناء حين يمتلئ الصفّ كلّه: على الخام عبرت اثنتا عشرة شمعة
+    # صفَّ الهدف في اللحظة الأخيرة فلم يبقَ فراغٌ بعرض الوسم على اللوحة
+    # كلّها. فيُرسم حينئذٍ على شريحة معتمة — كما ترسم المنصّة وسوم الأوامر
+    # فوق الشموع — في أقلّ المواضع ازدحاماً.
+    T_CHIP = T_CX is None
+    if T_CHIP:
+        _cands = _t_span(T_CW)
+        assert _cands, 'اللوحة أضيق من شريحة وسم الهدف'
+        T_CX = min(_cands, key=lambda c: (max(_t_cross(c, T_CW, p) for p in T_RP),
+                                          abs(c - T_PREF)))
     ex.append(pos_box("box", x(FILL) - slot * .6, BR, y(PLAN["ENT"]), y(PLAN["STP"]), y(PLAN["TGT"]),
                       lbl_e=f'الدخول {PLAN["ENT"]:,.{DP}f}', lbl_s=f'الوقف {PLAN["STP"]:,.{DP}f}',
                       lbl_t=f'الهدف ٢R  {PLAN["TGT"]:,.{DP}f}', anchor_e="start",
                       col_e="#ECF3F6" if DK else INK, fs=S_FS, ya=True,
-                      s_below=S_BELOW, t_left=T_LEFT))
+                      s_below=S_BELOW, t_x=T_CX,
+                      t_chip=tv_chart.T["BG"] if T_CHIP else None))
     t = 13
     YE = y(PLAN["ENT"])
     # وسمُ «تنفيذ» يمتدّ يساراً نحو ١٤٤ بكسلاً من رأس السهم، ودوائرُ

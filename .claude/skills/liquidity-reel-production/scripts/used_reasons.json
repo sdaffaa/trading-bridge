@@ -320,6 +320,16 @@
     "sweep.depth",
     "signal.wick"
    ]
+  },
+  {
+   "tag": "cl_sc_2026-09-11_0136",
+   "keys": [
+    "4H.expand_4h",
+    "1D.pd_room",
+    "1h.room",
+    "sweep.pool",
+    "signal.close_top"
+   ]
   }
  ]
 }

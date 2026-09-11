@@ -114,9 +114,20 @@ def ring(id, cx, cy, r=15, col=TEAL_D, label_html=""):
             f'{label_html}</g>')
 
 
+def _tchip(cx, yt, txt, col, fs, bg):
+    """وسم الهدف على شريحة معتمة موسَّطة على `cx` تحت حافّة الصندوق."""
+    w = len(txt) * fs * 0.58 + 26
+    h = fs + 16
+    yc = yt + 8 + h / 2
+    return (f'<rect x="{cx-w/2:.1f}" y="{yc-h/2:.1f}" width="{w:.1f}" height="{h:.1f}" '
+            f'fill="{bg}" fill-opacity=".93" stroke="{col}" stroke-width="1.5" '
+            f'stroke-opacity=".45" rx="2"/>'
+            + htext(cx, yc + fs * 0.34, txt, col, fs, anchor="middle"))
+
+
 def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", lbl_t="الهدف",
             col_t=TEAL_D, col_s=RED, col_e="#ECF3F6", anchor_e="end", fs=22, ya=False,
-            s_below=False, t_left=False):
+            s_below=False, t_left=False, t_x=None, t_chip=None):
     """بوكس هدف/ستوب بستايل TradingView: خط دخول يترسم ← الستوب يتمدد لتحت ← الهدف يتمدد لفوق.
 
     `fs` حجم وسوم الهدف/الستوب/الدخول: افتراضه ٢٢ كما كان، ويكبر في الريلات
@@ -131,8 +142,18 @@ def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", 
     افتراضاً في الشريط الذي يلي حافّة الصندوق العليا من الداخل، وهو شريطٌ
     تملؤه الشموع حين يكون الهدف قريباً من الدخول: على النحاس 2026-09-08
     كان الهدف 6.8258 والدخول 6.8140 — ١١٨ جزءاً من عشرة آلاف — فمرّت
-    فتائلُ خمسِ شمعات في وسط «الهدف ٢R 6.8258» وقطعت أرقامه. واليسار
-    فراغٌ خارج الصندوق دائماً، لأن الصندوق يبدأ عند شمعة الدخول.
+    فتائلُ خمسِ شمعات في وسط «الهدف ٢R 6.8258» وقطعت أرقامه.
+
+    و`t_chip` لونُ خلفيةٍ معتمة يُرسم عليها وسم الهدف بدل الهالة، حين
+    يمتلئ صفُّ الهدف بالشموع فلا يبقى على اللوحة فراغٌ بعرض الوسم: هكذا
+    ترسم المنصّة وسوم الأوامر فوق الشموع، والرقم المقروء فوق شمعة خيرٌ من
+    رقمٍ تقطعه الفتائل.
+
+    و`t_x` مركزٌ صريحٌ للوسم يُغني عن الجانبين: اليسار ليس فراغاً دائماً
+    وإن بدأ الصندوق عند شمعة الدخول — على الخام 2026-09-11 كان الهدف
+    102.57 والدخول 102.29 فعبرت شمعاتُ ما قبل الدخول شريطَ الوسم المنقول
+    يساراً وقطعت أرقامه (رُصد بالفحص البصري). فمن ينادي يمسح الشريط
+    ويمرّر أوّل مركزٍ خالٍ، ولا يُفترض الفراغ في جهةٍ بعينها.
 
     `s_below=True` ينقل وسم الوقف تحت حافة الصندوق السفلى بدل فوقها.
     الوسم يجلس افتراضاً في الشريط الذي يعلو سعر الوقف مباشرة، وهو شريطٌ
@@ -161,8 +182,11 @@ def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", 
             f'<line class="pe" data-len="{ln:.0f}" x1="{x0:.1f}" y1="{ye:.1f}" x2="{x1:.1f}" y2="{ye:.1f}" '
             f'stroke="{col_e}" stroke-width="2.2"/>'
             f'<g class="pl" opacity="0">'
-            + _u(htext(x0 - 14 if t_left else _cx(lbl_t), yt + 8 + fs, lbl_t,
-                       col_t, fs, anchor="start" if t_left else "middle"), yt)
+            + _u(_tchip(t_x if t_x is not None else _cx(lbl_t), yt, lbl_t, col_t,
+                        fs, t_chip) if t_chip else
+                 htext(t_x if t_x is not None else (x0 - 14 if t_left else _cx(lbl_t)),
+                       yt + 8 + fs, lbl_t, col_t, fs,
+                       anchor="start" if (t_x is None and t_left) else "middle"), yt)
             + _u(htext(_cx(lbl_s), ys + fs + 6 if s_below else ys - fs, lbl_s, col_s, fs), ys)
             + _u(htext(x1 - 12, ye - 12, lbl_e, col_e, fs - 1, anchor=anchor_e), ye)
             + '</g></g>')
