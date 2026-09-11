@@ -340,6 +340,16 @@
     "sweep.sweep",
     "signal.wick"
    ]
+  },
+  {
+   "tag": "cl_sc_2026-09-11_0612",
+   "keys": [
+    "4H.ma_run",
+    "1D.pd_low",
+    "1h.hl",
+    "sweep.depth",
+    "signal.range"
+   ]
   }
  ]
 }
