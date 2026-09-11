@@ -442,8 +442,10 @@ def m5_svg():
     # الحافة حيث لا خطّ.
     S_FS = 28
     S_TXT = f'الوقف {PLAN["STP"]:,.{DP}f}'
-    S_CX = (x(FILL) - slot * .6 + BR) / 2
     S_HW = S_FS * 0.56 * len(S_TXT) / 2
+    # الموضعُ المبدئيّ هو الذي يحسبه `pos_box._cx` نفسه — يُحاكى هنا كي لا
+    # يُبنى القرارُ على تقديرٍ ثم يرسم المحرّك في مكانٍ آخر.
+    S_CX = min(max((x(FILL) - slot * .6 + BR) / 2, S_HW + 8), BR - S_HW)
     # والفحص على **كل لحظة** يظهر فيها الوسم، لا على المقياس الأساس وحده:
     # المحور يتنفّس، فالمسافة بين سعرين تتمدّد بمعامل اللحظة — قربٌ آمن
     # في إطارٍ يصير تراكباً في إطارٍ بعده. `mapy` تعطي موضع السعر عند كل
@@ -453,6 +455,22 @@ def m5_svg():
         return a - S_FS * 1.78 - 6 <= mapy(y(lvl), p) <= a - S_FS + 12
     S_BELOW = any(_s_hits(p) for p in range(int(_rp_p(22.40)), len(M5)))
     S_LBL_Y = y(PLAN["STP"]) + S_FS + 6
+    # و✕ القاع المكنوس تجلس تحت القاع بـ٣٤px ونصفُ قطرها ٢٢، فإن قارب
+    # الوقفُ القاعَ وقع الوسمُ المنقول تحت الحافة على ارتفاعها نفسه: على
+    # الإيثيريوم 2026-09-11 لم يبقَ بينهما إلا **ستّة بكسلات** (قيست على
+    # DOM المرندر لا بالعين). فيُقاس التقاطع الرأسي ويُزاح الوسم يميناً
+    # بأقلّ ما يفرّقهما — واليمينُ لأن الصندوق يمتدّ إليه.
+    _XY0, _XY1 = y(M5[sw]["l"]) + 12, y(M5[sw]["l"]) + 56
+    S_CLEAR = S_LBL_Y + 8 < _XY0 or S_LBL_Y - S_FS > _XY1
+    if S_BELOW and not S_CLEAR:
+        _need = 22 + S_HW + 18
+        _lo, _hi = PL + RSHIFT + 10 + S_HW, CVW - PR - S_HW
+        _cands = [c for c in (x(sw) + _need, x(sw) - _need) if _lo <= c <= _hi]
+        if abs(S_CX - x(sw)) < _need and _cands:
+            S_CX = min(_cands, key=lambda c: abs(c - S_CX))
+    assert S_CX - S_HW >= PL + 8, f'وسم «الوقف» يخرج يساراً ({S_CX - S_HW:.0f})'
+    assert not S_BELOW or S_CLEAR or abs(S_CX - x(sw)) >= 22 + S_HW + 18, \
+        f'وسم «الوقف» يلامس علامة السحب ({abs(S_CX - x(sw)) - S_HW - 22:.0f}px)'
     # وتحت الحافة يسكن صفُّ «قيعان متساوية» نفسه. فإن تقاطع الوسمان
     # أفقياً أيضاً دُفع الصفُّ تحت الوسم المنقول؛ وإن لم يتقاطعا بقي
     # الصفّ مكانه ولم يُزَح بلا سبب.
@@ -613,7 +631,7 @@ def m5_svg():
                       lbl_e=f'الدخول {PLAN["ENT"]:,.{DP}f}', lbl_s=f'الوقف {PLAN["STP"]:,.{DP}f}',
                       lbl_t=f'الهدف ٢R  {PLAN["TGT"]:,.{DP}f}', anchor_e="start",
                       col_e="#ECF3F6" if DK else INK, fs=S_FS, ya=True,
-                      s_below=S_BELOW, t_x=T_CX,
+                      s_below=S_BELOW, s_x=S_CX, t_x=T_CX,
                       t_chip=tv_chart.T["BG"] if T_CHIP else None))
     t = 13
     YE = y(PLAN["ENT"])

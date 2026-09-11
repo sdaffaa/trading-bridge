@@ -127,7 +127,7 @@ def _tchip(cx, yt, txt, col, fs, bg):
 
 def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", lbl_t="الهدف",
             col_t=TEAL_D, col_s=RED, col_e="#ECF3F6", anchor_e="end", fs=22, ya=False,
-            s_below=False, t_left=False, t_x=None, t_chip=None):
+            s_below=False, s_x=None, t_left=False, t_x=None, t_chip=None):
     """بوكس هدف/ستوب بستايل TradingView: خط دخول يترسم ← الستوب يتمدد لتحت ← الهدف يتمدد لفوق.
 
     `fs` حجم وسوم الهدف/الستوب/الدخول: افتراضه ٢٢ كما كان، ويكبر في الريلات
@@ -154,6 +154,9 @@ def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", 
     102.57 والدخول 102.29 فعبرت شمعاتُ ما قبل الدخول شريطَ الوسم المنقول
     يساراً وقطعت أرقامه (رُصد بالفحص البصري). فمن ينادي يمسح الشريط
     ويمرّر أوّل مركزٍ خالٍ، ولا يُفترض الفراغ في جهةٍ بعينها.
+
+    و`s_x` مركزٌ صريحٌ لوسم الوقف: الوسمُ المنقول تحت الحافة قد يجلس على
+    ارتفاع ✕ القاع المكنوس نفسه فيلاصقها، ومن ينادي هو من يعرف موضعَ ✕.
 
     `s_below=True` ينقل وسم الوقف تحت حافة الصندوق السفلى بدل فوقها.
     الوسم يجلس افتراضاً في الشريط الذي يعلو سعر الوقف مباشرة، وهو شريطٌ
@@ -187,7 +190,8 @@ def pos_box(id, x0, x1, ye, ys, yt, lbl_e="الدخول", lbl_s="الستوب", 
                  htext(t_x if t_x is not None else (x0 - 14 if t_left else _cx(lbl_t)),
                        yt + 8 + fs, lbl_t, col_t, fs,
                        anchor="start" if (t_x is None and t_left) else "middle"), yt)
-            + _u(htext(_cx(lbl_s), ys + fs + 6 if s_below else ys - fs, lbl_s, col_s, fs), ys)
+            + _u(htext(s_x if s_x is not None else _cx(lbl_s),
+                       ys + fs + 6 if s_below else ys - fs, lbl_s, col_s, fs), ys)
             + _u(htext(x1 - 12, ye - 12, lbl_e, col_e, fs - 1, anchor=anchor_e), ye)
             + '</g></g>')
 
