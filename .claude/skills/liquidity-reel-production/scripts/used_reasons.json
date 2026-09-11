@@ -330,6 +330,16 @@
     "sweep.pool",
     "signal.close_top"
    ]
+  },
+  {
+   "tag": "bz_sc_2026-09-11_0548",
+   "keys": [
+    "4H.ma_gap",
+    "1D.pd_room",
+    "1h.struct",
+    "sweep.sweep",
+    "signal.wick"
+   ]
   }
  ]
 }
