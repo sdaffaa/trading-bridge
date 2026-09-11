@@ -350,6 +350,16 @@
     "sweep.depth",
     "signal.range"
    ]
+  },
+  {
+   "tag": "eth_sc_2026-09-11_1621",
+   "keys": [
+    "4H.expand_4h",
+    "1D.pd_mid",
+    "1h.room",
+    "sweep.pool",
+    "signal.close_top"
+   ]
   }
  ]
 }
