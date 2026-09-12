@@ -360,6 +360,16 @@
     "sweep.pool",
     "signal.close_top"
    ]
+  },
+  {
+   "tag": "eth_sc_2026-09-11_2051",
+   "keys": [
+    "4H.ma_gap",
+    "1D.pd_low",
+    "1h.struct",
+    "sweep.sweep",
+    "signal.range"
+   ]
   }
  ]
 }
