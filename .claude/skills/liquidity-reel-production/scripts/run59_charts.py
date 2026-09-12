@@ -259,7 +259,7 @@ def vspan(xx, y0, y1, txt, col=INK, fs=16, H=None):
     s = RC._SC[0]
     yl, yh = min(y0, y1), max(y0, y1)
     ly = yh + round(26 * s)
-    if H is not None and ly + round(6 * s) > H - round(50 * s):
+    if H is not None and ly + round(6 * s) > H - round(58 * s):
         ly = yl - round(14 * s)
     return (f'<line x1="{xx:.1f}" y1="{yl:.1f}" x2="{xx:.1f}" y2="{yh:.1f}" '
             f'stroke="{col}" stroke-width="1.6"/>'
