@@ -130,13 +130,17 @@ def markup_habs(r):
                 f'الهدف {xr(X68.B_TW)} العرض', TEAL_D, 25)
         + htext(x(4), y(X68.B_ENT) + 36,
                 f'الوقف {xr(X68.B_RW)} العرض', RED, 25) + '</g>',
+        # إطارٌ لا تعبئة: التعبئةُ التركوازية تذوب في تعبئة الزون نفسها
+        # (قِيس بصرياً على الـmp4 — لم تُرَ الشمعة إطلاقاً).
         f'<g id="tall" opacity="0">'
-        f'<rect x="{x(X68.B_TALL) - slot * .5:.1f}" y="{y(W[X68.B_TALL]["h"]):.1f}" '
-        f'width="{slot:.1f}" '
-        f'height="{y(W[X68.B_TALL]["l"]) - y(W[X68.B_TALL]["h"]):.1f}" '
-        f'fill="{TEAL}" opacity="0.20"/>'
-        + htext(x(X68.B_TALL) + slot * 4.6, y(W[X68.B_TALL]["h"]) - 16,
-                f'أطولها {xr(X68.B_LNG)} الوسيط', TEAL_D, 25) + '</g>',
+        f'<rect x="{x(X68.B_TALL) - slot * .48:.1f}" '
+        f'y="{y(W[X68.B_TALL]["h"]) - 3:.1f}" width="{slot * .96:.1f}" '
+        f'height="{y(W[X68.B_TALL]["l"]) - y(W[X68.B_TALL]["h"]) + 6:.1f}" '
+        f'fill="none" stroke="{TEAL_D}" stroke-width="3.2"/>'
+        # بلا نصّ: أعلى المدى مزدحمٌ بوسمَي الزون والعرض، وأسفلُه بوسم جسم
+        # الكسر — والرقمُ ١.٥٥× مكتوبٌ في بيت النصّ فوق اللوحة أصلاً، فالتظليل
+        # وحده يكفي ليقول «هذي أطولها».
+        + '</g>',
         checkmark(x(X68.B_HIT), y(W[X68.B_HIT]["h"]) - 48, id="ck"),
     ]
     # كلُّ وسمٍ يلي بيتَه بلحظة، و`base=26` يجعل المدى مكتملاً عند 2.2 ثانية
