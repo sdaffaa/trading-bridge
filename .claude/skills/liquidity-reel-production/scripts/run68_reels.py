@@ -75,19 +75,21 @@ def markup_aaiq(r):
                 y(min(c["l"] for c in W[X68.O_STALL[0]:X68.O_STALL[-1] + 1])),
                 htext(x((X68.O_STALL[0] + X68.O_STALL[-1]) / 2),
                       y(min(c["l"] for c in W[X68.O_STALL[0]:X68.O_STALL[-1] + 1])) + 38,
-                      f'{ar(len(X68.O_STALL))} شمعات على أول عائق', RED, 26)),
+                      f'{ar(len(X68.O_STALL))} شمعات على أول عائق', RED, 26),
+                fill=RED, stroke=RED),
         checkmark(x(X68.O_HIT), y(W[X68.O_HIT]["h"]) - 48, id="ck"),
     ]
+    # كلُّ وسمٍ يلي بيتَه بلحظة: بيتات الملفّ عند 0.0/3.2/6.2/9.2/12.2/15.2/18.2
     marks = [("ent", 1.6, 2.4, "draw"), ("tgt", 2.8, 3.6, "draw"),
-             ("tgtlbl", 3.6, 4.0, "pop"), ("obs", 7.0, 8.2, "pop"),
-             ("near", 11.0, 11.6, "pop"), ("stall", 14.0, 15.2, "zone"),
-             ("ck", 17.3, 17.7, "pop")]
+             ("tgtlbl", 3.6, 4.0, "pop"), ("obs", 6.6, 7.8, "pop"),
+             ("near", 9.6, 10.2, "pop"), ("stall", 15.6, 16.8, "zone"),
+             ("ck", 18.6, 19.0, "pop")]
     full = ["tgtlbl", "obs", "near", "stall", "ck"]
     sfx = [("whoosh", 0.35, -3), ("tick", 1.65, -6), ("whoosh", 2.85, -4),
-           ("pop", 3.65, -4), ("riser", 6.2, -3), ("pop", 7.1, -3),
-           ("impact", 11.05, -1), ("whoosh", 14.05, -4), ("tick", 16.2, -7),
-           ("success", 17.35, -2)]
-    return ("".join(ex), marks, full, ["ent", "tgt"], (11.0, 11.5), sfx, 14)
+           ("pop", 3.65, -4), ("riser", 5.9, -3), ("pop", 6.7, -3),
+           ("impact", 9.65, -1), ("whoosh", 15.65, -4), ("tick", 17.4, -7),
+           ("success", 18.65, -2)]
+    return ("".join(ex), marks, full, ["ent", "tgt"], (9.6, 10.1), sfx, 14)
 
 
 # ═════════ «حبس» — عرضُ المدى هو المسطرة ═════════
@@ -116,7 +118,8 @@ def markup_habs(r):
         zone_el("ext", x(kb) - slot * .5, y(X68.B_RB), x(X68.B_ILO) + slot * .5,
                 y(X68.B_LO),
                 htext(x((kb + X68.B_ILO) / 2), y(X68.B_LO) + 40,
-                      f'نزلَ {xr(X68.B_EXT)} عرضَ المدى', RED, 26)),
+                      f'نزلَ {xr(X68.B_EXT)} عرضَ المدى', RED, 26),
+                fill=RED, stroke=RED),
         f'<g id="lv" opacity="0">'
         f'<line x1="{x(0) - slot * .5:.1f}" y1="{y(X68.B_ENT):.1f}" x2="{R:.1f}" '
         f'y2="{y(X68.B_ENT):.1f}" stroke="{INK}" stroke-width="2.6"/>'
@@ -127,18 +130,27 @@ def markup_habs(r):
                 f'الهدف {xr(X68.B_TW)} العرض', TEAL_D, 25)
         + htext(x(4), y(X68.B_ENT) + 36,
                 f'الوقف {xr(X68.B_RW)} العرض', RED, 25) + '</g>',
+        f'<g id="tall" opacity="0">'
+        f'<rect x="{x(X68.B_TALL) - slot * .5:.1f}" y="{y(W[X68.B_TALL]["h"]):.1f}" '
+        f'width="{slot:.1f}" '
+        f'height="{y(W[X68.B_TALL]["l"]) - y(W[X68.B_TALL]["h"]):.1f}" '
+        f'fill="{TEAL}" opacity="0.20"/>'
+        + htext(x(X68.B_TALL) + slot * 4.6, y(W[X68.B_TALL]["h"]) - 16,
+                f'أطولها {xr(X68.B_LNG)} الوسيط', TEAL_D, 25) + '</g>',
         checkmark(x(X68.B_HIT), y(W[X68.B_HIT]["h"]) - 48, id="ck"),
     ]
-    marks = [("lo", 6.4, 7.2, "draw"), ("box", 8.2, 9.4, "zone"),
-             ("boxlbl", 9.4, 9.8, "pop"), ("brk", 10.3, 10.8, "pop"),
-             ("ext", 11.8, 12.8, "zone"), ("lv", 14.2, 14.9, "pop"),
-             ("ck", 16.4, 16.8, "pop")]
-    full = ["box", "boxlbl", "brk", "ext", "lv", "ck"]
-    sfx = [("whoosh", 0.35, -3), ("tick", 4.2, -7), ("whoosh", 6.45, -4),
-           ("riser", 8.3, -3), ("pop", 9.45, -4), ("impact", 10.35, 0),
-           ("whoosh", 11.85, -4), ("pop", 14.25, -3), ("tick", 15.6, -7),
-           ("success", 16.45, -2)]
-    return ("".join(ex), marks, full, ["lo"], (10.3, 10.8), sfx, 16)
+    # كلُّ وسمٍ يلي بيتَه بلحظة، و`base=26` يجعل المدى مكتملاً عند 2.2 ثانية
+    # فلا يتحدّث النصُّ عن عرضٍ لم يُرسم بعد.
+    marks = [("lo", 1.4, 2.2, "draw"), ("box", 2.3, 3.4, "zone"),
+             ("boxlbl", 3.4, 3.9, "pop"), ("tall", 6.4, 6.9, "pop"),
+             ("brk", 9.4, 9.9, "pop"), ("ext", 12.4, 13.4, "zone"),
+             ("lv", 15.4, 16.1, "pop"), ("ck", 18.5, 18.9, "pop")]
+    full = ["box", "boxlbl", "tall", "brk", "ext", "lv", "ck"]
+    sfx = [("whoosh", 0.35, -3), ("tick", 1.45, -7), ("whoosh", 2.35, -4),
+           ("pop", 3.45, -4), ("pop", 6.45, -4), ("riser", 8.3, -3),
+           ("impact", 9.45, 0), ("whoosh", 12.45, -4), ("pop", 15.45, -3),
+           ("success", 18.55, -2)]
+    return ("".join(ex), marks, full, ["lo"], (9.4, 9.9), sfx, 26)
 
 
 MARKUP = {"aaiq": markup_aaiq, "habs": markup_habs}

@@ -579,7 +579,7 @@ def g_cush(r=None, Wd=880, H=250):
     svg += hl(x(0) - slot * .5, x(G_N - 1) + slot * .5, y(_c), INK, 1.6)
     svg += band(x(0) - slot * .5, x(G_N - 1) + slot * .5,
                 y(_c), y(_c - G_CUSH * G_MED), RED, 0.14)
-    svg += vspan(x(G_N - 4) + slot * 1.2, y(_c), y(_c - G_CUSH * G_MED),
+    svg += vspan(x(G_N - 9) + slot * 1.2, y(_c), y(_c - G_CUSH * G_MED),
                  rt(f'{xr(G_CUSH)} شمعة'), RED, 16, H)
     svg += RC._title(Wd, rt("والوسادة تنحسب مو تنحسّ"))
     svg += RC._why(Wd, H, f'الهامشُ الحرّ ÷ قيمة النقطة ÷ وسيط مدى الشمعة = '
