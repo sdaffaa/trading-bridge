@@ -63,8 +63,27 @@ def tf_ar(tf):
     return "فريم " + TF_AR.get(tf, tf)
 
 
+# 🔒 رمز العرض ≠ رمز المصدر (2026-09-14). ياهو يلحق بالعقود `=F` وبالأزواج
+# `=X` ويبدأ المؤشرات بـ`^` — وهذه لواحقُ مخزنٍ لا أسماءَ تُعرض. ظهرت
+# «CL=F» في رأس ريل النفط وفي ذيله فقُرئت سلسلةً مكسورة لا رمزَ أداة.
+# فيُجرَّد اللاحق للعرض وحده: CL=F ← CL و USDJPY=X ← USDJPY و ^GSPC ← SPX.
+# والرموز التي لا لاحق لها (ETH-USD، BTC-USD) تمرّ كما هي، فلا يتغيّر شيء
+# فيما نُشر. والذيلُ عربيٌّ فيأخذ الاسم العربي من `AR_SYM` لا الرمزَ —
+# وهي موجودة أصلاً في `run31_charts` ولم يكن هذا الملف يسألها.
+def disp_sym(sym):
+    if sym.startswith("^"):
+        return {"^GSPC": "SPX", "^DJI": "DJI", "^IXIC": "IXIC",
+                "^NDX": "NDX"}.get(sym, sym[1:])
+    for suf in ("=F", "=X"):
+        if sym.endswith(suf):
+            return sym[:-len(suf)]
+    return sym
+
+
 def foot_txt(d, tf):
-    return f'{d["sym"]} · {tf_ar(tf)} · {d["anchor_utc"][:10]} — مثال تعليمي'
+    import run31_charts
+    nm = run31_charts.AR_SYM.get(d["sym"]) or disp_sym(d["sym"])
+    return f'{nm} · {tf_ar(tf)} · {d["anchor_utc"][:10]} — مثال تعليمي'
 # 🔒 أمر فهد 2026-08-08: «اجعل الزوم اوت اكبر عالجارت، وهناك فراغ لم تتحرك
 # به الشموع بالربع الأيمن». وكان القطع هو السبب: النافذة تُقصّ عند
 # `HIT + 4` فتنتهي الشموع بعد الهدف بأربع، وما بقي من الملف (ستّون شمعة
@@ -345,7 +364,7 @@ def p_4h():
           f'stroke="{TEAL_D}" stroke-width="3.4"/>',
           # نصّ النسبة انتقل إلى ملاحظة الجارت — وقولها مرّتين حشو
           ]
-    return panel("tf4h", w, D["sym"], "4H", "".join(ex))
+    return panel("tf4h", w, disp_sym(D["sym"]), "4H", "".join(ex))
 
 
 def p_1d():
@@ -360,7 +379,7 @@ def p_1d():
           f'stroke="{TEAL_D}" stroke-width="2.4" stroke-dasharray="8 6"/>',
           htext(x(j) - slot * 4.2, y(L["mid"]) - 16, f'منتصف مدى الأمس {L["mid"]:,.{DP}f}', TEAL_D, 28),
           htext(x(j) - slot * 3.6, y(L["pdl"]) + 34, f'قاع الأمس {L["pdl"]:,.{DP}f} لم يُلمس', RED, 28)]
-    return panel("tf1d", w, D["sym"], "1D", "".join(ex))
+    return panel("tf1d", w, disp_sym(D["sym"]), "1D", "".join(ex))
 
 
 def p_1h():
@@ -381,7 +400,7 @@ def p_1h():
           f'<circle cx="{x(lo):.1f}" cy="{y(w[lo]["l"]):.1f}" r="13" fill="none" '
           f'stroke="{TEAL_D}" stroke-width="3.4"/>',
           htext(x(lo) - slot * 3.4, y(w[lo]["l"]) + 48, f'قاعٌ أعلى {w[lo]["l"]:,.{DP}f}', TEAL_D, 29)]
-    return panel("tf1h", w, D["sym"], "1h", "".join(ex))
+    return panel("tf1h", w, disp_sym(D["sym"]), "1h", "".join(ex))
 
 
 # ═════════ ماركب الخمس دقائق ═════════
@@ -687,7 +706,7 @@ def m5_svg():
 EX5, X5, Y5, SLOT5 = m5_svg()
 # الأثاث في طبقتين: محور السعر والعلامة المائية يسكنان، ومحور الوقت
 # ينزلق مع الشموع — وإلا مشت الشموع فوق ساعاتٍ واقفة.
-_FURN = tv_chart.furniture(M5, dec=DP, sym=D["sym"], tf=EXEC,
+_FURN = tv_chart.furniture(M5, dec=DP, sym=disp_sym(D["sym"]), tf=EXEC,
                            tlabels=[c["d"][11:] for c in M5], split=True, autoscale=True)
 
 # ═════════ الواجهة والملاحظات ═════════
@@ -794,7 +813,7 @@ TF_SEC = {"3m": 180, "5m": 300, "15m": 900, "30m": 1800, "1h": 3600}
 # صفّ الفريمات يبدأ بفريم التنفيذ نفسه: نافذة الثلاث دقائق كانت تُضيء
 # شريحة «٥د» لأن الصفّ ثابت — والشاشة يجب أن تقول ما رُسم عليه فعلاً.
 TFS = TV.tf_row(EXEC)
-BASE_HTML = (TV.shell_html(D["sym"], EXEC, tfs=TFS, foot=foot_txt(D, EXEC))
+BASE_HTML = (TV.shell_html(disp_sym(D["sym"]), EXEC, tfs=TFS, foot=foot_txt(D, EXEC))
              + notes()
              + CLOCK_JS.replace("__TOT__", str(TF_SEC.get(EXEC, 300)))
                        .replace("__H0__", str(int(_hh))).replace("__M0__", str(int(_mm))))
