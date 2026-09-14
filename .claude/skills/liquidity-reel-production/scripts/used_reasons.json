@@ -370,6 +370,16 @@
     "sweep.sweep",
     "signal.range"
    ]
+  },
+  {
+   "tag": "eth_sc_2026-09-14_0530",
+   "keys": [
+    "4H.ma_gap",
+    "1D.pd_room",
+    "1h.hl",
+    "sweep.depth",
+    "signal.wick"
+   ]
   }
  ]
 }
