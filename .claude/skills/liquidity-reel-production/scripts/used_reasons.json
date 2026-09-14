@@ -400,6 +400,16 @@
     "sweep.sweep",
     "signal.close_top"
    ]
+  },
+  {
+   "tag": "bz_sc_2026-09-14_1336",
+   "keys": [
+    "4H.ma_run",
+    "1D.pd_mid",
+    "1h.hl",
+    "sweep.depth",
+    "signal.range"
+   ]
   }
  ]
 }
