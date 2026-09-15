@@ -410,6 +410,16 @@
     "sweep.depth",
     "signal.range"
    ]
+  },
+  {
+   "tag": "ng_sc_2026-09-15_1442",
+   "keys": [
+    "4H.ma_gap",
+    "1D.pd_room",
+    "1h.room",
+    "sweep.pool",
+    "signal.wick"
+   ]
   }
  ]
 }
