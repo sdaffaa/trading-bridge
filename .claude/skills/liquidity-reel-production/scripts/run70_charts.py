@@ -305,8 +305,10 @@ def g_all(r=None, Wd=880, H=250):
     svg = _bounds(svg, x, y, slot)
     for i in G_MOVED:
         svg += mark(x(i), slot, y(WG[i]["h"]), y(WG[i]["l"]), TEAL, 0.26)
-        svg += spanx(x(i) - slot * 2.0, x(i) + slot * 2.0, y(G_HI) - 30,
-                     rt("هني تقرأ"), TEAL_D)
+    # وسمٌ واحدٌ يضمُّ الشمعتين: وسمٌ لكلِّ واحدةٍ يتراكبان لتجاورهما،
+    # وأيمنُهما يُقصّ عند حافّة اللوحة (رُئي في أول رندر).
+    svg += spanx(x(min(G_MOVED)) - slot * .6, x(max(G_MOVED)) + slot * .6,
+                 y(G_HI) - 34, rt("هني تقرأ"), TEAL_D)
     svg += badge(Wd, "مثال تخطيطي", True)
     svg += RC._title(Wd, rt("خلّ الحدّ ينادي، لا تنادي أنت"))
     svg += RC._why(Wd, H, f'انتظارُ لمسة الحدّ يوفّر عليك {ar(len(G_QUIET))} '
@@ -320,7 +322,7 @@ def g_all(r=None, Wd=880, H=250):
 # ═════════════════════════════════════════════════════════════════
 F_N = 30
 F_ANCH = [(0, 100.0), (10, 101.2), (20, 100.1), (29, 101.8)]
-F_SEEDS = [62, 69, 17, 24, 625]            # خمسُ «أدوات»: بذرةٌ لكل واحدة
+F_SEEDS = [62, 69, 17, 24, 2363]           # خمسُ «أدوات»: بذرةٌ لكل واحدة
 F_NAMES = ["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة"]
 F_SER, F_M = [], []
 for _s in F_SEEDS:
@@ -330,8 +332,13 @@ for _s in F_SEEDS:
     _rng = max(c["h"] for c in _W) - min(c["l"] for c in _W)
     _lvl = max(c["h"] for c in _W[:8])
     _tol = 0.15 * _med
+    # 🔒 اللمسةُ أن يبلغ **مدى** الشمعة المستوى، لا أن تقع قمّتُها في شريطٍ
+    # ضيّق حوله. القياسُ الأول كان بالشريط فأعطى «صفر لمسات» لسلسلةٍ
+    # اخترقت شمعتُها المستوى فعلاً بـ0.165 والسماحُ 0.1635 — تفوتُه بـ١٥
+    # من عشرة آلاف. ورآها الفحصُ البصري: الفتيلُ يلمس الخطّ على اللوحة
+    # والعدّادُ يقول صفراً. فصار الشرطُ احتواءً لا مقاربة.
     _tch = sum(1 for i in range(8, F_N)
-               if abs(_W[i]["h"] - _lvl) <= _tol or abs(_W[i]["l"] - _lvl) <= _tol)
+               if _W[i]["l"] - _tol <= _lvl <= _W[i]["h"] + _tol)
     F_SER.append(_W)
     F_M.append({"med": _med, "rng": _rng, "lvl": _lvl,
                 "steps": _rng / _med, "touch": _tch})
@@ -343,6 +350,12 @@ F_CUT_T = [i for i, m in enumerate(F_M) if m["touch"] == 0 and m["steps"] >= 4.0
 assert len(F_KEEP) == 2, [round(m["steps"], 2) for m in F_M]
 assert len(F_CUT_S) == 2, F_CUT_S
 assert len(F_CUT_T) == 1, F_CUT_T
+# والمشطوبةُ باللمسات تبقى بعيدةً عن الحدّ بفارقٍ يُرى، فلا يعود الحكمُ
+# رهنَ حدٍّ حرج: أقربُ اقترابٍ لها لا يقلّ عن نصف وسيط المدى.
+_d = F_M[F_CUT_T[0]]
+_gap = (_d["lvl"] - max(F_SER[F_CUT_T[0]][i]["h"] for i in range(8, F_N))) / _d["med"]
+assert _gap >= 0.5, f"الخامسة تقارب الحدّ {_gap:.2f}× — حكمٌ على شعرة"
+F_GAP = _gap
 
 
 def _gf(idx, Wd, H):

@@ -56,14 +56,14 @@ def markup_muhla(r):
         line_el(x(0) - slot * .5, y(e["lvl"]), x(len(W) - 1) + slot * .5,
                 y(e["lvl"]), INK, 3.0, None, "lvl"),
         '<g id="lvt" opacity="0">'
-        + htext(x(4), y(e["lvl"]) + 38, f'قاعٌ سابق {e["lvl"]:,.{dp}f}', INK, 25)
+        + htext(x(11), y(e["lvl"]) + 64, f'قاعٌ سابق {e["lvl"]:,.{dp}f}', INK, 25)
         + '</g>',
         '<g id="sw" opacity="0">'
         f'<rect x="{x(e["sw"]) - slot * .48:.1f}" y="{y(W[e["sw"]]["h"]) - 3:.1f}" '
         f'width="{slot * .96:.1f}" '
         f'height="{y(W[e["sw"]]["l"]) - y(W[e["sw"]]["h"]) + 6:.1f}" '
         f'fill="none" stroke="{RED}" stroke-width="3.4"/>'
-        + htext(x(e["sw"]) + slot * 4.4, y(W[e["sw"]]["l"]) + 44,
+        + htext(x(e["sw"]) + slot * 6.2, y(e["lvl"]) + 142,
                 'سحبٌ ثم إغلاقٌ فوق', RED, 27) + '</g>',
         line_el(x(e["ti"]) - slot * .5, y(e["top"]), x(len(W) - 1) + slot * .5,
                 y(e["top"]), INK, 2.6, "9 7", "top"),
@@ -110,7 +110,7 @@ MARKUP = {"muhla": markup_muhla}
 BASE_CSS = """
 .hl{top:118px;left:56px;right:56px;line-height:1.16}
 .hl b{display:block;font-size:50px;font-weight:900;line-height:1.14;letter-spacing:-.6px}
-.hl .why{display:block;margin-top:10px;font-size:29px;font-weight:600;color:#6B7C84}
+.hl .why{display:block;margin-top:10px;font-size:25px;font-weight:600;color:#6B7C84;white-space:normal;line-height:1.35}
 #chartclip{top:360px;left:0}
 #chip{display:none} #endlogo{display:none} #res{display:none}
 #cta{top:1712px} #cta .k{font-size:44px;padding:9px 30px} #cta .s{margin-top:8px;font-size:26px}
@@ -159,7 +159,7 @@ def build(slug):
         flash=flash, flash_op=0.18, punch=(flash[0], flash[1], 0.05),
         cam=cam,
     )
-    out = os.path.join(HERE, f"reel69_{slug}.html")
+    out = os.path.join(HERE, f"reel70_{slug}.html")
     n = build_reel(cfg, out)
     print(f'{slug:<8} ريل {DUR}s · بيتات {len(beats)} · ماركب {len(marks)} · '
           f'نافذة {r["slug"]} · {n} bytes')
@@ -169,5 +169,5 @@ def build(slug):
 if __name__ == "__main__":
     for s in (sys.argv[1:] or list(MARKUP)):
         out, sfx = build(s)
-        json.dump(sfx, open(os.path.join(HERE, f"reel69_{s}_sfx.json"), "w"),
+        json.dump(sfx, open(os.path.join(HERE, f"reel70_{s}_sfx.json"), "w"),
                   ensure_ascii=False)
