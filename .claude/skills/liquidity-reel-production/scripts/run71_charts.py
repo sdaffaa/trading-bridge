@@ -36,6 +36,11 @@ MUTE = "#93A2A8"
 CREAM = "#F2EEE7"
 
 
+def _fs(v):
+    """حجمُ حرفٍ يتبع مقياسَ اللوحة — الصفحةُ البطلة تُرسم بـ1.45."""
+    return round(v * RC._SC[0])
+
+
 def _sw_hi(W, k=2):
     return [i for i in range(k, len(W) - k)
             if all(W[i]["h"] > W[j]["h"] for j in range(i - k, i + k + 1) if j != i)]
@@ -550,9 +555,9 @@ def _cols(Wd, H, rows, hi, title, why, foot, tag="قياسٌ على ستّ نو�
             svg += (f'<rect x="{cx - bw / 2 - 5:.1f}" y="{pt + ph - hh - 5:.1f}" '
                     f'width="{bw + 10:.1f}" height="{hh + 10:.1f}" fill="none" '
                     f'stroke="{TEAL_D}" stroke-width="2.6"/>')
-        svg += htext(cx, pt + ph - hh - 14,
-                     f'{ar(d["w"])}/{ar(d["n"])}', TEAL_D if on else INK, 19)
-        svg += htext(cx, pt + ph + 24, d["nm"], INK if on else MUTE, 16)
+        svg += htext(cx, pt + ph - hh - _fs(14),
+                     f'{ar(d["w"])}/{ar(d["n"])}', TEAL_D if on else INK, _fs(19))
+        svg += htext(cx, pt + ph + _fs(26), d["nm"], INK if on else MUTE, _fs(16))
     svg += badge(Wd, tag, True)
     svg += RC._title(Wd, rt(title))
     svg += RC._why(Wd, H, why, col)
@@ -577,9 +582,9 @@ def s_all(r=None, Wd=880, H=250):
     pt, pb = max(92, int(H * 0.10)), max(88, int(H * 0.14))
     per = 15
     cell = (Wd - pl * 2) / per
-    sq = min(cell * 0.56, 22.0)
     rows = -(-S_TOT // per)
-    rowh = min(cell * 0.78, (H - pt - pb) / max(1, rows))
+    rowh = (H - pt - pb) / max(1, rows)
+    sq = min(cell * 0.62, rowh * 0.66)
     res = sorted((r for d in S_SIX for r in d["rs"]), reverse=True)
     for k, v in enumerate(res):
         cx = pl + (Wd - pl * 2) - (cell * (k % per) + cell / 2)
@@ -634,7 +639,11 @@ def _steps(Wd, H, items, title, why, foot, hi=None):
     n = len(items)
     gap = 14
     bwd = (pw - gap * (n - 1)) / n
-    bh = H - pt - max(74, int(H * 0.13))
+    avail = H - pt - max(74, int(H * 0.13))
+    # الكتلةُ تُقيَّد بعرضها: بلا قيدٍ تصير في الصفحة البطلة عموداً طولُه
+    # ضعفا عرضه ونصُّه شريطٌ رفيعٌ في أعلاه (رُئي في رندر الكاروسيل).
+    bh = min(avail, bwd * 1.9)
+    pt = pt + (avail - bh) / 2
     for k, (big, small) in enumerate(items):
         # الخطوةُ الأولى في اليمين: القارئُ يبدأ من هناك، وكان الترتيبُ
         # مقلوباً فيقرأ النتيجةَ قبل مقدّماتها (رُئي في الرندر).
@@ -642,14 +651,14 @@ def _steps(Wd, H, items, title, why, foot, hi=None):
         on = (hi is not None and k == hi)
         # والتظليلُ تركوازٌ خفيف لا حبرٌ باهت: الحبرُ على الكريمي يخرج
         # رمادياً، والهويّةُ لا تعرف الرمادي (§1).
-        svg += bar(x0, pt, bwd, bh, TEAL, 0.16 if on else 0.07)
+        svg += bar(x0, pt, bwd, bh, TEAL, 0.20 if on else 0.10)
         if on:
             svg += (f'<rect x="{x0:.1f}" y="{pt:.1f}" width="{bwd:.1f}" '
                     f'height="{bh:.1f}" fill="none" stroke="{TEAL_D}" '
                     f'stroke-width="2.4"/>')
-        svg += htext(x0 + bwd / 2, pt + bh * 0.46, big,
-                     TEAL_D if on else INK, 34)
-        svg += htext(x0 + bwd / 2, pt + bh * 0.80, small, MUTE, 17)
+        svg += htext(x0 + bwd / 2, pt + bh * 0.48, big,
+                     TEAL_D if on else INK, _fs(34))
+        svg += htext(x0 + bwd / 2, pt + bh * 0.74, small, MUTE, _fs(17))
     svg += badge(Wd, "مثال تخطيطي", True)
     svg += RC._title(Wd, rt(title))
     svg += RC._why(Wd, H, why, TEAL_D)
@@ -784,10 +793,10 @@ def _curve(Wd, H, hi=None, deep=False):
         # تحت النقطة سطرُ الشرح، وفوقها خطُّ الصفر — جُرّب الموضعان
         # فركب الوسمُ كليهما في الرندر. وعن يمين النقطة المنحنى صاعدٌ
         # فالفراغُ هناك على ارتفاعها هو الموضع الوحيد الخالي.
-        svg += htext(px(k) + 92, py(A_DEEP) + 6,
-                     rt(f'ناقص {ar(f"{abs(A_DEEP):g}")}R'), RED, 20)
-    svg += htext(px(A_N - 1) - 44, py(A_EQ[-1]) - 22,
-                 "+" + ar(f"{A_NET:g}") + "R", TEAL_D, 22)
+        svg += htext(px(k) + _fs(92), py(A_DEEP) + _fs(6),
+                     rt(f'ناقص {ar(f"{abs(A_DEEP):g}")}R'), RED, _fs(20))
+    svg += htext(px(A_N - 1) - _fs(44), py(A_EQ[-1]) - _fs(22),
+                 "+" + ar(f"{A_NET:g}") + "R", TEAL_D, _fs(22))
     return svg, px, py
 
 
@@ -821,10 +830,12 @@ def a_slices(r=None, Wd=880, H=250):
     pl, pt = 40, max(86, int(H * 0.10))
     per = 17
     cell = (Wd - pl * 2) / per
-    sq = min(cell * 0.60, 24.0)
+    nrows = -(-len(A_SL) // per)
+    rowh = (H - pt - max(86, int(H * 0.13))) / max(1, nrows)
+    sq = min(cell * 0.62, rowh * 0.66)
     for k, v in enumerate(A_SL):
         cx = pl + cell * (k % per) + cell / 2
-        cy = pt + (cell * 0.92) * (k // per) + sq / 2
+        cy = pt + rowh * (k // per) + sq / 2
         neg = v < 0
         svg += bar(cx - sq / 2, cy - sq / 2, sq, sq,
                    RED if neg else TEAL, 0.80 if neg else 0.40)
@@ -867,10 +878,20 @@ SETS = {"damj": [d_ten, d_unit, d_four, d_touch, d_thr],
         "sudfa": [s_rule, s_fifteen, s_first, s_hundred, s_all],
         "sarf": [f_cycle, f_inR, f_avg, f_year, f_fix],
         "ayyina": [a_sixty, a_first, a_slices, a_grow, a_rule]}
-SYN = {"ayyina": (A_SEED, (A_N, A_P, A_W)),
-       "sarf": (0, (V_ONE, V_RISK, V_AVG, V_YEAR))}
+#: بصمةُ الوحدة التخطيطية في السجل: بذرةٌ وقائمةُ مرتكزات، والمرتكزُ
+#: الواحد **متتاليةٌ** لا رقم (`assert_fresh_synthetic` يمرّ على كلٍّ منها
+#: بـ`list(a)`). ووحدةُ الصرف لا بذرةَ لها أصلاً — حسابٌ محضٌ لا توليد —
+#: فأُعطيت رقماً حرّاً يميّزها في السجل ومرتكزُها افتراضاتُها المعلنة.
+SARF_SEED = 7110
+SYN = {"ayyina": (A_SEED, [(A_N, A_P, A_W)]),
+       "sarf": (SARF_SEED, [(V_ONE, V_RISK, V_AVG, V_YEAR)])}
 REAL = {"damj": D_WIN, "lamsa": L_WIN, "sudfa": S_WIN}
-WINS = {"damj": RD, "lamsa": RL, "sudfa": RS, "sarf": RD, "ayyina": RD}
+#: الوحدتان التخطيطيتان لا نافذةَ لهما، ولوحاتُهما تتجاهل `r` أصلاً —
+#: فإعطاؤهما نافذةَ وحدةٍ أخرى يجعل سجلَّ البناء يقول «نافذة الأفالانش»
+#: عن درسٍ لا سوقَ فيه. والبديلُ سجلٌّ يقول ما هو.
+_NOWIN = {"slug": "مثال تخطيطي — بلا نافذة", "w": [], "sym": "", "tf": ""}
+WINS = {"damj": RD, "lamsa": RL, "sudfa": RS,
+        "sarf": _NOWIN, "ayyina": _NOWIN}
 
 
 def unit_charts(slug):

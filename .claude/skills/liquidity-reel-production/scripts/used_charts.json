@@ -8191,6 +8191,31 @@
    ],
    "label": "run70-tasfia",
    "video": "run70-factory-2026-09-15"
+  },
+  {
+   "seed": 20,
+   "anchors": [
+    [
+     60,
+     0.4,
+     2.0
+    ]
+   ],
+   "label": "run71-ayyina",
+   "video": "run71-factory-2026-09-16"
+  },
+  {
+   "seed": 7110,
+   "anchors": [
+    [
+     0.35,
+     1.0,
+     0.2,
+     4
+    ]
+   ],
+   "label": "run71-sarf",
+   "video": "run71-factory-2026-09-16"
   }
  ],
  "real": [
@@ -8977,6 +9002,30 @@
    "end": "2025-10-03 22:00",
    "label": "run70-muhla",
    "video": "run70-factory-2026-09-15"
+  },
+  {
+   "symbol": "AVAX-USD",
+   "timeframe": "1h",
+   "start": "2026-08-30 22:00",
+   "end": "2026-08-30 16:00",
+   "label": "run71-damj",
+   "video": "run71-factory-2026-09-16"
+  },
+  {
+   "symbol": "XRP-USD",
+   "timeframe": "1h",
+   "start": "2025-10-27 07:00",
+   "end": "2025-10-27 22:00",
+   "label": "run71-lamsa",
+   "video": "run71-factory-2026-09-16"
+  },
+  {
+   "symbol": "LINK-USD",
+   "timeframe": "1h",
+   "start": "2025-10-03 03:00",
+   "end": "2025-10-03 22:00",
+   "label": "run71-sudfa",
+   "video": "run71-factory-2026-09-16"
   }
  ]
 }

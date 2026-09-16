@@ -51,5 +51,5 @@ def post(slug):
 
 
 if __name__ == "__main__":
-    for s in (sys.argv[1:] or ["damj", "umr"]):
+    for s in (sys.argv[1:] or ["damj", "lamsa"]):
         post(s)
