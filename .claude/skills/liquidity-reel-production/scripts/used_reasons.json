@@ -420,6 +420,16 @@
     "sweep.pool",
     "signal.wick"
    ]
+  },
+  {
+   "tag": "si_sc_2026-09-17_1342",
+   "keys": [
+    "4H.ma_run",
+    "1D.pd_low",
+    "1h.struct",
+    "sweep.sweep",
+    "signal.close_top"
+   ]
   }
  ]
 }
