@@ -663,9 +663,12 @@ def _steps(Wd, H, items, title, why, foot, hi=None, tag="مثال تخطيطي")
         # والحرفُ يتبع عرضَ كتلته: بحجمٍ ثابتٍ تفيض العبارةُ الطويلة خارج
         # الكتلة (رُئي: «الرابحة الجاية» في رندر ٧٢).
         fs = max(_fs(15), min(_fs(34), int(bwd * 1.62 / max(1, len(big)))))
-        svg += htext(x0 + bwd / 2, pt + bh * 0.46 + fs * 0.34, big,
-                     TEAL_D if on else INK, fs)
-        svg += htext(x0 + bwd / 2, pt + bh * 0.76, small, MUTE, _fs(17))
+        # وموضعُ السطر الصغير يتبع حجمَ الكبير لا كسراً ثابتاً من الكتلة:
+        # بالكسر الثابت يلتصق السطران في اللوحة القصيرة (رُئي في دليل ٧٢).
+        ybig = pt + bh * 0.50
+        svg += htext(x0 + bwd / 2, ybig, big, TEAL_D if on else INK, fs)
+        svg += htext(x0 + bwd / 2, ybig + fs * 0.40 + _fs(18), small,
+                     MUTE, _fs(17))
     # والشارةُ وسيطٌ لا ثابت: كتلُ الخطوات تُستعمل أيضاً فوق عدٍّ حقيقي،
     # ووسمُ عدٍّ مقيسٍ بـ«مثال تخطيطي» كذبٌ في الاتجاه الآخر.
     svg += badge(Wd, tag, True)

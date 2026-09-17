@@ -166,9 +166,13 @@ def markup_jihatayn(r):
         f'<circle cx="{x(j):.1f}" cy="{y(top["p"]):.1f}" r="12" fill="none" '
         f'stroke="{TEAL_D if W[j]["c"] > top["p"] else RED}" '
         f'stroke-width="3.4"/>' for j in top["hits"])
-    j2 = top["t2"]
+    # سهمُ الابتعاد يُرسم على المستوى **الوسيط** لا على الأكثر لمساً:
+    # الأكثرُ لمساً ابتعادُه ٠.٢١× والوسمُ يقول ١.١١×، فيكذّب الرسمُ وسمَه
+    # (رُئي في إطار 14.4). فالمرسومُ هو الحالةُ الوسيطة نفسُها.
+    rep = min(BOTH, key=lambda e: abs(e["away"] - X.J_AWAY))
+    j2 = rep["t2"]
     jend = min(n - 1, j2 + X.J_HOR)
-    far = max(range(j2, jend + 1), key=lambda j: abs(W[j]["c"] - top["p"]))
+    far = max(range(j2, jend + 1), key=lambda j: abs(W[j]["c"] - rep["p"]))
     crs = "".join(
         f'<circle cx="{x(crossj(e)):.1f}" cy="{y(W[crossj(e)]["c"]):.1f}" '
         f'r="11" fill="none" stroke="{RED}" stroke-width="3.4"/>'
@@ -191,9 +195,11 @@ def markup_jihatayn(r):
                 f'{ar(top["up"] + top["dn"])} لمسة: {ar(top["up"])} فوق '
                 f'و{ar(top["dn"])} تحت', INK, 29) + '</g>',
         '<g id="awyl" opacity="0">'
-        + varr(x(far), y(top["p"]), y(W[far]["c"]), TEAL_D) + '</g>',
+        + varr(x(far), y(rep["p"]), y(W[far]["c"]), TEAL_D) + '</g>',
         '<g id="awyt" opacity="0">'
-        + htext(x(far) - slot * 6.0, y(W[far]["c"]) - 34,
+        # والوسمُ في فراغ اللوحة الأعلى لا بجانب سهمه: بجانبه يعبر عنقودَ
+        # المستويات التسعة كلَّه (رُئي في إطار 14.4).
+        + htext(x(11), PT + PH * 0.13,
                 f'{xr(X.J_AWAY)} وسيطَ المدى بخمس شمعات', TEAL_D, 27)
         + '</g>',
         f'<g id="crsc" opacity="0">{crs}</g>',

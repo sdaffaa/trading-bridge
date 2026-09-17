@@ -412,22 +412,26 @@ def _bars(Wd, H, items, title, why, foot, tag="قياسٌ على ستّ نواف
     step = pw / n
     bw = min(step * 0.46, Wd * 0.12)
     top = max(abs(v) for _, v, _ in items) or 1.0
-    y0 = pt + ph if not neg else pt + ph * 0.18
+    # الخطُّ الصفري في أعلى اللوحة حين تكون القيمُ سالبة، والأعمدةُ تتدلّى
+    # منه. وكان وسمُ القيمة يوضع تحت طرف عمودِه ووسمُ الاسم عند قاع
+    # اللوحة، فيلتقيان في اللوحة القصيرة حرفاً فوق حرف (رُئي في دليل ٧٢):
+    # فصارت القيمةُ فوق الخط الصفري والاسمُ تحت أطول عمود.
+    y0 = pt + ph if not neg else pt + ph * 0.16
+    mh = ph * (0.82 if neg else 1.0)
     for k, (nm, v, on) in enumerate(items):
         cx = pl + pw - (step * k + step / 2)
-        hh = ph * (abs(v) / top) * (0.82 if neg else 1.0)
-        yy = y0 if v >= 0 else y0
-        svg += bar(cx - bw / 2, yy - hh if v >= 0 else yy, bw, hh,
+        hh = mh * (abs(v) / top)
+        ytop = y0 - hh if v >= 0 else y0
+        svg += bar(cx - bw / 2, ytop, bw, hh,
                    TEAL if v >= 0 else RED, 0.85 if on else 0.45)
         if on:
-            svg += (f'<rect x="{cx - bw / 2 - 5:.1f}" '
-                    f'y="{(yy - hh if v >= 0 else yy) - 5:.1f}" '
+            svg += (f'<rect x="{cx - bw / 2 - 5:.1f}" y="{ytop - 5:.1f}" '
                     f'width="{bw + 10:.1f}" height="{hh + 10:.1f}" fill="none" '
                     f'stroke="{TEAL_D if v >= 0 else RED}" stroke-width="2.6"/>')
-        lab = _sg(v, unit)
-        svg += htext(cx, (yy - hh - _fs(14)) if v >= 0 else (yy + hh + _fs(26)),
-                     lab, TEAL_D if v >= 0 else RED, _fs(21))
-        svg += htext(cx, pt + ph + _fs(26), nm, INK if on else MUTE, _fs(16))
+        svg += htext(cx, (y0 - _fs(14)) if neg else (ytop - _fs(14)),
+                     _sg(v, unit), TEAL_D if v >= 0 else RED, _fs(21))
+        svg += htext(cx, (y0 + mh + _fs(28)) if neg else (pt + ph + _fs(26)),
+                     nm, INK if on else MUTE, _fs(16))
     if neg:
         svg += (f'<line x1="{pl}" y1="{y0:.1f}" x2="{pl + pw}" y2="{y0:.1f}" '
                 f'stroke="rgba(15,46,60,0.20)" stroke-width="1.4"/>')
@@ -580,13 +584,22 @@ def d_cond(r=None, Wd=880, H=250):
 
 
 def d_test(r=None, Wd=880, H=250):
-    """٥ · لا تشترِ حلّاً لم يُقَس."""
-    items = [(f'بذرة {ar(s)}', D_RES[s]["سلّم"] - D_BASE,
-              D_RES[s]["سلّم"] < D_RES[s]["ثابتة"]) for s in D_SEEDS]
+    """٥ · الثابتةُ بجانب السلّم — عمودان لكلِّ بذرة.
+
+    كانت أعمدةُ هذي اللوحة نموَّ رأس المال بالسلّم وحده، فتخرج ثلاثةُ
+    أعمدةٍ موجبةٍ تحت عنوانٍ يقول «يخسر في اثنتين» — والعينُ تصدّق العمود
+    لا السطر (رُئي في الرندر). فصارت كلُّ بذرةٍ عمودين متجاورين، والمؤطَّرُ
+    منهما السلّم: يُرى أقصرَ في اثنتين وأطولَ في واحدة."""
+    items = []
+    for s_ in D_SEEDS:
+        items.append((f'{ar(s_)} ثابتة', round(D_RES[s_]["ثابتة"] - D_BASE, 1),
+                      False))
+        items.append((f'{ar(s_)} سلّم', round(D_RES[s_]["سلّم"] - D_BASE, 1),
+                      True))
     return _bars(Wd, H, items,
-                 "الحلُّ المعقول ليس حلّاً مقيساً",
-                 'يبدو حكيماً وهو يخسر في اثنتين من ثلاث — فالمعقوليّةُ '
-                 'ليست دليلاً، والعدُّ دليل',
+                 f'الثابتةُ أعلى في {ar(D_LOSS)} من {ar(len(D_SEEDS))}',
+                 'نفسُ الصفقات ونفسُ ترتيبها — والفرقُ بندُ الحجم وحده، '
+                 'والمؤطَّرُ هو السلّم',
                  "قِس على دفترك قبل ما تعتمده", tag="مثال تخطيطي")
 
 
