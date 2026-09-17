@@ -8216,6 +8216,26 @@
    ],
    "label": "run71-sarf",
    "video": "run71-factory-2026-09-16"
+  },
+  {
+   "seed": 31,
+   "anchors": [
+    [
+     200,
+     0.4,
+     100.0,
+     1.0,
+     0.5,
+     3
+    ],
+    [
+     31,
+     77,
+     404
+    ]
+   ],
+   "label": "run72-sullam",
+   "video": "run72-factory-2026-09-17"
   }
  ],
  "real": [
@@ -9026,6 +9046,22 @@
    "end": "2025-10-03 22:00",
    "label": "run71-sudfa",
    "video": "run71-factory-2026-09-16"
+  },
+  {
+   "symbol": "HG=F",
+   "timeframe": "30m",
+   "start": "2026-09-04 13:30",
+   "end": "2026-09-04 12:00",
+   "label": "run72-jihatayn",
+   "video": "run72-factory-2026-09-17"
+  },
+  {
+   "symbol": "SOL-USD",
+   "timeframe": "1h",
+   "start": "2025-12-09 18:00",
+   "end": "2025-12-09 21:00",
+   "label": "run72-tasalsul",
+   "video": "run72-factory-2026-09-17"
   }
  ]
 }

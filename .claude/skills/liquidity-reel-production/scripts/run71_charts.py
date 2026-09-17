@@ -631,7 +631,7 @@ def _pc(v):
     return ar(s) + "٪"
 
 
-def _steps(Wd, H, items, title, why, foot, hi=None):
+def _steps(Wd, H, items, title, why, foot, hi=None, tag="مثال تخطيطي"):
     """صفٌّ من كتلٍ مرقّمة — الحسابُ يُقرأ خطوةً خطوة لا رسماً بيانياً."""
     svg = _blank(Wd, H)
     pl, pt = 34, max(86, int(H * 0.10))
@@ -642,7 +642,9 @@ def _steps(Wd, H, items, title, why, foot, hi=None):
     avail = H - pt - max(74, int(H * 0.13))
     # الكتلةُ تُقيَّد بعرضها: بلا قيدٍ تصير في الصفحة البطلة عموداً طولُه
     # ضعفا عرضه ونصُّه شريطٌ رفيعٌ في أعلاه (رُئي في رندر الكاروسيل).
-    bh = min(avail, bwd * 1.9)
+    # والنسبةُ ١.٩ تجعل الكتلةَ عموداً نصفُه فراغ فوق النصّ (رُئي في رندر
+    # ٧٢)، فقُيّدت إلى ١.٣٥ وبقي النصُّ في وسطها.
+    bh = min(avail, bwd * 1.35)
     pt = pt + (avail - bh) / 2
     for k, (big, small) in enumerate(items):
         # الخطوةُ الأولى في اليمين: القارئُ يبدأ من هناك، وكان الترتيبُ
@@ -651,15 +653,22 @@ def _steps(Wd, H, items, title, why, foot, hi=None):
         on = (hi is not None and k == hi)
         # والتظليلُ تركوازٌ خفيف لا حبرٌ باهت: الحبرُ على الكريمي يخرج
         # رمادياً، والهويّةُ لا تعرف الرمادي (§1).
-        svg += bar(x0, pt, bwd, bh, TEAL, 0.20 if on else 0.10)
+        # وشفافيّةُ ٠.١٠ على الكريمي تخرج رماديّةً والهويّةُ لا تعرف
+        # الرمادي (§1: الزوناتُ ١٤–١٨٪)، فرُفعت إلى نطاق الهوية.
+        svg += bar(x0, pt, bwd, bh, TEAL, 0.30 if on else 0.16)
         if on:
             svg += (f'<rect x="{x0:.1f}" y="{pt:.1f}" width="{bwd:.1f}" '
                     f'height="{bh:.1f}" fill="none" stroke="{TEAL_D}" '
                     f'stroke-width="2.4"/>')
-        svg += htext(x0 + bwd / 2, pt + bh * 0.48, big,
-                     TEAL_D if on else INK, _fs(34))
-        svg += htext(x0 + bwd / 2, pt + bh * 0.74, small, MUTE, _fs(17))
-    svg += badge(Wd, "مثال تخطيطي", True)
+        # والحرفُ يتبع عرضَ كتلته: بحجمٍ ثابتٍ تفيض العبارةُ الطويلة خارج
+        # الكتلة (رُئي: «الرابحة الجاية» في رندر ٧٢).
+        fs = max(_fs(15), min(_fs(34), int(bwd * 1.62 / max(1, len(big)))))
+        svg += htext(x0 + bwd / 2, pt + bh * 0.46 + fs * 0.34, big,
+                     TEAL_D if on else INK, fs)
+        svg += htext(x0 + bwd / 2, pt + bh * 0.76, small, MUTE, _fs(17))
+    # والشارةُ وسيطٌ لا ثابت: كتلُ الخطوات تُستعمل أيضاً فوق عدٍّ حقيقي،
+    # ووسمُ عدٍّ مقيسٍ بـ«مثال تخطيطي» كذبٌ في الاتجاه الآخر.
+    svg += badge(Wd, tag, True)
     svg += RC._title(Wd, rt(title))
     svg += RC._why(Wd, H, why, TEAL_D)
     svg += sm(Wd, H, foot)
