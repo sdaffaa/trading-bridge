@@ -397,8 +397,22 @@ M_ROWS = [dict(nm="وقفٌ ثابت", n=N_TR, w=T_WIN),
 def _sg(v, unit=""):
     """العددُ بإشارته كلمةً — «-» قبل رقمٍ عربي-هندي يقع في آخر السطر
     فيُقرأ شرطةً لاحقةً لا سالباً (رُئي في رندر ٧٢)."""
-    w = "ناقص " if v < 0 else ("زائد " if v > 0 else "")
+    if v == 0:
+        # والصفرُ كلمةٌ لا رقم: «٠R» تُقرأ وحدةً مبتورةً، و«صفر» قيمةً.
+        return "صفر"
+    w = "ناقص " if v < 0 else "زائد "
     return w + ar(f"{abs(v):g}") + unit
+
+
+def _num(v, unit=""):
+    """عددٌ بلا إشارة — «زائد ٣» عن فجوةِ ثلاثِ شمعاتٍ حسابٌ لا معنى له.
+
+    فكلمةُ الإشارة تُكتب حيث تكون القيمةُ موقَّعةً حقّاً (نتيجةٌ بوحدات R)،
+    وتُترك حيث تكون عدّاً أو نسبة. والرقمُ معزولٌ اتجاهياً كي لا تنقلب
+    وحدتُه في سطرٍ عربي."""
+    if v == 0:
+        return "صفر"
+    return "⁦" + ar(f"{v:g}") + "⁩" + unit
 
 
 def _bars(Wd, H, items, title, why, foot, tag="قياسٌ على ستّ نوافذ",
@@ -409,8 +423,13 @@ def _bars(Wd, H, items, title, why, foot, tag="قياسٌ على ستّ نواف
     pt, pb = max(96, int(H * 0.11)), max(110, int(H * 0.15))
     pw, ph = Wd - pl - pr, H - pt - pb
     n = len(items)
+    #: كلمةُ الإشارة حيث تكون القيمُ موقَّعةً فعلاً لا في كلِّ لوحة.
+    sgn = neg or any(v < 0 for _, v, _ in items)
     step = pw / n
-    bw = min(step * 0.46, Wd * 0.12)
+    # وعرضُ العمود يُقيَّد بارتفاع اللوحة أيضاً: في لوحة الدليل
+    # (٨٨٠×٣٠٠) الارتفاعُ المتاح ٩٤ بكسلاً والعرضُ ١٠٦، فيخرج
+    # «العمود» مربّعاً لا عموداً (رُئي في دليل ٧٣ صفحة ١٣).
+    bw = min(step * 0.46, Wd * 0.12, ph * 0.52)
     top = max(abs(v) for _, v, _ in items) or 1.0
     # الخطُّ الصفري في أعلى اللوحة حين تكون القيمُ سالبة، والأعمدةُ تتدلّى
     # منه. وكان وسمُ القيمة يوضع تحت طرف عمودِه ووسمُ الاسم عند قاع
@@ -424,12 +443,17 @@ def _bars(Wd, H, items, title, why, foot, tag="قياسٌ على ستّ نواف
         ytop = y0 - hh if v >= 0 else y0
         svg += bar(cx - bw / 2, ytop, bw, hh,
                    TEAL if v >= 0 else RED, 0.85 if on else 0.45)
+        if v == 0:
+            # عمودٌ بلا ارتفاعٍ يُقرأ «بيانٌ ناقص» لا «صفر» (رُئي في هيرو
+            # ٧٣): فيُرسم كعبٌ على الخطِّ الصفري يقول إنّ القياس تمّ.
+            svg += bar(cx - bw / 2, y0 - 3, bw, 3, INK, 0.35)
         if on:
             svg += (f'<rect x="{cx - bw / 2 - 5:.1f}" y="{ytop - 5:.1f}" '
                     f'width="{bw + 10:.1f}" height="{hh + 10:.1f}" fill="none" '
                     f'stroke="{TEAL_D if v >= 0 else RED}" stroke-width="2.6"/>')
         svg += htext(cx, (y0 - _fs(14)) if neg else (ytop - _fs(14)),
-                     _sg(v, unit), TEAL_D if v >= 0 else RED, _fs(21))
+                     _sg(v, unit) if sgn else _num(v, unit),
+                     TEAL_D if v >= 0 else RED, _fs(21))
         svg += htext(cx, (y0 + mh + _fs(28)) if neg else (pt + ph + _fs(26)),
                      nm, INK if on else MUTE, _fs(16))
     if neg:

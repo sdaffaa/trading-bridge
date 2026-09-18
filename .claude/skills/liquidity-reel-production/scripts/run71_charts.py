@@ -542,7 +542,10 @@ def _cols(Wd, H, rows, hi, title, why, foot, tag="قياسٌ على ستّ نو�
     pw, ph = Wd - pl - pr, H - pt - pb
     n = len(rows)
     step = pw / n
-    bw = min(step * 0.46, Wd * 0.12)
+    # وعرضُ العمود يُقيَّد بارتفاع اللوحة أيضاً: في لوحة الدليل
+    # (٨٨٠×٣٠٠) الارتفاعُ المتاح ٩٤ بكسلاً والعرضُ ١٠٦، فيخرج
+    # «العمود» مربّعاً لا عموداً (رُئي في دليل ٧٣ صفحة ١٣).
+    bw = min(step * 0.46, Wd * 0.12, ph * 0.52)
     top = max(d["n"] for d in rows)
     for k, d in enumerate(rows):
         cx = pl + pw - (step * k + step / 2)      # من اليمين

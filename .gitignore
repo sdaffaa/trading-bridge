@@ -90,3 +90,7 @@
 .claude/skills/*/scripts/out72/guide_*/
 .claude/skills/*/scripts/out72/*.zip
 .claude/skills/*/scripts/reel72_*_raw.mp4
+.claude/skills/*/scripts/out73/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out73/guide_*/
+.claude/skills/*/scripts/out73/*.zip
+.claude/skills/*/scripts/reel73_*_raw.mp4

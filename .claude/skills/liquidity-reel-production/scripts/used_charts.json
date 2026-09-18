@@ -8236,6 +8236,45 @@
    ],
    "label": "run72-sullam",
    "video": "run72-factory-2026-09-17"
+  },
+  {
+   "seed": 7330,
+   "anchors": [
+    [
+     80,
+     30,
+     53,
+     23
+    ]
+   ],
+   "label": "run73-band",
+   "video": "run73-factory-2026-09-18"
+  },
+  {
+   "seed": 7320,
+   "anchors": [
+    [
+     0.5,
+     1.0,
+     0.25,
+     10
+    ]
+   ],
+   "label": "run73-khumul",
+   "video": "run73-factory-2026-09-18"
+  },
+  {
+   "seed": 7310,
+   "anchors": [
+    [
+     60,
+     12,
+     5,
+     9
+    ]
+   ],
+   "label": "run73-tajil",
+   "video": "run73-factory-2026-09-18"
   }
  ],
  "real": [
@@ -9062,6 +9101,22 @@
    "end": "2025-12-09 21:00",
    "label": "run72-tasalsul",
    "video": "run72-factory-2026-09-17"
+  },
+  {
+   "symbol": "BNB-USD",
+   "timeframe": "1h",
+   "start": "2025-11-07 08:00",
+   "end": "2025-11-07 23:00",
+   "label": "run73-kathafa",
+   "video": "run73-factory-2026-09-18"
+  },
+  {
+   "symbol": "ZS=F",
+   "timeframe": "1h",
+   "start": "2025-09-24 13:00",
+   "end": "2025-09-24 18:00",
+   "label": "run73-nasib",
+   "video": "run73-factory-2026-09-18"
   }
  ]
 }
