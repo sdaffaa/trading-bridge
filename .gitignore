@@ -1,0 +1,96 @@
+.env
+
+# نواتج بناء الريلز (تُرسل للمستخدم ولا تُرفع للريبو)
+.claude/skills/*/scripts/*.mp4
+.claude/skills/*/scripts/*.wav
+.claude/skills/*/scripts/qa*.png
+
+# مخرجات التعليق الصوتي (تُرسل ولا تُرفع)
+.claude/skills/*/scripts/vo/
+
+# صور الجارت الأصلي (تُرسل ولا تُرفع)
+.claude/skills/*/scripts/chart_orig_*.png
+
+# تشغيلة ٥٥: ما يُعاد توليده بأمر واحد لا يُرفع.
+# الـHTML وحده ٢٫٥ م.ب لأن الخطوط مضمَّنة base64، وصور الرندر بضعف الدقّة
+# وسيطة، والـZIP تجميعةُ ما هو مرفوع أصلاً. المرفوع: الثلاثون صفحة النهائية
+# والـPDF والREADME وورقة التواصل — وهي المخرَج الذي يُنشر.
+.claude/skills/*/scripts/out55/*.html
+.claude/skills/*/scripts/out55/png/
+.claude/skills/*/scripts/out55/final/*.zip
+.claude/skills/*/scripts/out55/contact_sheet.png
+
+# تشغيلة ٥٦: الإطارات ونواتج الرندر الوسيطة تُعاد بأمر واحد.
+.claude/skills/*/scripts/frames56/
+.claude/skills/*/scripts/out56/frames*/
+.claude/skills/*/scripts/out56/qa*/
+.claude/skills/*/scripts/out56/dec/
+.claude/skills/*/scripts/out56/guide_png/
+.claude/skills/*/scripts/out56/*.html
+.claude/skills/*/scripts/out56/reel56_raw.mp4
+.claude/skills/*/scripts/out56/*sheet*.png
+.claude/skills/*/scripts/out56/f1*.png
+
+# تشغيلة ٥٧: الإطارات ونواتج الرندر الوسيطة تُعاد بأمر واحد.
+.claude/skills/*/scripts/frames57/
+.claude/skills/*/scripts/out57/qa*/
+.claude/skills/*/scripts/out57/dec/
+.claude/skills/*/scripts/out57/*.html
+.claude/skills/*/scripts/out57/*.log
+.claude/skills/*/scripts/out57/g1*.png
+
+# تشغيلة ٥٨: المرفوع هو المخرَج الذي يُنشر — صفحات الكاروسيل ١٠٨٠×١٣٥٠
+# والأدلة PDF. أما رندر ضعف الدقّة وصفحات الدليل المفردة (هي نفسها داخل
+# الـPDF) والـZIP (تجميعةُ ما هو مرفوع) فتُعاد بأمر واحد ولا تُرفع.
+.claude/skills/*/scripts/out58/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out58/guide_*/
+.claude/skills/*/scripts/out58/*.zip
+.claude/skills/*/scripts/out59/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out59/guide_*/
+.claude/skills/*/scripts/out59/*.zip
+.claude/skills/*/scripts/out60/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out60/guide_*/
+.claude/skills/*/scripts/out60/*.zip
+.claude/skills/*/scripts/out61/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out61/guide_*/
+.claude/skills/*/scripts/out61/*.zip
+.claude/skills/*/scripts/out62/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out62/guide_*/
+.claude/skills/*/scripts/out62/*.zip
+.claude/skills/*/scripts/out63/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out63/guide_*/
+.claude/skills/*/scripts/out63/*.zip
+.claude/skills/*/scripts/out64/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out64/guide_*/
+.claude/skills/*/scripts/out64/*.zip
+.claude/skills/*/scripts/out65/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out65/guide_*/
+.claude/skills/*/scripts/out65/*.zip
+.claude/skills/*/scripts/out66/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out66/guide_*/
+.claude/skills/*/scripts/out66/*.zip
+.claude/skills/*/scripts/out67/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out67/guide_*/
+.claude/skills/*/scripts/out67/*.zip
+.claude/skills/*/scripts/out68/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out68/guide_*/
+.claude/skills/*/scripts/out68/*.zip
+.claude/skills/*/scripts/out69/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out69/guide_*/
+.claude/skills/*/scripts/out69/*.zip
+.claude/skills/*/scripts/reel67_*_raw.mp4
+.claude/skills/*/scripts/out70/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out70/guide_*/
+.claude/skills/*/scripts/out70/*.zip
+.claude/skills/*/scripts/out71/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out71/guide_*/
+.claude/skills/*/scripts/out71/*.zip
+.claude/skills/*/scripts/reel71_*_raw.mp4
+.claude/skills/*/scripts/out72/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out72/guide_*/
+.claude/skills/*/scripts/out72/*.zip
+.claude/skills/*/scripts/reel72_*_raw.mp4
+.claude/skills/*/scripts/out73/car_*/[0-9][0-9].png
+.claude/skills/*/scripts/out73/guide_*/
+.claude/skills/*/scripts/out73/*.zip
+.claude/skills/*/scripts/reel73_*_raw.mp4
