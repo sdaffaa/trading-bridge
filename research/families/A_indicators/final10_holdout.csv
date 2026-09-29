@@ -1,0 +1,11 @@
+combo,inv,dist,IS_n,IS_wr,VAL_n,VAL_wr,HOLDOUT_n,HOLDOUT_wr,passes
+"MAJ[('H4', 'stoch5_KD', False)|('M5', 'px_vs_HMA5', True)|('M15', 'MACD5_35_hslope', True)]",False,3xATR_H1,953,54.35,568,54.05,464,53.45,False
+"MAJ[('H4', 'stoch5_KD', False)|('D1', 'SMAcross5_10', False)|('M30', 'HMAcross20_100', False)]",False,3xATR_H1,944,54.13,555,51.53,467,52.89,False
+"MAJ[('D1', 'SMAcross5_10', False)|('H1', 'linreg50', True)|('M15', 'RSI14_zone80', False)]",False,1.5xATR_H4,1080,54.07,580,51.21,533,50.47,False
+"MAJ[('H1', 'px_vs_SMA200', False)|('M30', 'HMAcross50_200', False)|('M15', 'SMAcross50_200', True)]",False,3xATR_H1,956,54.08,538,51.12,461,49.89,False
+"MAJ[('H4', 'stoch5_KD', False)|('H1', 'z200_zone1', False)|('M30', 'HMAcross20_100', False)]",False,3xATR_H1,945,54.07,555,50.81,469,53.09,False
+"MAJ[('D1', 'linreg10', False)|('H1', 'linreg50', True)|('M5', 'px_vs_HMA5', True)]",False,5xATR_M15,856,54.21,469,50.75,529,49.53,False
+"MAJ[('M30', 'linreg100', True)|('D1', 'linreg10', False)|('M5', 'px_vs_HMA5', True)]",False,5xATR_M15,856,54.21,469,50.75,529,49.53,False
+"MAJ[('H1', 'px_vs_SMA200', False)|('M30', 'linreg100', True)|('M15', 'RSI14_zone80', False)]",False,3xATR_H1,966,54.14,539,50.65,459,51.85,False
+"MAJ[('H4', 'stoch5_KD', False)|('H1', 'SMAcross10_50', True)|('D1', 'CCI14', False)]",False,1.5xATR_H4,1073,54.05,559,50.63,531,51.6,False
+"MAJ[('H4', 'stoch5_KD', False)|('M30', 'HMAcross20_100', False)|('M5', 'ichi_TK', True)]",False,3xATR_H1,921,54.07,517,50.29,471,53.08,False

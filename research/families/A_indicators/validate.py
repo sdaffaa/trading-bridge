@@ -16,7 +16,12 @@ g["combo"] = g.apply(lambda r: f"SIG[{(r.tf, r.sig, False)}]", axis=1)
 m = pd.read_parquet(D + "mtf_is.parquet")
 allr = pd.concat([g[["combo", "inv", "dist", "n", "w", "wr"]], m], ignore_index=True)
 q = allr[allr.n >= 300]
-top = q.sort_values("wr", ascending=False).head(50).reset_index(drop=True)
+# pool A: the IS top-50 with >=300 IS trades (as specified).
+# pool B: IS top-50 among combos with >=700 IS trades (IS = 3y, VAL = 1.5y, HOLDOUT = 1.6y, so
+# ~700 IS trades are needed for VAL/HOLDOUT to reach 300 at all; pool A is dominated by wide stops).
+topA = q.sort_values("wr", ascending=False).head(50).assign(pool="A")
+topB = q[q.n >= 700].sort_values("wr", ascending=False).head(50).assign(pool="B")
+top = pd.concat([topA, topB]).drop_duplicates(["combo", "inv", "dist"]).reset_index(drop=True)
 
 m1 = H.load_m1()
 cache_b, cache_s = {}, {}
@@ -59,7 +64,7 @@ for r in top.itertuples():
     d = d.copy(); d[m1.index < pd.Timestamp(H.PERIODS["IS"][0])] = 0  # no trades before IS
     tr = H.run_consecutive(d, R[r.dist])
     st = H.stats(tr, ("IS", "VAL"))
-    rows.append(dict(combo=r.combo, inv=r.inv, dist=r.dist, fastIS_wr=round(r.wr, 2), fastIS_n=r.n,
+    rows.append(dict(pool=r.pool, combo=r.combo, inv=r.inv, dist=r.dist, fastIS_wr=round(r.wr, 2), fastIS_n=r.n,
                      IS_n=st["IS"]["n"], IS_wr=st["IS"]["wr"], VAL_n=st["VAL"].get("n", 0), VAL_wr=st["VAL"].get("wr", np.nan)))
     print(rows[-1], flush=True)
 v = pd.DataFrame(rows)
@@ -67,6 +72,7 @@ v["minwr"] = v[["IS_wr", "VAL_wr"]].min(axis=1)
 v.to_csv(D + "top50_is_val.csv", index=False)
 
 fin = v[v.VAL_n >= 300].sort_values("minwr", ascending=False).head(10)
+print(len(fin), "finalists with VAL n>=300", flush=True)
 out = []
 for r in fin.itertuples():
     d = dirs_of(r.combo)

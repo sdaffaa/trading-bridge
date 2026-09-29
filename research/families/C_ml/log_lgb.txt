@@ -32,3 +32,9 @@ lgb|15min|0.5xATR1h                           | IS: n=36120 wr=42.85% net=-5164R
   time 60
 lgb|15min|1.0xATR1h                           | IS: n=9142 wr=46.18% net=-698R d60=22.1% | VAL: n=4816 wr=47.16% net=-274R d60=23.0% | HOLDOUT: n=4141 wr=49.29% net=-59R d60=29.5% | rowacc {'IS': np.float64(45.6), 'VAL': np.float64(48.4), 'HOLDOUT': np.float64(50.14)} | passes False
   time 64
+lgb|15min|2.0xATR1h                           | IS: n=2212 wr=48.24% net=-78R d60=36.9% | VAL: n=1228 wr=47.23% net=-68R d60=35.6% | HOLDOUT: n=1037 wr=50.14% net=3R d60=40.4% | rowacc {'IS': np.float64(47.66), 'VAL': np.float64(48.45), 'HOLDOUT': np.float64(53.52)} | passes False
+  time 65
+lgb|15min|3.0xATR1h                           | IS: n=939 wr=44.41% net=-105R d60=35.3% | VAL: n=540 wr=50.93% net=10R d60=40.9% | HOLDOUT: n=467 wr=50.96% net=9R d60=43.5% | rowacc {'IS': np.float64(46.39), 'VAL': np.float64(49.77), 'HOLDOUT': np.float64(54.0)} | passes False
+  time 66
+lgb|15min|2.0usd                              | IS: n=47584 wr=43.48% net=-6204R d60=5.3% | VAL: n=28982 wr=43.1% net=-4002R d60=5.5% | HOLDOUT: n=153018 wr=40.54% net=-28948R d60=2.8% | rowacc {'IS': np.float64(43.49), 'VAL': np.float64(42.92), 'HOLDOUT': np.float64(42.03)} | passes False
+  time 59
