@@ -29,3 +29,24 @@ sc
 0.25%px  0.4842  0.5028
 1xATRh1  0.4794  0.4955
 gen 0: best IS 48.42 (n=9712) -> VAL 46.85 (n=3919); top10 IS 48.32 VAL 47.49
+gen 10: best IS 48.67 (n=9741) -> VAL 47.70 (n=3935); top10 IS 48.57 VAL 47.63
+gen 20: best IS 49.00 (n=9742) -> VAL 47.75 (n=3950); top10 IS 49.00 VAL 47.75
+gen 30: best IS 49.23 (n=9747) -> VAL 48.36 (n=3952); top10 IS 49.21 VAL 48.35
+gen 40: best IS 49.29 (n=9789) -> VAL 47.89 (n=3957); top10 IS 49.29 VAL 47.89
+gen 50: best IS 49.30 (n=9788) -> VAL 47.93 (n=3960); top10 IS 49.30 VAL 47.93
+gen 60: best IS 49.30 (n=9788) -> VAL 47.93 (n=3960); top10 IS 49.30 VAL 47.93
+gen 70: best IS 49.31 (n=9785) -> VAL 48.23 (n=3975); top10 IS 49.30 VAL 47.99
+gen 79: best IS 49.31 (n=9785) -> VAL 48.23 (n=3975); top10 IS 49.31 VAL 48.23
+GA time 99.2 s
+
+GA final top 10 (selected on IS):
+  IS n=9785 wr=49.31 | VAL n=3975 wr=48.23 | VOTE[ret5<q0.85, r50<q0.75, drange<q0.15, ret60>q0.40, ret1<q0.70] (+1 if true) | dist=0.25%px
+  IS n=9788 wr=49.30 | VAL n=3960 wr=47.93 | VOTE[ret5<q0.90, r50<q0.75, drange<q0.15, ret60>q0.50, ret1<q0.70] (+1 if true) | dist=0.25%px
+  IS n=9799 wr=49.23 | VAL n=3957 wr=48.32 | VOTE[ret5<q0.90, r50<q0.75, drange<q0.20, ret60>q0.45, ret1<q0.70] (+1 if true) | dist=0.25%px
+  IS n=9788 wr=49.20 | VAL n=3953 wr=47.96 | VOTE[ret5<q0.90, r50<q0.75, drange<q0.15, ret60>q0.50, ret1<q0.65] (+1 if true) | dist=0.25%px
+  IS n=9782 wr=49.20 | VAL n=3950 wr=48.20 | VOTE[ret5<q0.90, r50<q0.75, drange<q0.15, ret60>q0.60, ret1<q0.70] (+1 if true) | dist=0.25%px
+  IS n=9780 wr=49.20 | VAL n=3956 wr=48.13 | VOTE[ret5<q0.90, r50<q0.75, drange<q0.15, ret60>q0.55, ret1<q0.70] (+1 if true) | dist=0.25%px
+  IS n=9790 wr=49.19 | VAL n=3965 wr=47.82 | VOTE[ret5<q0.90, r50<q0.75, drange<q0.15, ret60>q0.40, ret1<q0.70] (+1 if true) | dist=0.25%px
+  IS n=9783 wr=49.17 | VAL n=3967 wr=48.42 | VOTE[ret5<q0.85, r50<q0.75, drange<q0.15, ret60>q0.40, ret1<q0.65] (+1 if true) | dist=0.25%px
+  IS n=9780 wr=49.16 | VAL n=3970 wr=48.34 | VOTE[ret5<q0.85, r50<q0.75, drange<q0.15, ret60>q0.50, ret1<q0.70] (+1 if true) | dist=0.25%px
+  IS n=9760 wr=49.12 | VAL n=3977 wr=48.10 | VOTE[ret5<q0.85, r50<q0.75, drange<q0.05, ret60>q0.40, ret1<q0.70] (+1 if true) | dist=0.25%px

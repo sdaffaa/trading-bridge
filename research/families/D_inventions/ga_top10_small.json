@@ -1,0 +1,72 @@
+[
+ {
+  "rule": "VOTE[ret5<q0.85, r50<q0.75, drange<q0.15, ret60>q0.40, ret1<q0.70] (+1 if true) | dist=0.25%px",
+  "nIS": 9785,
+  "wrIS": 0.49310168625447115,
+  "nVAL": 3975,
+  "wrVAL": 0.48226415094339625
+ },
+ {
+  "rule": "VOTE[ret5<q0.90, r50<q0.75, drange<q0.15, ret60>q0.50, ret1<q0.70] (+1 if true) | dist=0.25%px",
+  "nIS": 9788,
+  "wrIS": 0.49295055169595425,
+  "nVAL": 3960,
+  "wrVAL": 0.47929292929292927
+ },
+ {
+  "rule": "VOTE[ret5<q0.90, r50<q0.75, drange<q0.20, ret60>q0.45, ret1<q0.70] (+1 if true) | dist=0.25%px",
+  "nIS": 9799,
+  "wrIS": 0.49229513215634246,
+  "nVAL": 3957,
+  "wrVAL": 0.48319433914581755
+ },
+ {
+  "rule": "VOTE[ret5<q0.90, r50<q0.75, drange<q0.15, ret60>q0.50, ret1<q0.65] (+1 if true) | dist=0.25%px",
+  "nIS": 9788,
+  "wrIS": 0.49203105843890477,
+  "nVAL": 3953,
+  "wrVAL": 0.479635719706552
+ },
+ {
+  "rule": "VOTE[ret5<q0.90, r50<q0.75, drange<q0.15, ret60>q0.60, ret1<q0.70] (+1 if true) | dist=0.25%px",
+  "nIS": 9782,
+  "wrIS": 0.49202617051727665,
+  "nVAL": 3950,
+  "wrVAL": 0.4820253164556962
+ },
+ {
+  "rule": "VOTE[ret5<q0.90, r50<q0.75, drange<q0.15, ret60>q0.55, ret1<q0.70] (+1 if true) | dist=0.25%px",
+  "nIS": 9780,
+  "wrIS": 0.4920245398773006,
+  "nVAL": 3956,
+  "wrVAL": 0.48129423660262893
+ },
+ {
+  "rule": "VOTE[ret5<q0.90, r50<q0.75, drange<q0.15, ret60>q0.40, ret1<q0.70] (+1 if true) | dist=0.25%px",
+  "nIS": 9790,
+  "wrIS": 0.4919305413687436,
+  "nVAL": 3965,
+  "wrVAL": 0.4781841109709962
+ },
+ {
+  "rule": "VOTE[ret5<q0.85, r50<q0.75, drange<q0.15, ret60>q0.40, ret1<q0.65] (+1 if true) | dist=0.25%px",
+  "nIS": 9783,
+  "wrIS": 0.4916692221200041,
+  "nVAL": 3967,
+  "wrVAL": 0.48424502142677084
+ },
+ {
+  "rule": "VOTE[ret5<q0.85, r50<q0.75, drange<q0.15, ret60>q0.50, ret1<q0.70] (+1 if true) | dist=0.25%px",
+  "nIS": 9780,
+  "wrIS": 0.4916155419222904,
+  "nVAL": 3970,
+  "wrVAL": 0.48337531486146096
+ },
+ {
+  "rule": "VOTE[ret5<q0.85, r50<q0.75, drange<q0.05, ret60>q0.40, ret1<q0.70] (+1 if true) | dist=0.25%px",
+  "nIS": 9760,
+  "wrIS": 0.49118852459016393,
+  "nVAL": 3977,
+  "wrVAL": 0.4810158410862459
+ }
+]

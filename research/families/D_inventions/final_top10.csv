@@ -1,0 +1,11 @@
+name,IS_n,IS_wr,VAL_n,VAL_wr,HOLDOUT_n,HOLDOUT_wr,passes
+GA(all dists) #1 4xATRh1,538,60.41,285,53.68,243,49.79,False
+random-search best-IS 4xATRh1,529,55.58,291,54.98,242,56.61,False
+GA(2xATR/0.5%) #1 0.5%px,2558,53.83,1045,46.99,3228,47.58,False
+GA(1xATR/0.25%) #1 0.25%px,9784,49.3,3975,48.23,11835,48.42,False
+"structure: prev-day level, toward farther, dist=far(>=2ATR)",447,51.23,364,52.2,317,52.68,False
+"volume-profile: away from prev-day POC, dist=|c-POC|(>=2ATR)",437,50.8,262,53.44,274,55.84,False
+"structure: value-area edge, toward farther, dist=far(>=2ATR)",687,50.51,425,51.29,484,55.79,False
+"asymmetry: per-hour best (dist scheme, side) from IS",1580,49.24,985,49.44,2543,48.76,False
+"state: follow barrier, fade after 4 | 4xATRh1",522,53.26,283,49.82,238,56.3,False
+state: barrier-momentum | 4xATRh1,501,52.3,271,54.98,251,52.99,False
