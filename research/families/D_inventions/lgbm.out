@@ -1,0 +1,12 @@
+LGBM dir 2xATRh1: IS(in-sample) n=2171 wr=64.76 | VAL n=1207 wr=47.64
+   VAL bars with pred-edge >= IS q0.5: 202422 bars, actual win rate 49.75 (not a tradable subset: always-in rule)
+   VAL bars with pred-edge >= IS q0.9: 28358 bars, actual win rate 40.94 (not a tradable subset: always-in rule)
+   VAL bars with pred-edge >= IS q0.99: 904 bars, actual win rate 36.50 (not a tradable subset: always-in rule)
+LGBM dir 0.5%px: IS(in-sample) n=2506 wr=64.33 | VAL n=1025 wr=48.00
+   VAL bars with pred-edge >= IS q0.5: 189651 bars, actual win rate 50.14 (not a tradable subset: always-in rule)
+   VAL bars with pred-edge >= IS q0.9: 25134 bars, actual win rate 45.86 (not a tradable subset: always-in rule)
+   VAL bars with pred-edge >= IS q0.99: 1729 bars, actual win rate 46.85 (not a tradable subset: always-in rule)
+LGBM dir 1xATRh1: IS(in-sample) n=9101 wr=56.77 | VAL n=4880 wr=46.31
+   VAL bars with pred-edge >= IS q0.5: 217927 bars, actual win rate 48.16 (not a tradable subset: always-in rule)
+   VAL bars with pred-edge >= IS q0.9: 26803 bars, actual win rate 49.18 (not a tradable subset: always-in rule)
+   VAL bars with pred-edge >= IS q0.99: 771 bars, actual win rate 46.95 (not a tradable subset: always-in rule)

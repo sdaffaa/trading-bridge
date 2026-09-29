@@ -1,5 +1,2 @@
 __pycache__/
 *.pyc
-research/families/C_ml/log_*.txt
-research/families/C_ml/results_raw.tsv
-research/families/D_inventions/*.out

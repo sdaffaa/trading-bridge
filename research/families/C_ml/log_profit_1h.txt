@@ -1,0 +1,74 @@
+ALWAYS_LONG|1h|tp1                       | IS: n=5151 R=-400.9 R/t=-0.078 PF=0.86 gd=43.7% dd=-419.9 | VAL: n=2712 R=-66.3 R/t=-0.024 PF=0.95 gd=46.7% dd=-115.2 | HOLDOUT: n=2668 R=25.7 R/t=0.01 PF=1.02 gd=51.4% dd=-63.4
+ALWAYS_SHORT|1h|tp1                      | IS: n=5216 R=-315.9 R/t=-0.061 PF=0.89 gd=44.3% dd=-328.9 | VAL: n=2673 R=-271.2 R/t=-0.101 PF=0.82 gd=40.1% dd=-274.2 | HOLDOUT: n=2653 R=-152.7 R/t=-0.058 PF=0.89 gd=44.8% dd=-201.1
+lgb_reg|1h|tp1|both|th=0.0               | IS: n=3579 R=-241.0 R/t=-0.067 PF=0.87 gd=45.6% dd=-245.0 | VAL: n=1678 R=-100.3 R/t=-0.06 PF=0.89 gd=44.1% dd=-126.3 | HOLDOUT: n=1801 R=20.8 R/t=0.012 PF=1.02 gd=50.4% dd=-45.0 
+lgb_reg|1h|tp1|both|th=0.05              | IS: n=2727 R=-189.3 R/t=-0.069 PF=0.87 gd=45.1% dd=-202.2 | VAL: n=1245 R=-45.3 R/t=-0.036 PF=0.93 gd=47.3% dd=-63.3 | HOLDOUT: n=1288 R=1.8 R/t=0.001 PF=1.0 gd=50.5% dd=-36.0 
+lgb_reg|1h|tp1|both|th=0.1               | IS: n=1969 R=-165.1 R/t=-0.084 PF=0.85 gd=45.1% dd=-169.9 | VAL: n=807 R=-24.6 R/t=-0.031 PF=0.94 gd=47.9% dd=-41.6 | HOLDOUT: n=863 R=24.8 R/t=0.029 PF=1.06 gd=49.7% dd=-16.0 
+lgb_reg|1h|tp1|both|th=0.2               | IS: n=849 R=-48.5 R/t=-0.057 PF=0.89 gd=46.7% dd=-72.3 | VAL: n=294 R=-14.0 R/t=-0.048 PF=0.91 gd=43.1% dd=-21.0 | HOLDOUT: n=319 R=41.7 R/t=0.131 PF=1.3 gd=56.2% dd=-12.0 
+lgb_reg|1h|tp1|both|th=0.3               | IS: n=269 R=-16.8 R/t=-0.062 PF=0.88 gd=46.1% dd=-27.6 | VAL: n=69 R=1.0 R/t=0.014 PF=1.03 gd=53.2% dd=-10.0 | HOLDOUT: n=95 R=11.9 R/t=0.125 PF=1.29 gd=53.2% dd=-6.0 
+lgb_reg|1h|tp1|long|th=0.0               | IS: n=1869 R=-120.1 R/t=-0.064 PF=0.88 gd=48.3% dd=-132.1 | VAL: n=841 R=6.7 R/t=0.008 PF=1.02 gd=56.1% dd=-21.1 | HOLDOUT: n=1024 R=55.0 R/t=0.054 PF=1.11 gd=55.7% dd=-27.0 
+lgb_reg|1h|tp1|long|th=0.05              | IS: n=1396 R=-96.1 R/t=-0.069 PF=0.87 gd=48.8% dd=-114.0 | VAL: n=589 R=10.7 R/t=0.018 PF=1.04 gd=54.4% dd=-17.1 | HOLDOUT: n=734 R=47.0 R/t=0.064 PF=1.14 gd=58.7% dd=-22.0 
+lgb_reg|1h|tp1|long|th=0.1               | IS: n=971 R=-84.1 R/t=-0.087 PF=0.84 gd=48.4% dd=-94.9 | VAL: n=378 R=6.4 R/t=0.017 PF=1.03 gd=54.4% dd=-14.6 | HOLDOUT: n=490 R=39.0 R/t=0.08 PF=1.17 gd=55.6% dd=-14.0 
+lgb_reg|1h|tp1|long|th=0.2               | IS: n=412 R=-15.5 R/t=-0.038 PF=0.93 gd=46.7% dd=-31.3 | VAL: n=132 R=2.0 R/t=0.015 PF=1.03 gd=50.0% dd=-6.0 | HOLDOUT: n=190 R=20.0 R/t=0.105 PF=1.24 gd=54.5% dd=-16.0 
+lgb_reg|1h|tp1|long|th=0.3               | IS: n=148 R=-3.8 R/t=-0.026 PF=0.95 gd=49.5% dd=-10.6 | VAL: n=32 R=2.0 R/t=0.062 PF=1.13 gd=56.5% dd=-2.0 | HOLDOUT: n=48 R=4.0 R/t=0.083 PF=1.18 gd=58.3% dd=-5.0 
+  time 33
+ALWAYS_LONG|1h|tp1.5                     | IS: n=3875 R=-293.9 R/t=-0.076 PF=0.88 gd=46.6% dd=-321.7 | VAL: n=2001 R=-18.5 R/t=-0.009 PF=0.98 gd=49.9% dd=-71.1 | HOLDOUT: n=1942 R=65.3 R/t=0.034 PF=1.06 gd=51.8% dd=-61.1
+ALWAYS_SHORT|1h|tp1.5                    | IS: n=3860 R=-171.5 R/t=-0.044 PF=0.93 gd=46.3% dd=-202.0 | VAL: n=2040 R=-234.0 R/t=-0.115 PF=0.82 gd=40.8% dd=-248.2 | HOLDOUT: n=1958 R=-165.8 R/t=-0.085 PF=0.87 gd=42.7% dd=-227.7
+lgb_reg|1h|tp1.5|both|th=0.0             | IS: n=697 R=25.4 R/t=0.036 PF=1.06 gd=48.1% dd=-30.4 | VAL: n=225 R=10.0 R/t=0.044 PF=1.08 gd=52.4% dd=-10.5 | HOLDOUT: n=189 R=34.3 R/t=0.181 PF=1.35 gd=52.1% dd=-7.0 CRED
+lgb_reg|1h|tp1.5|both|th=0.05            | IS: n=453 R=3.8 R/t=0.008 PF=1.01 gd=47.0% dd=-26.9 | VAL: n=150 R=-4.9 R/t=-0.032 PF=0.95 gd=47.5% dd=-13.3 | HOLDOUT: n=110 R=10.6 R/t=0.096 PF=1.17 gd=45.9% dd=-6.9 
+lgb_reg|1h|tp1.5|both|th=0.1             | IS: n=292 R=16.2 R/t=0.055 PF=1.1 gd=47.4% dd=-12.9 | VAL: n=84 R=-14.0 R/t=-0.167 PF=0.75 gd=40.4% dd=-20.5 | HOLDOUT: n=57 R=-7.5 R/t=-0.132 PF=0.79 gd=42.2% dd=-11.9 
+lgb_reg|1h|tp1.5|both|th=0.2             | IS: n=106 R=-1.8 R/t=-0.017 PF=0.97 gd=42.2% dd=-8.8 | VAL: n=21 R=-3.5 R/t=-0.167 PF=0.75 gd=35.0% dd=-7.5 | HOLDOUT: n=13 R=-0.5 R/t=-0.038 PF=0.94 gd=38.5% dd=-4.0 
+lgb_reg|1h|tp1.5|both|th=0.3             | IS: n=36 R=3.6 R/t=0.099 PF=1.19 gd=48.1% dd=-4.8 | VAL: n=5 R=-2.5 R/t=-0.5 PF=0.38 gd=20.0% dd=-2.0 | HOLDOUT: n=1 R=1.5 R/t=1.5 PF=inf gd=100.0% dd=0.0 
+lgb_reg|1h|tp1.5|long|th=0.0             | IS: n=367 R=8.7 R/t=0.024 PF=1.04 gd=47.9% dd=-16.4 | VAL: n=96 R=33.0 R/t=0.344 PF=1.75 gd=63.6% dd=-7.0 | HOLDOUT: n=132 R=18.8 R/t=0.142 PF=1.26 gd=51.3% dd=-10.2 CRED
+lgb_reg|1h|tp1.5|long|th=0.05            | IS: n=250 R=5.5 R/t=0.022 PF=1.04 gd=46.8% dd=-16.8 | VAL: n=64 R=7.7 R/t=0.121 PF=1.22 gd=54.5% dd=-5.5 | HOLDOUT: n=80 R=3.1 R/t=0.039 PF=1.07 gd=44.2% dd=-12.4 CRED
+lgb_reg|1h|tp1.5|long|th=0.1             | IS: n=168 R=9.5 R/t=0.056 PF=1.1 gd=48.1% dd=-11.4 | VAL: n=35 R=-2.5 R/t=-0.071 PF=0.89 gd=44.0% dd=-8.5 | HOLDOUT: n=43 R=-9.9 R/t=-0.23 PF=0.66 gd=37.1% dd=-12.9 
+lgb_reg|1h|tp1.5|long|th=0.2             | IS: n=68 R=1.2 R/t=0.018 PF=1.03 gd=46.2% dd=-6.3 | VAL: n=12 R=-2.0 R/t=-0.167 PF=0.75 gd=36.4% dd=-4.0 | HOLDOUT: n=12 R=0.5 R/t=0.042 PF=1.07 gd=41.7% dd=-3.0 
+lgb_reg|1h|tp1.5|long|th=0.3             | IS: n=28 R=-0.9 R/t=-0.033 PF=0.94 gd=42.1% dd=-5.9 | VAL: n=1 R=-1.0 R/t=-1.0 PF=0.0 gd=0.0% dd=0.0 | HOLDOUT: n=1 R=1.5 R/t=1.5 PF=inf gd=100.0% dd=0.0 
+  time 30
+ALWAYS_LONG|1h|tp2                       | IS: n=3158 R=-240.1 R/t=-0.076 PF=0.89 gd=46.0% dd=-282.7 | VAL: n=1623 R=-11.9 R/t=-0.007 PF=0.99 gd=48.6% dd=-64.7 | HOLDOUT: n=1521 R=94.8 R/t=0.062 PF=1.1 gd=51.4% dd=-78.0
+ALWAYS_SHORT|1h|tp2                      | IS: n=3145 R=-159.0 R/t=-0.051 PF=0.93 gd=46.4% dd=-180.0 | VAL: n=1670 R=-165.5 R/t=-0.099 PF=0.86 gd=43.2% dd=-203.5 | HOLDOUT: n=1635 R=-164.2 R/t=-0.1 PF=0.86 gd=42.7% dd=-232.2
+lgb_reg|1h|tp2|both|th=0.0               | IS: n=109 R=0.9 R/t=0.008 PF=1.01 gd=37.4% dd=-14.0 | VAL: n=38 R=-20.0 R/t=-0.526 PF=0.37 gd=19.4% dd=-23.0 | HOLDOUT: n=11 R=1.0 R/t=0.091 PF=1.14 gd=44.4% dd=-2.0 
+lgb_reg|1h|tp2|both|th=0.05              | IS: n=69 R=7.4 R/t=0.107 PF=1.17 gd=41.4% dd=-8.0 | VAL: n=15 R=-6.0 R/t=-0.4 PF=0.5 gd=23.1% dd=-8.0 | HOLDOUT: n=5 R=3.3 R/t=0.654 PF=2.64 gd=60.0% dd=-1.0 
+lgb_reg|1h|tp2|both|th=0.1               | IS: n=27 R=-3.2 R/t=-0.117 PF=0.82 gd=37.5% dd=-7.2 | VAL: n=7 R=-1.0 R/t=-0.143 PF=0.8 gd=28.6% dd=-2.0 | HOLDOUT: n=1 R=1.3 R/t=1.271 PF=inf gd=100.0% dd=0.0 
+lgb_reg|1h|tp2|long|th=0.0               | IS: n=52 R=-2.1 R/t=-0.041 PF=0.94 gd=35.0% dd=-8.1 | VAL: n=8 R=1.0 R/t=0.125 PF=1.2 gd=37.5% dd=-3.0 | HOLDOUT: n=10 R=2.0 R/t=0.2 PF=1.33 gd=50.0% dd=-2.0 
+lgb_reg|1h|tp2|long|th=0.05              | IS: n=30 R=4.4 R/t=0.145 PF=1.24 gd=43.5% dd=-5.0 | VAL: n=4 R=2.0 R/t=0.5 PF=2.0 gd=50.0% dd=-2.0 | HOLDOUT: n=5 R=3.3 R/t=0.654 PF=2.64 gd=60.0% dd=-1.0 CRED
+  time 29
+ALWAYS_LONG|1h|tp3                       | IS: n=2404 R=-219.9 R/t=-0.091 PF=0.88 gd=46.2% dd=-261.0 | VAL: n=1201 R=29.1 R/t=0.024 PF=1.03 gd=51.0% dd=-61.9 | HOLDOUT: n=1129 R=116.9 R/t=0.104 PF=1.15 gd=52.0% dd=-63.0
+ALWAYS_SHORT|1h|tp3                      | IS: n=2406 R=-113.1 R/t=-0.047 PF=0.94 gd=45.5% dd=-136.8 | VAL: n=1262 R=-175.8 R/t=-0.139 PF=0.82 gd=43.7% dd=-191.0 | HOLDOUT: n=1272 R=-154.4 R/t=-0.121 PF=0.84 gd=42.4% dd=-223.0
+  time 24
+ALWAYS_LONG|1h|trail1                    | IS: n=5333 R=-398.7 R/t=-0.075 PF=0.82 gd=43.8% dd=-442.9 | VAL: n=2635 R=-33.8 R/t=-0.013 PF=0.97 gd=48.0% dd=-79.1 | HOLDOUT: n=2541 R=151.8 R/t=0.06 PF=1.16 gd=54.6% dd=-53.2
+ALWAYS_SHORT|1h|trail1                   | IS: n=5427 R=-280.9 R/t=-0.052 PF=0.87 gd=41.7% dd=-309.0 | VAL: n=2883 R=-286.0 R/t=-0.099 PF=0.77 gd=36.3% dd=-300.2 | HOLDOUT: n=2929 R=-152.8 R/t=-0.052 PF=0.87 gd=41.2% dd=-226.0
+lgb_reg|1h|trail1|both|th=0.0            | IS: n=624 R=-53.5 R/t=-0.086 PF=0.79 gd=37.9% dd=-64.3 | VAL: n=191 R=-21.3 R/t=-0.111 PF=0.72 gd=36.7% dd=-25.1 | HOLDOUT: n=170 R=30.9 R/t=0.182 PF=1.55 gd=50.5% dd=-5.5 
+lgb_reg|1h|trail1|both|th=0.05           | IS: n=228 R=-10.4 R/t=-0.046 PF=0.88 gd=34.6% dd=-22.4 | VAL: n=69 R=-9.0 R/t=-0.131 PF=0.65 gd=38.0% dd=-10.7 | HOLDOUT: n=56 R=24.5 R/t=0.437 PF=2.41 gd=55.6% dd=-3.1 
+lgb_reg|1h|trail1|both|th=0.1            | IS: n=63 R=-1.4 R/t=-0.022 PF=0.94 gd=35.4% dd=-6.3 | VAL: n=22 R=4.1 R/t=0.187 PF=1.84 gd=64.3% dd=-3.1 | HOLDOUT: n=14 R=12.9 R/t=0.925 PF=6.42 gd=64.3% dd=-1.3 
+lgb_reg|1h|trail1|long|th=0.0            | IS: n=318 R=-6.1 R/t=-0.019 PF=0.95 gd=43.4% dd=-21.1 | VAL: n=97 R=-9.6 R/t=-0.099 PF=0.75 gd=37.7% dd=-11.9 | HOLDOUT: n=107 R=24.1 R/t=0.226 PF=1.67 gd=48.1% dd=-5.0 
+lgb_reg|1h|trail1|long|th=0.05           | IS: n=123 R=2.3 R/t=0.019 PF=1.05 gd=37.8% dd=-12.3 | VAL: n=43 R=-3.9 R/t=-0.091 PF=0.75 gd=36.7% dd=-5.5 | HOLDOUT: n=41 R=19.7 R/t=0.479 PF=2.54 gd=54.1% dd=-2.7 
+lgb_reg|1h|trail1|long|th=0.1            | IS: n=42 R=8.1 R/t=0.192 PF=1.59 gd=48.3% dd=-2.7 | VAL: n=16 R=0.5 R/t=0.03 PF=1.1 gd=50.0% dd=-2.8 | HOLDOUT: n=10 R=11.2 R/t=1.119 PF=11.25 gd=70.0% dd=-0.7 CRED
+  time 29
+ALWAYS_LONG|1h|trail1_sl2                | IS: n=5333 R=-201.5 R/t=-0.038 PF=0.82 gd=43.8% dd=-223.6 | VAL: n=2634 R=-12.8 R/t=-0.005 PF=0.98 gd=48.5% dd=-38.5 | HOLDOUT: n=2541 R=75.9 R/t=0.03 PF=1.16 gd=54.6% dd=-26.6
+ALWAYS_SHORT|1h|trail1_sl2               | IS: n=5426 R=-138.3 R/t=-0.025 PF=0.88 gd=41.9% dd=-151.9 | VAL: n=2883 R=-143.3 R/t=-0.05 PF=0.77 gd=36.3% dd=-150.4 | HOLDOUT: n=2929 R=-76.9 R/t=-0.026 PF=0.87 gd=41.2% dd=-113.5
+lgb_reg|1h|trail1_sl2|both|th=0.0        | IS: n=2870 R=-79.9 R/t=-0.028 PF=0.86 gd=43.0% dd=-83.0 | VAL: n=1292 R=-33.8 R/t=-0.026 PF=0.87 gd=38.6% dd=-38.9 | HOLDOUT: n=1345 R=55.1 R/t=0.041 PF=1.22 gd=50.1% dd=-15.9 
+lgb_reg|1h|trail1_sl2|both|th=0.05       | IS: n=1230 R=-38.3 R/t=-0.031 PF=0.85 gd=40.1% dd=-41.2 | VAL: n=443 R=-26.3 R/t=-0.059 PF=0.72 gd=39.2% dd=-30.8 | HOLDOUT: n=457 R=38.4 R/t=0.084 PF=1.48 gd=50.0% dd=-6.8 
+lgb_reg|1h|trail1_sl2|both|th=0.1        | IS: n=352 R=-15.7 R/t=-0.045 PF=0.78 gd=36.6% dd=-18.6 | VAL: n=128 R=-7.9 R/t=-0.062 PF=0.71 gd=35.2% dd=-12.4 | HOLDOUT: n=105 R=17.0 R/t=0.162 PF=1.91 gd=51.3% dd=-2.3 
+lgb_reg|1h|trail1_sl2|long|th=0.0        | IS: n=1407 R=-42.7 R/t=-0.03 PF=0.85 gd=41.7% dd=-47.9 | VAL: n=611 R=-2.7 R/t=-0.004 PF=0.98 gd=42.8% dd=-14.8 | HOLDOUT: n=831 R=54.8 R/t=0.066 PF=1.36 gd=51.0% dd=-12.2 
+lgb_reg|1h|trail1_sl2|long|th=0.05       | IS: n=536 R=-8.2 R/t=-0.015 PF=0.92 gd=42.4% dd=-14.1 | VAL: n=182 R=-3.8 R/t=-0.021 PF=0.89 gd=40.2% dd=-6.1 | HOLDOUT: n=297 R=29.8 R/t=0.1 PF=1.57 gd=45.2% dd=-5.7 
+lgb_reg|1h|trail1_sl2|long|th=0.1        | IS: n=153 R=2.4 R/t=0.016 PF=1.09 gd=45.8% dd=-6.3 | VAL: n=50 R=0.1 R/t=0.002 PF=1.01 gd=43.3% dd=-3.1 | HOLDOUT: n=80 R=13.9 R/t=0.174 PF=1.97 gd=47.5% dd=-2.6 CRED
+  time 28
+ALWAYS_LONG|1h|time60                    | IS: n=16988 R=-1142.7 R/t=-0.067 PF=0.76 gd=32.7% dd=-1159.4 | VAL: n=8632 R=-364.1 R/t=-0.042 PF=0.84 gd=39.3% dd=-380.1 | HOLDOUT: n=8568 R=-48.2 R/t=-0.006 PF=0.98 gd=47.4% dd=-91.3
+ALWAYS_SHORT|1h|time60                   | IS: n=16989 R=-1124.5 R/t=-0.066 PF=0.76 gd=31.5% dd=-1126.4 | VAL: n=8633 R=-727.2 R/t=-0.084 PF=0.71 gd=30.1% dd=-728.5 | HOLDOUT: n=8562 R=-331.2 R/t=-0.039 PF=0.86 gd=38.6% dd=-385.0
+lgb_reg|1h|time60|both|th=0.0            | IS: n=2114 R=-78.1 R/t=-0.037 PF=0.81 gd=44.4% dd=-80.8 | VAL: n=657 R=-23.0 R/t=-0.035 PF=0.82 gd=51.4% dd=-31.4 | HOLDOUT: n=662 R=33.7 R/t=0.051 PF=1.26 gd=54.3% dd=-9.5 
+lgb_reg|1h|time60|both|th=0.05           | IS: n=245 R=-3.5 R/t=-0.014 PF=0.93 gd=55.4% dd=-8.0 | VAL: n=57 R=-4.0 R/t=-0.071 PF=0.66 gd=47.6% dd=-4.8 | HOLDOUT: n=44 R=8.0 R/t=0.181 PF=2.07 gd=62.2% dd=-2.0 
+lgb_reg|1h|time60|long|th=0.0            | IS: n=1236 R=-30.5 R/t=-0.025 PF=0.87 gd=50.5% dd=-33.8 | VAL: n=397 R=-8.1 R/t=-0.02 PF=0.89 gd=53.4% dd=-13.9 | HOLDOUT: n=451 R=27.8 R/t=0.062 PF=1.33 gd=55.2% dd=-6.2 
+lgb_reg|1h|time60|long|th=0.05           | IS: n=147 R=-6.4 R/t=-0.043 PF=0.8 gd=51.3% dd=-9.9 | VAL: n=39 R=0.2 R/t=0.005 PF=1.03 gd=57.1% dd=-2.1 | HOLDOUT: n=30 R=4.4 R/t=0.147 PF=1.82 gd=60.0% dd=-2.0 
+  time 27
+ALWAYS_LONG|1h|time240                   | IS: n=4846 R=-240.6 R/t=-0.05 PF=0.87 gd=42.0% dd=-277.8 | VAL: n=2450 R=-4.7 R/t=-0.002 PF=0.99 gd=47.6% dd=-60.7 | HOLDOUT: n=2393 R=90.8 R/t=0.038 PF=1.11 gd=50.6% dd=-42.8
+ALWAYS_SHORT|1h|time240                  | IS: n=4787 R=-165.3 R/t=-0.035 PF=0.9 gd=42.7% dd=-198.9 | VAL: n=2463 R=-230.4 R/t=-0.094 PF=0.76 gd=38.6% dd=-240.1 | HOLDOUT: n=2359 R=-127.0 R/t=-0.054 PF=0.85 gd=41.9% dd=-177.9
+lgb_reg|1h|time240|both|th=0.0           | IS: n=2122 R=-36.6 R/t=-0.017 PF=0.94 gd=49.7% dd=-41.5 | VAL: n=832 R=-21.9 R/t=-0.026 PF=0.9 gd=48.0% dd=-28.8 | HOLDOUT: n=743 R=37.2 R/t=0.05 PF=1.2 gd=53.2% dd=-14.9 
+lgb_reg|1h|time240|both|th=0.05          | IS: n=1149 R=-19.0 R/t=-0.017 PF=0.93 gd=47.5% dd=-33.6 | VAL: n=344 R=-24.6 R/t=-0.072 PF=0.74 gd=46.1% dd=-27.4 | HOLDOUT: n=263 R=17.1 R/t=0.065 PF=1.29 gd=53.8% dd=-7.5 
+lgb_reg|1h|time240|both|th=0.1           | IS: n=508 R=-3.2 R/t=-0.006 PF=0.98 gd=47.0% dd=-10.2 | VAL: n=87 R=-2.9 R/t=-0.034 PF=0.88 gd=44.3% dd=-7.0 | HOLDOUT: n=67 R=5.0 R/t=0.075 PF=1.25 gd=51.9% dd=-3.8 
+lgb_reg|1h|time240|long|th=0.0           | IS: n=1222 R=-13.4 R/t=-0.011 PF=0.96 gd=50.8% dd=-21.4 | VAL: n=528 R=15.5 R/t=0.029 PF=1.13 gd=53.4% dd=-14.6 | HOLDOUT: n=560 R=40.5 R/t=0.072 PF=1.3 gd=54.7% dd=-12.1 
+lgb_reg|1h|time240|long|th=0.05          | IS: n=665 R=-0.3 R/t=-0.0 PF=1.0 gd=48.9% dd=-14.9 | VAL: n=230 R=-0.4 R/t=-0.002 PF=0.99 gd=49.4% dd=-9.2 | HOLDOUT: n=219 R=18.9 R/t=0.087 PF=1.4 gd=58.7% dd=-6.4 
+lgb_reg|1h|time240|long|th=0.1           | IS: n=309 R=-0.1 R/t=-0.0 PF=1.0 gd=46.5% dd=-8.3 | VAL: n=67 R=1.5 R/t=0.023 PF=1.09 gd=48.1% dd=-4.4 | HOLDOUT: n=62 R=5.8 R/t=0.094 PF=1.33 gd=54.0% dd=-3.5 
+  time 26
+ALWAYS_LONG|1h|tp2_sl0.5                 | IS: n=8676 R=-1351.3 R/t=-0.156 PF=0.78 gd=36.6% dd=-1376.4 | VAL: n=4363 R=-328.0 R/t=-0.075 PF=0.89 gd=41.6% dd=-355.7 | HOLDOUT: n=4310 R=26.2 R/t=0.006 PF=1.01 gd=48.8% dd=-108.7
+ALWAYS_SHORT|1h|tp2_sl0.5                | IS: n=8620 R=-1127.5 R/t=-0.131 PF=0.81 gd=36.7% dd=-1137.0 | VAL: n=4456 R=-761.1 R/t=-0.171 PF=0.76 gd=32.2% dd=-764.2 | HOLDOUT: n=4420 R=-373.1 R/t=-0.084 PF=0.88 gd=41.5% dd=-411.6
+  time 27
