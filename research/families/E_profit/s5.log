@@ -1,0 +1,15 @@
+random-entry sets: 60 x 44 exits = 2640 variants
+qualifying variants: 172 max IS totR: 99.0 95th pct of qualifying: 46.61499999999999
+per-set best (sets with any qualifier): 34 [99.  63.  60.5 58.  58.  47.  45.7 45.  43.6 41. ]
+      IS   VAL  HOLDOUT  credible
+10  99.0  -2.0     53.0     False
+18  63.0  -0.0     27.0     False
+3   60.5 -15.5    -13.3     False
+12  58.0  -5.3     49.6     False
+31  58.0 -11.0    -22.0     False
+7   47.0 -25.0     25.2     False
+28  45.7 -20.6      1.6     False
+17  45.0  -8.0     30.0     False
+1   43.6  13.9     15.1      True
+29  41.0  33.0     20.0      True
+null best-per-set: n 34 credible 14 median VAL -1.0 median HOLDOUT 10.65
