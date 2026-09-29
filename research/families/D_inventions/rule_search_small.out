@@ -1,2 +1,31 @@
 schemes ['1xATRh1', '0.25%px']
 tables 3.1 s
+random search 60000 rules in 137.8 s
+rules with IS n>=300: 60000
+IS wr quantiles: {0.5: 0.4651, 0.9: 0.4712, 0.99: 0.4759, 0.999: 0.4801, 1.0: 0.4842}
+
+Decay curve (random search): rank bucket by IS wr -> mean IS wr, mean VAL wr
+  IS rank      0-10     mean IS 48.32  mean VAL 47.49  max VAL 48.31
+  IS rank     10-100    mean IS 48.02  mean VAL 47.66  max VAL 49.91
+  IS rank    100-1000   mean IS 47.64  mean VAL 47.45  max VAL 49.74
+  IS rank   1000-10000  mean IS 47.17  mean VAL 47.51  max VAL 50.28
+  IS rank  10000-60000  mean IS 46.35  mean VAL 46.64  max VAL 50.08
+Spearman(IS wr, VAL wr) all: 0.383  top1000: 0.051
+
+Top 10 random rules by IS:
+  IS n=9712 wr=48.42 | VAL n=3919 wr=46.85 | IF ret5>q0.90 -> -1 ELSE -1*sign(r50-q0.90) | dist=0.25%px
+  IS n=9696 wr=48.39 | VAL n=3910 wr=48.31 | VOTE[r50<q0.70, ret15<q0.85, to_pdh<q0.05] (+1 if true) | dist=0.25%px
+  IS n=9649 wr=48.36 | VAL n=3969 wr=47.32 | IF ret5>q0.85 -> -1 ELSE +1*sign(er_h1-q0.05) | dist=0.25%px
+  IS n=9661 wr=48.34 | VAL n=3940 wr=47.51 | IF ret1440<q0.30 & asia_size<q0.55 -> +1 ELSE -1*sign(ret5-q0.90) | dist=0.25%px
+  IS n=9759 wr=48.32 | VAL n=3929 wr=48.08 | VOTE[ac1_m5<q0.90, rsi_m15<q0.05, er_h1<q0.40, asia_pos>q0.10, ret1<q0.75] (+1 if true) | dist=0.25%px
+  IS n=9701 wr=48.30 | VAL n=3963 wr=46.61 | IF vr_h1<q0.50 & er_h1>q0.55 -> -1 ELSE -1*sign(ret5-q0.25) | dist=0.25%px
+  IS n=9671 wr=48.30 | VAL n=3987 wr=48.01 | VOTE[ret5<q0.85, rsi_h1<q0.80, drange<q0.15] (+1 if true) | dist=0.25%px
+  IS n=9815 wr=48.29 | VAL n=3929 wr=47.47 | IF ret1>q0.50 & frac_hi>q0.10 -> -1 ELSE -1*sign(r50-q0.60) | dist=0.25%px
+  IS n=9751 wr=48.24 | VAL n=3918 wr=48.01 | VOTE[ema50_h1<q0.90, ret5<q0.95, ret5<q0.50] (+1 if true) | dist=0.25%px
+  IS n=9739 wr=48.23 | VAL n=3947 wr=46.72 | IF ret1>q0.10 & frac_hi>q0.05 & rsi_m15<q0.20 -> -1 ELSE -1*sign(to_pdl-q0.45) | dist=0.25%px
+Max IS wr by distance scheme:
+           wrIS   wrVAL
+sc                     
+0.25%px  0.4842  0.5028
+1xATRh1  0.4794  0.4955
+gen 0: best IS 48.42 (n=9712) -> VAL 46.85 (n=3919); top10 IS 48.32 VAL 47.49

@@ -29,7 +29,7 @@ def make_model(name, seed=0):
                                                              max_iter=30, early_stopping=True, n_iter_no_change=4, random_state=seed))
     raise ValueError(name)
 
-MAXTRAIN = {"lgb": 10**9, "et": 150000, "rf": 150000, "lr": 10**9, "mlp": 200000}
+MAXTRAIN = {"lgb": 200000, "et": 150000, "rf": 150000, "lr": 10**9, "mlp": 200000}
 
 def parse(s):
     p = s.split(":")
