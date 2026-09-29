@@ -1,0 +1,61 @@
+A10 psim unmanaged totR 1118.28 harness2 sum 1123.98 115s
+
+A10 unmanaged:
+ lock_up  lock_dn  maxtr  eqmode  volexp  IS_totR  IS_R_day  IS_gd  IS_dd  IS_gm  IS_sh   IS_n  VAL_totR  VAL_R_day  VAL_gd  VAL_dd  VAL_gm  VAL_sh  VAL_n
+     0.0      0.0    0.0     0.0     0.0    809.3       1.1   51.9  -30.0   86.1   3.83 5536.0     309.0      0.846    51.8   -32.7    83.3    3.11 2944.0
+A10 top-8 by IS Sharpe:
+ lock_up  lock_dn  maxtr  eqmode  volexp  IS_totR  IS_R_day  IS_gd  IS_dd  IS_gm  IS_sh  IS_n  VAL_totR  VAL_R_day  VAL_gd  VAL_dd  VAL_gm  VAL_sh  VAL_n
+       0        0      0       0     0.0    809.3     1.100   51.9  -30.0   86.1   3.83  5536     309.0      0.846    51.8   -32.7    83.3    3.11   2944
+       0        0      0       0     0.5    827.0     1.124   51.5  -30.9   86.1   3.80  5536     312.2      0.855    51.8   -34.0    77.8    3.16   2944
+       0        0      0       0     1.0    859.1     1.167   51.6  -32.0   86.1   3.74  5536     312.1      0.855    51.8   -35.4    77.8    3.13   2944
+       0        3      0       1     0.5    564.4     0.781   46.9  -60.2   80.6   2.85  5919     208.2      0.572    45.1   -54.1    66.7    2.17   2994
+       0        3      0       1     1.0    547.2     0.756   45.0  -63.4   80.6   2.69  5934     137.7      0.379    44.6   -54.0    66.7    1.50   2985
+       0        3      0       0     1.0    543.3     0.756   48.5  -53.6   75.0   2.58  5179     162.9      0.445    47.8   -41.8    66.7    1.64   2666
+       0        3      0       0     0.0    502.1     0.698   46.6  -49.0   80.6   2.53  5243      99.5      0.270    44.0   -49.1    66.7    0.95   2718
+       0        3      0       0     0.5    498.7     0.696   46.2  -42.5   77.8   2.49  5199     103.5      0.280    44.4   -46.8    61.1    1.06   2725
+  mean IS/VAL Sharpe by lock_up: {0: {'IS_sh': 0.89, 'VAL_sh': 1.15}, 1: {'IS_sh': 0.14, 'VAL_sh': -0.25}, 2: {'IS_sh': 0.29, 'VAL_sh': 0.01}, 3: {'IS_sh': 0.39, 'VAL_sh': 0.13}, 5: {'IS_sh': 0.44, 'VAL_sh': 0.36}}
+  mean IS/VAL Sharpe by lock_dn: {0: {'IS_sh': 0.69, 'VAL_sh': 0.55}, 1: {'IS_sh': 0.12, 'VAL_sh': -0.03}, 2: {'IS_sh': 0.39, 'VAL_sh': 0.15}, 3: {'IS_sh': 0.51, 'VAL_sh': 0.37}}
+  mean IS/VAL Sharpe by maxtr: {0: {'IS_sh': 0.69, 'VAL_sh': 0.38}, 2: {'IS_sh': 0.36, 'VAL_sh': 0.1}, 4: {'IS_sh': 0.22, 'VAL_sh': 0.16}, 8: {'IS_sh': 0.4, 'VAL_sh': 0.39}}
+  mean IS/VAL Sharpe by eqmode: {0: {'IS_sh': 0.84, 'VAL_sh': 0.94}, 1: {'IS_sh': -0.03, 'VAL_sh': -0.47}}
+  mean IS/VAL Sharpe by volexp: {0.0: {'IS_sh': 0.39, 'VAL_sh': 0.26}, 0.5: {'IS_sh': 0.44, 'VAL_sh': 0.27}, 1.0: {'IS_sh': 0.42, 'VAL_sh': 0.24}}
+C5 psim unmanaged totR 513.51 harness2 sum 517.67 49s
+
+C5 unmanaged:
+ lock_up  lock_dn  maxtr  eqmode  volexp  IS_totR  IS_R_day  IS_gd  IS_dd  IS_gm  IS_sh   IS_n  VAL_totR  VAL_R_day  VAL_gd  VAL_dd  VAL_gm  VAL_sh  VAL_n
+     0.0      0.0    0.0     0.0     0.0    365.8     0.551   54.8  -13.9   88.9    3.9 2552.0     147.7       0.44    52.1   -13.9    83.3    2.99 1322.0
+C5 top-8 by IS Sharpe:
+ lock_up  lock_dn  maxtr  eqmode  volexp  IS_totR  IS_R_day  IS_gd  IS_dd  IS_gm  IS_sh  IS_n  VAL_totR  VAL_R_day  VAL_gd  VAL_dd  VAL_gm  VAL_sh  VAL_n
+       0        0      0       0     0.0    365.8     0.551   54.8  -13.9   88.9   3.90  2552     147.7      0.440    52.1   -13.9    83.3    2.99   1322
+       0        0      0       0     0.5    369.3     0.556   55.3  -15.2   88.9   3.79  2552     157.6      0.469    52.7   -13.7    88.9    3.13   1322
+       0        0      0       0     1.0    378.4     0.570   55.0  -16.8   86.1   3.65  2552     165.0      0.491    52.7   -14.4    88.9    3.18   1322
+       5        0      0       0     0.0    321.7     0.485   54.1  -14.3   86.1   3.36  2502     115.1      0.347    50.9   -13.9    72.2    2.21   1290
+       0        3      0       1     0.5    305.2     0.460   53.5  -18.7   80.6   3.17  2609     137.3      0.406    51.5   -17.5    83.3    2.83   1349
+       5        0      0       0     0.5    316.9     0.480   53.8  -15.6   86.1   3.16  2499     126.2      0.383    51.5   -13.7    88.9    2.37   1288
+       0        3      0       0     1.0    307.8     0.460   54.1  -21.3   88.9   3.08  2509     116.8      0.354    51.2   -28.6    72.2    2.22   1291
+       0        3      0       1     1.0    297.4     0.447   53.4  -18.9   77.8   3.04  2632     154.3      0.459    51.8   -15.4    88.9    3.14   1333
+  mean IS/VAL Sharpe by lock_up: {0: {'IS_sh': 1.6, 'VAL_sh': 1.39}, 1: {'IS_sh': 0.62, 'VAL_sh': 0.22}, 2: {'IS_sh': 0.53, 'VAL_sh': 0.71}, 3: {'IS_sh': 0.77, 'VAL_sh': 0.74}, 5: {'IS_sh': 1.11, 'VAL_sh': 0.89}}
+  mean IS/VAL Sharpe by lock_dn: {0: {'IS_sh': 1.17, 'VAL_sh': 0.85}, 1: {'IS_sh': 0.46, 'VAL_sh': 0.57}, 2: {'IS_sh': 0.96, 'VAL_sh': 0.78}, 3: {'IS_sh': 1.07, 'VAL_sh': 0.91}}
+  mean IS/VAL Sharpe by maxtr: {0: {'IS_sh': 1.38, 'VAL_sh': 1.04}, 2: {'IS_sh': 0.31, 'VAL_sh': 0.1}, 4: {'IS_sh': 0.78, 'VAL_sh': 0.91}, 8: {'IS_sh': 1.15, 'VAL_sh': 1.05}}
+  mean IS/VAL Sharpe by eqmode: {0: {'IS_sh': 1.45, 'VAL_sh': 1.18}, 1: {'IS_sh': 0.34, 'VAL_sh': 0.35}}
+  mean IS/VAL Sharpe by volexp: {0.0: {'IS_sh': 0.89, 'VAL_sh': 0.77}, 0.5: {'IS_sh': 0.94, 'VAL_sh': 0.83}, 1.0: {'IS_sh': 0.89, 'VAL_sh': 0.72}}
+A3 psim unmanaged totR 346.51 harness2 sum 348.67 45s
+
+A3 unmanaged:
+ lock_up  lock_dn  maxtr  eqmode  volexp  IS_totR  IS_R_day  IS_gd  IS_dd  IS_gm  IS_sh   IS_n  VAL_totR  VAL_R_day  VAL_gd  VAL_dd  VAL_gm  VAL_sh  VAL_n
+     0.0      0.0    0.0     0.0     0.0    232.8     0.415   49.9  -13.2   83.3   3.14 1511.0     113.7      0.385    46.8   -12.6    72.2    2.86  780.0
+A3 top-8 by IS Sharpe:
+ lock_up  lock_dn  maxtr  eqmode  volexp  IS_totR  IS_R_day  IS_gd  IS_dd  IS_gm  IS_sh  IS_n  VAL_totR  VAL_R_day  VAL_gd  VAL_dd  VAL_gm  VAL_sh  VAL_n
+       0        0      0       0     0.0    232.8     0.415   49.9  -13.2   83.3   3.14  1511     113.7      0.385    46.8   -12.6    72.2    2.86    780
+       0        0      0       0     0.5    240.6     0.429   49.6  -13.6   83.3   3.11  1511     124.3      0.421    46.8   -12.7    72.2    3.01    780
+       5        0      0       0     0.5    237.6     0.426   49.8  -15.3   83.3   3.08  1486     103.9      0.358    45.5   -12.7    72.2    2.43    777
+       0        0      0       0     1.0    251.0     0.447   49.7  -14.2   80.6   3.04  1511     131.3      0.445    46.8   -12.8    77.8    3.06    780
+       0        3      0       0     0.0    222.5     0.395   49.7  -15.1   80.6   3.03  1490     103.1      0.349    46.1   -15.1    72.2    2.60    775
+       0        0      8       0     0.0    224.2     0.398   49.6  -13.2   80.6   3.03  1510     111.1      0.376    47.1   -12.6    77.8    2.78    783
+       0        3      0       1     0.5    221.9     0.398   48.7  -14.0   80.6   3.02  1511     112.4      0.384    47.1   -17.5    72.2    2.72    785
+       5        0      0       0     0.0    226.3     0.405   49.7  -14.5   83.3   3.02  1480     100.0      0.345    46.2   -12.6    72.2    2.47    775
+  mean IS/VAL Sharpe by lock_up: {0: {'IS_sh': 1.89, 'VAL_sh': 2.47}, 1: {'IS_sh': 0.64, 'VAL_sh': 0.56}, 2: {'IS_sh': 0.84, 'VAL_sh': 0.65}, 3: {'IS_sh': 0.96, 'VAL_sh': 1.02}, 5: {'IS_sh': 1.34, 'VAL_sh': 1.6}}
+  mean IS/VAL Sharpe by lock_dn: {0: {'IS_sh': 1.36, 'VAL_sh': 1.12}, 1: {'IS_sh': 0.72, 'VAL_sh': 1.12}, 2: {'IS_sh': 1.07, 'VAL_sh': 1.31}, 3: {'IS_sh': 1.33, 'VAL_sh': 1.35}}
+  mean IS/VAL Sharpe by maxtr: {0: {'IS_sh': 1.46, 'VAL_sh': 1.23}, 2: {'IS_sh': 0.56, 'VAL_sh': 0.89}, 4: {'IS_sh': 1.0, 'VAL_sh': 1.62}, 8: {'IS_sh': 1.43, 'VAL_sh': 1.19}}
+  mean IS/VAL Sharpe by eqmode: {0: {'IS_sh': 1.54, 'VAL_sh': 1.97}, 1: {'IS_sh': 0.66, 'VAL_sh': 0.45}}
+  mean IS/VAL Sharpe by volexp: {0.0: {'IS_sh': 1.13, 'VAL_sh': 1.21}, 0.5: {'IS_sh': 1.14, 'VAL_sh': 1.22}, 1.0: {'IS_sh': 1.07, 'VAL_sh': 1.27}}
+{'A10': {'lock_up': 0.0, 'lock_dn': 0.0, 'maxtr': 0.0, 'eqmode': 0.0, 'volexp': 0.0}, 'C5': {'lock_up': 0.0, 'lock_dn': 0.0, 'maxtr': 0.0, 'eqmode': 0.0, 'volexp': 0.0}, 'A3': {'lock_up': 0.0, 'lock_dn': 0.0, 'maxtr': 0.0, 'eqmode': 0.0, 'volexp': 0.0}}

@@ -1,0 +1,23 @@
+{
+ "A10": {
+  "lock_up": 0.0,
+  "lock_dn": 0.0,
+  "maxtr": 0.0,
+  "eqmode": 0.0,
+  "volexp": 0.0
+ },
+ "C5": {
+  "lock_up": 0.0,
+  "lock_dn": 0.0,
+  "maxtr": 0.0,
+  "eqmode": 0.0,
+  "volexp": 0.0
+ },
+ "A3": {
+  "lock_up": 0.0,
+  "lock_dn": 0.0,
+  "maxtr": 0.0,
+  "eqmode": 0.0,
+  "volexp": 0.0
+ }
+}

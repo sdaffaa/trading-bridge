@@ -1,0 +1,83 @@
+                     0      1      2      3      4      5      6      7
+item                S1     S2     S3     S4     S5  P_A10   P_C5   P_A3
+IS_totR           82.4   77.6   72.9   64.5   70.1  809.3  365.8  232.8
+IS_Rday          0.208  0.191  0.216  0.188  0.172    1.1  0.551  0.415
+IS_gd%            47.5   48.9   48.2   45.9   48.3   52.0   56.2   49.9
+IS_gm%            75.0   77.8   66.7   63.9   72.2   86.1   88.9   83.3
+IS_ddR            -9.7   -9.0   -9.7  -11.2   -9.8  -30.0  -13.9  -13.2
+IS_dd%@0.5        -4.8   -4.5   -4.8   -5.6   -4.9  -15.0   -7.0   -6.6
+VAL_totR          43.2   40.2   30.3   25.9   28.3  309.0  147.7  113.7
+VAL_Rday         0.214  0.195  0.185  0.157  0.132  0.846   0.44  0.385
+VAL_gd%           46.5   46.1   47.0   43.0   43.5   52.1   53.0   46.8
+VAL_gm%           66.7   66.7   66.7   66.7   66.7   83.3   83.3   72.2
+VAL_ddR           -9.1  -13.6  -10.2   -7.6  -21.8  -32.7  -13.9  -12.6
+VAL_dd%@0.5       -4.6   -6.8   -5.1   -3.8  -10.9  -16.4   -7.0   -6.3
+HOLDOUT_totR     -29.1  -12.0  -11.4  -18.4   -8.0    7.6  -67.5  -52.5
+HOLDOUT_Rday    -0.137 -0.054 -0.059 -0.093 -0.042   0.02 -0.194 -0.161
+HOLDOUT_gd%       36.8   42.1   36.8   36.0   41.1   45.1   41.4   38.0
+HOLDOUT_gm%       42.1   47.4   26.3   36.8   42.1   36.8   31.6   36.8
+HOLDOUT_ddR      -41.2  -25.0  -35.2  -32.5  -21.3  -92.6  -88.2  -75.9
+HOLDOUT_dd%@0.5  -20.6  -12.5  -17.6  -16.2  -10.6  -46.3  -44.1  -38.0
+IS_n               528    558    425    413    536   5536   2552   1511
+IS_PF             1.46    1.4   1.54   1.46   1.39   1.33   1.38   1.46
+VAL_n              270    293    217    211    291   2944   1322    780
+VAL_PF            1.46   1.38    1.4   1.35   1.27   1.23   1.28   1.41
+HOLDOUT_n          294    303    271    267    272   2974   1417    868
+HOLDOUT_PF        0.76    0.9   0.89   0.83   0.93   1.01   0.89   0.85
+HO_long_R         10.4   19.3   16.6    8.4   20.2  268.9   85.3   46.3
+HO_short_R       -39.5  -31.3  -28.0  -26.8  -28.2 -261.3 -152.8  -98.8
+credible         False  False  False  False  False   True  False  False
+
+ item  risk  IS_ret%  IS_maxDD%  VAL_ret%  VAL_maxDD%  HOLDOUT_ret%  HOLDOUT_maxDD%  boot_medDD%  boot_p95DD%  P(DD>10%)  P(DD>20%)  P(DD>30%)  P(DD>50%)
+   S1  0.25     22.6       -2.4      11.3        -2.3          -7.1            -9.9         -2.0         -3.2       0.00       0.00       0.00       0.00
+   S1  0.50     49.7       -4.8      23.5        -4.5         -13.9           -18.8         -4.0         -6.4       0.08       0.00       0.00       0.00
+   S1  1.00    120.4       -9.4      50.9        -8.8         -26.4           -34.5         -7.8        -12.3      18.18       0.06       0.00       0.00
+   S2  0.25     21.2       -2.2      10.4        -3.4          -3.0            -6.1         -2.5         -4.6       0.00       0.00       0.00       0.00
+   S2  0.50     46.2       -4.4      21.7        -6.6          -6.2           -12.0         -4.9         -9.1       2.77       0.00       0.00       0.00
+   S2  1.00    110.6       -8.8      46.5       -12.9         -12.6           -23.0         -9.7        -17.2      46.67       1.66       0.04       0.00
+   S3  0.25     19.8       -2.4       7.8        -2.5          -2.9            -8.5         -2.5         -4.5       0.00       0.00       0.00       0.00
+   S3  0.50     43.1       -4.8      16.0        -5.0          -5.9           -16.2         -4.9         -8.8       2.54       0.00       0.00       0.00
+   S3  1.00    102.3       -9.5      33.6        -9.9         -12.2           -30.1         -9.7        -16.8      45.74       1.57       0.03       0.00
+   S4  0.25     17.3       -2.8       6.6        -1.9          -4.6            -7.8         -2.5         -4.2       0.00       0.00       0.00       0.00
+   S4  0.50     37.2       -5.5      13.5        -3.7          -9.0           -15.1         -4.9         -8.2       1.24       0.00       0.00       0.00
+   S4  1.00     86.1      -10.8      28.0        -7.4         -17.7           -28.0         -9.6        -16.1      44.20       0.86       0.01       0.00
+   S5  0.25     18.9       -2.4       7.2        -5.3          -2.1            -5.2         -2.7         -5.7       0.11       0.00       0.00       0.00
+   S5  0.50     41.0       -4.8      14.7       -10.4          -4.3           -10.2         -5.2        -11.1       8.41       0.14       0.00       0.00
+   S5  1.00     96.0       -9.4      30.4       -19.8          -9.1           -19.6        -10.4        -21.5      53.57       7.38       0.52       0.00
+P_A10  0.25    619.9       -7.3     111.8        -8.0           0.2           -21.1         -6.7        -10.5       7.16       0.01       0.00       0.00
+P_A10  0.50   4611.7      -14.1     330.1       -15.5          -2.8           -38.4        -13.0        -19.9      79.29       4.88       0.12       0.00
+P_A10  1.00 154551.4      -26.7    1468.7       -29.3         -17.1           -63.6        -24.7        -37.0      99.98      75.93      20.00       0.19
+ P_C5  0.25    146.8       -3.5      43.8        -3.4         -16.0           -20.0         -2.9         -4.5       0.00       0.00       0.00       0.00
+ P_C5  0.50    496.3       -6.9     104.4        -6.8         -30.1           -36.5         -5.9         -9.0       2.20       0.00       0.00       0.00
+ P_C5  1.00   3165.0      -13.6     299.1       -13.2         -53.2           -60.9        -11.5        -17.3      76.16       1.28       0.00       0.00
+ P_A3  0.25     77.6       -3.3      32.3        -3.1         -12.6           -17.4         -3.0         -4.9       0.00       0.00       0.00       0.00
+ P_A3  0.50    210.4       -6.4      73.6        -6.2         -24.1           -32.1         -6.1         -9.7       3.97       0.01       0.00       0.00
+ P_A3  1.00    805.7      -12.6     191.3       -12.0         -43.8           -54.6        -11.8        -18.7      72.47       2.97       0.02       0.00
+
+legend:
+S1 = MAJ[('D1', 'stoch5_KD', True)|('M15', 'HMAcross5_10', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H4 TR1
+S2 = BOTH[('M15', 'HMAcross5_10', True)|('M30', 'MACD5_35_hslope', True)] SL=2xATR_H4 TR1_TP3
+S3 = MAJ[('M5', 'HMAcross5_20', True)|('M15', 'MACD12_26_hslope', True)|('M30', 'HMAcross20_100', False)] SL=1xATR_D1 TR1_TP3
+S4 = ALL[('M15', 'MACD12_26_hslope', True)|('M5', 'RSI5_zone80', True)|('M30', 'px_vs_HMA5', True)] SL=1xATR_D1 TR1_TP3
+S5 = MAJ[('D1', 'stoch5_KD', True)|('M5', 'HMAcross5_10', True)|('H1', 'aroon14', False)] SL=2xATR_H4 TR1
+P_A10:
+    MAJ[('D1', 'stoch5_KD', True)|('M15', 'HMAcross5_10', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H4 TR1
+    BOTH[('M15', 'HMAcross5_10', True)|('M30', 'MACD5_35_hslope', True)] SL=2xATR_H4 TR1_TP3
+    MAJ[('M5', 'HMAcross5_20', True)|('M15', 'MACD12_26_hslope', True)|('M30', 'HMAcross20_100', False)] SL=1xATR_D1 TR1_TP3
+    ALL[('M15', 'MACD12_26_hslope', True)|('M5', 'RSI5_zone80', True)|('M30', 'px_vs_HMA5', True)] SL=1xATR_D1 TR1_TP3
+    ALL[('H1', 'MACD5_35_hslope', True)|('M30', 'MACD5_35_hslope', True)|('M15', 'px_vs_HMA50', True)] SL=2xATR_H4 TR1_TP3
+    AGREE_else_fadeHTF[('D1', 'stoch5_KD', True)|('M5', 'RSI5_zone80', True)|('H1', 'stoch14_zone', True)]~inv SL=2xATR_H1 TP2
+    MAJ[('H4', 'HMAcross10_50', True)|('H1', 'MACD5_35_hslope', True)|('M30', 'HMAcross20_100', False)] SL=2xATR_H4 TP1.5
+    MAJ[('H4', 'stoch5_KD', False)|('H1', 'MACD5_35_hslope', True)|('M30', 'HMAcross20_100', False)] SL=3xATR_H1 TP1.5
+    AGREE_else_fadeHTF[('H4', 'MACD5_35_hist', True)|('H1', 'HMAcross50_200', True)|('M30', 'px_vs_HMA5', True)] SL=2xATR_H4 TP1
+    MAJ[('M5', 'HMAcross5_10', True)|('D1', 'stoch50_KD', True)|('M30', 'px_vs_HMA5', True)] SL=1xATR_D1 TR1_TP3
+P_C5:
+    MAJ[('D1', 'stoch5_KD', True)|('M15', 'HMAcross5_10', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H4 TR1
+    AGREE_else_fadeHTF[('H4', 'MACD5_35_hist', True)|('H1', 'HMAcross50_200', True)|('M30', 'px_vs_HMA5', True)] SL=2xATR_H4 TP1
+    MAJ[('H4', 'stoch5_KD', False)|('M5', 'HMAcross5_20', True)|('D1', 'px_vs_HMA10', True)] SL=1xATR_D1 TP1
+    MAJ[('M5', 'HMAcross5_20', True)|('M15', 'MACD12_26_hslope', True)|('M30', 'HMAcross20_100', False)] SL=1xATR_D1 TR1_TP3
+    BOTH[('M15', 'HMAcross5_10', True)|('M30', 'MACD5_35_hslope', True)] SL=2xATR_H4 TR1_TP3
+P_A3:
+    MAJ[('D1', 'stoch5_KD', True)|('M15', 'HMAcross5_10', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H4 TR1
+    BOTH[('M15', 'HMAcross5_10', True)|('M30', 'MACD5_35_hslope', True)] SL=2xATR_H4 TR1_TP3
+    MAJ[('M5', 'HMAcross5_20', True)|('M15', 'MACD12_26_hslope', True)|('M30', 'HMAcross20_100', False)] SL=1xATR_D1 TR1_TP3

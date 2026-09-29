@@ -1,0 +1,48 @@
+tables 2xATR_M15 25s
+tables 1xATR_H1 30s
+tables 2xATR_H1 40s
+tables 3xATR_H1 58s
+tables 1xATR_H4 68s
+tables 2xATR_H4 96s
+tables 1xATR_D1 132s
+singles done 55440 170s
+       tf               sig    inv    IS_sqn
+331    H1   MACD3_10_hslope   True  2.765149
+219    D1        px_vs_SMA5   True  2.602018
+565    H4     HMAcross10_50   True  2.566315
+237    D1         stoch5_KD   True  2.466047
+225    D1        stoch14_KD   True  2.460670
+587    H4    MACD12_26_hist   True  2.456447
+764    H4         stoch5_KD  False  2.323790
+337    H1   MACD5_35_hslope   True  2.300825
+593    H4     MACD3_10_hist   True  2.268208
+1507   M5       px_vs_HMA10   True  2.251022
+1365   M5      HMAcross5_20   True  2.212521
+599    H4     MACD5_35_hist   True  2.200803
+853   M15  MACD12_26_hslope   True  2.177651
+835   M15      HMAcross5_10   True  2.128169
+1096  M30    HMAcross50_200  False  2.113091
+305    H1    HMAcross50_200   True  2.103314
+1493   M5          psar0.04   True  2.100798
+1429   M5       RSI5_zone80   True  2.100733
+1363   M5      HMAcross5_10   True  2.075922
+491    H1      stoch14_zone   True  2.034846
+231    D1        stoch50_KD   True  2.010320
+187    D1       px_vs_HMA10   True  2.009454
+1129  M30   MACD5_35_hslope   True  1.927389
+1251  M30        px_vs_HMA5   True  1.900782
+989   M15       px_vs_HMA50   True  1.890531
+911   M15    SMAcross50_200   True  1.864715
+1094  M30    HMAcross20_100  False  1.864448
+1173  M30    SMAcross20_100   True  1.846132
+394    H1           aroon14  False  1.802311
+953   M15          linreg10   True  1.787956
+IS 2000 246s
+IS 4000 320s
+IS 6000 395s
+IS 8000 466s
+VAL 2000 510s
+VAL 4000 545s
+VAL 6000 580s
+VAL 8000 614s
+mtf done 577500 621s

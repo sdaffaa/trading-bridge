@@ -1,0 +1,74 @@
+{
+ "A3": [
+  "MAJ[('D1', 'stoch5_KD', True)|('M15', 'HMAcross5_10', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H4 TR1",
+  "BOTH[('M15', 'HMAcross5_10', True)|('M30', 'MACD5_35_hslope', True)] SL=2xATR_H4 TR1_TP3",
+  "MAJ[('M5', 'HMAcross5_20', True)|('M15', 'MACD12_26_hslope', True)|('M30', 'HMAcross20_100', False)] SL=1xATR_D1 TR1_TP3"
+ ],
+ "B3": [
+  "MAJ[('D1', 'stoch5_KD', True)|('M15', 'HMAcross5_10', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H4 TR1",
+  "AGREE_else_fadeHTF[('D1', 'px_vs_SMA5', True)|('H4', 'stoch5_KD', False)|('M30', 'SMAcross20_100', True)] SL=2xATR_H4 TP1.5",
+  "MAJ[('H4', 'stoch5_KD', False)|('M5', 'HMAcross5_20', True)|('D1', 'px_vs_HMA10', True)] SL=1xATR_D1 TP1"
+ ],
+ "C3": [
+  "MAJ[('D1', 'stoch5_KD', True)|('M15', 'HMAcross5_10', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H4 TR1",
+  "AGREE_else_fadeHTF[('H4', 'MACD5_35_hist', True)|('H1', 'HMAcross50_200', True)|('M30', 'px_vs_HMA5', True)] SL=2xATR_H4 TP1",
+  "MAJ[('H4', 'stoch5_KD', False)|('M5', 'HMAcross5_20', True)|('D1', 'px_vs_HMA10', True)] SL=1xATR_D1 TP1"
+ ],
+ "A5": [
+  "MAJ[('D1', 'stoch5_KD', True)|('M15', 'HMAcross5_10', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H4 TR1",
+  "BOTH[('M15', 'HMAcross5_10', True)|('M30', 'MACD5_35_hslope', True)] SL=2xATR_H4 TR1_TP3",
+  "MAJ[('M5', 'HMAcross5_20', True)|('M15', 'MACD12_26_hslope', True)|('M30', 'HMAcross20_100', False)] SL=1xATR_D1 TR1_TP3",
+  "ALL[('M15', 'MACD12_26_hslope', True)|('M5', 'RSI5_zone80', True)|('M30', 'px_vs_HMA5', True)] SL=1xATR_D1 TR1_TP3",
+  "ALL[('H1', 'MACD5_35_hslope', True)|('M30', 'MACD5_35_hslope', True)|('M15', 'px_vs_HMA50', True)] SL=2xATR_H4 TR1_TP3"
+ ],
+ "B5": [
+  "MAJ[('D1', 'stoch5_KD', True)|('M15', 'HMAcross5_10', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H4 TR1",
+  "AGREE_else_fadeHTF[('D1', 'px_vs_SMA5', True)|('H4', 'stoch5_KD', False)|('M30', 'SMAcross20_100', True)] SL=2xATR_H4 TP1.5",
+  "MAJ[('H4', 'stoch5_KD', False)|('M5', 'HMAcross5_20', True)|('D1', 'px_vs_HMA10', True)] SL=1xATR_D1 TP1",
+  "AGREE_else_fadeHTF[('H4', 'MACD5_35_hist', True)|('H1', 'HMAcross50_200', True)|('M30', 'px_vs_HMA5', True)] SL=2xATR_H4 TP1",
+  "MAJ[('H4', 'MACD3_10_hist', True)|('M5', 'HMAcross5_20', True)|('M30', 'px_vs_HMA5', True)] SL=1xATR_D1 TR1_TP3"
+ ],
+ "C5": [
+  "MAJ[('D1', 'stoch5_KD', True)|('M15', 'HMAcross5_10', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H4 TR1",
+  "AGREE_else_fadeHTF[('H4', 'MACD5_35_hist', True)|('H1', 'HMAcross50_200', True)|('M30', 'px_vs_HMA5', True)] SL=2xATR_H4 TP1",
+  "MAJ[('H4', 'stoch5_KD', False)|('M5', 'HMAcross5_20', True)|('D1', 'px_vs_HMA10', True)] SL=1xATR_D1 TP1",
+  "MAJ[('M5', 'HMAcross5_20', True)|('M15', 'MACD12_26_hslope', True)|('M30', 'HMAcross20_100', False)] SL=1xATR_D1 TR1_TP3",
+  "BOTH[('M15', 'HMAcross5_10', True)|('M30', 'MACD5_35_hslope', True)] SL=2xATR_H4 TR1_TP3"
+ ],
+ "A10": [
+  "MAJ[('D1', 'stoch5_KD', True)|('M15', 'HMAcross5_10', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H4 TR1",
+  "BOTH[('M15', 'HMAcross5_10', True)|('M30', 'MACD5_35_hslope', True)] SL=2xATR_H4 TR1_TP3",
+  "MAJ[('M5', 'HMAcross5_20', True)|('M15', 'MACD12_26_hslope', True)|('M30', 'HMAcross20_100', False)] SL=1xATR_D1 TR1_TP3",
+  "ALL[('M15', 'MACD12_26_hslope', True)|('M5', 'RSI5_zone80', True)|('M30', 'px_vs_HMA5', True)] SL=1xATR_D1 TR1_TP3",
+  "ALL[('H1', 'MACD5_35_hslope', True)|('M30', 'MACD5_35_hslope', True)|('M15', 'px_vs_HMA50', True)] SL=2xATR_H4 TR1_TP3",
+  "AGREE_else_fadeHTF[('D1', 'stoch5_KD', True)|('M5', 'RSI5_zone80', True)|('H1', 'stoch14_zone', True)]~inv SL=2xATR_H1 TP2",
+  "MAJ[('H4', 'HMAcross10_50', True)|('H1', 'MACD5_35_hslope', True)|('M30', 'HMAcross20_100', False)] SL=2xATR_H4 TP1.5",
+  "MAJ[('H4', 'stoch5_KD', False)|('H1', 'MACD5_35_hslope', True)|('M30', 'HMAcross20_100', False)] SL=3xATR_H1 TP1.5",
+  "AGREE_else_fadeHTF[('H4', 'MACD5_35_hist', True)|('H1', 'HMAcross50_200', True)|('M30', 'px_vs_HMA5', True)] SL=2xATR_H4 TP1",
+  "MAJ[('M5', 'HMAcross5_10', True)|('D1', 'stoch50_KD', True)|('M30', 'px_vs_HMA5', True)] SL=1xATR_D1 TR1_TP3"
+ ],
+ "B10": [
+  "MAJ[('D1', 'stoch5_KD', True)|('M15', 'HMAcross5_10', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H4 TR1",
+  "AGREE_else_fadeHTF[('D1', 'px_vs_SMA5', True)|('H4', 'stoch5_KD', False)|('M30', 'SMAcross20_100', True)] SL=2xATR_H4 TP1.5",
+  "MAJ[('H4', 'stoch5_KD', False)|('M5', 'HMAcross5_20', True)|('D1', 'px_vs_HMA10', True)] SL=1xATR_D1 TP1",
+  "AGREE_else_fadeHTF[('H4', 'MACD5_35_hist', True)|('H1', 'HMAcross50_200', True)|('M30', 'px_vs_HMA5', True)] SL=2xATR_H4 TP1",
+  "MAJ[('H4', 'MACD3_10_hist', True)|('M5', 'HMAcross5_20', True)|('M30', 'px_vs_HMA5', True)] SL=1xATR_D1 TR1_TP3",
+  "MAJ[('H4', 'stoch5_KD', False)|('M30', 'px_vs_HMA5', True)|('M15', 'SMAcross50_200', True)] SL=3xATR_H1 TP1.5",
+  "MAJ[('H4', 'HMAcross10_50', True)|('H1', 'MACD5_35_hslope', True)|('M30', 'HMAcross20_100', False)] SL=2xATR_H4 TP1.5",
+  "ALL[('H1', 'MACD5_35_hslope', True)|('M15', 'HMAcross5_10', True)|('M30', 'MACD5_35_hslope', True)] SL=2xATR_H4 TR1_TP3",
+  "ALL[('D1', 'stoch5_KD', True)|('H4', 'MACD12_26_hist', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H1 TP2",
+  "MAJ[('H4', 'stoch5_KD', False)|('M15', 'MACD12_26_hslope', True)|('M30', 'HMAcross50_200', False)] SL=3xATR_H1 TP2"
+ ],
+ "C10": [
+  "MAJ[('D1', 'stoch5_KD', True)|('M15', 'HMAcross5_10', True)|('M30', 'HMAcross50_200', False)] SL=2xATR_H4 TR1",
+  "AGREE_else_fadeHTF[('H4', 'MACD5_35_hist', True)|('H1', 'HMAcross50_200', True)|('M30', 'px_vs_HMA5', True)] SL=2xATR_H4 TP1",
+  "MAJ[('H4', 'stoch5_KD', False)|('M5', 'HMAcross5_20', True)|('D1', 'px_vs_HMA10', True)] SL=1xATR_D1 TP1",
+  "MAJ[('M5', 'HMAcross5_20', True)|('M15', 'MACD12_26_hslope', True)|('M30', 'HMAcross20_100', False)] SL=1xATR_D1 TR1_TP3",
+  "BOTH[('M15', 'HMAcross5_10', True)|('M30', 'MACD5_35_hslope', True)] SL=2xATR_H4 TR1_TP3",
+  "MAJ[('H4', 'HMAcross10_50', True)|('H1', 'MACD5_35_hslope', True)|('M30', 'HMAcross20_100', False)] SL=2xATR_H4 TP1.5",
+  "AGREE_else_fadeHTF[('D1', 'px_vs_SMA5', True)|('H4', 'stoch5_KD', False)|('M30', 'SMAcross20_100', True)] SL=2xATR_H4 TP1.5",
+  "MAJ[('H4', 'stoch5_KD', False)|('M30', 'px_vs_HMA5', True)|('M15', 'SMAcross50_200', True)] SL=3xATR_H1 TP1.5",
+  "ALL[('D1', 'stoch5_KD', True)|('M30', 'HMAcross50_200', False)|('M5', 'RSI5_zone80', True)] SL=3xATR_H1 TR1",
+  "MAJ[('H4', 'stoch5_KD', False)|('M15', 'MACD12_26_hslope', True)|('M30', 'HMAcross50_200', False)] SL=3xATR_H1 TP2"
+ ]
+}
