@@ -1,0 +1,81 @@
+barrier-momentum | 0.5xATRh1                  IS n= 36452 wr= 41.03 | VAL n= 19062 wr= 41.65
+barrier-reversion | 0.5xATRh1                 IS n= 35761 wr= 43.44 | VAL n= 18669 wr= 43.26
+win-stay/lose-shift | 0.5xATRh1               IS n= 36452 wr= 41.03 | VAL n= 19062 wr= 41.65
+win-shift/lose-stay | 0.5xATRh1               IS n= 35761 wr= 43.44 | VAL n= 18669 wr= 43.26
+follow, fade after k k=2 | 0.5xATRh1          IS n= 35901 wr= 42.53 | VAL n= 18928 wr= 42.51
+follow, fade after k k=3 | 0.5xATRh1          IS n= 36336 wr= 41.73 | VAL n= 19051 wr= 42.12
+follow, fade after k k=4 | 0.5xATRh1          IS n= 36299 wr= 41.43 | VAL n= 19045 wr= 42.00
+fade, follow after k k=2 | 0.5xATRh1          IS n= 35977 wr= 42.03 | VAL n= 18858 wr= 42.35
+fade, follow after k k=3 | 0.5xATRh1          IS n= 35976 wr= 42.73 | VAL n= 18803 wr= 42.81
+fade, follow after k k=4 | 0.5xATRh1          IS n= 35906 wr= 43.05 | VAL n= 18885 wr= 42.94
+barrier-momentum | 1xATRh1                    IS n=  9189 wr= 45.84 | VAL n=  4926 wr= 45.86
+barrier-reversion | 1xATRh1                   IS n=  9168 wr= 46.67 | VAL n=  4930 wr= 47.04
+win-stay/lose-shift | 1xATRh1                 IS n=  9189 wr= 45.84 | VAL n=  4926 wr= 45.86
+win-shift/lose-stay | 1xATRh1                 IS n=  9168 wr= 46.67 | VAL n=  4930 wr= 47.04
+follow, fade after k k=2 | 1xATRh1            IS n=  9300 wr= 46.02 | VAL n=  4895 wr= 47.13
+follow, fade after k k=3 | 1xATRh1            IS n=  9256 wr= 45.42 | VAL n=  4894 wr= 46.47
+follow, fade after k k=4 | 1xATRh1            IS n=  9228 wr= 46.15 | VAL n=  4905 wr= 47.03
+fade, follow after k k=2 | 1xATRh1            IS n=  9222 wr= 46.54 | VAL n=  4879 wr= 45.95
+fade, follow after k k=3 | 1xATRh1            IS n=  9201 wr= 46.69 | VAL n=  4882 wr= 46.58
+fade, follow after k k=4 | 1xATRh1            IS n=  9207 wr= 46.81 | VAL n=  4881 wr= 46.10
+barrier-momentum | 2xATRh1                    IS n=  2200 wr= 48.64 | VAL n=  1213 wr= 49.46
+barrier-reversion | 2xATRh1                   IS n=  2209 wr= 47.22 | VAL n=  1215 wr= 47.90
+win-stay/lose-shift | 2xATRh1                 IS n=  2200 wr= 48.64 | VAL n=  1213 wr= 49.46
+win-shift/lose-stay | 2xATRh1                 IS n=  2209 wr= 47.22 | VAL n=  1215 wr= 47.90
+follow, fade after k k=2 | 2xATRh1            IS n=  2221 wr= 46.83 | VAL n=  1251 wr= 47.88
+follow, fade after k k=3 | 2xATRh1            IS n=  2247 wr= 47.40 | VAL n=  1220 wr= 49.51
+follow, fade after k k=4 | 2xATRh1            IS n=  2195 wr= 48.34 | VAL n=  1206 wr= 50.08
+fade, follow after k k=2 | 2xATRh1            IS n=  2220 wr= 49.19 | VAL n=  1228 wr= 48.13
+fade, follow after k k=3 | 2xATRh1            IS n=  2177 wr= 47.50 | VAL n=  1228 wr= 49.27
+fade, follow after k k=4 | 2xATRh1            IS n=  2172 wr= 47.10 | VAL n=  1223 wr= 48.90
+barrier-momentum | 4xATRh1                    IS n=   501 wr= 52.30 | VAL n=   271 wr= 54.98
+barrier-reversion | 4xATRh1                   IS n=   503 wr= 45.53 | VAL n=   292 wr= 44.52
+win-stay/lose-shift | 4xATRh1                 IS n=   501 wr= 52.30 | VAL n=   271 wr= 54.98
+win-shift/lose-stay | 4xATRh1                 IS n=   503 wr= 45.53 | VAL n=   292 wr= 44.52
+follow, fade after k k=2 | 4xATRh1            IS n=   527 wr= 50.66 | VAL n=   289 wr= 45.67
+follow, fade after k k=3 | 4xATRh1            IS n=   531 wr= 50.28 | VAL n=   285 wr= 47.02
+follow, fade after k k=4 | 4xATRh1            IS n=   522 wr= 53.26 | VAL n=   283 wr= 49.82
+fade, follow after k k=2 | 4xATRh1            IS n=   539 wr= 47.50 | VAL n=   283 wr= 50.88
+fade, follow after k k=3 | 4xATRh1            IS n=   513 wr= 49.71 | VAL n=   299 wr= 48.49
+fade, follow after k k=4 | 4xATRh1            IS n=   520 wr= 46.54 | VAL n=   300 wr= 46.67
+barrier-momentum | 0.1%px                     IS n= 55614 wr= 40.68 | VAL n= 22359 wr= 42.87
+barrier-reversion | 0.1%px                    IS n= 54528 wr= 43.16 | VAL n= 21987 wr= 44.26
+win-stay/lose-shift | 0.1%px                  IS n= 55614 wr= 40.68 | VAL n= 22359 wr= 42.87
+win-shift/lose-stay | 0.1%px                  IS n= 54528 wr= 43.16 | VAL n= 21987 wr= 44.26
+follow, fade after k k=2 | 0.1%px             IS n= 54842 wr= 42.44 | VAL n= 22092 wr= 44.52
+follow, fade after k k=3 | 0.1%px             IS n= 55158 wr= 41.65 | VAL n= 22237 wr= 43.64
+follow, fade after k k=4 | 0.1%px             IS n= 55474 wr= 41.15 | VAL n= 22230 wr= 43.09
+fade, follow after k k=2 | 0.1%px             IS n= 55112 wr= 41.21 | VAL n= 22189 wr= 43.40
+fade, follow after k k=3 | 0.1%px             IS n= 54861 wr= 41.92 | VAL n= 22173 wr= 43.10
+fade, follow after k k=4 | 0.1%px             IS n= 54596 wr= 42.48 | VAL n= 22168 wr= 43.39
+barrier-momentum | 0.25%px                    IS n=  9894 wr= 45.86 | VAL n=  3947 wr= 47.02
+barrier-reversion | 0.25%px                   IS n=  9719 wr= 47.40 | VAL n=  3952 wr= 47.44
+win-stay/lose-shift | 0.25%px                 IS n=  9894 wr= 45.86 | VAL n=  3947 wr= 47.02
+win-shift/lose-stay | 0.25%px                 IS n=  9719 wr= 47.40 | VAL n=  3952 wr= 47.44
+follow, fade after k k=2 | 0.25%px            IS n=  9727 wr= 46.48 | VAL n=  3961 wr= 47.08
+follow, fade after k k=3 | 0.25%px            IS n=  9810 wr= 46.69 | VAL n=  3953 wr= 47.28
+follow, fade after k k=4 | 0.25%px            IS n=  9851 wr= 46.58 | VAL n=  3952 wr= 47.22
+fade, follow after k k=2 | 0.25%px            IS n=  9895 wr= 46.83 | VAL n=  3934 wr= 46.70
+fade, follow after k k=3 | 0.25%px            IS n=  9793 wr= 47.05 | VAL n=  3913 wr= 46.79
+fade, follow after k k=4 | 0.25%px            IS n=  9764 wr= 47.32 | VAL n=  3963 wr= 47.92
+barrier-momentum | 0.5%px                     IS n=  2546 wr= 49.02 | VAL n=  1066 wr= 48.97
+barrier-reversion | 0.5%px                    IS n=  2509 wr= 48.23 | VAL n=  1057 wr= 47.68
+win-stay/lose-shift | 0.5%px                  IS n=  2546 wr= 49.02 | VAL n=  1066 wr= 48.97
+win-shift/lose-stay | 0.5%px                  IS n=  2509 wr= 48.23 | VAL n=  1057 wr= 47.68
+follow, fade after k k=2 | 0.5%px             IS n=  2569 wr= 48.54 | VAL n=  1049 wr= 46.90
+follow, fade after k k=3 | 0.5%px             IS n=  2569 wr= 49.36 | VAL n=  1087 wr= 47.01
+follow, fade after k k=4 | 0.5%px             IS n=  2537 wr= 48.60 | VAL n=  1056 wr= 46.97
+fade, follow after k k=2 | 0.5%px             IS n=  2538 wr= 47.79 | VAL n=  1041 wr= 51.59
+fade, follow after k k=3 | 0.5%px             IS n=  2549 wr= 48.76 | VAL n=  1044 wr= 47.99
+fade, follow after k k=4 | 0.5%px             IS n=  2529 wr= 47.88 | VAL n=  1046 wr= 49.04
+                                  name   nIS   wrIS  nVAL  wrVAL
+36  follow, fade after k k=4 | 4xATRh1   522  53.26   283  49.82
+30          barrier-momentum | 4xATRh1   501  52.30   271  54.98
+32       win-stay/lose-shift | 4xATRh1   501  52.30   271  54.98
+34  follow, fade after k k=2 | 4xATRh1   527  50.66   289  45.67
+35  follow, fade after k k=3 | 4xATRh1   531  50.28   285  47.02
+38  fade, follow after k k=3 | 4xATRh1   513  49.71   299  48.49
+65   follow, fade after k k=3 | 0.5%px  2569  49.36  1087  47.01
+27  fade, follow after k k=2 | 2xATRh1  2220  49.19  1228  48.13
+62        win-stay/lose-shift | 0.5%px  2546  49.02  1066  48.97
+60           barrier-momentum | 0.5%px  2546  49.02  1066  48.97

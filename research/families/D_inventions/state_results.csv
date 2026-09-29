@@ -1,0 +1,71 @@
+name,nIS,wrIS,nVAL,wrVAL
+barrier-momentum | 0.5xATRh1,36452,41.03,19062,41.65
+barrier-reversion | 0.5xATRh1,35761,43.44,18669,43.26
+win-stay/lose-shift | 0.5xATRh1,36452,41.03,19062,41.65
+win-shift/lose-stay | 0.5xATRh1,35761,43.44,18669,43.26
+"follow, fade after k k=2 | 0.5xATRh1",35901,42.53,18928,42.51
+"follow, fade after k k=3 | 0.5xATRh1",36336,41.73,19051,42.12
+"follow, fade after k k=4 | 0.5xATRh1",36299,41.43,19045,42.0
+"fade, follow after k k=2 | 0.5xATRh1",35977,42.03,18858,42.35
+"fade, follow after k k=3 | 0.5xATRh1",35976,42.73,18803,42.81
+"fade, follow after k k=4 | 0.5xATRh1",35906,43.05,18885,42.94
+barrier-momentum | 1xATRh1,9189,45.84,4926,45.86
+barrier-reversion | 1xATRh1,9168,46.67,4930,47.04
+win-stay/lose-shift | 1xATRh1,9189,45.84,4926,45.86
+win-shift/lose-stay | 1xATRh1,9168,46.67,4930,47.04
+"follow, fade after k k=2 | 1xATRh1",9300,46.02,4895,47.13
+"follow, fade after k k=3 | 1xATRh1",9256,45.42,4894,46.47
+"follow, fade after k k=4 | 1xATRh1",9228,46.15,4905,47.03
+"fade, follow after k k=2 | 1xATRh1",9222,46.54,4879,45.95
+"fade, follow after k k=3 | 1xATRh1",9201,46.69,4882,46.58
+"fade, follow after k k=4 | 1xATRh1",9207,46.81,4881,46.1
+barrier-momentum | 2xATRh1,2200,48.64,1213,49.46
+barrier-reversion | 2xATRh1,2209,47.22,1215,47.9
+win-stay/lose-shift | 2xATRh1,2200,48.64,1213,49.46
+win-shift/lose-stay | 2xATRh1,2209,47.22,1215,47.9
+"follow, fade after k k=2 | 2xATRh1",2221,46.83,1251,47.88
+"follow, fade after k k=3 | 2xATRh1",2247,47.4,1220,49.51
+"follow, fade after k k=4 | 2xATRh1",2195,48.34,1206,50.08
+"fade, follow after k k=2 | 2xATRh1",2220,49.19,1228,48.13
+"fade, follow after k k=3 | 2xATRh1",2177,47.5,1228,49.27
+"fade, follow after k k=4 | 2xATRh1",2172,47.1,1223,48.9
+barrier-momentum | 4xATRh1,501,52.3,271,54.98
+barrier-reversion | 4xATRh1,503,45.53,292,44.52
+win-stay/lose-shift | 4xATRh1,501,52.3,271,54.98
+win-shift/lose-stay | 4xATRh1,503,45.53,292,44.52
+"follow, fade after k k=2 | 4xATRh1",527,50.66,289,45.67
+"follow, fade after k k=3 | 4xATRh1",531,50.28,285,47.02
+"follow, fade after k k=4 | 4xATRh1",522,53.26,283,49.82
+"fade, follow after k k=2 | 4xATRh1",539,47.5,283,50.88
+"fade, follow after k k=3 | 4xATRh1",513,49.71,299,48.49
+"fade, follow after k k=4 | 4xATRh1",520,46.54,300,46.67
+barrier-momentum | 0.1%px,55614,40.68,22359,42.87
+barrier-reversion | 0.1%px,54528,43.16,21987,44.26
+win-stay/lose-shift | 0.1%px,55614,40.68,22359,42.87
+win-shift/lose-stay | 0.1%px,54528,43.16,21987,44.26
+"follow, fade after k k=2 | 0.1%px",54842,42.44,22092,44.52
+"follow, fade after k k=3 | 0.1%px",55158,41.65,22237,43.64
+"follow, fade after k k=4 | 0.1%px",55474,41.15,22230,43.09
+"fade, follow after k k=2 | 0.1%px",55112,41.21,22189,43.4
+"fade, follow after k k=3 | 0.1%px",54861,41.92,22173,43.1
+"fade, follow after k k=4 | 0.1%px",54596,42.48,22168,43.39
+barrier-momentum | 0.25%px,9894,45.86,3947,47.02
+barrier-reversion | 0.25%px,9719,47.4,3952,47.44
+win-stay/lose-shift | 0.25%px,9894,45.86,3947,47.02
+win-shift/lose-stay | 0.25%px,9719,47.4,3952,47.44
+"follow, fade after k k=2 | 0.25%px",9727,46.48,3961,47.08
+"follow, fade after k k=3 | 0.25%px",9810,46.69,3953,47.28
+"follow, fade after k k=4 | 0.25%px",9851,46.58,3952,47.22
+"fade, follow after k k=2 | 0.25%px",9895,46.83,3934,46.7
+"fade, follow after k k=3 | 0.25%px",9793,47.05,3913,46.79
+"fade, follow after k k=4 | 0.25%px",9764,47.32,3963,47.92
+barrier-momentum | 0.5%px,2546,49.02,1066,48.97
+barrier-reversion | 0.5%px,2509,48.23,1057,47.68
+win-stay/lose-shift | 0.5%px,2546,49.02,1066,48.97
+win-shift/lose-stay | 0.5%px,2509,48.23,1057,47.68
+"follow, fade after k k=2 | 0.5%px",2569,48.54,1049,46.9
+"follow, fade after k k=3 | 0.5%px",2569,49.36,1087,47.01
+"follow, fade after k k=4 | 0.5%px",2537,48.6,1056,46.97
+"fade, follow after k k=2 | 0.5%px",2538,47.79,1041,51.59
+"fade, follow after k k=3 | 0.5%px",2549,48.76,1044,47.99
+"fade, follow after k k=4 | 0.5%px",2529,47.88,1046,49.04

@@ -33,8 +33,8 @@ WARM0 = idx_of("2020-01-01")   # only warm-up data before IS start is ever touch
 @njit(cache=True)
 def _tables(o, h, l, dist, spread, i0, i1):
     n = len(o)
-    wl = np.zeros(n, np.int8); el = np.full(n, -1, np.int64)
-    ws = np.zeros(n, np.int8); es = np.full(n, -1, np.int64)
+    wl = np.zeros(n, np.int8); el = np.full(n, -1, np.int32)
+    ws = np.zeros(n, np.int8); es = np.full(n, -1, np.int32)
     for i in range(i0, i1):
         d = dist[i]
         if not (d > 0):
@@ -97,6 +97,13 @@ def quick(dirs, tb, start=IS0, stop=VAL1):
     """IS and VAL (n, wr) for a direction array under tables tb (no HOLDOUT)."""
     ent, ex, res, side = walk(np.asarray(dirs, np.float64), *tb, start, stop)
     return wr_split(ent, res, IS0, IS1, VAL0, VAL1)
+
+
+def run_sel(dirs, dist):
+    """Harness run restricted to warm-up..VAL end (selection use; never sees HOLDOUT)."""
+    d = np.asarray(dirs, np.float64).copy(); d[:WARM0] = 0; d[VAL1:] = 0
+    tr = H.run_consecutive(d, dist)
+    return tr, H.stats(tr, ("IS", "VAL"))
 
 
 def full_run(dirs, dist):

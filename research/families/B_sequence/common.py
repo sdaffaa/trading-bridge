@@ -10,8 +10,9 @@ M1 = load_m1()
 N = len(M1)
 O = M1.open.values; H = M1.high.values; L = M1.low.values; C = M1.close.values
 IDX = M1.index
-IS_END = int(np.searchsorted(IDX.values, np.datetime64("2020-01-01")))
-VAL_END = int(np.searchsorted(IDX.values, np.datetime64("2023-01-01")))
+_ss = lambda d: int(np.searchsorted(IDX.values, np.datetime64(d)))
+IS_START = _ss(PERIODS["IS"][0]); IS_END = _ss(PERIODS["IS"][1])
+VAL_END = _ss(PERIODS["VAL"][1]); HO_END = _ss(PERIODS["HOLDOUT"][1])
 
 
 def stop_configs():
@@ -50,9 +51,11 @@ def _labels(o, h, l, idx, dist, spread, maxscan):
     return lo, so
 
 
-def labels(dist, step=5, end=None, maxscan=20000):
+def labels(dist, step=5, start=None, end=None, maxscan=20000):
+    """labels on IS bars only (learning set)."""
+    start = IS_START if start is None else start
     end = IS_END if end is None else end
-    idx = np.arange(0, end, step, dtype=np.int64)
+    idx = np.arange(start, end, step, dtype=np.int64)
     lo, so = _labels(O, H, L, idx, dist, SPREAD, maxscan)
     return idx, lo, so
 
@@ -100,7 +103,7 @@ def quick(dirs, dist):
     """Fast IS/VAL/HOLDOUT (n, wr%) using harness _run (identical rules)."""
     ent, ex, res, side = _run(O, H, L, np.asarray(dirs, np.float64), np.asarray(dist, np.float64), SPREAD, 0)
     out = {}
-    for p, (a, b) in (("IS", (0, IS_END)), ("VAL", (IS_END, VAL_END)), ("HOLDOUT", (VAL_END, N))):
+    for p, (a, b) in (("IS", (IS_START, IS_END)), ("VAL", (IS_END, VAL_END)), ("HOLDOUT", (VAL_END, HO_END))):
         n, w = _wr_seg(ent, res, a, b)
         out[p] = (n, 100.0 * w / n if n else 0.0)
     return out

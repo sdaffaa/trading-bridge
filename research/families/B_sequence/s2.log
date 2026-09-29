@@ -1,0 +1,108 @@
+labels done
+M1_sign_N1
+M1_sign_N2
+M1_sign_N3
+M1_sign_N4
+M1_sign_N5
+M1_sign_N6
+M1_sign_N7
+M1_sign_N8
+M1_tri0.1_N1
+M1_tri0.1_N2
+M1_tri0.1_N3
+M1_tri0.1_N4
+M1_tri0.1_N5
+M1_tri0.1_N6
+M1_tri0.3_N1
+M1_tri0.3_N2
+M1_tri0.3_N3
+M1_tri0.3_N4
+M1_tri0.3_N5
+M1_tri0.3_N6
+M5_sign_N1
+M5_sign_N2
+M5_sign_N3
+M5_sign_N4
+M5_sign_N5
+M5_sign_N6
+M5_sign_N7
+M5_sign_N8
+M5_tri0.1_N1
+M5_tri0.1_N2
+M5_tri0.1_N3
+M5_tri0.1_N4
+M5_tri0.1_N5
+M5_tri0.1_N6
+M5_tri0.3_N1
+M5_tri0.3_N2
+M5_tri0.3_N3
+M5_tri0.3_N4
+M5_tri0.3_N5
+M5_tri0.3_N6
+M15_sign_N1
+M15_sign_N2
+M15_sign_N3
+M15_sign_N4
+M15_sign_N5
+M15_sign_N6
+M15_sign_N7
+M15_sign_N8
+M15_tri0.1_N1
+M15_tri0.1_N2
+M15_tri0.1_N3
+M15_tri0.1_N4
+M15_tri0.1_N5
+M15_tri0.1_N6
+M15_tri0.3_N1
+M15_tri0.3_N2
+M15_tri0.3_N3
+M15_tri0.3_N4
+M15_tri0.3_N5
+M15_tri0.3_N6
+H1_sign_N1
+H1_sign_N2
+H1_sign_N3
+H1_sign_N4
+H1_sign_N5
+H1_sign_N6
+H1_sign_N7
+H1_sign_N8
+H1_tri0.1_N1
+H1_tri0.1_N2
+H1_tri0.1_N3
+H1_tri0.1_N4
+H1_tri0.1_N5
+H1_tri0.1_N6
+H1_tri0.3_N1
+H1_tri0.3_N2
+H1_tri0.3_N3
+H1_tri0.3_N4
+H1_tri0.3_N5
+H1_tri0.3_N6
+5318 variants
+       family                  name       stop  is_n  is_wr  val_n  val_wr
+4408  pattern     H1_sign_N7_min200    1xATRD1   434  58.53    226   49.56
+4410  pattern    H1_sign_N7_min1000    1xATRD1   434  58.53    226   49.56
+4812  pattern   H1_tri0.1_N5_min200    1xATRD1   433  57.51    227   50.66
+5286  pattern   H1_tri0.3_N6_min200    1xATRD1   447  55.26    224   54.02
+3122  pattern    M15_sign_N8_min200    1xATRD1   436  55.05    224   45.98
+4880  pattern   H1_tri0.1_N6_min200    1xATRD1   429  55.01    219   51.60
+4476  pattern     H1_sign_N8_min200    1xATRD1   426  54.23    221   50.68
+4468  pattern     H1_sign_N8_min200    3xATRH1   976  54.00    547   47.90
+1784  pattern     M5_sign_N8_min200    1xATRD1   422  53.79    224   53.57
+2918  pattern    M15_sign_N5_min200    1xATRD1   433  53.35    226   50.00
+2920  pattern   M15_sign_N5_min1000    1xATRD1   433  53.35    226   50.00
+4342  pattern    H1_sign_N6_min1000    1xATRD1   428  53.04    224   53.12
+4340  pattern     H1_sign_N6_min200    1xATRD1   428  53.04    224   53.12
+4872  pattern   H1_tri0.1_N6_min200    3xATRH1   960  53.02    511   53.42
+4814  pattern  H1_tri0.1_N5_min1000    1xATRD1   430  53.02    230   52.17
+5282  pattern   H1_tri0.3_N6_min200  0.5xATRD1  1689  52.93    847   48.41
+5144  pattern  H1_tri0.3_N4_min1000    3xATRH1   945  52.91    525   51.05
+5142  pattern   H1_tri0.3_N4_min200    3xATRH1   945  52.91    525   51.05
+2986  pattern    M15_sign_N6_min200    1xATRD1   445  52.81    215   49.77
+2988  pattern   M15_sign_N6_min1000    1xATRD1   445  52.81    215   49.77
+5146  pattern   H1_tri0.3_N4_min200  0.5xATRD1  1740  52.76    848   48.11
+5148  pattern  H1_tri0.3_N4_min1000  0.5xATRD1  1740  52.76    848   48.11
+5210  pattern   H1_tri0.3_N5_min200    3xATRH1   969  52.73    525   49.71
+4876  pattern   H1_tri0.1_N6_min200  0.5xATRD1  1687  52.70    849   49.12
+3932  pattern  M15_tri0.3_N6_min200    1xATRD1   435  52.64    224   55.36

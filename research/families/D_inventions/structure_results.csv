@@ -1,0 +1,287 @@
+name,nIS,wrIS,nVAL,wrVAL
+prevday toward-nearer dist=near(floor0.5ATR),4087,44.46,1866,42.55
+prevday away-from-nearer dist=near(floor0.5ATR),4253,43.64,2169,43.66
+prevday toward-farther dist=far(floor0.5ATR),1446,45.64,1497,44.69
+prevday away-from-farther dist=far(floor0.5ATR),1158,42.06,1439,42.67
+prevday toward-nearer dist=near(floor1.0ATR),1681,45.98,661,44.18
+prevday away-from-nearer dist=near(floor1.0ATR),1570,47.39,753,49.4
+prevday toward-farther dist=far(floor1.0ATR),634,47.16,618,48.71
+prevday away-from-farther dist=far(floor1.0ATR),697,46.05,587,44.29
+prevday toward-nearer dist=near(floor2.0ATR),625,49.28,342,44.44
+prevday away-from-nearer dist=near(floor2.0ATR),684,48.83,320,53.12
+prevday toward-farther dist=far(floor2.0ATR),447,51.23,364,52.2
+prevday away-from-farther dist=far(floor2.0ATR),434,47.93,333,46.25
+dayHL toward-nearer dist=near(floor0.5ATR),10324,43.73,5389,43.64
+dayHL away-from-nearer dist=near(floor0.5ATR),11325,44.15,5953,44.48
+dayHL toward-farther dist=far(floor0.5ATR),354,48.02,195,43.08
+dayHL away-from-farther dist=far(floor0.5ATR),424,46.7,229,52.84
+dayHL toward-nearer dist=near(floor1.0ATR),5586,46.4,2900,45.76
+dayHL away-from-nearer dist=near(floor1.0ATR),5719,47.19,2876,47.04
+dayHL toward-farther dist=far(floor1.0ATR),355,47.89,209,44.98
+dayHL away-from-farther dist=far(floor1.0ATR),438,45.89,218,52.29
+dayHL toward-nearer dist=near(floor2.0ATR),2037,48.5,991,50.35
+dayHL away-from-nearer dist=near(floor2.0ATR),2006,46.41,1003,47.66
+dayHL toward-farther dist=far(floor2.0ATR),301,46.18,167,44.91
+dayHL away-from-farther dist=far(floor2.0ATR),332,49.4,229,51.09
+fractalH1 toward-nearer dist=near(floor0.5ATR),6175,43.72,2367,43.9
+fractalH1 away-from-nearer dist=near(floor0.5ATR),6722,43.93,3288,43.95
+fractalH1 toward-farther dist=far(floor0.5ATR),2220,44.19,1319,44.58
+fractalH1 away-from-farther dist=far(floor0.5ATR),2367,44.91,1382,42.91
+fractalH1 toward-nearer dist=near(floor1.0ATR),2416,46.73,1122,45.45
+fractalH1 away-from-nearer dist=near(floor1.0ATR),2534,46.76,1291,49.57
+fractalH1 toward-farther dist=far(floor1.0ATR),1308,47.02,855,45.73
+fractalH1 away-from-farther dist=far(floor1.0ATR),1333,47.56,733,48.7
+fractalH1 toward-nearer dist=near(floor2.0ATR),1027,49.27,499,45.09
+fractalH1 away-from-nearer dist=near(floor2.0ATR),1017,48.28,424,52.12
+fractalH1 toward-farther dist=far(floor2.0ATR),766,48.17,543,51.38
+fractalH1 away-from-farther dist=far(floor2.0ATR),834,48.32,505,46.93
+asia toward-nearer dist=near(floor0.5ATR),9736,44.01,4059,43.16
+asia away-from-nearer dist=near(floor0.5ATR),10242,43.8,4440,42.95
+asia toward-farther dist=far(floor0.5ATR),4005,43.95,2631,44.62
+asia away-from-farther dist=far(floor0.5ATR),3685,43.8,3107,42.13
+asia toward-nearer dist=near(floor1.0ATR),3151,48.59,1501,46.3
+asia away-from-nearer dist=near(floor1.0ATR),3545,46.12,1466,44.75
+asia toward-farther dist=far(floor1.0ATR),1863,46.86,1133,48.46
+asia away-from-farther dist=far(floor1.0ATR),1895,47.97,1284,45.17
+asia toward-nearer dist=near(floor2.0ATR),1138,48.77,532,48.87
+asia away-from-nearer dist=near(floor2.0ATR),1204,49.0,541,50.46
+asia toward-farther dist=far(floor2.0ATR),895,49.27,583,53.86
+asia away-from-farther dist=far(floor2.0ATR),891,48.71,598,44.48
+round10 toward-nearer dist=near(floor0.5ATR),19945,43.9,10986,44.11
+round10 away-from-nearer dist=near(floor0.5ATR),21616,44.26,11661,44.64
+round10 toward-farther dist=far(floor0.5ATR),2889,47.32,1833,47.57
+round10 away-from-farther dist=far(floor0.5ATR),2736,48.43,1694,50.94
+round10 toward-nearer dist=near(floor1.0ATR),8366,46.8,4328,46.4
+round10 away-from-nearer dist=near(floor1.0ATR),8458,46.24,4404,47.93
+round10 toward-farther dist=far(floor1.0ATR),2735,47.17,1708,48.65
+round10 away-from-farther dist=far(floor1.0ATR),2588,48.42,1616,50.8
+round10 toward-nearer dist=near(floor2.0ATR),2227,48.32,1217,49.47
+round10 away-from-nearer dist=near(floor2.0ATR),2217,47.54,1185,46.84
+round10 toward-farther dist=far(floor2.0ATR),1818,49.23,990,48.48
+round10 away-from-farther dist=far(floor2.0ATR),1794,48.94,977,49.95
+round50 toward-nearer dist=near(floor0.5ATR),4079,44.4,2055,44.57
+round50 away-from-nearer dist=near(floor0.5ATR),4636,45.97,2333,46.68
+round50 toward-farther dist=far(floor0.5ATR),114,48.25,75,44.0
+round50 away-from-farther dist=far(floor0.5ATR),113,54.87,72,47.22
+round50 toward-nearer dist=near(floor1.0ATR),2288,46.46,1157,45.03
+round50 away-from-nearer dist=near(floor1.0ATR),2429,47.43,1243,48.75
+round50 toward-farther dist=far(floor1.0ATR),114,48.25,75,44.0
+round50 away-from-farther dist=far(floor1.0ATR),113,54.87,72,47.22
+round50 toward-nearer dist=near(floor2.0ATR),1103,48.87,578,46.37
+round50 away-from-nearer dist=near(floor2.0ATR),1169,49.7,574,50.52
+round50 toward-farther dist=far(floor2.0ATR),114,48.25,75,44.0
+round50 away-from-farther dist=far(floor2.0ATR),112,56.25,72,47.22
+valueArea toward-nearer dist=near(floor0.5ATR),9060,44.07,3604,42.15
+valueArea away-from-nearer dist=near(floor0.5ATR),9075,43.79,3632,44.85
+valueArea toward-farther dist=far(floor0.5ATR),3594,44.07,3088,45.3
+valueArea away-from-farther dist=far(floor0.5ATR),3934,42.93,3055,42.32
+valueArea toward-nearer dist=near(floor1.0ATR),2868,46.65,1099,45.4
+valueArea away-from-nearer dist=near(floor1.0ATR),2859,46.1,1164,48.97
+valueArea toward-farther dist=far(floor1.0ATR),1595,46.46,1278,48.75
+valueArea away-from-farther dist=far(floor1.0ATR),1633,46.3,1042,46.64
+valueArea toward-nearer dist=near(floor2.0ATR),971,47.58,399,45.11
+valueArea away-from-nearer dist=near(floor2.0ATR),975,47.08,408,52.7
+valueArea toward-farther dist=far(floor2.0ATR),687,50.51,425,51.29
+valueArea away-from-farther dist=far(floor2.0ATR),675,46.96,462,46.75
+anyLevel toward-nearer dist=near(floor0.5ATR),30424,42.22,16033,42.92
+anyLevel away-from-nearer dist=near(floor0.5ATR),30710,43.42,15983,43.28
+anyLevel toward-farther dist=far(floor0.5ATR),7185,46.14,4115,46.25
+anyLevel away-from-farther dist=far(floor0.5ATR),5583,45.57,0,0.0
+anyLevel toward-nearer dist=near(floor1.0ATR),9123,45.6,4820,46.33
+anyLevel away-from-nearer dist=near(floor1.0ATR),9140,46.21,4803,47.49
+anyLevel toward-farther dist=far(floor1.0ATR),5408,47.32,2906,47.25
+anyLevel away-from-farther dist=far(floor1.0ATR),5208,47.56,2886,47.57
+anyLevel toward-nearer dist=near(floor2.0ATR),2209,48.94,1221,49.3
+anyLevel away-from-nearer dist=near(floor2.0ATR),2230,47.49,1242,47.5
+anyLevel toward-farther dist=far(floor2.0ATR),2089,47.68,1168,48.12
+anyLevel away-from-farther dist=far(floor2.0ATR),2007,48.98,1131,49.34
+POC toward dist=|c-POC|(floor0.5ATR),962,46.88,630,45.24
+POC away dist=|c-POC|(floor0.5ATR),1500,46.2,654,47.71
+POC toward dist=1xATR (floor0.5),9154,45.93,4893,45.33
+POC away dist=1xATR,9201,46.82,4824,47.18
+POC toward dist=2xATR (floor0.5),2231,47.65,1224,45.92
+POC away dist=2xATR,2211,48.35,1178,51.19
+"VA inside->toward POC, outside->continue dist=0.5xATR",36118,42.57,18923,43.26
+POC toward dist=|c-POC|(floor1.0ATR),733,47.07,310,43.55
+POC away dist=|c-POC|(floor1.0ATR),746,49.2,405,50.62
+POC toward dist=1xATR (floor1.0),9154,45.93,4893,45.33
+POC away dist=1xATR,9201,46.82,4824,47.18
+POC toward dist=2xATR (floor1.0),2231,47.65,1224,45.92
+POC away dist=2xATR,2211,48.35,1178,51.19
+"VA inside->toward POC, outside->continue dist=1.0xATR",9257,45.94,4835,47.26
+POC toward dist=|c-POC|(floor2.0ATR),351,44.73,199,42.21
+POC away dist=|c-POC|(floor2.0ATR),437,50.8,262,53.44
+POC toward dist=1xATR (floor2.0),9154,45.93,4893,45.33
+POC away dist=1xATR,9201,46.82,4824,47.18
+POC toward dist=2xATR (floor2.0),2231,47.65,1224,45.92
+POC away dist=2xATR,2211,48.35,1178,51.19
+"VA inside->toward POC, outside->continue dist=2.0xATR",2257,47.41,1226,48.86
+"Asia size x0.5, side = above-mid long",10878,45.97,5666,45.66
+"Asia size x0.5, side = above-mid short",10827,44.88,5784,44.69
+"Asia size x1.0, side = above-mid long",2633,48.8,1471,47.99
+"Asia size x1.0, side = above-mid short",2676,46.94,1461,46.95
+"Asia size x1.5, side = above-mid long",1071,49.58,550,51.45
+"Asia size x1.5, side = above-mid short",1074,46.83,561,45.81
+"0.1% of price, dir=mom60",55082,41.52,22230,43.29
+"0.1% of price, dir=mom1440",55051,41.85,22155,43.78
+"0.1% of price, dir=ema50h4",54889,41.94,22195,44.25
+"0.1% of price, dir=ema20d1",54947,41.92,22181,43.66
+"0.1% of price, dir=rev60",54676,42.5,22136,43.94
+"0.1% of price, dir=rev_twap",54951,42.1,22119,43.56
+"0.1% of price, dir=long",54906,42.07,22165,44.2
+"0.2% of price, dir=mom60",14987,45.75,6043,46.43
+"0.2% of price, dir=mom1440",15024,45.9,5938,47.74
+"0.2% of price, dir=ema50h4",14987,46.11,6003,48.08
+"0.2% of price, dir=ema20d1",14971,45.8,5991,46.75
+"0.2% of price, dir=rev60",14938,46.3,6011,46.88
+"0.2% of price, dir=rev_twap",14982,45.66,6112,47.2
+"0.2% of price, dir=long",15030,46.13,6019,47.91
+"0.3% of price, dir=mom60",6880,47.47,2725,49.58
+"0.3% of price, dir=mom1440",6918,47.22,2750,50.0
+"0.3% of price, dir=ema50h4",6888,47.31,2755,49.4
+"0.3% of price, dir=ema20d1",6895,46.8,2788,47.63
+"0.3% of price, dir=rev60",6877,47.83,2777,47.17
+"0.3% of price, dir=rev_twap",6819,47.02,2763,47.67
+"0.3% of price, dir=long",6881,47.54,2781,49.66
+"0.5% of price, dir=mom60",2552,48.67,1066,48.22
+"0.5% of price, dir=mom1440",2556,47.73,1066,50.38
+"0.5% of price, dir=ema50h4",2598,48.58,1040,50.77
+"0.5% of price, dir=ema20d1",2575,47.26,1035,49.08
+"0.5% of price, dir=rev60",2507,47.75,1052,47.62
+"0.5% of price, dir=rev_twap",2500,48.36,1051,47.95
+"0.5% of price, dir=long",2531,48.72,1050,51.43
+"0.8% of price, dir=mom60",1033,48.5,436,50.23
+"0.8% of price, dir=mom1440",1023,49.07,433,51.5
+"0.8% of price, dir=ema50h4",1019,48.28,429,52.45
+"0.8% of price, dir=ema20d1",1034,49.13,436,49.54
+"0.8% of price, dir=rev60",1039,50.05,422,45.5
+"0.8% of price, dir=rev_twap",1047,49.67,426,45.54
+"0.8% of price, dir=long",1062,49.91,425,54.12
+"regime er_h1>0.2: trend(ret60) else fade, 1.0xATR",9179,46.76,4864,46.77
+"regime er_h1>0.2: trend(ret60) else fade, 2.0xATR",2176,50.32,1225,48.08
+"regime er_h1>0.2: trend(ret240) else fade, 1.0xATR",9188,47.0,4846,46.33
+"regime er_h1>0.2: trend(ret240) else fade, 2.0xATR",2189,48.97,1211,48.64
+"regime er_h1>0.2: trend(ema50_h1) else fade, 1.0xATR",9270,46.52,4817,47.0
+"regime er_h1>0.2: trend(ema50_h1) else fade, 2.0xATR",2181,47.78,1248,49.44
+"regime er_h1>0.2: trend(to_twap) else fade, 1.0xATR",9159,46.93,4884,46.89
+"regime er_h1>0.2: trend(to_twap) else fade, 2.0xATR",2163,49.24,1223,48.98
+"regime er_h1>0.3: trend(ret60) else fade, 1.0xATR",9185,47.23,4903,47.34
+"regime er_h1>0.3: trend(ret60) else fade, 2.0xATR",2184,49.18,1227,48.33
+"regime er_h1>0.3: trend(ret240) else fade, 1.0xATR",9196,46.76,4857,46.43
+"regime er_h1>0.3: trend(ret240) else fade, 2.0xATR",2204,49.0,1218,49.01
+"regime er_h1>0.3: trend(ema50_h1) else fade, 1.0xATR",9130,45.6,4846,46.0
+"regime er_h1>0.3: trend(ema50_h1) else fade, 2.0xATR",2221,48.72,1260,47.94
+"regime er_h1>0.3: trend(to_twap) else fade, 1.0xATR",9176,46.36,4892,47.36
+"regime er_h1>0.3: trend(to_twap) else fade, 2.0xATR",2192,48.95,1230,50.0
+"regime er_h1>0.4: trend(ret60) else fade, 1.0xATR",9172,46.82,4866,47.25
+"regime er_h1>0.4: trend(ret60) else fade, 2.0xATR",2134,49.25,1220,48.03
+"regime er_h1>0.4: trend(ret240) else fade, 1.0xATR",9172,46.14,4887,46.88
+"regime er_h1>0.4: trend(ret240) else fade, 2.0xATR",2137,49.42,1202,48.25
+"regime er_h1>0.4: trend(ema50_h1) else fade, 1.0xATR",9130,46.3,4903,46.34
+"regime er_h1>0.4: trend(ema50_h1) else fade, 2.0xATR",2192,48.49,1232,47.97
+"regime er_h1>0.4: trend(to_twap) else fade, 1.0xATR",9204,45.94,4864,47.7
+"regime er_h1>0.4: trend(to_twap) else fade, 2.0xATR",2160,49.31,1212,50.17
+"regime vr_h1>0.9: trend(ret60) else fade, 1.0xATR",9142,45.83,4917,45.41
+"regime vr_h1>0.9: trend(ret60) else fade, 2.0xATR",2197,47.75,1235,48.58
+"regime vr_h1>0.9: trend(ret240) else fade, 1.0xATR",9208,45.65,4859,45.46
+"regime vr_h1>0.9: trend(ret240) else fade, 2.0xATR",2210,47.83,1226,47.23
+"regime vr_h1>0.9: trend(ema50_h1) else fade, 1.0xATR",9145,46.09,4823,45.24
+"regime vr_h1>0.9: trend(ema50_h1) else fade, 2.0xATR",2247,47.44,1236,48.14
+"regime vr_h1>0.9: trend(to_twap) else fade, 1.0xATR",9164,45.2,4943,45.09
+"regime vr_h1>0.9: trend(to_twap) else fade, 2.0xATR",2207,48.44,1224,48.61
+"regime vr_h1>1.0: trend(ret60) else fade, 1.0xATR",9132,45.42,4906,45.33
+"regime vr_h1>1.0: trend(ret60) else fade, 2.0xATR",2195,46.42,1218,48.69
+"regime vr_h1>1.0: trend(ret240) else fade, 1.0xATR",9147,45.36,4847,45.29
+"regime vr_h1>1.0: trend(ret240) else fade, 2.0xATR",2197,47.93,1209,47.39
+"regime vr_h1>1.0: trend(ema50_h1) else fade, 1.0xATR",9117,45.89,4864,45.54
+"regime vr_h1>1.0: trend(ema50_h1) else fade, 2.0xATR",2279,47.61,1233,47.04
+"regime vr_h1>1.0: trend(to_twap) else fade, 1.0xATR",9137,44.82,4906,45.21
+"regime vr_h1>1.0: trend(to_twap) else fade, 2.0xATR",2209,46.81,1223,48.98
+"regime vr_h1>1.1: trend(ret60) else fade, 1.0xATR",9113,45.69,4904,45.72
+"regime vr_h1>1.1: trend(ret60) else fade, 2.0xATR",2200,46.64,1229,48.82
+"regime vr_h1>1.1: trend(ret240) else fade, 1.0xATR",9105,45.11,4863,45.59
+"regime vr_h1>1.1: trend(ret240) else fade, 2.0xATR",2183,47.64,1228,48.62
+"regime vr_h1>1.1: trend(ema50_h1) else fade, 1.0xATR",9149,45.61,4897,46.35
+"regime vr_h1>1.1: trend(ema50_h1) else fade, 2.0xATR",2258,47.52,1226,48.53
+"regime vr_h1>1.1: trend(to_twap) else fade, 1.0xATR",9118,44.89,4883,46.0
+"regime vr_h1>1.1: trend(to_twap) else fade, 2.0xATR",2207,47.35,1238,50.24
+"regime hurst_h1>0.5: trend(ret60) else fade, 1.0xATR",9115,46.6,4901,45.89
+"regime hurst_h1>0.5: trend(ret60) else fade, 2.0xATR",2223,48.18,1218,49.1
+"regime hurst_h1>0.5: trend(ret240) else fade, 1.0xATR",9195,44.83,4827,46.63
+"regime hurst_h1>0.5: trend(ret240) else fade, 2.0xATR",2223,46.69,1217,48.15
+"regime hurst_h1>0.5: trend(ema50_h1) else fade, 1.0xATR",9186,45.4,4807,46.08
+"regime hurst_h1>0.5: trend(ema50_h1) else fade, 2.0xATR",2248,45.02,1209,49.05
+"regime hurst_h1>0.5: trend(to_twap) else fade, 1.0xATR",9132,45.3,4845,47.16
+"regime hurst_h1>0.5: trend(to_twap) else fade, 2.0xATR",2228,47.85,1222,49.84
+"regime hurst_h1>0.55: trend(ret60) else fade, 1.0xATR",9187,46.67,4868,46.24
+"regime hurst_h1>0.55: trend(ret60) else fade, 2.0xATR",2188,47.53,1227,47.03
+"regime hurst_h1>0.55: trend(ret240) else fade, 1.0xATR",9157,45.47,4830,45.2
+"regime hurst_h1>0.55: trend(ret240) else fade, 2.0xATR",2169,47.4,1229,46.87
+"regime hurst_h1>0.55: trend(ema50_h1) else fade, 1.0xATR",9131,45.43,4857,45.01
+"regime hurst_h1>0.55: trend(ema50_h1) else fade, 2.0xATR",2204,46.6,1252,45.21
+"regime hurst_h1>0.55: trend(to_twap) else fade, 1.0xATR",9141,45.59,4836,45.74
+"regime hurst_h1>0.55: trend(to_twap) else fade, 2.0xATR",2188,47.71,1247,47.63
+"regime ac1_m5>-0.05: trend(ret60) else fade, 1.0xATR",9168,45.84,4844,45.93
+"regime ac1_m5>-0.05: trend(ret60) else fade, 2.0xATR",2231,47.2,1203,50.54
+"regime ac1_m5>-0.05: trend(ret240) else fade, 1.0xATR",9236,45.99,4805,45.97
+"regime ac1_m5>-0.05: trend(ret240) else fade, 2.0xATR",2230,48.57,1211,48.8
+"regime ac1_m5>-0.05: trend(ema50_h1) else fade, 1.0xATR",9208,46.12,4848,46.84
+"regime ac1_m5>-0.05: trend(ema50_h1) else fade, 2.0xATR",2237,47.65,1196,49.58
+"regime ac1_m5>-0.05: trend(to_twap) else fade, 1.0xATR",9261,45.41,4876,46.37
+"regime ac1_m5>-0.05: trend(to_twap) else fade, 2.0xATR",2208,48.19,1223,49.3
+"regime ac1_m5>0.0: trend(ret60) else fade, 1.0xATR",9108,46.21,4834,46.88
+"regime ac1_m5>0.0: trend(ret60) else fade, 2.0xATR",2248,47.64,1185,49.62
+"regime ac1_m5>0.0: trend(ret240) else fade, 1.0xATR",9179,45.63,4798,45.81
+"regime ac1_m5>0.0: trend(ret240) else fade, 2.0xATR",2226,47.12,1181,49.53
+"regime ac1_m5>0.0: trend(ema50_h1) else fade, 1.0xATR",9204,45.68,4892,46.97
+"regime ac1_m5>0.0: trend(ema50_h1) else fade, 2.0xATR",2269,46.76,1226,49.43
+"regime ac1_m5>0.0: trend(to_twap) else fade, 1.0xATR",9160,45.6,4847,46.54
+"regime ac1_m5>0.0: trend(to_twap) else fade, 2.0xATR",2232,46.91,1201,49.29
+"regime ac1_m5>0.05: trend(ret60) else fade, 1.0xATR",9121,46.08,4878,48.18
+"regime ac1_m5>0.05: trend(ret60) else fade, 2.0xATR",2240,47.95,1213,50.04
+"regime ac1_m5>0.05: trend(ret240) else fade, 1.0xATR",9108,45.76,4793,46.25
+"regime ac1_m5>0.05: trend(ret240) else fade, 2.0xATR",2229,47.38,1232,50.57
+"regime ac1_m5>0.05: trend(ema50_h1) else fade, 1.0xATR",9187,45.75,4854,46.0
+"regime ac1_m5>0.05: trend(ema50_h1) else fade, 2.0xATR",2272,47.23,1267,47.67
+"regime ac1_m5>0.05: trend(to_twap) else fade, 1.0xATR",9143,45.67,4821,46.57
+"regime ac1_m5>0.05: trend(to_twap) else fade, 2.0xATR",2238,47.72,1230,49.51
+"regime vr_m5>0.9: trend(ret60) else fade, 1.0xATR",9092,45.89,4862,46.52
+"regime vr_m5>0.9: trend(ret60) else fade, 2.0xATR",2252,46.58,1220,48.69
+"regime vr_m5>0.9: trend(ret240) else fade, 1.0xATR",9152,45.71,4862,46.83
+"regime vr_m5>0.9: trend(ret240) else fade, 2.0xATR",2217,46.5,1208,48.51
+"regime vr_m5>0.9: trend(ema50_h1) else fade, 1.0xATR",9164,46.42,4921,46.78
+"regime vr_m5>0.9: trend(ema50_h1) else fade, 2.0xATR",2226,46.9,1229,50.37
+"regime vr_m5>0.9: trend(to_twap) else fade, 1.0xATR",9162,45.39,4902,46.94
+"regime vr_m5>0.9: trend(to_twap) else fade, 2.0xATR",2216,46.89,1215,47.57
+"regime vr_m5>1.0: trend(ret60) else fade, 1.0xATR",9160,46.22,4844,46.33
+"regime vr_m5>1.0: trend(ret60) else fade, 2.0xATR",2248,46.57,1211,50.12
+"regime vr_m5>1.0: trend(ret240) else fade, 1.0xATR",9135,45.74,4853,46.26
+"regime vr_m5>1.0: trend(ret240) else fade, 2.0xATR",2213,46.09,1235,50.69
+"regime vr_m5>1.0: trend(ema50_h1) else fade, 1.0xATR",9151,46.42,4891,46.25
+"regime vr_m5>1.0: trend(ema50_h1) else fade, 2.0xATR",2217,47.36,1244,49.12
+"regime vr_m5>1.0: trend(to_twap) else fade, 1.0xATR",9140,45.7,4865,46.95
+"regime vr_m5>1.0: trend(to_twap) else fade, 2.0xATR",2209,46.54,1232,50.49
+"regime atr_ratio>0.9: trend(ret60) else fade, 1.0xATR",9223,46.7,4947,46.57
+"regime atr_ratio>0.9: trend(ret60) else fade, 2.0xATR",2189,47.51,1198,47.5
+"regime atr_ratio>0.9: trend(ret240) else fade, 1.0xATR",9214,46.24,4877,46.4
+"regime atr_ratio>0.9: trend(ret240) else fade, 2.0xATR",2213,47.76,1189,48.44
+"regime atr_ratio>0.9: trend(ema50_h1) else fade, 1.0xATR",9186,46.04,4868,47.58
+"regime atr_ratio>0.9: trend(ema50_h1) else fade, 2.0xATR",2213,48.67,1208,48.76
+"regime atr_ratio>0.9: trend(to_twap) else fade, 1.0xATR",9179,46.45,4902,46.33
+"regime atr_ratio>0.9: trend(to_twap) else fade, 2.0xATR",2188,48.17,1175,47.4
+"regime atr_ratio>1.1: trend(ret60) else fade, 1.0xATR",9097,46.81,4908,47.25
+"regime atr_ratio>1.1: trend(ret60) else fade, 2.0xATR",2163,47.71,1234,48.95
+"regime atr_ratio>1.1: trend(ret240) else fade, 1.0xATR",9194,45.63,4872,46.22
+"regime atr_ratio>1.1: trend(ret240) else fade, 2.0xATR",2133,46.55,1221,49.22
+"regime atr_ratio>1.1: trend(ema50_h1) else fade, 1.0xATR",9223,46.72,4882,46.99
+"regime atr_ratio>1.1: trend(ema50_h1) else fade, 2.0xATR",2192,49.73,1207,48.47
+"regime atr_ratio>1.1: trend(to_twap) else fade, 1.0xATR",9184,46.01,4860,46.56
+"regime atr_ratio>1.1: trend(to_twap) else fade, 2.0xATR",2131,47.72,1217,48.4
+"regime atr_ratio>1.3: trend(ret60) else fade, 1.0xATR",9149,46.32,4911,47.1
+"regime atr_ratio>1.3: trend(ret60) else fade, 2.0xATR",2208,47.55,1217,47.82
+"regime atr_ratio>1.3: trend(ret240) else fade, 1.0xATR",9179,45.68,4864,45.66
+"regime atr_ratio>1.3: trend(ret240) else fade, 2.0xATR",2177,47.63,1211,47.89
+"regime atr_ratio>1.3: trend(ema50_h1) else fade, 1.0xATR",9138,46.63,4863,45.94
+"regime atr_ratio>1.3: trend(ema50_h1) else fade, 2.0xATR",2210,49.37,1215,46.58
+"regime atr_ratio>1.3: trend(to_twap) else fade, 1.0xATR",9194,46.03,4857,46.22
+"regime atr_ratio>1.3: trend(to_twap) else fade, 2.0xATR",2168,47.51,1217,48.56

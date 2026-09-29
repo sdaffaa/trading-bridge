@@ -1,0 +1,72 @@
+[
+ {
+  "rule": "VOTE[atr_ratio>q0.25, ret1>q0.75, r100>q0.70] (+1 if true) | dist=4xATRh1",
+  "nIS": 539,
+  "wrIS": 0.6029684601113172,
+  "nVAL": 285,
+  "wrVAL": 0.5368421052631579
+ },
+ {
+  "rule": "VOTE[atr_ratio>q0.25, ret1>q0.80, r100>q0.70] (+1 if true) | dist=4xATRh1",
+  "nIS": 543,
+  "wrIS": 0.6022099447513812,
+  "nVAL": 285,
+  "wrVAL": 0.5368421052631579
+ },
+ {
+  "rule": "VOTE[atr_ratio>q0.20, ret1>q0.75, r100>q0.70] (+1 if true) | dist=4xATRh1",
+  "nIS": 540,
+  "wrIS": 0.5981481481481481,
+  "nVAL": 286,
+  "wrVAL": 0.5559440559440559
+ },
+ {
+  "rule": "VOTE[atr_ratio>q0.25, ret1>q0.70, r100>q0.70] (+1 if true) | dist=4xATRh1",
+  "nIS": 537,
+  "wrIS": 0.5940409683426443,
+  "nVAL": 277,
+  "wrVAL": 0.5379061371841155
+ },
+ {
+  "rule": "VOTE[atr_ratio>q0.25, ret1>q0.75, r100>q0.75] (+1 if true) | dist=4xATRh1",
+  "nIS": 543,
+  "wrIS": 0.5930018416206262,
+  "nVAL": 293,
+  "wrVAL": 0.5255972696245734
+ },
+ {
+  "rule": "VOTE[atr_ratio>q0.25, ret1>q0.85, r100>q0.65] (+1 if true) | dist=4xATRh1",
+  "nIS": 547,
+  "wrIS": 0.5923217550274223,
+  "nVAL": 280,
+  "wrVAL": 0.55
+ },
+ {
+  "rule": "VOTE[atr_ratio>q0.25, ret1>q0.65, r100>q0.70] (+1 if true) | dist=4xATRh1",
+  "nIS": 537,
+  "wrIS": 0.5921787709497207,
+  "nVAL": 276,
+  "wrVAL": 0.5471014492753623
+ },
+ {
+  "rule": "VOTE[atr_ratio>q0.25, ret1>q0.75, r100>q0.70, to_vah>q0.15, r100>q0.45] (+1 if true) | dist=4xATRh1",
+  "nIS": 527,
+  "wrIS": 0.5920303605313093,
+  "nVAL": 284,
+  "wrVAL": 0.5422535211267606
+ },
+ {
+  "rule": "VOTE[atr_ratio>q0.20, ret1>q0.75, r100>q0.80] (+1 if true) | dist=4xATRh1",
+  "nIS": 539,
+  "wrIS": 0.5844155844155844,
+  "nVAL": 282,
+  "wrVAL": 0.5460992907801419
+ },
+ {
+  "rule": "VOTE[atr_ratio>q0.30, ret1>q0.85, r100>q0.70] (+1 if true) | dist=4xATRh1",
+  "nIS": 542,
+  "wrIS": 0.5830258302583026,
+  "nVAL": 284,
+  "wrVAL": 0.545774647887324
+ }
+]

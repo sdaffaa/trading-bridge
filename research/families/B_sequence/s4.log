@@ -1,0 +1,39 @@
+0.5xATRM15 1
+1xATRM15 12
+2xATRM15 24
+3xATRM15 63
+0.5xATRH1 71
+1xATRH1 78
+2xATRH1 91
+3xATRH1 117
+0.5xATRD1 142
+1xATRD1 165
+2xATRD1 165
+3xATRD1 165
+fix1 215
+fix2 218
+fix3 227
+fix5 234
+fix10 247
+247 variants
+    family                                 name       stop  is_n  is_wr  val_n  val_wr
+143  combo          H1_sign_N7Xsess_sign_min200    1xATRD1   440  57.73    222   50.90
+144  combo                H1_sign_N7Xdow_min200    1xATRD1   433  55.43    211   54.50
+146  combo        H1_tri0.1_N5Xsess_sign_min200    1xATRD1   429  55.01    225   51.56
+163  combo     H1_tri0.1_N5XH1_tri0.1_N6_min200    1xATRD1   429  55.01    219   51.60
+149  combo              H1_tri0.1_N5Xdow_min200    1xATRD1   445  53.71    218   46.79
+133  combo     H1_tri0.3_N4XH1_tri0.1_N4_min200  0.5xATRD1  1730  53.70    848   47.64
+159  combo              H1_tri0.1_N6Xdow_min200    1xATRD1   448  53.35    224   55.80
+25   combo        H1_sign_N6XdowXprevday_min200   3xATRM15  2632  53.27   1490   46.98
+151  combo        H1_tri0.3_N6Xsess_sign_min200    1xATRD1   452  53.10    218   58.26
+125  combo     H1_tri0.3_N6XH1_tri0.3_N4_min200  0.5xATRD1  1689  52.93    847   48.41
+129  combo     H1_tri0.3_N6XH1_tri0.3_N5_min200  0.5xATRD1  1689  52.93    847   48.41
+114  combo     H1_tri0.3_N4XH1_tri0.3_N5_min200    3xATRH1   969  52.73    525   49.71
+138  combo     H1_tri0.1_N6XH1_tri0.1_N4_min200  0.5xATRD1  1687  52.70    849   49.12
+97   combo            H1_tri0.3_N4Xmonth_min200    3xATRH1   969  52.32    542   50.74
+145  combo  H1_tri0.1_N5XmonthXprevmonth_min200    1xATRD1   445  52.13    225   56.00
+156  combo               M15_sign_N8Xdow_min200    1xATRD1   442  52.04    228   55.26
+33   combo     M5_tri0.3_N2XhourXprevday_min200   3xATRM15  2736  51.90   1484   47.78
+135  combo     H1_tri0.3_N4XH1_tri0.3_N5_min200  0.5xATRD1  1688  51.90    875   47.66
+245  combo   M15_tri0.3_N5XM15_tri0.3_N6_min200      fix10  2229  51.82   1361   49.60
+164  combo    H1_tri0.1_N5XH1_tri0.1_N6_min1000    1xATRD1   448  51.56    231   54.11

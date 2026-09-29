@@ -1,0 +1,54 @@
+hour
+dow
+month
+hourXdow
+min15
+min15Xdow
+sess_sign
+hourXsess_sign
+vs_dopen
+vs_wopen
+vs_mopen
+vs_dwm
+hourXvs_dwm
+hourXdpos3
+prevday
+prevweek
+prevmonth
+prevDWM
+hourXprevday
+hourXprevDWM
+dowXprevday
+monthXprevmonth
+firsthour
+hourXfirsthour
+hourXlondonFH
+us_window
+hourXdowXvs_dopen
+898 variants
+       family                      name       stop  is_n  is_wr  val_n  val_wr
+714  calendar    monthXprevmonth_min200    1xATRD1   414  55.56    220   48.18
+715  calendar   monthXprevmonth_min1000    1xATRD1   414  55.56    220   48.18
+206  calendar         sess_sign_min1000    1xATRD1   437  54.00    214   59.81
+205  calendar          sess_sign_min200    1xATRD1   437  54.00    214   59.81
+882  calendar  hourXdowXvs_dopen_min200  0.5xATRD1  1688  53.61    846   49.88
+645  calendar       hourXprevDWM_min200  0.5xATRD1  1722  53.25    858   46.04
+817  calendar     hourXlondonFH_min1000    1xATRD1   449  53.23    223   51.12
+816  calendar      hourXlondonFH_min200    1xATRD1   449  53.23    223   51.12
+612  calendar      hourXprevday_min1000  0.5xATRD1  1687  52.82    857   49.01
+611  calendar       hourXprevday_min200  0.5xATRD1  1687  52.82    853   49.00
+119  calendar          hourXdow_min1000  0.5xATRD1  1702  52.76    848   50.59
+118  calendar           hourXdow_min200  0.5xATRD1  1702  52.76    848   50.59
+52   calendar                dow_min200    1xATRD1   448  52.68    224   50.00
+53   calendar               dow_min1000    1xATRD1   448  52.68    224   50.00
+179  calendar          min15Xdow_min200    1xATRD1   429  52.68    226   52.21
+710  calendar    monthXprevmonth_min200    3xATRH1   960  52.60    566   46.29
+711  calendar   monthXprevmonth_min1000    3xATRH1   960  52.60    566   46.29
+178  calendar          min15Xdow_min200  0.5xATRD1  1704  52.52    860   49.77
+443  calendar         hourXdpos3_min200    1xATRD1   437  52.40    208   43.27
+410  calendar       hourXvs_dwm_min1000    1xATRD1   442  52.26    227   49.78
+238  calendar    hourXsess_sign_min1000  0.5xATRD1  1718  52.15    861   48.32
+237  calendar     hourXsess_sign_min200  0.5xATRD1  1718  52.15    861   48.32
+610  calendar      hourXprevday_min1000    3xATRH1   971  52.11    535   46.73
+240  calendar    hourXsess_sign_min1000    1xATRD1   434  52.07    229   48.47
+239  calendar     hourXsess_sign_min200    1xATRD1   434  52.07    229   48.91

@@ -1,0 +1,43 @@
+       tf              sig    inv         wr
+694    H4         linreg50  False  56.270096
+565    H4    HMAcross10_50   True  56.120092
+587    H4   MACD12_26_hist   True  55.835240
+662    H4          aroon50  False  55.799373
+480    H1     px_vs_SMA200  False  55.590062
+764    H4        stoch5_KD  False  55.555556
+516    H1       z200_zone1  False  55.345912
+1096  M30   HMAcross50_200  False  55.022831
+305    H1   HMAcross50_200   True  54.977376
+1219  M30        linreg100   True  54.938272
+120    D1     SMAcross5_10  False  54.819277
+379    H1    SMAcross10_50   True  54.740061
+160    D1         linreg10  False  54.740061
+106    D1      RSI5_zone70  False  54.687500
+431    H1         linreg50   True  54.629630
+1173  M30   SMAcross20_100   True  54.573171
+0      D1            CCI14  False  54.430380
+1094  M30   HMAcross20_100  False  54.421769
+195    D1       px_vs_HMA5   True  54.320988
+1080  M30   EMAcross50_200  False  54.231975
+1515   M5       px_vs_HMA5   True  54.054054
+911   M15   SMAcross50_200   True  54.012346
+865   M15  MACD5_35_hslope   True  53.862213
+1421   M5      RSI2_zone80   True  53.623188
+882   M15     RSI14_zone70  False  53.530752
+884   M15     RSI14_zone80  False  53.495441
+954   M15        linreg100  False  53.456221
+1475   M5          ichi_TK   True  53.374233
+1450   M5          aroon14  False  53.229399
+1403   M5             ROC3   True  53.024194
+tables ready 41s
+500 84s
+1000 127s
+1500 170s
+2000 213s
+2500 256s
+3000 299s
+3500 343s
+4000 386s
+4500 430s
+5000 474s
+done 5375 combos 559000 rows 508s
