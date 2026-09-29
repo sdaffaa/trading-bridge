@@ -18,3 +18,5 @@ lr|15min|2.0xATR1h                            | IS: n=2254 wr=47.56% net=-110R d
   time 48
 lr|15min|3.0xATR1h                            | IS: n=979 wr=47.7% net=-45R d60=37.3% | VAL: n=507 wr=51.28% net=13R d60=41.5% | HOLDOUT: n=470 wr=52.13% net=20R d60=44.4% | rowacc {'IS': np.float64(47.8), 'VAL': np.float64(51.4), 'HOLDOUT': np.float64(53.9)} | passes False
   time 41
+lr|15min|2.0xATR15min                         | IS: n=6699 wr=46.74% net=-437R d60=27.0% | VAL: n=3680 wr=46.55% net=-254R d60=24.4% | HOLDOUT: n=3672 wr=49.81% net=-14R d60=32.0% | rowacc {'IS': np.float64(45.56), 'VAL': np.float64(46.57), 'HOLDOUT': np.float64(49.25)} | passes False
+  time 37

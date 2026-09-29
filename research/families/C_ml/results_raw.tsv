@@ -48,3 +48,4 @@ lr|1h|10.0usd	IS:n=2216,wr=47.92	VAL:n=1336,wr=51.65	HOLDOUT:n=13359,wr=48.9	row
 lr|15min|1.0xATR1h	IS:n=9171,wr=45.7	VAL:n=4819,wr=46.38	HOLDOUT:n=4100,wr=50.15	rowacc={'IS': np.float64(45.94), 'VAL': np.float64(47.62), 'HOLDOUT': np.float64(49.46)}	passes=False
 lr|15min|2.0xATR1h	IS:n=2254,wr=47.56	VAL:n=1206,wr=49.83	HOLDOUT:n=1009,wr=51.24	rowacc={'IS': np.float64(47.72), 'VAL': np.float64(48.59), 'HOLDOUT': np.float64(53.7)}	passes=False
 lr|15min|3.0xATR1h	IS:n=979,wr=47.7	VAL:n=507,wr=51.28	HOLDOUT:n=470,wr=52.13	rowacc={'IS': np.float64(47.8), 'VAL': np.float64(51.4), 'HOLDOUT': np.float64(53.9)}	passes=False
+lr|15min|2.0xATR15min	IS:n=6699,wr=46.74	VAL:n=3680,wr=46.55	HOLDOUT:n=3672,wr=49.81	rowacc={'IS': np.float64(45.56), 'VAL': np.float64(46.57), 'HOLDOUT': np.float64(49.25)}	passes=False
