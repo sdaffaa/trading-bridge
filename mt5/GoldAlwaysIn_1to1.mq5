@@ -28,13 +28,14 @@ input int             InpSlowEMA      = 50;           // Slow EMA
 input int             InpLongEMA      = 200;          // Long EMA
 input int             InpATRPeriod    = 14;           // ATR period
 input double          InpATRMult      = 3.0;          // SL = ATR(signal TF) x this
-input double          InpTPRatio      = 0.6;          // TP = SL x this (1.0 = 1:1; 0.6 -> ~63% win rate in tests)
+input double          InpTPRatio      = 1.0;          // TP = SL x this (1.0 = 1:1, best daily profit; 0.6 -> ~63% win rate, ~0 profit)
 
 input group "Risk"
 input double          InpRiskPct      = 1.0;          // Risk per trade, % of balance (0 = fixed lot)
 input double          InpFixedLot     = 0.01;         // Fixed lot (used when risk = 0)
 input double          InpMaxSpreadUSD = 0.60;         // Skip entry if spread (price units) is above this
 input double          InpDailyMaxLossPct = 0.0;       // Pause until next day after this daily loss % (0 = off, trades never stop)
+input double          InpDailyTargetPct  = 0.0;       // Pause until next day after this daily profit % (0 = off)
 input int             InpMaxConsecLoss   = 0;         // Pause until next day after N losses in a row (0 = off)
 
 input group "Execution"
@@ -308,10 +309,16 @@ bool RiskGuardHit()
       double bal = AccountInfoDouble(ACCOUNT_BALANCE);
       if(pnl < 0 && -pnl >= (bal - pnl) * InpDailyMaxLossPct / 100.0) hit = true;
      }
+   if(InpDailyTargetPct > 0)
+     {
+      double pnl = TodayPnL();
+      double bal = AccountInfoDouble(ACCOUNT_BALANCE);
+      if(pnl > 0 && pnl >= (bal - pnl) * InpDailyTargetPct / 100.0) hit = true;
+     }
    if(hit)
      {
       pauseUntil = DayStart(TimeCurrent()) + 86400;
-      Print("Risk guard hit - paused until ", TimeToString(pauseUntil));
+      Print("Daily guard hit - paused until ", TimeToString(pauseUntil));
      }
    return hit;
   }
