@@ -8,8 +8,8 @@ Rules enforced here (identical for every strategy family):
     previous trade's exit bar. No waiting, no skipping: the strategy MUST give a
     direction (+1/-1) at every bar where a trade can start.
   * If SL and TP are both reachable inside one M1 bar -> LOSS (conservative).
-  * Samples: SELECT on IS = 2014-2019, VALIDATE on VAL = 2020-2022,
-    and only finalists touch HOLDOUT = 2023-2026. A strategy counts as a success
+  * Samples: SELECT on IS = 2020-07..2023-06, VALIDATE on VAL = 2023-07..2024-12,
+    and only finalists touch HOLDOUT = 2025-01..2026-07 (last 6 years only). A strategy counts as a success
     only if it reaches >= 60% win rate on IS, VAL and HOLDOUT with >= 300 trades each.
 
 Signals must be causal: the value at M1 bar i may use only information from bars < i
@@ -22,8 +22,9 @@ from numba import njit
 
 SPREAD = 0.30
 CACHE = "/tmp/claude-0/-home-user-trading-bridge/b109c4cd-e10b-5fab-96f6-d6f544632108/scratchpad/moredata/xau_m1_2014_2026.parquet"
-PERIODS = {"IS": ("2014-01-01", "2020-01-01"), "VAL": ("2020-01-01", "2023-01-01"),
-           "HOLDOUT": ("2023-01-01", "2026-08-01")}
+# Focus: last 6 years only (user request). Earlier data may be used for indicator warm-up only.
+PERIODS = {"IS": ("2020-07-01", "2023-07-01"), "VAL": ("2023-07-01", "2025-01-01"),
+           "HOLDOUT": ("2025-01-01", "2026-08-01")}
 
 _M1 = None
 
