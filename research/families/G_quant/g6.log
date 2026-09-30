@@ -1,0 +1,41 @@
+IS corr
+                                 tsmom_ra_10d_LF  ewmac_128_512_LF  kf_slope_ql1.0_qs1e-05_LF  hmm3_r_tsmomra10d_fliphigh_LF  garchfilt_scaled_tsmomra10d_LF  ou_L240_z2.5_0.0_hurst120_LF  twapmom_z1.5_LS  bh_vt10  ewmac_128_512_LS  tsmom_ra_10d_LS
+tsmom_ra_10d_LF                            1.00              0.80                       0.86                           0.98                            1.00                         -0.00            -0.04     0.61              0.64             0.76
+ewmac_128_512_LF                           0.80              1.00                       0.94                           0.79                            0.80                         -0.00            -0.23     0.63              0.83             0.59
+kf_slope_ql1.0_qs1e-05_LF                  0.86              0.94                       1.00                           0.85                            0.85                         -0.00            -0.13     0.62              0.77             0.64
+hmm3_r_tsmomra10d_fliphigh_LF              0.98              0.79                       0.85                           1.00                            0.99                         -0.00            -0.04     0.61              0.63             0.74
+garchfilt_scaled_tsmomra10d_LF             1.00              0.80                       0.85                           0.99                            1.00                         -0.00            -0.03     0.62              0.63             0.75
+ou_L240_z2.5_0.0_hurst120_LF              -0.00             -0.00                      -0.00                          -0.00                           -0.00                          1.00            -0.00     0.22             -0.27            -0.32
+twapmom_z1.5_LS                           -0.04             -0.23                      -0.13                          -0.04                           -0.03                         -0.00             1.00    -0.20             -0.22             0.04
+bh_vt10                                    0.61              0.63                       0.62                           0.61                            0.62                          0.22            -0.20     1.00              0.21             0.09
+ewmac_128_512_LS                           0.64              0.83                       0.77                           0.63                            0.63                         -0.27            -0.22     0.21              1.00             0.74
+tsmom_ra_10d_LS                            0.76              0.59                       0.64                           0.74                            0.75                         -0.32             0.04     0.09              0.74             1.00
+combo_all7_erc {'tsmom_ra_10d_LF': 0.199, 'ewmac_128_512_LF': 0.214, 'kf_slope_ql1.0_qs1e-05_LF': 0.192, 'hmm3_r_tsmomra10d_fliphigh_LF': 0.213, 'garchfilt_scaled_tsmomra10d_LF': 0.207, 'ou_L240_z2.5_0.0_hurst120_LF': 1.592, 'twapmom_z1.5_LS': 1.622}
+combo_trend5_erc {'tsmom_ra_10d_LF': 0.237, 'ewmac_128_512_LF': 0.229, 'kf_slope_ql1.0_qs1e-05_LF': 0.217, 'hmm3_r_tsmomra10d_fliphigh_LF': 0.254, 'garchfilt_scaled_tsmomra10d_LF': 0.246}
+combo_all7_ivar {'tsmom_ra_10d_LF': 0.175, 'ewmac_128_512_LF': 0.143, 'kf_slope_ql1.0_qs1e-05_LF': 0.139, 'hmm3_r_tsmomra10d_fliphigh_LF': 0.199, 'garchfilt_scaled_tsmomra10d_LF': 0.189, 'ou_L240_z2.5_0.0_hurst120_LF': 2.334, 'twapmom_z1.5_LS': 1.915}
+combo_trend5_ivar {'tsmom_ra_10d_LF': 0.246, 'ewmac_128_512_LF': 0.201, 'kf_slope_ql1.0_qs1e-05_LF': 0.195, 'hmm3_r_tsmomra10d_fliphigh_LF': 0.279, 'garchfilt_scaled_tsmomra10d_LF': 0.265}
+combo_all7_ivol {'tsmom_ra_10d_LF': 0.236, 'ewmac_128_512_LF': 0.214, 'kf_slope_ql1.0_qs1e-05_LF': 0.21, 'hmm3_r_tsmomra10d_fliphigh_LF': 0.251, 'garchfilt_scaled_tsmomra10d_LF': 0.245, 'ou_L240_z2.5_0.0_hurst120_LF': 0.862, 'twapmom_z1.5_LS': 0.781}
+combo_trend5_ivol {'tsmom_ra_10d_LF': 0.242, 'ewmac_128_512_LF': 0.218, 'kf_slope_ql1.0_qs1e-05_LF': 0.215, 'hmm3_r_tsmomra10d_fliphigh_LF': 0.257, 'garchfilt_scaled_tsmomra10d_LF': 0.251}
+combo_all7_eq {'tsmom_ra_10d_LF': 0.236, 'ewmac_128_512_LF': 0.236, 'kf_slope_ql1.0_qs1e-05_LF': 0.236, 'hmm3_r_tsmomra10d_fliphigh_LF': 0.236, 'garchfilt_scaled_tsmomra10d_LF': 0.236, 'ou_L240_z2.5_0.0_hurst120_LF': 0.236, 'twapmom_z1.5_LS': 0.236}
+combo_trend5_eq {'tsmom_ra_10d_LF': 0.236, 'ewmac_128_512_LF': 0.236, 'kf_slope_ql1.0_qs1e-05_LF': 0.236, 'hmm3_r_tsmomra10d_fliphigh_LF': 0.236, 'garchfilt_scaled_tsmomra10d_LF': 0.236}
+combo_trend3+intraday_erc {'tsmom_ra_10d_LF': 0.351, 'ewmac_128_512_LF': 0.352, 'kf_slope_ql1.0_qs1e-05_LF': 0.316, 'twapmom_z1.5_LS': 2.168}
+combo_bh+trendLS+intraday_erc {'bh_vt10': 0.491, 'ewmac_128_512_LS': 0.341, 'tsmom_ra_10d_LS': 0.307, 'twapmom_z1.5_LS': 2.261}
+combo_bh+trendLS_erc {'bh_vt10': 0.507, 'ewmac_128_512_LS': 0.346, 'tsmom_ra_10d_LS': 0.376}
+combo_bh+trendLF+intraday_erc {'bh_vt10': 0.366, 'ewmac_128_512_LF': 0.37, 'tsmom_ra_10d_LF': 0.358, 'twapmom_z1.5_LS': 2.253}
+15 configs
+                             name  IS_sr  IS_ret  IS_dd  IS_gd  VAL_sr  VAL_ret  VAL_dd  VAL_gd  turn
+                  combo_all7_ivar  1.078   10.78  -7.68   34.9   1.051    14.72  -12.13    40.7 162.6
+                   combo_all7_erc  1.002   10.02  -8.08   34.8   1.223    17.71   -9.75    40.2 157.5
+        combo_trend3+intraday_erc  0.843    8.43 -10.04   32.0   1.587    23.18   -8.46    39.9 158.1
+                  combo_all7_ivol  0.819    8.19 -10.66   34.4   1.213    17.87   -8.97    40.2 133.1
+    combo_bh+trendLF+intraday_erc  0.793    7.93 -10.45   51.1   1.773    25.14   -8.29    53.4 148.6
+                    combo_all7_eq  0.648    6.48 -14.77   34.3   1.186    17.41  -10.23    39.9 106.8
+    combo_bh+trendLS+intraday_erc  0.580    5.80 -12.69   44.9   1.440    20.34   -8.68    49.1 178.5
+                combo_trend5_ivar  0.574    5.74 -16.48   29.1   1.161    17.06  -10.71    38.4 103.1
+                 combo_trend5_erc  0.572    5.72 -16.67   29.1   1.158    16.97  -10.66    38.2  98.4
+                combo_trend5_ivol  0.572    5.72 -16.61   29.1   1.159    17.00  -10.68    38.2  99.6
+                  combo_trend5_eq  0.571    5.71 -16.75   29.2   1.157    16.92  -10.64    38.2  96.1
+         ewmac_128_512_LF_daily16  0.521    4.96 -16.11   24.6   0.769    10.78  -10.66    36.1  14.2
+          tsmom_ra_10d_LF_daily16  0.401    3.60 -15.34   26.8   1.057    14.95   -9.84    31.8  37.0
+             combo_bh+trendLS_erc  0.242    2.42 -21.96   43.4   0.902    11.99  -10.12    47.1  95.1
+kf_slope_ql1.0_qs1e-05_LF_daily16  0.218    2.20 -22.01   24.4   0.784    11.35  -10.37    34.6  28.5

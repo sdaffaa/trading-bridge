@@ -1,0 +1,34 @@
+GARCH IS params {'mu': 0.033, 'omega': 0.177, 'alpha[1]': 0.053, 'beta[1]': 0.7574, 'nu': 4.7364}
+garch done 3
+hmm2_rv done 6
+hmm2_r done 9
+hmm3_rv done 16
+hmm3_r done 22
+[ 0.52103333  0.60931065  0.09452614 -0.09819487  0.29871501  1.63691693]
+115 configs 23 s
+                          name  IS_sr  IS_ret  IS_dd  IS_gd  VAL_sr  VAL_ret  VAL_dd  VAL_gd  turn
+ hmm3_r_tsmomra10d_fliphigh_LF  0.584    4.76 -12.13   24.7   1.187    14.63   -9.05    29.0 118.9
+  hmm3_r_tsmomra10d_cuthigh_LF  0.571    4.76 -12.21   24.5   1.172    14.61   -9.14    28.8 117.7
+   hmm2_r_ewmac128_fliphigh_LF  0.561    4.66 -16.44   24.4   1.173    12.25   -5.98    35.4  22.1
+garchfilt_scaled_tsmomra10d_LF  0.548    4.59 -12.13   24.9   1.142    14.09   -8.87    29.5 108.1
+ hmm2_r_tsmomra10d_calmonly_LF  0.546    4.32 -12.18   24.6   1.267    14.08   -6.95    29.0  60.5
+  hmm2_r_tsmomra10d_cuthigh_LF  0.546    4.32 -12.18   24.6   1.267    14.08   -6.95    29.0 117.0
+   hmm2_r_ewmac128_calmonly_LF  0.532    4.70 -16.94   24.2   1.060    12.32   -6.17    36.4  11.3
+    hmm2_r_ewmac128_cuthigh_LF  0.532    4.70 -16.94   24.2   1.060    12.32   -6.17    36.4  18.0
+ hmm2_r_tsmomra10d_fliphigh_LF  0.528    3.96 -11.80   25.0   1.364    13.40   -4.63    28.8 116.9
+  garchfilt_scaled_ewmac128_LF  0.519    4.82 -17.63   24.6   1.028    13.16   -7.78    35.9  13.9
+   hmm3_r_ewmac128_fliphigh_LF  0.516    4.71 -17.16   24.0   1.024    12.90   -7.94    36.9  17.1
+  hmm2_rv_ewmac128_calmonly_LF  0.504    2.60 -11.50   23.1   0.917     8.98   -5.48    35.6  12.2
+   hmm2_rv_ewmac128_cuthigh_LF  0.504    2.60 -11.50   23.1   0.917     8.98   -5.48    35.6  18.9
+    hmm3_r_ewmac128_cuthigh_LF  0.499    4.67 -17.65   23.9   1.025    13.13   -8.06    36.6  15.8
+   hmm3_rv_ewmac128_cuthigh_LF  0.497    3.09 -10.29   23.6   1.045    12.25   -7.05    36.4  18.3
+ hmm3_r_tsmomra10d_calmonly_LF  0.479    2.74  -6.72   25.1   1.448    14.46   -6.66    28.5  37.8
+  garchfilt_scaled_ewmacmid_LF  0.459    4.40 -20.73   25.0   1.104    14.69   -8.95    34.9  23.9
+   hmm3_r_ewmacmid_fliphigh_LF  0.438    4.13 -21.46   25.3   1.125    15.05   -9.11    34.9  27.8
+  hmm2_rv_ewmacmid_calmonly_LF  0.437    2.26 -11.63   23.1   1.172    11.63   -5.31    34.4  16.3
+   hmm2_rv_ewmacmid_cuthigh_LF  0.437    2.26 -11.63   23.1   1.172    11.63   -5.31    34.4  28.3
+    hmm3_r_ewmacmid_cuthigh_LF  0.424    4.09 -22.12   25.0   1.077    14.55   -9.31    34.6  26.7
+       garchsize_tsmomra10d_LF  0.413    3.41 -11.83   25.0   0.971    10.20   -8.50    29.3  90.5
+    hmm2_r_ewmacmid_cuthigh_LF  0.403    3.69 -21.84   25.0   1.232    14.85   -6.62    34.9  28.7
+   hmm2_r_ewmacmid_calmonly_LF  0.403    3.69 -21.84   25.0   1.232    14.85   -6.62    34.9  16.6
+ hmm3_rv_tsmomra10d_cuthigh_LF  0.393    2.31  -7.52   24.4   1.032    11.71   -8.22    28.2 111.7

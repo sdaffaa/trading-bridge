@@ -1,0 +1,40 @@
+group,effect,t,p,n,mean_bp,BH5,BH10
+hour,NY00,-0.49,0.6267,773,-0.22,False,False
+hour,NY01,0.9,0.37,773,0.46,False,False
+hour,NY02,1.05,0.292,773,0.65,False,False
+hour,NY03,-0.32,0.749,772,-0.21,False,False
+hour,NY04,-0.72,0.4698,770,-0.43,False,False
+hour,NY05,-0.64,0.5249,758,-0.4,False,False
+hour,NY06,-1.57,0.1166,726,-0.93,False,False
+hour,NY07,-0.41,0.6819,723,-0.27,False,False
+hour,NY08,0.85,0.3959,734,1.14,False,False
+hour,NY09,-1.46,0.1442,720,-1.94,False,False
+hour,NY10,0.69,0.4922,733,0.84,False,False
+hour,NY11,0.8,0.423,720,0.78,False,False
+hour,NY12,-2.22,0.0263,727,-1.43,False,False
+hour,NY13,1.33,0.1843,715,0.97,False,False
+hour,NY14,-0.02,0.9855,712,-0.01,False,False
+hour,NY15,-1.14,0.2563,707,-0.63,False,False
+hour,NY16,-1.47,0.1415,670,-0.66,False,False
+hour,NY17,-1.0,0.3179,41,-2.53,False,False
+hour,NY18,2.41,0.0158,722,2.08,False,False
+hour,NY19,1.38,0.1672,739,0.78,False,False
+hour,NY20,0.26,0.795,775,0.15,False,False
+hour,NY21,1.0,0.3152,775,0.59,False,False
+hour,NY22,0.68,0.4965,775,0.28,False,False
+hour,NY23,-1.58,0.1138,775,-0.53,False,False
+session,Asia 18-02,2.65,0.008,775,3.4,False,False
+session,London 02-08,-1.05,0.2947,773,-1.5,False,False
+session,NY-AM 08-12,0.34,0.7314,773,0.8,False,False
+session,NY-PM 12-17,-1.34,0.1816,773,-1.61,False,False
+weekday,Mon,-0.75,0.4508,154,-5.73,False,False
+weekday,Tue,0.11,0.9134,156,0.82,False,False
+weekday,Wed,0.73,0.4656,157,3.9,False,False
+weekday,Thu,0.38,0.7058,157,2.72,False,False
+weekday,Fri,0.43,0.6659,151,3.06,False,False
+on/id,COMEX-day 08-14,0.14,0.8893,773,0.35,False,False
+on/id,overnight 14-08,0.29,0.7702,775,0.62,False,False
+fix,AM 10:30 pre60,-0.85,0.3976,773,-0.49,False,False
+fix,AM 10:30 post60,-0.42,0.6772,770,-0.22,False,False
+fix,PM 15:00 pre60,-1.45,0.1475,722,-1.92,False,False
+fix,PM 15:00 post60,0.74,0.4584,732,0.92,False,False

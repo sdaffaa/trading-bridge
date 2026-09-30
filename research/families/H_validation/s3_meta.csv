@@ -1,0 +1,16 @@
+variant,period,n,totR,R_trade,wr,PF,green_days,maxDD,green_months
+EA consecutive (original),IS,952,82.0,0.086,54.3,1.19,55.9,-17.0,63.9
+EA consecutive (original),VAL,568,48.0,0.085,54.2,1.18,56.8,-14.0,61.1
+EA consecutive (original),HOLDOUT,465,31.0,0.067,53.3,1.14,51.6,-12.0,63.2
+"primary @H1 events, take all",IS,685,65.0,0.095,54.7,1.21,56.2,-20.0,61.1
+"primary @H1 events, take all",VAL,378,24.0,0.063,53.2,1.14,54.1,-11.0,66.7
+"primary @H1 events, take all",HOLDOUT,372,22.0,0.059,53.0,1.13,52.4,-14.0,63.2
+meta filter p>0.5,IS,596,18.0,0.03,51.5,1.06,49.5,-12.0,55.6
+meta filter p>0.5,VAL,322,12.0,0.037,51.9,1.08,51.1,-17.0,50.0
+meta filter p>0.5,HOLDOUT,313,19.0,0.061,53.0,1.13,53.8,-10.0,68.4
+meta filter p>0.5 + LdP bet size (IS-normalised),IS,596,10.5,0.018,51.5,1.04,50.2,-15.2,52.8
+meta filter p>0.5 + LdP bet size (IS-normalised),VAL,322,27.1,0.084,51.9,1.19,52.0,-18.2,61.1
+meta filter p>0.5 + LdP bet size (IS-normalised),HOLDOUT,313,20.0,0.064,53.0,1.16,53.3,-16.9,57.9
+meta filter p>0.5 + LdP bet size,IS,596,10.5,0.018,51.5,1.04,50.2,-15.2,52.8
+meta filter p>0.5 + LdP bet size,VAL,322,27.1,0.084,51.9,1.19,52.0,-18.2,61.1
+meta filter p>0.5 + LdP bet size,HOLDOUT,313,20.0,0.064,53.0,1.16,53.3,-16.9,57.9

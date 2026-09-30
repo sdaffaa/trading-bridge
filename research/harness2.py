@@ -83,7 +83,7 @@ def run(dirs, sl, tp=None, trail=None, maxbars=0, spread=SPREAD):
 
 def daily(tr):
     """Daily P&L in R, booked on exit date (what the account shows at end of day)."""
-    return tr.groupby(tr.exit_t.dt.date).R.sum()
+    return tr.groupby(tr.exit_t.dt.date).R.sum().round(9)  # round away float noise (+1R-1R != 1e-14)
 
 
 def stats(tr, periods=("IS", "VAL", "HOLDOUT")):

@@ -1,0 +1,17 @@
+E pool 8819
+E_top 0 1
+E_top 50 13
+E_top 100 19
+E_top 150 26
+E_rand 0 31
+E_rand 50 42
+E_rand 100 54
+E_rand 150 62
+A_top done 105
+A done 151
+E_top {'IS+VAL': {'PBO': np.float64(0.882), 'median_logit': -1.489, 'mean_IS_best_SR_ann': np.float64(1.65), 'mean_OOS_SR_ann_of_IS_best': np.float64(0.04), 'P_OOS_SR_lt0': np.float64(0.424), 'slope_OOS_on_IS': np.float64(-0.808)}, 'ALL': {'PBO': np.float64(0.86), 'median_logit': -1.159, 'mean_IS_best_SR_ann': np.float64(1.67), 'mean_OOS_SR_ann_of_IS_best': np.float64(0.37), 'P_OOS_SR_lt0': np.float64(0.145), 'slope_OOS_on_IS': np.float64(-0.81)}, 'N': 200, 'var_SR_IS_daily': 0.00022666278279966638, 'mean_SR_IS_ann': 0.826}
+E_rand {'IS+VAL': {'PBO': np.float64(0.249), 'median_logit': 0.54, 'mean_IS_best_SR_ann': np.float64(1.18), 'mean_OOS_SR_ann_of_IS_best': np.float64(-0.49), 'P_OOS_SR_lt0': np.float64(0.791), 'slope_OOS_on_IS': np.float64(-0.684)}, 'ALL': {'PBO': np.float64(0.11), 'median_logit': 1.079, 'mean_IS_best_SR_ann': np.float64(1.27), 'mean_OOS_SR_ann_of_IS_best': np.float64(-0.01), 'P_OOS_SR_lt0': np.float64(0.48), 'slope_OOS_on_IS': np.float64(-0.701)}, 'N': 200, 'var_SR_IS_daily': 0.016605798515557383, 'mean_SR_IS_ann': -1.364}
+A_top {'IS+VAL': {'PBO': np.float64(0.547), 'median_logit': -0.219, 'mean_IS_best_SR_ann': np.float64(2.33), 'mean_OOS_SR_ann_of_IS_best': np.float64(0.85), 'P_OOS_SR_lt0': np.float64(0.14), 'slope_OOS_on_IS': np.float64(-0.905)}, 'ALL': {'PBO': np.float64(0.668), 'median_logit': -0.591, 'mean_IS_best_SR_ann': np.float64(1.94), 'mean_OOS_SR_ann_of_IS_best': np.float64(0.56), 'P_OOS_SR_lt0': np.float64(0.156), 'slope_OOS_on_IS': np.float64(-1.099)}, 'N': 100, 'var_SR_IS_daily': 0.00016967261148837396, 'mean_SR_IS_ann': 1.715}
+A_mix {'IS+VAL': {'PBO': np.float64(0.032), 'median_logit': 1.202, 'mean_IS_best_SR_ann': np.float64(2.33), 'mean_OOS_SR_ann_of_IS_best': np.float64(0.85), 'P_OOS_SR_lt0': np.float64(0.141), 'slope_OOS_on_IS': np.float64(-0.903)}, 'ALL': {'PBO': np.float64(0.032), 'median_logit': 0.95, 'mean_IS_best_SR_ann': np.float64(1.94), 'mean_OOS_SR_ann_of_IS_best': np.float64(0.54), 'P_OOS_SR_lt0': np.float64(0.164), 'slope_OOS_on_IS': np.float64(-1.012)}, 'N': 250, 'var_SR_IS_daily': 0.3652806054538035, 'mean_SR_IS_ann': -4.141}
+DSR empirical V[SR]: {'A1': {'DSR_emp': 0.0, 'SR0_emp_ann': 46.58, 'DSR_emp_N100': 0.0}, 'E1': {'DSR_emp': 0.0, 'SR0_emp_ann': 8.08, 'DSR_emp_N100': 0.0}, 'E2': {'DSR_emp': 0.0, 'SR0_emp_ann': 8.08, 'DSR_emp_N100': 0.0}, 'E3': {'DSR_emp': 0.0, 'SR0_emp_ann': 8.08, 'DSR_emp_N100': 0.0}}
+total 261
