@@ -1,0 +1,338 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Plex;font-weight:500;src:url(node_modules/@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-500-normal.woff2)}
+@font-face{font-family:Plex;font-weight:700;src:url(node_modules/@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-700-normal.woff2)}
+@font-face{font-family:Roboto;font-weight:400;src:url(node_modules/@fontsource/roboto/files/roboto-latin-400-normal.woff2)}
+@font-face{font-family:Roboto;font-weight:500;src:url(node_modules/@fontsource/roboto/files/roboto-latin-500-normal.woff2)}
+@font-face{font-family:Roboto;font-weight:700;src:url(node_modules/@fontsource/roboto/files/roboto-latin-700-normal.woff2)}
+html,body{margin:0;background:#131722}
+canvas{display:block;width:540px;height:960px}
+</style></head>
+<body><canvas id="c"></canvas>
+<script>
+const W = 540, H = 960, DPR = 4, FPS = 30;
+const C = {
+  bg: '#131722', grid: '#2A2E39', text: '#B2B5BE', bull: '#26A69A', bear: '#EF5350',
+  cross: '#9598A1', accent: '#E8B84A', rect: '#2962FF'
+};
+const UI = "Roboto, -apple-system, 'Trebuchet MS', Ubuntu, sans-serif";
+const AR = "Plex, sans-serif";
+
+// chart widget geometry (CSS px)
+const TOOL_Y = 196, TOOL_H = 30;
+const PANE = { x: 0, y: TOOL_Y + TOOL_H, w: 484, h: 540 };
+const SCALE_X = PANE.x + PANE.w, SCALE_W = W - SCALE_X;
+const TAXIS_Y = PANE.y + PANE.h, TAXIS_H = 26;
+const RIGHT_OFFSET = 8;
+
+const cv = document.getElementById('c');
+cv.width = W * DPR; cv.height = H * DPR;
+const ctx = cv.getContext('2d');
+
+let D, bars, N, ctxN, tr, times, schedule, T;
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const easeOut = t => 1 - Math.pow(1 - clamp(t, 0, 1), 3);
+const easeInOut = t => { t = clamp(t, 0, 1); return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+const prog = (f, a, b) => clamp((f - a) / (b - a), 0, 1);
+
+function init(data) {
+  D = data; bars = D.bars.map(b => ({ t: b[0], o: b[1], h: b[2], l: b[3], c: b[4] }));
+  N = bars.length; slotW = PANE.w / (N + RIGHT_OFFSET); ctxN = D.contextBars; tr = D.trade; times = bars.map(b => b.t);
+  // replay schedule: [startFrame, duration] for bars ctxN..N-1
+  const durs = []; for (let i = ctxN; i < N; i++) durs.push(8);
+  durs[durs.length - 3] = 12; durs[durs.length - 2] = 16; durs[durs.length - 1] = 24;  // slow-down before TP
+  schedule = {}; let f = 120;
+  for (let k = 0; k < durs.length; k++) { schedule[ctxN + k] = [f, durs[k]]; f += durs[k]; }
+  const tpIdx = times.indexOf(tr.tpTime);
+  const [s, d] = schedule[tpIdx];
+  const pth = pathOf(bars[tpIdx]);
+  T = {
+    fadeIn: [0, 15], acc: [30, 54], lps: [60, 72], deploy: [84, 108],
+    replayStart: 120, replayEnd: f,
+    tpIdx, tpFrame: s + d * pth.crossUp(tr.target),
+    breakoutIdx: times.indexOf(D.analysis.breakout), total: 390
+  };
+  T.card = T.tpFrame + 10;
+  return T;
+}
+
+// intrabar price path: bull o->l->h->c, bear o->h->l->c
+function pathOf(b) {
+  const pts = b.c >= b.o ? [b.o, b.l, b.h, b.c] : [b.o, b.h, b.l, b.c];
+  const seg = [0, 1, 2].map(i => Math.abs(pts[i + 1] - pts[i]));
+  const tot = seg.reduce((a, x) => a + x, 0) || 1;
+  return {
+    at(p) {
+      let dist = p * tot, price = pts[0], hi = pts[0], lo = pts[0];
+      for (let i = 0; i < 3; i++) {
+        const take = Math.min(dist, seg[i]);
+        const end = pts[i] + Math.sign(pts[i + 1] - pts[i]) * take;
+        hi = Math.max(hi, pts[i], end); lo = Math.min(lo, pts[i], end); price = end;
+        dist -= take; if (dist <= 0) break;
+      }
+      return { o: b.o, h: hi, l: lo, c: price };
+    },
+    crossUp(level) {
+      let acc = 0;
+      for (let i = 0; i < 3; i++) {
+        const a = pts[i], z = pts[i + 1];
+        if (z > a && level >= a && level <= z) return (acc + (level - a)) / tot;
+        acc += seg[i];
+      }
+      return 1;
+    }
+  };
+}
+
+// bars visible at frame f (with partial last bar)
+function visibleBars(f) {
+  const out = [];
+  for (let i = 0; i < N; i++) {
+    if (i < ctxN) { out.push({ i, ...bars[i] }); continue; }
+    const [s, d] = schedule[i];
+    if (f < s) break;
+    const p = clamp((f - s) / d, 0, 1);
+    out.push({ i, ...(p >= 1 ? bars[i] : pathOf(bars[i]).at(p)), partial: p < 1 });
+  }
+  return out;
+}
+
+function priceRange(f, vis) {
+  let lo = Math.min(...vis.map(b => b.l)), hi = Math.max(...vis.map(b => b.h));
+  const ctxLo = Math.min(...bars.slice(0, ctxN).map(b => b.l)), ctxHi = Math.max(...bars.slice(0, ctxN).map(b => b.h));
+  const t = easeInOut(prog(f, ...T.deploy));
+  const fullLo = Math.min(lo, tr.stop), fullHi = Math.max(hi, tr.target);
+  lo = ctxLo + (fullLo - ctxLo) * t; hi = ctxHi + (fullHi - ctxHi) * t;
+  const span = hi - lo;
+  return [lo - span * 0.08, hi + span * 0.16];
+}
+
+let slotW;
+const xOf = i => PANE.x + (i + 0.5) * slotW;
+let yLo, yHi;
+const yOf = p => PANE.y + (yHi - p) / (yHi - yLo) * PANE.h;
+
+function niceStep(span) { for (const s of [0.5, 1, 2, 2.5, 5, 10, 20]) if (span / s <= 10) return s; return 50; }
+
+function txt(s, x, y, { font = `400 11px ${UI}`, color = C.text, align = 'left', base = 'middle', dir = 'ltr', alpha = 1 } = {}) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = base; ctx.direction = dir;
+  ctx.fillText(s, x, y); ctx.restore();
+}
+function pill(s, x, y, bg, fg = '#fff', font = `500 11px ${UI}`) {
+  ctx.save(); ctx.font = font; const w = SCALE_W - 2, h = 18;
+  ctx.fillStyle = bg; roundRect(x, y - h / 2, w, h, 2); ctx.fill();
+  ctx.fillStyle = fg; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(s, x + 5, y + 0.5); ctx.restore();
+}
+function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function label(s, cx, cy, bg, { fg = '#fff', font = `400 10px ${UI}`, alpha = 1 } = {}) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.font = font;
+  const lines = s.split('\n'); const w = Math.max(...lines.map(l => ctx.measureText(l).width)) + 12, h = lines.length * 13 + 6;
+  ctx.fillStyle = bg; roundRect(cx - w / 2, cy - h / 2, w, h, 3); ctx.fill();
+  ctx.fillStyle = fg; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  lines.forEach((l, k) => ctx.fillText(l, cx, cy - h / 2 + 3 + 6.5 + k * 13));
+  ctx.restore();
+}
+
+const CAPTIONS = [
+  [0, 'دخلت ذهب مع بداية الماركب', 'والصفقة طلعت 1:4'],
+  [30, 'أول شي: السوق يجمّع', 'رينج بين 3329 و 3343'],
+  [60, 'قاع أعلى داخل التجميع (LPS)', 'هنا دخلت شراء على 3334'],
+  [84, 'الستوب تحت التجميع 3329', 'والهدف 3354 = 4 أضعاف المخاطرة'],
+  ['breakout', 'كسر التجميع…', 'والماركب بدأ'],
+  ['tp', 'ضرب الهدف', null]
+];
+
+function drawCaption(f) {
+  const cs = CAPTIONS.map(([k, a, b]) => [k === 'breakout' ? schedule[T.breakoutIdx][0] : k === 'tp' ? Math.round(T.tpFrame) : k, a, b]);
+  let cur = 0; cs.forEach((c, i) => { if (f >= c[0]) cur = i; });
+  const [start, l1, l2] = cs[cur];
+  const a = easeOut(prog(f, start, start + 8)), dy = (1 - a) * 10;
+  ctx.save(); ctx.globalAlpha = a;
+  // step dots
+  const steps = cs.length; for (let i = 0; i < steps; i++) {
+    ctx.fillStyle = i <= cur ? C.accent : '#2A2E39';
+    roundRect(W / 2 - steps * 11 + i * 22 + 2, 46, 18, 3, 1.5); ctx.fill();
+  }
+  txt(l1, W / 2, 98 + dy, { font: `700 30px ${AR}`, color: '#FFFFFF', align: 'center', dir: 'rtl' });
+  if (l2) txt(l2, W / 2, 145 + dy, { font: `700 24px ${AR}`, color: C.accent, align: 'center', dir: 'rtl' });
+  else txt('+4R', W / 2, 147 + dy, { font: `700 34px ${UI}`, color: C.bull, align: 'center' });
+  ctx.restore();
+}
+
+function render(f) {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  drawCaption(f);
+
+  const chartA = easeOut(prog(f, ...T.fadeIn));
+  ctx.save(); ctx.globalAlpha = chartA;
+
+  const vis = visibleBars(f);
+  [yLo, yHi] = priceRange(f, vis);
+  const last = vis[vis.length - 1];
+
+  // toolbar
+  ctx.fillStyle = C.bg; ctx.fillRect(0, TOOL_Y, W, TOOL_H);
+  ctx.fillStyle = C.grid; ctx.fillRect(0, TOOL_Y, W, 1); ctx.fillRect(0, TOOL_Y + TOOL_H - 1, W, 1);
+  txt('XAUUSD', 10, TOOL_Y + TOOL_H / 2, { font: `700 12px ${UI}`, color: '#D1D4DC' });
+  txt('15m', 72, TOOL_Y + TOOL_H / 2, { font: `500 12px ${UI}`, color: '#D1D4DC' });
+  ctx.fillStyle = C.grid; ctx.fillRect(100, TOOL_Y + 8, 1, 14);
+  txt('Replay', 110, TOOL_Y + TOOL_H / 2, { font: `500 12px ${UI}`, color: '#2962FF' });
+  txt('UTC+3', W - 10, TOOL_Y + TOOL_H / 2, { font: `400 11px ${UI}`, color: C.text, align: 'right' });
+
+  // grid + price scale
+  const step = niceStep(yHi - yLo);
+  ctx.save(); ctx.beginPath(); ctx.rect(PANE.x, PANE.y, W, PANE.h); ctx.clip();
+  for (let p = Math.ceil(yLo / step) * step; p <= yHi; p += step) {
+    const y = Math.round(yOf(p)) + 0.5;
+    ctx.fillStyle = C.grid; ctx.fillRect(PANE.x, y - 0.5, PANE.w, 1);
+    txt(p.toFixed(2), SCALE_X + 6, y, { font: `400 11px ${UI}` });
+  }
+  ctx.restore();
+  // time axis + vertical grid every 2h
+  bars.forEach((b, i) => {
+    if (b.t.endsWith(':00') && parseInt(b.t) % 2 === 0) {
+      const x = Math.round(xOf(i)) + 0.5;
+      ctx.fillStyle = C.grid; ctx.fillRect(x - 0.5, PANE.y, 1, PANE.h);
+      txt(b.t, x, TAXIS_Y + TAXIS_H / 2, { align: 'center' });
+    }
+  });
+  ctx.fillStyle = C.grid;
+  ctx.fillRect(SCALE_X, PANE.y, 1, PANE.h + TAXIS_H); ctx.fillRect(0, TAXIS_Y, W, 1); ctx.fillRect(0, TAXIS_Y + TAXIS_H, W, 1);
+
+  // watermark
+  txt('XAUUSD, 15', PANE.x + PANE.w / 2, PANE.y + PANE.h / 2, { font: `500 44px ${UI}`, color: 'rgba(178,181,190,0.06)', align: 'center' });
+
+  ctx.save(); ctx.beginPath(); ctx.rect(PANE.x, PANE.y, PANE.w, PANE.h); ctx.clip();
+
+  // accumulation box
+  const acc = D.analysis.accumulation;
+  const ai = times.indexOf(acc.from), aj = times.indexOf(acc.to);
+  const accT = easeOut(prog(f, ...T.acc));
+  if (accT > 0) {
+    const x0 = xOf(ai) - slotW / 2, x1full = xOf(aj) + slotW / 2, x1 = x0 + (x1full - x0) * accT;
+    const y0 = yOf(acc.high), y1 = yOf(acc.low);
+    ctx.fillStyle = 'rgba(41,98,255,0.12)'; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+    ctx.strokeStyle = C.rect; ctx.lineWidth = 1; ctx.strokeRect(x0 + .5, y0 + .5, x1 - x0 - 1, y1 - y0 - 1);
+    txt('Accumulation', x0 + 5, y0 + 9, { font: `500 10px ${UI}`, color: '#5B8CFF', alpha: prog(f, T.acc[0] + 10, T.acc[1]) });
+  }
+
+  // position tool
+  const deferred = [];
+  const depT = easeOut(prog(f, ...T.deploy));
+  const tpHit = f >= T.tpFrame;
+  if (depT > 0) {
+    const ei = times.indexOf(tr.entryTime);
+    const x0 = xOf(ei) - slotW / 2, x1 = PANE.x + PANE.w;
+    const ye = yOf(tr.entry);
+    const yt = ye + (yOf(tr.target) - ye) * depT, ys = ye + (yOf(tr.stop) - ye) * depT;
+    const pulse = tpHit ? Math.sin(Math.PI * prog(f, T.tpFrame, T.tpFrame + 20)) : 0;
+    ctx.fillStyle = `rgba(38,166,154,${0.2 + 0.15 * pulse})`; ctx.fillRect(x0, yt, x1 - x0, ye - yt);
+    ctx.fillStyle = 'rgba(239,83,80,0.2)'; ctx.fillRect(x0, ye, x1 - x0, ys - ye);
+    ctx.fillStyle = C.bull; ctx.fillRect(x0, Math.round(yt), x1 - x0, 1);
+    ctx.fillStyle = C.bear; ctx.fillRect(x0, Math.round(ys), x1 - x0, 1);
+    ctx.fillStyle = C.text; ctx.fillRect(x0, Math.round(ye), x1 - x0, 1);
+    const cx = (x0 + x1) / 2, la = prog(f, T.deploy[0] + 12, T.deploy[1]);
+    deferred.push(() => {
+    label('Target: 20.00 (0.60%) 2000', cx, yt - 12, '#089981', { alpha: la });
+    label('Stop: 5.00 (0.15%) 500', cx, ys + 12, '#F23645', { alpha: la });
+    // centre card: RR counts up on deploy, live P&L during replay
+    const rr = (4 * easeOut(prog(f, T.deploy[0], T.deploy[1] + 6)));
+    const rrS = rr >= 3.999 ? '4' : rr.toFixed(2);
+    let pnl;
+    if (tpHit) pnl = `Closed P&L: ${(tr.target - tr.entry).toFixed(2)}, Qty: 1`;
+    else if (f >= T.replayStart) pnl = `Open P&L: ${(last.c - tr.entry).toFixed(2)}, Qty: 1`;
+    else pnl = 'Qty: 1';
+    label(`${pnl}\nRisk/Reward Ratio: ${rrS}`, cx, ye, tpHit ? '#089981' : '#50535E', { alpha: la });
+    });
+  }
+
+  // LPS marker
+  const lpsA = easeOut(prog(f, ...T.lps));
+  if (lpsA > 0) {
+    const li = times.indexOf(D.analysis.lps), x = xOf(li), y = yOf(bars[li].l) + 6 + (1 - lpsA) * 8;
+    ctx.save(); ctx.globalAlpha *= lpsA; ctx.fillStyle = C.accent;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 4, y + 6); ctx.lineTo(x + 4, y + 6); ctx.closePath(); ctx.fill();
+    txt('LPS', x, y + 15, { font: `700 10px ${UI}`, color: C.accent, align: 'center' });
+    ctx.restore();
+  }
+
+  // candles
+  const bw = Math.max(1, slotW * 0.74);
+  for (const b of vis) {
+    const x = xOf(b.i), col = b.c >= b.o ? C.bull : C.bear;
+    ctx.fillStyle = col;
+    const yh = yOf(b.h), yl = yOf(b.l);
+    ctx.fillRect(x - 0.5, yh, 1, Math.max(1, yl - yh));
+    const yt = yOf(Math.max(b.o, b.c)), yb = yOf(Math.min(b.o, b.c));
+    ctx.fillRect(x - bw / 2, yt, bw, Math.max(1, yb - yt));
+  }
+
+  deferred.forEach(fn => fn());
+
+  // TP HIT tag
+  if (tpHit) {
+    const a = easeOut(prog(f, T.tpFrame, T.tpFrame + 8));
+    label('TP HIT', xOf(T.tpIdx) - 34, yOf(tr.target) + 14, '#089981', { font: `700 11px ${UI}`, alpha: a });
+  }
+
+  // last price line
+  const lcol = last.c >= last.o ? C.bull : C.bear, yl = Math.round(yOf(last.c)) + 0.5;
+  ctx.strokeStyle = lcol; ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
+  ctx.beginPath(); ctx.moveTo(PANE.x, yl); ctx.lineTo(PANE.x + PANE.w, yl); ctx.stroke(); ctx.setLineDash([]);
+  ctx.restore();
+
+  // scale pills
+  if (depT > 0) {
+    const pa = prog(f, T.deploy[0] + 8, T.deploy[1]);
+    ctx.save(); ctx.globalAlpha *= pa;
+    pill(tr.target.toFixed(2), SCALE_X + 1, yOf(tr.target), '#089981');
+    pill(tr.stop.toFixed(2), SCALE_X + 1, yOf(tr.stop), '#F23645');
+    pill(tr.entry.toFixed(2), SCALE_X + 1, yOf(tr.entry), '#50535E');
+    ctx.restore();
+  }
+  pill(last.c.toFixed(2), SCALE_X + 1, yl, lcol);
+
+  // legend
+  const lg = PANE.y + 14, oc = last.c >= last.o ? C.bull : C.bear;
+  txt('Gold Spot / U.S. Dollar · 15', 8, lg, { font: `500 12px ${UI}`, color: '#D1D4DC' });
+  let lx = 8; const ly = lg + 17;
+  for (const [k, v] of [['O', last.o], ['H', last.h], ['L', last.l], ['C', last.c]]) {
+    txt(k, lx, ly, { font: `400 11px ${UI}`, color: '#D1D4DC' }); lx += 9;
+    const s = v.toFixed(2); txt(s, lx, ly, { font: `400 11px ${UI}`, color: oc }); lx += 50;
+  }
+  const ch = last.c - last.o;
+  txt(`${ch >= 0 ? '+' : '−'}${Math.abs(ch).toFixed(2)} (${ch >= 0 ? '+' : '−'}${Math.abs(100 * ch / last.o).toFixed(2)}%)`, lx + 2, ly, { font: `400 11px ${UI}`, color: oc });
+
+  ctx.restore(); // chart alpha
+
+  // outcome card
+  const ca = easeOut(prog(f, T.card, T.card + 12));
+  if (ca > 0) {
+    const y = 812 + (1 - ca) * 20;
+    ctx.save(); ctx.globalAlpha = ca;
+    ctx.fillStyle = '#1E222D'; roundRect(16, y, W - 32, 92, 8); ctx.fill();
+    ctx.strokeStyle = 'rgba(38,166,154,0.6)'; ctx.lineWidth = 1; roundRect(16.5, y + .5, W - 33, 91, 8); ctx.stroke();
+    txt('+4R', 34, y + 36, { font: `700 36px ${UI}`, color: C.bull });
+    txt('+20.00  (+0.60%)', 34, y + 70, { font: `500 13px ${UI}`, color: '#D1D4DC' });
+    txt('الهدف تحقق', W - 34, y + 34, { font: `700 22px ${AR}`, color: '#FFFFFF', align: 'right', dir: 'rtl' });
+    txt('Entry 3334.00 · SL 3329.00 · TP 3354.00', W - 34, y + 70, { font: `400 11px ${UI}`, color: C.text, align: 'right' });
+    ctx.restore();
+  }
+  // footer
+  txt('XAUUSD · M15 · 11 Jul 2025 · UTC+3', 16, 930, { font: `400 10px ${UI}`, color: '#5D606B' });
+  txt('ليست توصية مالية', W - 16, 930, { font: `500 11px ${AR}`, color: '#5D606B', align: 'right', dir: 'rtl' });
+}
+
+window.setup = async (data) => {
+  await Promise.all([
+    document.fonts.load(`500 12px Plex`, 'عربي'), document.fonts.load(`700 12px Plex`, 'عربي'),
+    document.fonts.load(`400 12px Roboto`), document.fonts.load(`500 12px Roboto`), document.fonts.load(`700 12px Roboto`)
+  ]);
+  return init(data);
+};
+window.frame = (f) => { render(f); return cv.toDataURL('image/png'); };
+window.probe = (f) => { const vis = visibleBars(f); [yLo, yHi] = priceRange(f, vis); return { yLo, yHi, slotW, vis: vis.length, y: [tr.entry, tr.stop, tr.target].map(yOf) }; };
+</script></body></html>
