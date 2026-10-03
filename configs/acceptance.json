@@ -1,0 +1,12 @@
+{
+  "_comment": "Frozen acceptance thresholds (ACCEPTANCE_CRITERIA.md). Changing any value after results are seen is forbidden; a change requires a DECISIONS.md entry made BEFORE the next evaluation and resets the evidence to development status.",
+  "data": {"min_coverage": 0.97, "allow_synthetic_spread": false},
+  "oos": {"min_trades": 200, "min_profit_factor": 1.15, "min_expectancy_R": 0.05,
+          "max_p_mean_le_0": 0.05, "min_dsr": 0.95, "max_holm_p": 0.05, "min_positive_fold_share": 0.6,
+          "max_dd_share_of_user_limit": 0.75},
+  "robust": {"stress_net_positive": ["cost_high", "latency", "reject"], "min_neighbor_positive_share": 0.6,
+             "net_ex_top5pct_trades_min": 0.0, "drop10_p5_min": 0.0, "max_single_year_profit_share": 0.5,
+             "min_positive_year_share": 0.5},
+  "holdout": {"min_trades_for_decision": 100, "min_net": 0.0, "min_profit_factor": 1.0},
+  "user_limits": {"max_drawdown_frac": null, "daily_loss_limit_frac": null, "risk_per_trade_frac": null}
+}

@@ -1,0 +1,17 @@
+{
+  "_comment": "TEST FIXTURE ONLY - round numbers for unit tests. Not a broker specification.",
+  "symbol": "TEST",
+  "contract_size": 100,
+  "tick_size": 0.01,
+  "volume_min": 0.01,
+  "volume_step": 0.01,
+  "volume_max": 100,
+  "leverage": 100,
+  "stops_level": 0.0,
+  "commission_per_lot_side": 3.5,
+  "swap_long": -10.0,
+  "swap_short": 2.0,
+  "triple_swap_weekday": 2,
+  "verified": false,
+  "source": "unit-test fixture"
+}

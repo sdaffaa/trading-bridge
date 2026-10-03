@@ -1,0 +1,17 @@
+{
+  "_comment": "TEMPLATE - typical retail MT5 XAUUSD values, NOT VERIFIED against the user's broker. Replace every field from the broker's symbol specification (MT5: Market Watch > Symbols > XAUUSD > Specification) and set verified=true with the source and date.",
+  "symbol": "XAUUSD",
+  "contract_size": 100,
+  "tick_size": 0.01,
+  "volume_min": 0.01,
+  "volume_step": 0.01,
+  "volume_max": 100,
+  "leverage": 100,
+  "stops_level": 0.0,
+  "commission_per_lot_side": 0.0,
+  "swap_long": 0.0,
+  "swap_short": 0.0,
+  "triple_swap_weekday": 2,
+  "verified": false,
+  "source": "UNVERIFIED template"
+}

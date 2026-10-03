@@ -1,0 +1,33 @@
+{
+ "updated_utc": "2026-10-03",
+ "sources": [
+  {
+   "id": "dukascopy_xauusd_1m",
+   "role": "primary research data",
+   "provider": "Dukascopy Bank SA historical datafeed (free)",
+   "url_pattern": "https://datafeed.dukascopy.com/datafeed/XAUUSD/{YYYY}/{MM-1}/{DD}/{HH}h_ticks.bi5",
+   "content": "tick bid/ask -> 1-minute bid/ask OHLC, tick count, max spread per bar",
+   "timezone": "UTC",
+   "status": "BLOCKED - egress policy denies datafeed.dukascopy.com (403 at proxy CONNECT)",
+   "period": null,
+   "files": [],
+   "checks": ["price divisor 1000 to be verified against an independent price level", "QA report", "spread vs broker during paper trading"]
+  },
+  {
+   "id": "hf_zombitx64_xau",
+   "role": "secondary cross-check only",
+   "provider": "Hugging Face dataset ZombitX64/xauusd-gold-price-historical-data-2004-2025 (re-upload of Kaggle novandraanugrah/xauusd-gold-price-historical-data-2004-2024)",
+   "files_listed": {"XAU_1m_data.jsonl": 648760230, "XAU_5m_data.jsonl": 138249289, "XAU_15m_data.jsonl": 47517934, "XAU_1h_data.jsonl": 12109371, "XAU_1d_data.jsonl": 542579},
+   "observed": {"first_1m_row": "2004.06.11 07:18", "last_1m_row": "2025.10.01 05:29", "fields": "Date,Open,High,Low,Close,Volume(tick count)"},
+   "timezone": "UNKNOWN broker server time (likely GMT+2/+3 MT convention, unverified)",
+   "spread": "absent - single price series",
+   "status": "NOT DOWNLOADED - huggingface.co blocked for direct download; connector reads pass through model context (max 80 KB per read)",
+   "sha256": null
+  },
+  {
+   "id": "broker_execution_feed",
+   "role": "execution-truth data (spreads, fills, swaps)",
+   "status": "MISSING - broker not yet specified"
+  }
+ ]
+}

@@ -1,0 +1,30 @@
+{
+  "_comment": "Pre-registered research configuration (DECISIONS.md D-006). Frozen before any real data was loaded.",
+  "symbol": "XAUUSD",
+  "primary_data_source": "dukascopy_ticks_to_1m_bidask",
+  "dev_start": "2015-01-01",
+  "wf_start": "2019-01-01",
+  "wf_end": "2024-07-01",
+  "holdout_start": "2024-07-01",
+  "holdout_end": "2026-07-01",
+  "test_months": 6,
+  "train_months": 36,
+  "embargo_days": 1,
+  "min_train_trades": 30,
+  "initial_balance": 10000,
+  "risk": {"risk_per_trade_frac": 0.005, "max_open_positions": 1, "max_total_risk_frac": 0.005,
+           "daily_loss_limit_frac": 0.02, "max_drawdown_frac": 0.99, "daily_halt_mode": "flatten",
+           "dd_halt_mode": "flatten", "max_spread": 1.0, "max_trades_per_day": 6,
+           "max_margin_usage": 0.5, "cost_allowance": 0.10},
+  "exec_base": {"latency_bars": 0, "slippage_fixed": 0.05, "slippage_random": 0.10, "reject_prob": 0.0,
+                "intrabar": "worst", "limit_penetration": 0.0, "seed": 0},
+  "extra_spread_base": 0.0,
+  "stress": {
+    "cost_high": {"spread_mult": 1.5, "slippage_mult": 2.0},
+    "latency": {"latency_bars": 1},
+    "reject": {"reject_prob": 0.05},
+    "intrabar_best": {"intrabar": "best"}
+  },
+  "trial_budget": 150,
+  "bootstrap": {"n_boot": 2000, "mean_block": 5, "seed": 0}
+}

@@ -1,0 +1,92 @@
+{
+ "hypothesis": "H1_ny_orb",
+ "n_grid": 18,
+ "folds": 3,
+ "oos": {
+  "n_trades": 366,
+  "net_profit": -3791.157698090417,
+  "profit_factor": 0.45816928395723,
+  "expectancy_R": -0.3418070335315064,
+  "total_ret": -0.45576115951030594,
+  "max_dd": 0.45296504506513763,
+  "positive_fold_share": 0.0,
+  "pct_profitable_days_all": 0.32564102564102565,
+  "pct_profitable_days_active": 0.34048257372654156,
+  "worst_day": -0.00597482779070894
+ },
+ "wf_table": [
+  {
+   "test_start": "2022-01-01",
+   "test_end": "2022-07-01",
+   "chosen": "{'range_min': 60, 'stop_mode': 'opposite', 'rr': 0}",
+   "train_score": -0.13878105616955919,
+   "test_days": 129,
+   "test_trades": 122,
+   "test_ret": -0.17596379453033384,
+   "test_R": -39.46133471806702
+  },
+  {
+   "test_start": "2022-07-01",
+   "test_end": "2023-01-01",
+   "chosen": "{'range_min': 60, 'stop_mode': 'opposite', 'rr': 2.0}",
+   "train_score": -0.17640589990361458,
+   "test_days": 131,
+   "test_trades": 121,
+   "test_ret": -0.1702022840044095,
+   "test_R": -38.17253000532505
+  },
+  {
+   "test_start": "2023-01-01",
+   "test_end": "2023-07-01",
+   "chosen": "{'range_min': 60, 'stop_mode': 'opposite', 'rr': 2.0}",
+   "train_score": -0.2911250563189543,
+   "test_days": 130,
+   "test_trades": 123,
+   "test_ret": -0.204077093163762,
+   "test_R": -47.46750954913924
+  }
+ ],
+ "bootstrap": {
+  "mean_ci95": [
+   -0.001981876984891198,
+   -0.0011021105191460453
+  ],
+  "sharpe_ci95": [
+   -7.651634534208102,
+   -3.7527930300985393
+  ],
+  "total_ret_ci95": [
+   -0.5402128807530886,
+   -0.35236138157279157
+  ],
+  "p_mean_le_0": 1.0,
+  "p_total_le_0": 1.0,
+  "n": 390,
+  "mean_block": 5,
+  "n_boot": 2000,
+  "seed": 0
+ },
+ "dsr": {
+  "sr": -0.34721435003941487,
+  "sr0": 0.5744411833401273,
+  "n_trials": 62,
+  "dsr": 2.2212124935061156e-54
+ },
+ "clustering": {
+  "ac1_pnl": 0.08962719531098234,
+  "ac1_loss_indicator": -0.03645124716553286
+ },
+ "p_value": 1.0,
+ "gates": {
+  "profit_factor": false,
+  "expectancy_R": false,
+  "net_positive": false,
+  "bootstrap": false,
+  "dsr": false,
+  "folds": false,
+  "max_dd_vs_user_limit": "PENDING_USER_LIMIT",
+  "holm": false
+ },
+ "verdict": "REJECT",
+ "holm_p": 1.0
+}

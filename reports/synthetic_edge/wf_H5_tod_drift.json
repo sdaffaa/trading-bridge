@@ -1,0 +1,171 @@
+{
+ "hypothesis": "H5_tod_drift",
+ "n_grid": 8,
+ "folds": 7,
+ "oos": {
+  "n_trades": 913,
+  "net_profit": 4743.959638595763,
+  "profit_factor": 2.1839426234859993,
+  "expectancy_R": 0.08706935710822733,
+  "total_ret": 0.4406017748679769,
+  "max_dd": 0.008632629424251739,
+  "positive_fold_share": 1.0,
+  "pct_profitable_days_all": 0.6210295728368017,
+  "pct_profitable_days_active": 0.6210295728368017,
+  "worst_day": -0.0035956239910297505
+ },
+ "wf_table": [
+  {
+   "test_start": "2020-01-01",
+   "test_end": "2020-07-01",
+   "chosen": "{'window': (3, 8), 'side': 1}",
+   "train_score": 0.22951588414388502,
+   "test_days": 130,
+   "test_trades": 130,
+   "test_ret": 0.034854163866865795,
+   "test_R": 7.456058761044243
+  },
+  {
+   "test_start": "2020-07-01",
+   "test_end": "2021-01-01",
+   "chosen": "{'window': (3, 8), 'side': 1}",
+   "train_score": 0.2376007732441562,
+   "test_days": 132,
+   "test_trades": 132,
+   "test_ret": 0.07152639615915146,
+   "test_R": 15.175192187097661
+  },
+  {
+   "test_start": "2021-01-01",
+   "test_end": "2021-07-01",
+   "chosen": "{'window': (3, 8), 'side': 1}",
+   "train_score": 0.30782005244967187,
+   "test_days": 129,
+   "test_trades": 129,
+   "test_ret": 0.04767578190931099,
+   "test_R": 10.222192548993728
+  },
+  {
+   "test_start": "2021-07-01",
+   "test_end": "2022-01-01",
+   "chosen": "{'window': (3, 8), 'side': 1}",
+   "train_score": 0.3518840398654907,
+   "test_days": 132,
+   "test_trades": 132,
+   "test_ret": 0.05678009761741265,
+   "test_R": 12.284103301028786
+  },
+  {
+   "test_start": "2022-01-01",
+   "test_end": "2022-07-01",
+   "chosen": "{'window': (3, 8), 'side': 1}",
+   "train_score": 0.3061987429290147,
+   "test_days": 129,
+   "test_trades": 129,
+   "test_ret": 0.069486809220495,
+   "test_R": 14.472512985006087
+  },
+  {
+   "test_start": "2022-07-01",
+   "test_end": "2023-01-01",
+   "chosen": "{'window': (3, 8), 'side': 1}",
+   "train_score": 0.37584239435975453,
+   "test_days": 131,
+   "test_trades": 131,
+   "test_ret": 0.04644395277249558,
+   "test_R": 9.874148808273862
+  },
+  {
+   "test_start": "2023-01-01",
+   "test_end": "2023-07-01",
+   "chosen": "{'window': (3, 8), 'side': 1}",
+   "train_score": 0.34121999728625624,
+   "test_days": 130,
+   "test_trades": 130,
+   "test_ret": 0.04847718482310759,
+   "test_R": 10.010114448367176
+  }
+ ],
+ "bootstrap": {
+  "mean_ci95": [
+   0.00031210336220914835,
+   0.0004815603422046723
+  ],
+  "sharpe_ci95": [
+   3.961127490270347,
+   6.104414827842306
+  ],
+  "total_ret_ci95": [
+   0.3286387197080225,
+   0.5509092565268703
+  ],
+  "p_mean_le_0": 0.0,
+  "p_total_le_0": 0.0,
+  "n": 913,
+  "mean_block": 5,
+  "n_boot": 2000,
+  "seed": 0
+ },
+ "dsr": {
+  "sr": 0.3132781042714765,
+  "sr0": 0.07806732296454019,
+  "n_trials": 62,
+  "var_used": 0.0010964912280701754,
+  "dsr": 0.9999999999987459,
+  "empirical_cross_trial_var": 0.06937513506417069
+ },
+ "clustering": {
+  "ac1_pnl": 0.02879624876463585,
+  "ac1_loss_indicator": 0.040666680283502336
+ },
+ "p_value": 0.0,
+ "stress_net": {
+  "cost_high": 2345.102888186406,
+  "latency": 4756.738434947387,
+  "reject": 4948.745165228902,
+  "intrabar_best": 4743.959638595763
+ },
+ "neighbors": {
+  "center": "{'window': (3, 8), 'side': 1}",
+  "n": 4,
+  "positive_share": 1.0,
+  "nets": {
+   "{'window': (2, 8), 'side': 1}": 5200.977272059072,
+   "{'window': (4, 8), 'side': 1}": 2914.029712092941,
+   "{'window': (3, 7), 'side': 1}": 3302.6876110833837,
+   "{'window': (3, 9), 'side': 1}": 4516.700860123783
+  }
+ },
+ "drop10": {
+  "drop_frac": 0.1,
+  "p5": 4000.6814983204677,
+  "median": 4272.5841780125065,
+  "p_le_0": 0.0
+ },
+ "by_year": {
+  "2020": 1172.2416237471243,
+  "2021": 1279.4440161356288,
+  "2022": 1575.1122862584143,
+  "2023": 717.1617124545664
+ },
+ "gates": {
+  "profit_factor": true,
+  "expectancy_R": true,
+  "net_positive": true,
+  "bootstrap": true,
+  "dsr": true,
+  "folds": true,
+  "max_dd_vs_user_limit": "PENDING_USER_LIMIT",
+  "stress_cost_high": true,
+  "stress_latency": true,
+  "stress_reject": true,
+  "neighbors": true,
+  "ex_top5pct": true,
+  "drop10": true,
+  "year_concentration": true,
+  "positive_years": true,
+  "holm": true
+ },
+ "verdict": "CANDIDATE_PENDING_USER_LIMITS",
+ "holm_p": 0.0
+}

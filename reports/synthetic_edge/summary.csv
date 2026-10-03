@@ -1,0 +1,2 @@
+hypothesis,verdict,n_trades,net_profit,profit_factor,expectancy_R,max_dd,positive_fold_share,pct_profitable_days_all,pct_profitable_days_active,p_boot,holm_p,dsr
+H5_tod_drift,CANDIDATE_PENDING_USER_LIMITS,913,4743.959638595763,2.1839426234859993,0.08706935710822733,0.008632629424251739,1.0,0.6210295728368017,0.6210295728368017,0.0,0.0,0.9999999999987459

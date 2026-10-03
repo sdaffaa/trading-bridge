@@ -1,0 +1,17 @@
+XAUUSD: contract 100, min lot 0.01, step 0.01, commission/side/lot 0.0  [UNVERIFIED SPEC - illustrative only]
+  capital   stop   budget  risk@minlot    vol eff.risk%  verdict
+      500   2.00     2.50         2.40   0.01     0.480  OK
+      500   5.00     2.50         5.40   0.00     1.080  INFEASIBLE (min lot exceeds risk budget)
+      500  10.00     2.50        10.40   0.00     2.080  INFEASIBLE (min lot exceeds risk budget)
+      500  20.00     2.50        20.40   0.00     4.080  INFEASIBLE (min lot exceeds risk budget)
+  minimum capital for 1 min-lot at this risk: stop 2.0: 480, stop 5.0: 1080, stop 10.0: 2080, stop 20.0: 4080
+     1000   2.00     5.00         2.40   0.02     0.480  OK
+     1000   5.00     5.00         5.40   0.00     0.540  INFEASIBLE (min lot exceeds risk budget)
+     1000  10.00     5.00        10.40   0.00     1.040  INFEASIBLE (min lot exceeds risk budget)
+     1000  20.00     5.00        20.40   0.00     2.040  INFEASIBLE (min lot exceeds risk budget)
+  minimum capital for 1 min-lot at this risk: stop 2.0: 480, stop 5.0: 1080, stop 10.0: 2080, stop 20.0: 4080
+     5000   2.00    25.00         2.40   0.10     0.480  OK
+     5000   5.00    25.00         5.40   0.04     0.432  OK
+     5000  10.00    25.00        10.40   0.02     0.416  OK
+     5000  20.00    25.00        20.40   0.01     0.408  OK
+  minimum capital for 1 min-lot at this risk: stop 2.0: 480, stop 5.0: 1080, stop 10.0: 2080, stop 20.0: 4080

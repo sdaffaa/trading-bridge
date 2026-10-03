@@ -1,0 +1,12 @@
+..........................................                               [100%]
+=============================== warnings summary ===============================
+tests/test_live_parity.py::test_replay_matches_backtest_with_restart[strat0-1500-4]
+tests/test_live_parity.py::test_replay_matches_backtest_with_restart[strat0-1500-4]
+tests/test_live_parity.py::test_replay_matches_backtest_with_restart[strat1-200-3]
+tests/test_live_parity.py::test_replay_matches_backtest_with_restart[strat1-200-3]
+  /home/user/trading-bridge/tests/test_live_parity.py:22: UserWarning: obj.round has no effect with datetime, timedelta, or period dtypes. Use obj.dt.round(...) instead.
+    return df[["entry_time", "side", "volume", "entry", "exit_time", "exit", "exit_reason"]].round(8) \
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+42 passed, 4 warnings in 136.66s (0:02:16)
+exit=0
