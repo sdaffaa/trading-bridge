@@ -1,0 +1,26 @@
+# systemd unit for trading-bridge (non-Docker deploy).
+# Install:
+#   sudo cp deploy/trading-bridge.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now trading-bridge
+# Edit paths/User and point EnvironmentFile at a root-only .env (chmod 600).
+
+[Unit]
+Description=trading-bridge (TradingView -> Claude agent -> Telegram)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=trading
+WorkingDirectory=/opt/trading-bridge
+EnvironmentFile=/opt/trading-bridge/.env
+ExecStart=/opt/trading-bridge/.venv/bin/gunicorn -w 1 --threads 8 -b 0.0.0.0:5000 --timeout 120 tv_claude_bridge:app
+Restart=on-failure
+RestartSec=5
+# Harden a bit; keep /opt/trading-bridge writable for the idempotency state dir.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

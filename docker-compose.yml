@@ -1,0 +1,16 @@
+# One-command bring-up:  docker compose up -d
+# Reads credentials from .env; persists idempotency state in a named volume.
+services:
+  bridge:
+    build: .
+    image: trading-bridge
+    ports:
+      - "${PORT:-5000}:5000"
+    env_file:
+      - .env
+    volumes:
+      - tb-data:/data
+    restart: unless-stopped
+
+volumes:
+  tb-data:
