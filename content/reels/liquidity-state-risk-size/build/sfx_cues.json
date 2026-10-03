@@ -1,0 +1,133 @@
+{
+  "vo_master": "loudnorm=I=-14:TP=-1.5:LRA=11",
+  "music_bed_db": -18,
+  "sidechain_duck_db": 4,
+  "cues": [
+    {
+      "raw": "sub-drop 40Hz -6dB @0.0",
+      "at": 0.0,
+      "gain_db": -6.0,
+      "freq_hz": 40.0,
+      "kind": "sub-drop"
+    },
+    {
+      "raw": "tick -18dB مع كل نبضة بالشريط",
+      "at": 0.0,
+      "gain_db": -18.0,
+      "kind": "tick"
+    },
+    {
+      "raw": "air bed -30dB",
+      "at": 0.0,
+      "gain_db": -30.0,
+      "kind": "air"
+    },
+    {
+      "raw": "impact 60Hz -3dB على «تطيح»",
+      "at": 2.6,
+      "gain_db": -3.0,
+      "freq_hz": 60.0,
+      "kind": "impact"
+    },
+    {
+      "raw": "riser 0.8s -24dB @4.2 يبدأ",
+      "at": 4.2,
+      "gain_db": -24.0,
+      "duration_s": 0.8,
+      "kind": "riser"
+    },
+    {
+      "raw": "tick -20dB مع رسم كل لوحة",
+      "at": 5.0,
+      "gain_db": -20.0,
+      "kind": "tick"
+    },
+    {
+      "raw": "riser ينحل -12dB @5.6",
+      "at": 5.6,
+      "gain_db": -12.0,
+      "kind": "riser"
+    },
+    {
+      "raw": "tick -22dB مع كل مؤشر ينضاف",
+      "at": 6.2,
+      "gain_db": -22.0,
+      "kind": "tick"
+    },
+    {
+      "raw": "air bed مستمر",
+      "at": 6.2,
+      "kind": "air"
+    },
+    {
+      "raw": "riser 1.2s @8.6 داخل الـ TURN",
+      "at": 8.6,
+      "duration_s": 1.2,
+      "kind": "riser"
+    },
+    {
+      "raw": "impact 60Hz -3dB على «خسارة»",
+      "at": 8.6,
+      "gain_db": -3.0,
+      "freq_hz": 60.0,
+      "kind": "impact"
+    },
+    {
+      "raw": "tick -16dB مع كل قفزة",
+      "at": 10.6,
+      "gain_db": -16.0,
+      "kind": "tick"
+    },
+    {
+      "raw": "impact 60Hz -4dB لمن الشريط يضرب −10%",
+      "at": 10.6,
+      "gain_db": -4.0,
+      "freq_hz": 60.0,
+      "kind": "impact"
+    },
+    {
+      "raw": "sub-drop 40Hz -4dB @13.2",
+      "at": 13.2,
+      "gain_db": -4.0,
+      "freq_hz": 40.0,
+      "kind": "sub-drop"
+    },
+    {
+      "raw": "reverse-reverb 0.5s",
+      "at": 13.2,
+      "duration_s": 0.5,
+      "kind": "reverse-reverb"
+    },
+    {
+      "raw": "air bed -28dB",
+      "at": 13.9,
+      "gain_db": -28.0,
+      "kind": "air"
+    },
+    {
+      "raw": "tick -20dB مع كل سطر معادلة",
+      "at": 13.9,
+      "gain_db": -20.0,
+      "kind": "tick"
+    },
+    {
+      "raw": "air bed -30dB",
+      "at": 16.6,
+      "gain_db": -30.0,
+      "kind": "air"
+    },
+    {
+      "raw": "tick -24dB واحد لمن يقفل النص",
+      "at": 16.6,
+      "gain_db": -24.0,
+      "kind": "tick"
+    },
+    {
+      "raw": "sub-drop 40Hz -8dB @18.0 صدى الافتتاحية",
+      "at": 18.0,
+      "gain_db": -8.0,
+      "freq_hz": 40.0,
+      "kind": "sub-drop"
+    }
+  ]
+}
