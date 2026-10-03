@@ -1,0 +1,10 @@
+{
+  "name": "realistic-trading-chart",
+  "description": "Render realistic TradingView-style candlestick charts (SVG/PNG) for trading carousels, reels, covers, and lesson slides — real price action, price axis, grid, volume, and engineered liquidity-sweep annotations in a brand palette.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Liquidity State"
+  },
+  "keywords": ["trading", "chart", "candlestick", "tradingview", "carousel", "liquidity-sweep", "arabic"],
+  "skills": "./skills/"
+}

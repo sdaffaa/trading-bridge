@@ -1,0 +1,30 @@
+{
+  "name": "liquidity-state-marketplace",
+  "owner": {
+    "name": "Liquidity State"
+  },
+  "metadata": {
+    "description": "Claude Code plugins for Liquidity State trading content production.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "liquidity-state-suite",
+      "source": "./",
+      "description": "Full suite — brand identity + dialect, realistic charts, 10 3D backgrounds, and the carousel design system. Installing this activates all Liquidity State skills at once.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Liquidity State"
+      }
+    },
+    {
+      "name": "realistic-trading-chart",
+      "source": "./plugins/realistic-trading-chart",
+      "description": "Realistic TradingView-style candlestick chart engine (SVG/PNG) for brand carousels, reels, and lesson slides — real price action, price axis, grid, volume, and engineered liquidity-sweep annotations.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Liquidity State"
+      }
+    }
+  ]
+}
