@@ -1,0 +1,10 @@
+QA verdict: WARN coverage 1.0
+evaluating H1_ny_orb 18 configs
+  -> REJECT {'n_trades': 903, 'net_profit': -5828.748402067597, 'profit_factor': 0.5919965675750609}
+evaluating H2_ldn_asia_bo 12 configs
+  -> REJECT {'n_trades': 487, 'net_profit': -1825.6478823776179, 'profit_factor': 0.8261355470329584}
+evaluating H3_intraday_mom 12 configs
+  -> REJECT {'n_trades': 579, 'net_profit': -1525.501905263472, 'profit_factor': 0.587618657374351}
+evaluating H4_asia_mr 12 configs
+  -> REJECT {'n_trades': 604, 'net_profit': -1787.761740515596, 'profit_factor': 0.25117953216754385}
+evaluating H5_tod_drift 8 configs

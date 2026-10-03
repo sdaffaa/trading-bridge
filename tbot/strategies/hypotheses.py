@@ -8,23 +8,36 @@ import numpy as np
 import pandas as pd
 
 from tbot.data.bars import mid, trading_day
+from tbot.data.calendar import is_early_close_day
 from tbot.strategies.base import (Strategy, daily_context, empty_signals, first_true_per_day,
                                   local_clock)
 
 NY = "America/New_York"
 LDN = "Europe/London"
 FLAT_BY_NY = 16 * 60 + 30   # all intraday hypotheses flat by 16:30 NY (before 17:00 rollover)
+EARLY_FLAT = 12 * 60        # on calendar early-close days: flat from 12:00 NY
+EARLY_LAST_ENTRY = 11 * 60  # ... and no entries after 11:00 NY
 
 
-def _time_exit(sig: pd.DataFrame, close_min_ny: np.ndarray, day: np.ndarray, at_min: int) -> None:
+def _time_exit(sig: pd.DataFrame, close_min_ny: np.ndarray, day: np.ndarray, at_min: int,
+               open_min_ny: np.ndarray | None = None) -> None:
     """exit=1 on EVERY bar whose close is in [at_min, 17:00 NY) — persistent, so a rejected or
     expired close order is re-issued on the next bar. The upper bound excludes the evening
     session (18:00-24:00 NY), which belongs to the same trading day (review defect 1)."""
     m = (close_min_ny >= at_min) & (close_min_ny <= 17 * 60)
+    # scheduled early-close days (holiday calendar, known in advance): flat from 12:00 NY
+    m = m | (is_early_close_day(day) & (close_min_ny >= EARLY_FLAT) & (close_min_ny <= 17 * 60))
+    if open_min_ny is not None:
+        # backstop for early-close sessions / data gaps (review N1): any evening-session bar
+        # (opens >= 18:00 NY) means the regular session ended without an exit -> close now
+        m = m | (open_min_ny >= 18 * 60)
     sig.loc[m, "exit"] = 1
 
 
-def _apply_entries(sig, trig_long, trig_short, ref, stop_l, stop_s, rr, day, tag):
+def _apply_entries(sig, trig_long, trig_short, ref, stop_l, stop_s, rr, day, tag, close_min_ny=None):
+    if close_min_ny is not None:   # no late entries on scheduled early-close days
+        late = is_early_close_day(day) & (close_min_ny > EARLY_LAST_ENTRY) & (close_min_ny <= 17 * 60)
+        trig_long, trig_short = trig_long & ~late, trig_short & ~late
     trig = trig_long | trig_short
     first = first_true_per_day(trig, day)
     side = np.where(first & trig_long, 1, np.where(first & trig_short, -1, 0))
@@ -62,8 +75,8 @@ class H1_NYOpeningRange(Strategy):
         sig = empty_signals(bars.index)
         stop_l = lo if p["stop_mode"] == "opposite" else midr
         stop_s = hi if p["stop_mode"] == "opposite" else midr
-        _apply_entries(sig, ok & (c > hi), ok & (c < lo), c, stop_l, stop_s, p["rr"], day, self.name)
-        _time_exit(sig, cm, day, FLAT_BY_NY)
+        _apply_entries(sig, ok & (c > hi), ok & (c < lo), c, stop_l, stop_s, p["rr"], day, self.name, cm)
+        _time_exit(sig, cm, day, FLAT_BY_NY, om)
         return sig
 
 
@@ -79,7 +92,7 @@ class H2_LondonAsianBreakout(Strategy):
         mp = mid(bars)
         day = trading_day(bars.index)
         oml, _ = local_clock(bars.index, LDN)
-        _, cm = local_clock(bars.index, NY)
+        omn, cm = local_clock(bars.index, NY)
         in_rng = (oml >= 0) & (oml < 7 * 60)
         hi = mp["h"].where(in_rng).groupby(day).transform("max").to_numpy()
         lo = mp["l"].where(in_rng).groupby(day).transform("min").to_numpy()
@@ -92,8 +105,8 @@ class H2_LondonAsianBreakout(Strategy):
         sig = empty_signals(bars.index)
         stop_l = lo if p["stop_mode"] == "opposite" else midr
         stop_s = hi if p["stop_mode"] == "opposite" else midr
-        _apply_entries(sig, ok & (c > up), ok & (c < dn), c, stop_l, stop_s, p["rr"], day, self.name)
-        _time_exit(sig, cm, day, FLAT_BY_NY)
+        _apply_entries(sig, ok & (c > up), ok & (c < dn), c, stop_l, stop_s, p["rr"], day, self.name, cm)
+        _time_exit(sig, cm, day, FLAT_BY_NY, omn)
         return sig
 
 
@@ -108,7 +121,7 @@ class H3_IntradayMomentum(Strategy):
         p = self.params
         mp = mid(bars)
         day = trading_day(bars.index)
-        _, cm = local_clock(bars.index, NY)
+        omn, cm = local_clock(bars.index, NY)
         ctx = daily_context(bars)
         c = mp["c"].to_numpy()
         r = np.log(c / ctx["prev_close"].to_numpy())
@@ -118,8 +131,8 @@ class H3_IntradayMomentum(Strategy):
         valid = at & np.isfinite(thr) & np.isfinite(atr)
         sig = empty_signals(bars.index)
         _apply_entries(sig, valid & (r > thr) & (r > 0), valid & (r < -thr) & (r < 0), c,
-                       c - p["stop_atr"] * atr, c + p["stop_atr"] * atr, 0, day, self.name)
-        _time_exit(sig, cm, day, FLAT_BY_NY)
+                       c - p["stop_atr"] * atr, c + p["stop_atr"] * atr, 0, day, self.name, cm)
+        _time_exit(sig, cm, day, FLAT_BY_NY, omn)
         return sig
 
 
@@ -173,7 +186,9 @@ class H5_TimeOfDayDrift(Strategy):
         out = []
         for ds, de in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             ns, ne = (s + ds) % 24, (e + de) % 24
-            if ns != ne and not (ns == 17 or ne == 18):   # avoid the 17:00-18:00 NY break
+            # avoid the 17:00-18:00 NY break, and ends after 16:00 that the 16:30 backstop would
+            # truncate (review N3)
+            if ns != ne and not (ns == 17 or ne == 18) and not (ns < ne and ne > 16):
                 out.append({"window": (ns, ne), "side": params["side"]})
         return out
 
@@ -197,10 +212,11 @@ class H5_TimeOfDayDrift(Strategy):
         sig = empty_signals(bars.index)
         side = p["side"]
         _apply_entries(sig, valid & (side == 1), valid & (side == -1), c,
-                       c - self.STOP_ATR * atr, c + self.STOP_ATR * atr, 0, day, self.name)
+                       c - self.STOP_ATR * atr, c + self.STOP_ATR * atr, 0, day, self.name, cm)
         # persistent exit on every bar closing outside the holding window (and in the 16:30-17:00
         # backstop) so a missing bar or rejected close order cannot leave the position open
-        ex = ~in_win | ((cm >= FLAT_BY_NY) & (cm <= 17 * 60) & (not wrap))
+        ex = ~in_win | ((cm >= FLAT_BY_NY) & (cm <= 17 * 60) & (not wrap)) | \
+            (is_early_close_day(day) & (cm >= EARLY_FLAT) & (cm <= 17 * 60))
         sig.loc[ex, "exit"] = 1
         return sig
 

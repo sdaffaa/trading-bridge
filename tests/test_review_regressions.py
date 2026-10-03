@@ -147,8 +147,45 @@ def test_d10_research_slice_by_trading_day(tmp_path):
 
 def test_d11_peak_equity_tracked_on_close_not_bar_low():
     c = _core()
-    b = make_bars([100, 100, (100, 100, 90, 100), 100])
+    # long 0.1 lot at 100.1; bar 2 dips to 99 but closes at 110 -> peak must equal close equity
+    b = make_bars([100, 100, (100, 110, 99, 110)])   # the dip-and-rally bar is the LAST bar
     day = pd.Timestamp("2024-01-02").date()
+    eqs = []
     for i, (t, row) in enumerate(b.iterrows()):
-        c.step(t, row[P].to_numpy(float), day, entry=1 if i == 0 else 0, stop=50.0)
-    assert c.risk.state.peak_equity == pytest.approx(10000.0)
+        eqs.append(c.step(t, row[P].to_numpy(float), day, entry=1 if i == 0 else 0, stop=95.0))
+    assert c.broker.positions, "position must be open for the test to be meaningful"
+    assert c.risk.state.peak_equity == pytest.approx(max(eqs)) and max(eqs) > 10000
+
+
+@pytest.mark.parametrize("strat", [H1_NYOpeningRange(range_min=10, stop_mode="opposite", rr=0),
+                                   H3_IntradayMomentum(decision=600, k=0.0, stop_atr=1.0)])
+def test_n1_early_close_sessions_do_not_carry_positions(strat):
+    from tbot.data.bars import trading_day
+    ny = _ny(BARS.index)
+    hm = ny.hour * 60 + ny.minute
+    td = pd.to_datetime(trading_day(BARS.index))
+    # (a) unscheduled early close on Mon-Thu: bounded by the evening backstop (next 18:00 open)
+    unsched = (ny.weekday < 4) & (hm >= 13 * 60 + 30) & (ny.hour < 17)
+    # (b) scheduled holiday early close (Presidents Day 2024-02-19, Good Friday 2024-03-29): flat by 12:00
+    sched = td.isin(pd.to_datetime(["2024-02-19", "2024-03-29"])) & (hm >= 13 * 60) & (ny.hour < 17)
+    early = BARS[~(unsched | sched)]
+    sig = strat.signals(early)
+    r = run_backtest(early, sig, SPEC, RC, ExecConfig(), 10000)
+    held = r.trades["exit_time"] - r.trades["entry_time"]
+    assert len(r.trades) > 5
+    assert (held < pd.Timedelta(hours=15)).all()
+    hol = r.trades[r.trades["entry_day"].isin(pd.to_datetime(["2024-02-19", "2024-03-29"]))]
+    assert (pd.to_datetime(trading_day(pd.DatetimeIndex(hol["exit_time"]))) == hol["entry_day"].values).all()
+
+
+def test_n2_block_new_halt_cancels_pending_entries():
+    rc = RiskConfig(risk_per_trade_frac=0.05, max_total_risk_frac=0.2, fixed_volume=0.4, max_open_positions=2,
+                    daily_loss_limit_frac=0.01, daily_halt_mode="block_new", max_drawdown_frac=0.9,
+                    max_margin_usage=1.0)
+    b = make_bars([100, 100, (100, 100, 97, 97), 97, 97, 97, 97])
+    s = empty_signals(b.index)
+    for i in (0, 1):   # 2nd entry is submitted at bar 1, executes bar 3 — after the halt at bar 2
+        s.iloc[i, s.columns.get_loc("entry")] = 1
+        s.iloc[i, s.columns.get_loc("stop")] = 90.0
+    r = run_backtest(b, s, SPEC, rc, ExecConfig(latency_bars=1), 10000)
+    assert r.decisions["filled"] == 1

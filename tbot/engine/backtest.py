@@ -99,8 +99,8 @@ class TradingCore:
         tc = t + self.bar_td
         if kill_switch and not risk.state.kill_switch:
             risk.trigger_kill_switch(t)
-        if risk.must_flatten:
-            self._cancel_entries(t, "halt")
+        if risk.must_flatten or risk.state.daily_halted or risk.state.dd_halted:
+            self._cancel_entries(t, "halt")   # also in block_new mode (review N2)
         if self.idle(entry):
             self.prev_bar = bar
             self.last_eq = b.balance
@@ -119,8 +119,9 @@ class TradingCore:
             self.max_margin = max(self.max_margin, b.used_margin())
             e_close = b.equity(bar[3], bar[7])
             risk.on_equity(b.worst_equity(bar), t, close_equity=e_close)
-            if risk.must_flatten:
+            if risk.must_flatten or risk.state.daily_halted or risk.state.dd_halted:
                 self._cancel_entries(t, "halt")
+            if risk.must_flatten:
                 self._flatten(tc, "kill_switch" if risk.state.kill_switch else "risk_halt")
             if e_close < self.stopout_level * b.used_margin():
                 self.decisions["margin_stopout"] += 1
