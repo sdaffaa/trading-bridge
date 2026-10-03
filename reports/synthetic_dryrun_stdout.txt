@@ -1,18 +1,18 @@
 QA verdict: WARN coverage 1.0
 evaluating H1_ny_orb 18 configs
-  -> REJECT {'n_trades': 903, 'net_profit': -5828.748402067988, 'profit_factor': 0.59199656757504}
+  -> REJECT {'n_trades': 901, 'net_profit': -5636.671657148199, 'profit_factor': 0.5996115448705234}
 evaluating H2_ldn_asia_bo 12 configs
-  -> REJECT {'n_trades': 516, 'net_profit': -1844.7775490301185, 'profit_factor': 0.7715713418398892}
+  -> REJECT {'n_trades': 516, 'net_profit': -1729.8734124580676, 'profit_factor': 0.782002102055742}
 evaluating H3_intraday_mom 12 configs
-  -> REJECT {'n_trades': 587, 'net_profit': -1807.0023449734554, 'profit_factor': 0.5634367117863627}
+  -> REJECT {'n_trades': 536, 'net_profit': -1708.6023971051445, 'profit_factor': 0.5576476166783612}
 evaluating H4_asia_mr 12 configs
   -> REJECT {'n_trades': 604, 'net_profit': -1787.7610954049017, 'profit_factor': 0.2511796000389289}
 evaluating H5_tod_drift 8 configs
-  -> REJECT {'n_trades': 913, 'net_profit': -1851.0368749092233, 'profit_factor': 0.6955522924721926}
+  -> REJECT {'n_trades': 913, 'net_profit': -1847.9816808145797, 'profit_factor': 0.695968465906715}
         hypothesis verdict  n_trades   net_profit  profit_factor  expectancy_R    max_dd  positive_fold_share  pct_profitable_days_all  pct_profitable_days_active  p_boot  holm_p            dsr
-0        H1_ny_orb  REJECT       903 -5828.748402       0.591997     -0.270917  0.695250             0.000000                 0.334064                    0.337763  1.0000     1.0   1.238475e-19
-1   H2_ldn_asia_bo  REJECT       516 -1844.777549       0.771571     -0.085583  0.211683             0.000000                 0.260679                    0.461240  0.9975     1.0   5.032356e-07
-2  H3_intraday_mom  REJECT       587 -1807.002345       0.563437     -0.077872  0.206745             0.142857                 0.257393                    0.400341  1.0000     1.0   7.650001e-14
+0        H1_ny_orb  REJECT       901 -5636.671657       0.599612     -0.261320  0.681360             0.000000                 0.339540                    0.344062  1.0000     1.0   6.990701e-19
+1   H2_ldn_asia_bo  REJECT       516 -1729.873412       0.782002     -0.081898  0.195132             0.000000                 0.262870                    0.465116  0.9955     1.0   8.053678e-07
+2  H3_intraday_mom  REJECT       536 -1708.602397       0.557648     -0.078826  0.193008             0.142857                 0.240964                    0.410448  1.0000     1.0   3.208940e-13
 3       H4_asia_mr  REJECT       604 -1787.761095       0.251180     -0.502674  0.749689             0.000000                 0.060241                    0.213178  1.0000     1.0  2.629184e-110
-4     H5_tod_drift  REJECT       913 -1851.036875       0.695552     -0.052105  0.206464             0.000000                 0.462212                    0.462212  1.0000     1.0   7.720274e-12
+4     H5_tod_drift  REJECT       913 -1847.981681       0.695968     -0.052014  0.206213             0.000000                 0.462212                    0.462212  1.0000     1.0   8.100988e-12
 exit=0

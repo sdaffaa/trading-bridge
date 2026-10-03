@@ -3,101 +3,101 @@
  "n_grid": 18,
  "folds": 7,
  "oos": {
-  "n_trades": 903,
-  "net_profit": -5828.748402067988,
-  "profit_factor": 0.59199656757504,
-  "expectancy_R": -0.2709166048411483,
-  "total_ret": -0.6967590365980358,
-  "max_dd": 0.6952497088743709,
+  "n_trades": 901,
+  "net_profit": -5636.671657148199,
+  "profit_factor": 0.5996115448705234,
+  "expectancy_R": -0.2613197691071782,
+  "total_ret": -0.6815833918275918,
+  "max_dd": 0.6813598032335234,
   "positive_fold_share": 0.0,
-  "pct_profitable_days_all": 0.33406352683461116,
-  "pct_profitable_days_active": 0.3377630121816168,
-  "worst_day": -0.0056749667225418415
+  "pct_profitable_days_all": 0.33953997809419495,
+  "pct_profitable_days_active": 0.34406215316315203,
+  "worst_day": -0.0057641655933039675
  },
  "wf_table": [
   {
    "test_start": "2020-01-01",
    "test_end": "2020-07-01",
    "chosen": "{'range_min': 30, 'stop_mode': 'opposite', 'rr': 2.0}",
-   "train_score": -0.1297821943796892,
+   "train_score": -0.1397002397530246,
    "test_days": 130,
    "test_trades": 130,
-   "test_ret": -0.17639705498987213,
-   "test_R": -39.208052063723
+   "test_ret": -0.17739335339239426,
+   "test_R": -39.63819813470983
   },
   {
    "test_start": "2020-07-01",
    "test_end": "2021-01-01",
    "chosen": "{'range_min': 30, 'stop_mode': 'opposite', 'rr': 2.0}",
-   "train_score": -0.17428577347155252,
+   "train_score": -0.1836652840319069,
    "test_days": 132,
-   "test_trades": 132,
-   "test_ret": -0.159254926029049,
-   "test_R": -35.25476484044408
+   "test_trades": 131,
+   "test_ret": -0.14428596167909225,
+   "test_R": -31.55284828850167
   },
   {
    "test_start": "2021-01-01",
    "test_end": "2021-07-01",
    "chosen": "{'range_min': 30, 'stop_mode': 'opposite', 'rr': 2.0}",
-   "train_score": -0.2523629154124681,
+   "train_score": -0.24363458950492256,
    "test_days": 129,
    "test_trades": 128,
-   "test_ret": -0.20896067259595785,
-   "test_R": -47.82856782716738
+   "test_ret": -0.19871690600742786,
+   "test_R": -45.5744386954279
   },
   {
    "test_start": "2021-07-01",
    "test_end": "2022-01-01",
    "chosen": "{'range_min': 60, 'stop_mode': 'opposite', 'rr': 1.0}",
-   "train_score": -0.257469940125743,
+   "train_score": -0.23400291234662873,
    "test_days": 132,
-   "test_trades": 125,
-   "test_ret": -0.10414116738432844,
-   "test_R": -22.415103399488597
+   "test_trades": 124,
+   "test_ret": -0.1036433780203293,
+   "test_R": -22.495699982201817
   },
   {
    "test_start": "2022-01-01",
    "test_end": "2022-07-01",
    "chosen": "{'range_min': 30, 'stop_mode': 'opposite', 'rr': 2.0}",
-   "train_score": -0.20497793486741278,
+   "train_score": -0.19862979037163886,
    "test_days": 129,
    "test_trades": 129,
-   "test_ret": -0.11221877001847291,
-   "test_R": -24.90080985762455
+   "test_ret": -0.10207182051801722,
+   "test_R": -22.069304066583832
   },
   {
    "test_start": "2022-07-01",
    "test_end": "2023-01-01",
    "chosen": "{'range_min': 30, 'stop_mode': 'opposite', 'rr': 2.0}",
-   "train_score": -0.11881753857866181,
+   "train_score": -0.11193916789646134,
    "test_days": 131,
    "test_trades": 130,
-   "test_ret": -0.15552740472144266,
-   "test_R": -34.604764095154565
+   "test_ret": -0.15121293909928857,
+   "test_R": -33.486208955479135
   },
   {
    "test_start": "2023-01-01",
    "test_end": "2023-07-01",
    "chosen": "{'range_min': 30, 'stop_mode': 'opposite', 'rr': 2.0}",
-   "train_score": -0.19942141246249767,
+   "train_score": -0.1883730944458433,
    "test_days": 130,
    "test_trades": 129,
-   "test_ret": -0.17571675731778325,
-   "test_R": -40.42563208795475
+   "test_ret": -0.17364306124781637,
+   "test_R": -40.63241384266339
   }
  ],
  "bootstrap": {
   "mean_ci95": [
-   -0.0016432258033346459,
-   -0.0009544884953686375
+   -0.0015849568745525987,
+   -0.0009116088876339823
   ],
   "sharpe_ci95": [
-   -5.286086005679129,
-   -2.9188447431915647
+   -5.161850901899088,
+   -2.7963350247538
   ],
   "total_ret_ci95": [
-   -0.7798084692811041,
-   -0.5870229087158784
+   -0.7676925627112398,
+   -0.5704257776562381
   ],
   "p_mean_le_0": 1.0,
   "p_total_le_0": 1.0,
@@ -107,16 +107,16 @@
   "seed": 0
  },
  "dsr": {
-  "sr": -0.2504567868516236,
+  "sr": -0.24180086966936726,
   "sr0": 0.07806732296454019,
   "n_trials": 62,
   "var_used": 0.0010964912280701754,
-  "dsr": 1.238474959430906e-19,
-  "empirical_cross_trial_var": 0.04372942540059498
+  "dsr": 6.990701220081184e-19,
+  "empirical_cross_trial_var": 0.04337836707341789
  },
  "clustering": {
-  "ac1_pnl": -0.01007103717275558,
-  "ac1_loss_indicator": 0.000973119566084853
+  "ac1_pnl": -0.01259172920557508,
+  "ac1_loss_indicator": -0.017707127066006995
  },
  "p_value": 1.0,
  "gates": {

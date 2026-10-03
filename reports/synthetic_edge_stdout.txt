@@ -1,10 +1,18 @@
 QA verdict: WARN coverage 1.0
 evaluating H1_ny_orb 18 configs
-  -> REJECT {'n_trades': 903, 'net_profit': -5828.748402067597, 'profit_factor': 0.5919965675750609}
+  -> REJECT {'n_trades': 901, 'net_profit': -5636.671657147821, 'profit_factor': 0.5996115448705445}
 evaluating H2_ldn_asia_bo 12 configs
-  -> REJECT {'n_trades': 487, 'net_profit': -1825.6478823776179, 'profit_factor': 0.8261355470329584}
+  -> REJECT {'n_trades': 525, 'net_profit': -2195.287705600446, 'profit_factor': 0.7981215555327712}
 evaluating H3_intraday_mom 12 configs
-  -> REJECT {'n_trades': 579, 'net_profit': -1525.501905263472, 'profit_factor': 0.587618657374351}
+  -> REJECT {'n_trades': 534, 'net_profit': -1432.8019726863326, 'profit_factor': 0.5762681312045713}
 evaluating H4_asia_mr 12 configs
   -> REJECT {'n_trades': 604, 'net_profit': -1787.761740515596, 'profit_factor': 0.25117953216754385}
 evaluating H5_tod_drift 8 configs
+  -> CANDIDATE_PENDING_USER_LIMITS {'n_trades': 913, 'net_profit': 4798.926488848105, 'profit_factor': 2.202398353914856}
+        hypothesis                        verdict  n_trades   net_profit  profit_factor  expectancy_R    max_dd  positive_fold_share  pct_profitable_days_all  pct_profitable_days_active  p_boot  holm_p            dsr
+0        H1_ny_orb                         REJECT       901 -5636.671657       0.599612     -0.261320  0.681360             0.000000                 0.339540                    0.344062  1.0000     1.0   6.990701e-19
+1   H2_ldn_asia_bo                         REJECT       525 -2195.287706       0.798122     -0.101885  0.272704             0.142857                 0.245345                    0.426667  0.9915     1.0   1.906432e-06
+2  H3_intraday_mom                         REJECT       534 -1432.801973       0.576268     -0.066452  0.150256             0.142857                 0.245345                    0.419476  1.0000     1.0   4.009552e-12
+3       H4_asia_mr                         REJECT       604 -1787.761741       0.251180     -0.502674  0.749689             0.000000                 0.060241                    0.213178  1.0000     1.0  2.628987e-110
+4     H5_tod_drift  CANDIDATE_PENDING_USER_LIMITS       913  4798.926489       2.202398      0.087893  0.008875             1.000000                 0.621030                    0.621030  0.0000     0.0   1.000000e+00
+exit=0

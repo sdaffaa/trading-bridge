@@ -28,4 +28,13 @@ Open / documented limitations:
 
 All synthetic experiments logged before commit "Fix independent-review defects 1-12" (EXPERIMENTS.csv rows of phase `pipeline-test-synthetic*` with the earlier commits) are **superseded** — they were produced by the defective code.
 
-Re-verification: see REVIEW_1 addendum below (pending).
+
+## Addendum — re-review of the fixes (same reviewer)
+- D1–D12: all **FIXED**, each with evidence (reviewer re-ran its repro scripts). Accounting still balances in every configuration.
+- test_d11 was vacuous (no position opened) → rewritten.
+- New findings, fixed in commit d2df1b8:
+  - **N1 (MEDIUM)** early-close sessions (US holidays, data gaps) left H1–H3 positions open into the next day/weekend → holiday calendar (published in advance, `tbot/data/calendar.py`): no entries after 11:00 NY, flat from 12:00 NY; plus an evening-session backstop exit. Residual: an *unscheduled* Friday early close still leads to a weekend hold until Sunday's open (documented risk).
+  - **N2 (LOW)** `block_new` halts did not cancel already-submitted entries → cancelled.
+  - **N3 (LOW)** H5 neighbour windows ending after 16:00 were truncated by the 16:30 backstop → excluded.
+- Verification of test power: all 16 regression tests FAIL on the pre-fix code and PASS on the fixed code. Full suite: 58 passed.
+- Reviewer's updated verdict before N1–N3 fixes: "conditional pass — computationally trustworthy for research once N1 is fixed".

@@ -1,0 +1,134 @@
+{
+ "hypothesis": "H3_intraday_mom",
+ "n_grid": 12,
+ "folds": 7,
+ "oos": {
+  "n_trades": 534,
+  "net_profit": -1432.8019726863326,
+  "profit_factor": 0.5762681312045713,
+  "expectancy_R": -0.06645168400992825,
+  "total_ret": -0.14940406199913725,
+  "max_dd": 0.15025577927542447,
+  "positive_fold_share": 0.14285714285714285,
+  "pct_profitable_days_all": 0.24534501642935377,
+  "pct_profitable_days_active": 0.41947565543071164,
+  "worst_day": -0.005106127987853059
+ },
+ "wf_table": [
+  {
+   "test_start": "2020-01-01",
+   "test_end": "2020-07-01",
+   "chosen": "{'decision': 600, 'k': 0.5, 'stop_atr': 1.0}",
+   "train_score": -0.09000804025179199,
+   "test_days": 130,
+   "test_trades": 77,
+   "test_ret": -0.029099587766661217,
+   "test_R": -6.249260441121351
+  },
+  {
+   "test_start": "2020-07-01",
+   "test_end": "2021-01-01",
+   "chosen": "{'decision': 720, 'k': 0.5, 'stop_atr': 1.0}",
+   "train_score": -0.09590940612368479,
+   "test_days": 132,
+   "test_trades": 72,
+   "test_ret": -0.015109121974678397,
+   "test_R": -3.7136158546399027
+  },
+  {
+   "test_start": "2021-01-01",
+   "test_end": "2021-07-01",
+   "chosen": "{'decision': 720, 'k': 0.5, 'stop_atr': 1.0}",
+   "train_score": -0.11215198621220018,
+   "test_days": 129,
+   "test_trades": 75,
+   "test_ret": -0.017434571237157637,
+   "test_R": -3.869438015303339
+  },
+  {
+   "test_start": "2021-07-01",
+   "test_end": "2022-01-01",
+   "chosen": "{'decision': 720, 'k': 0.5, 'stop_atr': 1.0}",
+   "train_score": -0.13579974351150242,
+   "test_days": 132,
+   "test_trades": 88,
+   "test_ret": -0.045397897186499,
+   "test_R": -10.113470067237213
+  },
+  {
+   "test_start": "2022-01-01",
+   "test_end": "2022-07-01",
+   "chosen": "{'decision': 600, 'k': 0.5, 'stop_atr': 1.0}",
+   "train_score": -0.20146032424445864,
+   "test_days": 129,
+   "test_trades": 77,
+   "test_ret": -0.038339424903742536,
+   "test_R": -8.552517653173522
+  },
+  {
+   "test_start": "2022-07-01",
+   "test_end": "2023-01-01",
+   "chosen": "{'decision': 600, 'k': 0.5, 'stop_atr': 1.0}",
+   "train_score": -0.2931915262096254,
+   "test_days": 131,
+   "test_trades": 71,
+   "test_ret": 0.014174308693347237,
+   "test_R": 3.1533377475131426
+  },
+  {
+   "test_start": "2023-01-01",
+   "test_end": "2023-07-01",
+   "chosen": "{'decision': 600, 'k': 0.5, 'stop_atr': 0.5}",
+   "train_score": -0.09117815072060757,
+   "test_days": 130,
+   "test_trades": 74,
+   "test_ret": -0.027606110393849193,
+   "test_R": -6.1402349773394995
+  }
+ ],
+ "bootstrap": {
+  "mean_ci95": [
+   -0.0002566829968771087,
+   -0.00010022344780036884
+  ],
+  "sharpe_ci95": [
+   -3.431202043632607,
+   -1.3941304335812963
+  ],
+  "total_ret_ci95": [
+   -0.2094673920600214,
+   -0.08794979555695516
+  ],
+  "p_mean_le_0": 1.0,
+  "p_total_le_0": 1.0,
+  "n": 913,
+  "mean_block": 5,
+  "n_boot": 2000,
+  "seed": 0
+ },
+ "dsr": {
+  "sr": -0.14881368697754227,
+  "sr0": 0.07806732296454019,
+  "n_trials": 62,
+  "var_used": 0.0010964912280701754,
+  "dsr": 4.009551951476426e-12,
+  "empirical_cross_trial_var": 0.0545929008300476
+ },
+ "clustering": {
+  "ac1_pnl": -0.04271986339283067,
+  "ac1_loss_indicator": 0.009620672930190387
+ },
+ "p_value": 1.0,
+ "gates": {
+  "profit_factor": false,
+  "expectancy_R": false,
+  "net_positive": false,
+  "bootstrap": false,
+  "dsr": false,
+  "folds": false,
+  "max_dd_vs_user_limit": "PENDING_USER_LIMIT",
+  "holm": false
+ },
+ "verdict": "REJECT",
+ "holm_p": 1.0
+}
