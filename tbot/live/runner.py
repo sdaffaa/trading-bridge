@@ -44,6 +44,9 @@ class LiveRunner:
             if not (live_approved and os.environ.get("TBOT_LIVE_APPROVED") == "1"):
                 raise LiveTradingNotApproved("Live trading requires explicit owner approval (see PROJECT_SPEC.md).")
             raise NotImplementedError("No live broker adapter implemented yet.")
+        need = getattr(strategy, "min_buffer", 0)
+        if buffer_bars < need:
+            raise ValueError(f"buffer_bars={buffer_bars} < strategy.min_buffer={need}: signals would differ from research")
         self.strategy = strategy
         self.core = TradingCore(spec, risk_cfg, exec_cfg, initial_balance)
         self.state_dir = Path(state_dir)

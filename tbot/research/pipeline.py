@@ -11,7 +11,7 @@ from tbot.engine.sim import ExecConfig
 from tbot.metrics.performance import max_drawdown
 from tbot.metrics.robustness import bootstrap_stats, deflated_sharpe, drop_trades_sim, loss_clustering
 from tbot.research import registry
-from tbot.research.walkforward import _run_one, make_folds, run_grid, walk_forward
+from tbot.research.walkforward import ABSTAIN, _run_one, in_days, make_folds, run_grid, walk_forward
 from tbot.risk.engine import RiskConfig
 
 
@@ -29,17 +29,17 @@ def oos_trades(grid, wf_table) -> pd.DataFrame:
     out = []
     by = {str(p): t for p, _, t, _ in grid}
     for _, f in wf_table.iterrows():
+        if f["chosen"] == ABSTAIN:
+            continue
         t = by[f["chosen"]]
         if t.empty:
             continue
-        m = (t["entry_time"] >= pd.Timestamp(f["test_start"], tz="UTC")) & \
-            (t["entry_time"] < pd.Timestamp(f["test_end"], tz="UTC"))
-        out.append(t[m])
+        out.append(in_days(t, f["test_start"], f["test_end"]))
     return pd.concat(out) if out else pd.DataFrame()
 
 
-def wf_stats(grid, cfg, folds) -> dict:
-    table, oos = walk_forward(grid, folds, cfg["min_train_trades"])
+def wf_stats(grid, cfg, folds, fixed_choice=None) -> dict:
+    table, oos = walk_forward(grid, folds, cfg["min_train_trades"], fixed_choice)
     tr = oos_trades(grid, table)
     r = oos["ret"] if len(oos) else pd.Series(dtype=float)
     eq = (1 + r).cumprod() * cfg["initial_balance"] if len(r) else pd.Series(dtype=float)
@@ -115,12 +115,18 @@ def evaluate(cls, bars: pd.DataFrame, cfg: dict, acc: dict, data_sha: str, phase
             for k in ("latency_bars", "reject_prob", "intrabar"):
                 if k in st:
                     ex[k] = st[k]
-            g2 = run_grid(cls, b2, spec, rcfg, ExecConfig(**ex), bal, workers)
-            rob[name] = wf_stats(g2, cfg, folds)["net_profit"]
+            # stress the parameters actually SELECTED in the base walk-forward (no re-optimisation)
+            choice = list(base["wf_table"]["chosen"])
+            chosen_p = [eval(c) for c in dict.fromkeys(choice) if c != ABSTAIN]
+            g2 = [_run_one((cls, p_, b2, spec, rcfg, ExecConfig(**ex), bal)) for p_ in chosen_p]
+            st_res = wf_stats(g2, cfg, folds, fixed_choice=choice) if g2 else {"net_profit": 0.0,
+                                                                                "expectancy_R": np.nan}
+            rob[name] = st_res["net_profit"]
+            rob[name + "_expectancy_R"] = st_res["expectancy_R"]
         res["stress_net"] = rob
         for name in rb["stress_net_positive"]:
             gates[f"stress_{name}"] = rob[name] > 0
-        chosen = pd.Series([f for f in base["wf_table"]["chosen"]]).mode()[0]
+        chosen = pd.Series([f for f in base["wf_table"]["chosen"] if f != ABSTAIN]).mode()[0]
         params = eval(chosen)  # str(dict) of our own grid values
         by = {str(p): (d, t) for p, d, t, _ in grid}
         nb = cls.neighbors(params)

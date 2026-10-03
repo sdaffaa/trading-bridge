@@ -35,7 +35,8 @@ class BacktestResult:
 
 class TradingCore:
     def __init__(self, spec: InstrumentSpec, risk_cfg: RiskConfig, exec_cfg: ExecConfig,
-                 initial_balance: float, stopout_level: float = 0.5, broker=None):
+                 initial_balance: float, stopout_level: float = 0.5, broker=None,
+                 bar_td: pd.Timedelta = pd.Timedelta(minutes=1)):
         self.spec = spec
         self.broker = broker or SimBroker(spec, exec_cfg, initial_balance)
         self.risk = RiskEngine(spec, risk_cfg)
@@ -49,8 +50,20 @@ class TradingCore:
         self.day = None
         self.prev_bar = None
         self.n = 0
+        self.bar_td = bar_td   # decisions are made at bar CLOSE = open + bar_td
+
+    def _cancel_entries(self, t, reason):
+        b = self.broker
+        keep = [o for o in b.pending if o.kind != "entry"]
+        for o in b.pending:
+            if o.kind == "entry":
+                b.log.append({"t": t, "ev": "cancelled", "cid": o.cid, "reason": reason})
+                self.decisions["entry_cancelled_" + reason] += 1
+        b.pending = keep
 
     def _flatten(self, t, reason):
+        """Idempotent: submits a close for every open position without a pending close.
+        Called on every bar while the condition holds, so rejected/expired closes are retried."""
         b = self.broker
         for p in b.positions:
             if not any(o.kind == "close" and o.pid == p.pid for o in b.pending):
@@ -83,10 +96,12 @@ class TradingCore:
         self.n += 1
         self.new_day_if_needed(t, day)
         b, risk = self.broker, self.risk
+        tc = t + self.bar_td
         if kill_switch and not risk.state.kill_switch:
             risk.trigger_kill_switch(t)
-            self._flatten(t, "kill_switch")
-        if self.idle(entry) and not kill_switch:
+        if risk.must_flatten:
+            self._cancel_entries(t, "halt")
+        if self.idle(entry):
             self.prev_bar = bar
             self.last_eq = b.balance
             return self.last_eq
@@ -102,27 +117,31 @@ class TradingCore:
         if b.positions:
             self.exposure += 1
             self.max_margin = max(self.max_margin, b.used_margin())
-            if risk.on_equity(b.worst_equity(bar), t) == "flatten":
-                self._flatten(t, "risk_halt")
             e_close = b.equity(bar[3], bar[7])
+            risk.on_equity(b.worst_equity(bar), t, close_equity=e_close)
+            if risk.must_flatten:
+                self._cancel_entries(t, "halt")
+                self._flatten(tc, "kill_switch" if risk.state.kill_switch else "risk_halt")
             if e_close < self.stopout_level * b.used_margin():
                 self.decisions["margin_stopout"] += 1
-                self._flatten(t, "stopout")
+                self._flatten(tc, "stopout")
         else:
             e_close = b.balance
-            risk.on_equity(e_close, t)
+            risk.on_equity(e_close, t, close_equity=e_close)
         self.last_eq = e_close
         self.prev_bar = bar
         if exit_ and b.positions:
-            self._flatten(t, "signal_exit")
+            self._flatten(tc, "signal_exit")
         if entry != 0:
             ref = bar[7] if entry == 1 else bar[3]
             open_risk = sum(p.planned_risk for p in b.positions)
+            pend = [o for o in b.pending if o.kind == "entry"]
             dec = risk.size_order(side=entry, ref_price=ref, stop=stop, spread=bar[7] - bar[3],
-                                  equity=e_close, open_positions=b.positions, open_risk=open_risk)
+                                  equity=e_close, open_positions=b.positions, open_risk=open_risk,
+                                  pending_entries=pend)
             self.decisions[dec.reason] += 1
             if dec.reason == "ok":
-                b.submit(Order(f"e-{t.value}-{entry}", "entry", entry, dec.volume, t, stop, target,
+                b.submit(Order(f"e-{t.value}-{entry}", "entry", entry, dec.volume, tc, stop, target,
                                str(tag), planned_risk=dec.planned_risk))
         return e_close
 
@@ -168,6 +187,9 @@ def run_backtest(bars: pd.DataFrame, signals: pd.DataFrame, spec: InstrumentSpec
         eq[i] = core.step(idx[i], P[i], days[i], entry[i], stop[i], target[i], exit_[i], tags[i])
     eq[-1] = core.finish(idx[-1], P[-1])
     b = core.broker
-    return BacktestResult(pd.DataFrame([t.__dict__ for t in b.trades]), pd.Series(eq, index=idx),
+    trades = pd.DataFrame([t.__dict__ for t in b.trades])
+    if len(trades):
+        trades["entry_day"] = pd.to_datetime(trading_day(pd.DatetimeIndex(trades["entry_time"])))
+    return BacktestResult(trades, pd.Series(eq, index=idx),
                           core.daily_frame(initial_balance), core.decisions, core.risk.state.events,
                           b.n_ambiguous, core.exposure, n, core.max_margin, b.log if keep_log else [])

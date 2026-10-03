@@ -75,10 +75,12 @@ class RiskEngine:
         s.day, s.day_start_equity, s.trades_today, s.daily_halted = day, equity, 0, False
         s.peak_equity = max(s.peak_equity, equity)
 
-    def on_equity(self, equity: float, ts=None) -> str | None:
-        """Update with a (conservative) equity observation. Returns halt action or None."""
+    def on_equity(self, equity: float, ts=None, close_equity: float | None = None) -> str | None:
+        """`equity` = conservative (intrabar worst) mark used for limit checks; the peak is
+        tracked on `close_equity` (bar-close mark) so bar lows never understate it.
+        Returns halt action when a halt flips on, else None."""
         s = self.state
-        s.peak_equity = max(s.peak_equity, equity)
+        s.peak_equity = max(s.peak_equity, equity if close_equity is None else close_equity)
         action = None
         if not s.dd_halted and s.peak_equity > 0 and (s.peak_equity - equity) / s.peak_equity >= self.cfg.max_drawdown_frac:
             s.dd_halted = True
@@ -98,6 +100,13 @@ class RiskEngine:
         return "flatten"
 
     @property
+    def must_flatten(self) -> bool:
+        """True while any active halt requires positions to be flat (re-checked every bar)."""
+        s, c = self.state, self.cfg
+        return s.kill_switch or (s.dd_halted and c.dd_halt_mode == "flatten") or \
+            (s.daily_halted and c.daily_halt_mode == "flatten")
+
+    @property
     def blocked(self) -> str | None:
         s = self.state
         if s.kill_switch:
@@ -112,12 +121,18 @@ class RiskEngine:
 
     # ---- order sizing / validation ------------------------------------------------
     def size_order(self, *, side: int, ref_price: float, stop: float, spread: float,
-                   equity: float, open_positions: list, open_risk: float) -> SizeDecision:
+                   equity: float, open_positions: list, open_risk: float,
+                   pending_entries: list = ()) -> SizeDecision:
+        """pending_entries: submitted but unfilled entry orders — they count against position,
+        risk and trades-per-day limits (review defect 6)."""
         cfg, spec = self.cfg, self.spec
         b = self.blocked
         if b:
             return SizeDecision(0.0, b, 0.0)
-        if len(open_positions) >= cfg.max_open_positions:
+        if self.state.trades_today + len(pending_entries) >= cfg.max_trades_per_day:
+            return SizeDecision(0.0, "max_trades_per_day", 0.0)
+        open_risk = open_risk + sum(o.planned_risk for o in pending_entries)
+        if len(open_positions) + len(pending_entries) >= cfg.max_open_positions:
             return SizeDecision(0.0, "max_open_positions", 0.0)
         if not (spread <= cfg.max_spread):
             return SizeDecision(0.0, "spread_too_wide", 0.0)

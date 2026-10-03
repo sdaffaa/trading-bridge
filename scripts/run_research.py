@@ -15,6 +15,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from tbot.data.bars import trading_day  # noqa: E402
 from tbot.data.quality import quality_report, sha256_frame  # noqa: E402
 from tbot.data.synthetic import random_walk_bars  # noqa: E402
 from tbot.instrument import load_instrument  # noqa: E402
@@ -23,11 +24,13 @@ from tbot.research.pipeline import decide, evaluate  # noqa: E402
 from tbot.strategies.hypotheses import ALL  # noqa: E402
 
 
-def load_parquets(d: Path, start, end) -> pd.DataFrame:
+def load_parquets(d: Path, start, end_excl) -> pd.DataFrame:
+    """Bars whose TRADING DAY (17:00 NY cutoff) is in [start, end_excl)."""
     files = sorted(d.glob("*.parquet"))
     df = pd.concat(pd.read_parquet(f) for f in files).sort_index()
     df = df[~df.index.duplicated()]
-    return df.loc[start:end].iloc[:-1] if len(df.loc[start:end]) else df.iloc[0:0]
+    td = pd.to_datetime(trading_day(df.index))
+    return df[(td >= pd.Timestamp(start)) & (td < pd.Timestamp(end_excl))]
 
 
 def main():
@@ -56,7 +59,8 @@ def main():
         out = out / ("synthetic_edge" if drift else "synthetic_dryrun")
     else:
         bars = load_parquets(Path(a.data), cfg["dev_start"], cfg["wf_end"])
-        assert bars.index.max() < pd.Timestamp(cfg["holdout_start"], tz="UTC"), "hold-out leaked into research data"
+        assert pd.to_datetime(trading_day(bars.index)).max() < pd.Timestamp(cfg["holdout_start"]), \
+            "hold-out leaked into research data"
         phase = "research-wf"
     out.mkdir(parents=True, exist_ok=True)
     qa = quality_report(bars)
@@ -77,7 +81,12 @@ def main():
     # pooled multiple-testing corrections
     all_sr = np.concatenate([r["_grid_sharpes"] for r in results])
     var_sr = float(np.var(all_sr, ddof=1)) if len(all_sr) > 1 else 0.0
-    ps = holm([r["p_value"] for r in results])
+    # Holm family is ALWAYS the 5 pre-registered hypotheses; unevaluated ones enter with p=1
+    pv = {c.name: 1.0 for c in ALL}
+    pv.update({r["hypothesis"]: r["p_value"] for r in results})
+    names = list(pv)
+    adj = dict(zip(names, holm([pv[n] for n in names])))
+    ps = [adj[r["hypothesis"]] for r in results]
     for r, ph in zip(results, ps):
         x = np.array(r.pop("_oos_ret"))
         if len(x) > 30:

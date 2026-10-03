@@ -74,8 +74,8 @@ def summarize(res, initial: float, periods_per_year: float = 260.0) -> dict:
         out["longest_losing_day_streak"] = longest_streak(pnl < 0)
         sd = r.std(ddof=1)
         out["sharpe_daily_ann"] = float(r.mean() / sd * np.sqrt(periods_per_year)) if sd > 0 else np.nan
-        dn = r[r < 0].std(ddof=1)
-        out["sortino_ann"] = float(r.mean() / dn * np.sqrt(periods_per_year)) if dn and dn > 0 else np.nan
+        dn = float(np.sqrt(np.mean(np.minimum(r.to_numpy(), 0.0) ** 2)))   # downside deviation (target 0)
+        out["sortino_ann"] = float(r.mean() / dn * np.sqrt(periods_per_year)) if dn > 0 else np.nan
     dd, pk, tr_t, rec = max_drawdown(res.equity)
     out.update({"max_dd": dd, "dd_peak": str(pk), "dd_trough": str(tr_t), "dd_recovered": str(rec),
                 "dd_recovery_days": (rec - pk).days if rec is not None and pk is not None else None})

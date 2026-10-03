@@ -17,9 +17,11 @@ FLAT_BY_NY = 16 * 60 + 30   # all intraday hypotheses flat by 16:30 NY (before 1
 
 
 def _time_exit(sig: pd.DataFrame, close_min_ny: np.ndarray, day: np.ndarray, at_min: int) -> None:
-    """exit=1 on the first bar of each day whose CLOSE is >= at_min (NY minutes)."""
-    m = close_min_ny >= at_min
-    sig.loc[first_true_per_day(m, day), "exit"] = 1
+    """exit=1 on EVERY bar whose close is in [at_min, 17:00 NY) — persistent, so a rejected or
+    expired close order is re-issued on the next bar. The upper bound excludes the evening
+    session (18:00-24:00 NY), which belongs to the same trading day (review defect 1)."""
+    m = (close_min_ny >= at_min) & (close_min_ny <= 17 * 60)
+    sig.loc[m, "exit"] = 1
 
 
 def _apply_entries(sig, trig_long, trig_short, ref, stop_l, stop_s, rr, day, tag):
@@ -38,6 +40,7 @@ def _apply_entries(sig, trig_long, trig_short, ref, stop_l, stop_s, rr, day, tag
 class H1_NYOpeningRange(Strategy):
     """Breakout of the opening range after the COMEX open (08:20 NY)."""
     name = "H1_ny_orb"
+    min_buffer = 1500
     param_grid = {"range_min": [10, 30, 60], "stop_mode": ["opposite", "mid"], "rr": [1.0, 2.0, 0]}
     ordinal = ("range_min",)
     ANCHOR = 8 * 60 + 20
@@ -67,6 +70,7 @@ class H1_NYOpeningRange(Strategy):
 class H2_LondonAsianBreakout(Strategy):
     """Breakout of the Asian-session range (00:00-07:00 London) during 07:00-10:00 London."""
     name = "H2_ldn_asia_bo"
+    min_buffer = 1500
     param_grid = {"buffer": [0.0, 0.1], "stop_mode": ["opposite", "mid"], "rr": [1.0, 2.0, 0]}
     ordinal = ("buffer",)
 
@@ -96,6 +100,7 @@ class H2_LondonAsianBreakout(Strategy):
 class H3_IntradayMomentum(Strategy):
     """Return from previous day's close to decision time predicts the rest of the NY session."""
     name = "H3_intraday_mom"
+    min_buffer = 30 * 1440
     param_grid = {"decision": [10 * 60, 12 * 60], "k": [0.0, 0.25, 0.5], "stop_atr": [0.5, 1.0]}
     ordinal = ("decision", "k", "stop_atr")
 
@@ -121,6 +126,7 @@ class H3_IntradayMomentum(Strategy):
 class H4_AsiaMeanReversion(Strategy):
     """Fade short-term extremes during the quiet Asian session (19:00-02:00 NY)."""
     name = "H4_asia_mr"
+    min_buffer = 200
     param_grid = {"lookback": [30, 60], "z": [2.0, 2.5, 3.0], "stop_sd": [2.0, 3.0]}
     ordinal = ("lookback", "z", "stop_sd")
     HOLD = 60
@@ -155,6 +161,7 @@ class H4_AsiaMeanReversion(Strategy):
 class H5_TimeOfDayDrift(Strategy):
     """Fixed-window intraday drift (session seasonality)."""
     name = "H5_tod_drift"
+    min_buffer = 30 * 1440
     param_grid = {"window": [(18, 3), (3, 8), (8, 12), (12, 16)], "side": [1, -1]}
     STOP_ATR = 1.0
     ENTRY_DELAY = 5
@@ -179,14 +186,21 @@ class H5_TimeOfDayDrift(Strategy):
         ctx = daily_context(bars)
         atr = ctx["atr"].to_numpy()
         c = mp["c"].to_numpy()
-        at = cm == s_h * 60 + self.ENTRY_DELAY   # session reopens 18:00 NY: wait 5 min for all windows
+        start, end = s_h * 60, e_h * 60
+        wrap = start > end
+        in_win = ((cm > start) | (cm <= end)) if wrap else ((cm > start) & (cm <= end))
+        # entry: first bar of the trading day closing >= start+5 min and within the first 30 min
+        # (robust to missing minute bars, review defect 2)
+        lo, hi = start + self.ENTRY_DELAY, start + 30
+        at = (cm >= lo) & (cm <= hi)
         valid = at & np.isfinite(atr)
         sig = empty_signals(bars.index)
         side = p["side"]
         _apply_entries(sig, valid & (side == 1), valid & (side == -1), c,
                        c - self.STOP_ATR * atr, c + self.STOP_ATR * atr, 0, day, self.name)
-        # exit on first bar whose close reaches the window end
-        ex = cm == e_h * 60
+        # persistent exit on every bar closing outside the holding window (and in the 16:30-17:00
+        # backstop) so a missing bar or rejected close order cannot leave the position open
+        ex = ~in_win | ((cm >= FLAT_BY_NY) & (cm <= 17 * 60) & (not wrap))
         sig.loc[ex, "exit"] = 1
         return sig
 
