@@ -2,3 +2,5 @@
 @font-face{font-family:'Thmanyah Sans';font-weight:700;src:url(thmanyahsans-Bold.otf)}
 @font-face{font-family:'Thmanyah Sans';font-weight:900;src:url(thmanyahsans-Black.otf)}
 @font-face{font-family:'Thmanyah Display';font-weight:900;src:url(thmanyahserifdisplay-Black.otf)}
+@font-face{font-family:'TV Trebuchet';src:url(trebuc.ttf);unicode-range:U+0000-024F}
+@font-face{font-family:'TV Segoe';src:url(segoeui.ttf)}

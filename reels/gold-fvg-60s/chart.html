@@ -50,7 +50,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const prog = (f, a, d) => clamp((f - a) / d, 0, 1);
 
 const cv = document.getElementById('c'); cv.width = W * DPR; cv.height = H * DPR;
-const ctx = cv.getContext('2d');
+let ctx = cv.getContext('2d');
 const img = id => document.getElementById(id);
 
 let D, bars, N, tr, ix, S, T, EV;
@@ -100,9 +100,10 @@ function init(data) {
   EV.sweep = f; f += 42 + 48;                           // punch 6+16+20, then read
   EV.bosLine = f; f += 60;                              // structure level that must break
   replay(sweepI + 1, bosI - 1); snap(); S[bosI] = [f, base * 2]; f += base * 2; snap();
-  EV.bos = f; f += 42 + 48;
+  EV.bos = f; f += 42 + 18; snap();
   if (fvgC3 > bosI) { replay(bosI + 1, fvgC3); snap(); }
-  EV.fvg = f; f += 120;                                 // FVG box drawn + explained
+  EV.split = f; f += 12 + 30;                           // BOS line glows 12f, frame splits open from it (splitopen / mask9)
+  EV.fvg = EV.split + 18; f += 90;                      // FVG box drawn in the new shot
   EV.pos = f; f += 40 + 110;                            // position tool (hero) as the limit plan
   replay(Math.max(bosI, fvgC3) + 1, entryI - 1);
   const ep = pathOf(bars[entryI]).cross(tr.entry);
@@ -112,12 +113,14 @@ function init(data) {
   const tp = pathOf(bars[tpI]).cross(tr.target), dTp = base * 3;
   const hit = Math.ceil((f + tp * dTp) / BEAT) * BEAT; S[tpI] = [hit - tp * dTp, dTp]; EV.tp = hit;
   f = hit + 42 + 60; snap();
-  EV.result = f; f += 300;
+  EV.dip = f; f += 28;                                  // dip to petrol with a question in the dark (dip / flash5)
+  EV.result = EV.dip + 18; f = EV.result + 290;
   EV.outro = f; f += 210;
   for (let i = tpI + 1; i < N; i++) S[i] = [Infinity, 1];
   T = { total: f, ctxN, sweepI, bosI, fvgC1, fvgC3, entryI, tpI, liqI, bosLvlI, long, ...EV };
   return T;
 }
+
 
 // ---------- state at frame f ----------
 function visibleBars(f) {
@@ -129,29 +132,28 @@ function visibleBars(f) {
   }
   return out;
 }
-// camera: continuous left index following the newest bar (time flows left→right)
+// replay pan: continuous left index following the newest bar (time flows left→right)
 function camLeft(f, vis) {
   const last = vis.length ? vis[vis.length - 1] : { i: 0, p: 0 };
-  const lead = last.i + (last.p ?? 1);
-  return Math.max(0, lead - (SLOTS - RIGHT_OFFSET));
+  return Math.max(0, last.i + (last.p ?? 1) - (SLOTS - RIGHT_OFFSET));
 }
-let L0, yLo, yHi;
+let L0, yLo, yHi, VIS, LAST;
 const xOf = i => PANE.x + (i - L0 + 0.5) * SLOT;
 const yOf = p => PLOT.y + (yHi - p) / (yHi - yLo) * PLOT.h;
 function range(f, vis) {
   const inView = vis.filter(b => b.i >= Math.floor(L0) - 1 && b.i <= L0 + SLOTS);
   let lo = Math.min(...inView.map(b => b.l)), hi = Math.max(...inView.map(b => b.h));
-  const k = LS_OUT(prog(f, T.pos, 40));                    // the plan's levels join the fit with the tool
+  const k = LS_OUT(prog(f, T.pos, 40));
   if (k > 0) { lo = Math.min(lo, lo + (Math.min(tr.stop, tr.target) - lo) * k); hi = Math.max(hi, hi + (Math.max(tr.stop, tr.target) - hi) * k); }
-  if (f >= T.liq) { const lv = D.analysis.sweep.level; lo = Math.min(lo, lv); hi = Math.max(hi, lv); }
-  const span = hi - lo; return [lo - span * 0.06, hi + span * 0.06];
+  if (f >= T.liq && f < T.pos) { const lv = D.analysis.sweep.level; lo = Math.min(lo, lv); hi = Math.max(hi, lv); }
+  const span = hi - lo; return [lo - span * 0.08, hi + span * 0.08];
 }
-// smoothed range: average a short window of past frames (auto-fit eases ~250ms like TradingView)
-function smoothRange(f) {
+function smoothRange(f) {        // TradingView-like auto-fit easing (~250ms)
   let a = 0, b = 0, n = 0;
   for (let k = 0; k <= 14; k += 2) { const g = Math.max(0, f - k); const v = visibleBars(g); L0 = camLeft(g, v); const [x, y] = range(g, v); a += x; b += y; n++; }
   return [a / n, b / n];
 }
+function state(f) { VIS = visibleBars(f); [yLo, yHi] = smoothRange(f); L0 = camLeft(f, VIS); LAST = VIS[VIS.length - 1]; }
 
 // ---------- drawing helpers ----------
 function txt(s, x, y, { font = `500 11px ${UI}`, color = C.text, align = 'left', base = 'middle', dir = 'ltr', alpha = 1 } = {}) {
@@ -164,91 +166,82 @@ function pill(s, y, bg) {
   ctx.save(); ctx.fillStyle = bg; ctx.fillRect(SCALE_X + 1, y - 9, SCALE_W - 2, 18);
   ctx.font = `700 11px ${UI}`; ctx.fillStyle = P.shine; ctx.textBaseline = 'middle'; ctx.fillText(s, SCALE_X + 5, y + 0.5); ctx.restore();
 }
-
-// text placement: words never touch a candle — 12 output px (6 css) clearance from candles, boxes and other words
+// TradingView drawing-tool text: one colour, regular weight, no frame, no halo
+const MK = '#000000', MKF = `400 12px 'TV Trebuchet','TV Segoe', sans-serif`;
 let OBST = [];
 const hitRect = (a, b, m) => a.x < b.x + b.w + m && a.x + a.w + m > b.x && a.y < b.y + b.h + m && a.y + a.h + m > b.y;
-function place(s, font, cands, { dir = 'ltr' } = {}) {
-  const w = measure(s, font), h = parseFloat(font.match(/(\d+)px/)[1]) * 1.15;
+const CLEAR = 6;                               // 12 output px from candles, boxes and other words
+function freeRect(r) {
+  if (r.x < PANE.x + 4 || r.x + r.w > PANE.x + PANE.w - 4 || r.y < PLOT.y - 4 || r.y + r.h > PANE.y + PANE.h - 2) return false;
+  return !OBST.some(o => hitRect(r, o, CLEAR));
+}
+// horizontal segment with its word inline (the line breaks around the word), word slides along the line to a free spot
+function segWord(x0, x1, y, word, a, { dash = false, lw = 1.1, at = [0.5, 0.62, 0.38, 0.75, 0.25, 0.86, 0.14] } = {}) {
+  if (a <= 0) return;
+  const w = measure(word, MKF), h = 13;
+  let gap = null;
+  for (const t of at) {
+    const cx = x0 + (x1 - x0) * t, r = { x: cx - w / 2, y: y - h / 2, w, h };
+    if (cx - w / 2 - 5 < x0 || cx + w / 2 + 5 > x1) continue;
+    if (freeRect(r)) { gap = r; break; }
+  }
+  ctx.save(); ctx.globalAlpha *= a; ctx.strokeStyle = MK; ctx.lineWidth = lw; if (dash) ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  if (gap) { ctx.moveTo(x0, y); ctx.lineTo(gap.x - 5, y); ctx.moveTo(gap.x + gap.w + 5, y); ctx.lineTo(x1, y); }
+  else { ctx.moveTo(x0, y); ctx.lineTo(x1, y); }
+  ctx.stroke(); ctx.restore();
+  if (gap) { OBST.push(gap); txt(word, gap.x + gap.w / 2, y + 0.5, { font: MKF, color: MK, align: 'center', alpha: a }); }
+  else console.log('NO-SPACE ' + word);
+}
+function word(s, cands, a, drop = 0) {
+  if (a <= 0) return;
+  const w = measure(s, MKF), h = 13;
   for (const [cx, cy, al] of cands) {
-    const x = al === 'left' ? cx : al === 'right' ? cx - w : cx - w / 2;
-    const r = { x, y: cy - h / 2, w, h };
-    if (r.x < PANE.x + 4 || r.x + r.w > PANE.x + PANE.w - 4 || r.y < PLOT.y || r.y + r.h > PANE.y + PANE.h - 2) continue;
-    if (OBST.some(o => hitRect(r, o, 6))) continue;
-    OBST.push(r); return { x: r.x, y: cy, w, h, ok: true };
+    const x = al === 'left' ? cx : al === 'right' ? cx - w : cx - w / 2, r = { x, y: cy - h / 2, w, h };
+    if (!freeRect(r)) continue;
+    OBST.push(r); txt(s, x, cy - drop, { font: MKF, color: MK, alpha: a }); return true;
   }
-  return null;
-}
-function wordAt(pl, s, font, color, alpha, drop = 0) {
-  if (!pl) return;
-  txt(s, pl.x, pl.y - drop, { font, color, alpha });
+  console.log('NO-SPACE ' + s); return false;
 }
 
-// ---------- scene pieces ----------
-const CAPS = () => [
-  [0, ...D.captions.hook],
-  [T.liq, ...D.captions.liq],
-  [T.sweep, ...D.captions.sweep],
-  [T.bosLine, ...D.captions.bosLine],
-  [T.bos, ...D.captions.bos],
-  [T.fvg, ...D.captions.fvg],
-  [T.pos, ...D.captions.pos],
-  [T.ride, ...D.captions.ride],
-  [T.tp, ...D.captions.tp],
-  [T.result, ...D.captions.result],
-  [T.outro, ...D.captions.outro]
-];
-
-function drawBackground() {
-  const bg = img('bg'), s = H / bg.naturalHeight, w = bg.naturalWidth * s;
-  ctx.drawImage(bg, (W - w) / 2, 0, w, H);
-  const g = ctx.createLinearGradient(0, 0, 0, 210);
-  g.addColorStop(0, rgba(P.ivory, 0.9)); g.addColorStop(1, rgba(P.ivory, 0.45));
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, 210);
-}
-function drawGlassCard() {
-  const bg = img('bg'), s = H / bg.naturalHeight, w = bg.naturalWidth * s;
-  ctx.save(); ctx.shadowColor = rgba(P.silver3, 0.3); ctx.shadowBlur = 22; ctx.shadowOffsetY = 8;
-  rr(CARD.x, CARD.y, CARD.w, CARD.h, CARD.r); ctx.fillStyle = rgba(P.ivory, 0.92); ctx.fill(); ctx.restore();
-  ctx.save(); rr(CARD.x, CARD.y, CARD.w, CARD.h, CARD.r); ctx.clip();
-  ctx.filter = 'blur(6px)'; ctx.drawImage(bg, (W - w) / 2, 0, w, H); ctx.filter = 'none';
-  ctx.fillStyle = rgba(P.ivory, 0.9); ctx.fillRect(CARD.x, CARD.y, CARD.w, CARD.h); ctx.restore();
-  ctx.save(); ctx.strokeStyle = rgba(P.shine, 0.95); ctx.lineWidth = 1.5;
-  rr(CARD.x + .75, CARD.y + .75, CARD.w - 1.5, CARD.h - 1.5, CARD.r); ctx.stroke(); ctx.restore();
-}
-
-function caption(f) {
-  const cs = CAPS(); let cur = 0; cs.forEach((c, i) => { if (f >= c[0]) cur = i; });
-  const [start, l1, l2] = cs[cur], next = cs[cur + 1]?.[0] ?? Infinity;
-  const inA = LS_OUT(prog(f, start, 14)), outA = 1 - LS_IN(prog(f, next - 9, 9));   // exit = 2/3 of entry
-  const lg = img('logo'), lh = 24, lw = lg.naturalWidth / lg.naturalHeight * lh;
-  ctx.drawImage(lg, (W - lw) / 2, 18, lw, lh);
-  const steps = cs.length;
-  for (let i = 0; i < steps; i++) { ctx.fillStyle = i <= cur ? P.water5 : P.silver1; ctx.fillRect(W / 2 - steps * 11 + i * 22 + 2, 52, 18, 3); }
-  const isResult = start === T.result, isTp = start === T.tp;
-  ctx.save(); ctx.globalAlpha = inA * outA;
-  // Arabic reveals from the right (reading direction)
-  const reveal = (s, y, font, color, delay) => {
-    const a = LS_OUT(prog(f, start + delay, 16)); const w = measure(s, font) + 20;
-    ctx.save(); ctx.beginPath(); ctx.rect(W / 2 + w / 2 - w * a, y - 30, w * a, 60); ctx.clip();
-    txt(s, W / 2, y + (1 - a) * 6, { font, color, align: 'center', dir: 'rtl' }); ctx.restore();
+// ---------- camera (push / pull / punch from the motion bible), always on real chart points ----------
+const ANCHOR = [W / 2, CARD.y + CARD.h * 0.52];
+function focusPts() {
+  const A = D.analysis, midY = yOf((yLo + yHi) / 2), lx = LAST ? xOf(LAST.i) : W / 2;
+  return {
+    liq: [xOf(T.liqI) + SLOT * 4, yOf(A.sweep.level)],
+    last: [lx - SLOT * 2.5, (midY + (LAST ? yOf(LAST.c) : midY)) / 2],
+    bos: [(xOf(T.bosLvlI) + xOf(T.bosI)) / 2, yOf(A.bos.level)],
+    fvg: [xOf(T.fvgC3) + SLOT * 2, yOf((A.fvg.top + A.fvg.bottom) / 2)],
+    tool: [xOf(T.entryI) + SLOT, yOf((tr.stop + tr.target) / 2)],
+    center: [PANE.x + PANE.w / 2, PLOT.y + PLOT.h / 2]
   };
-  if (isResult) {
-    // result: the R multiple lands with a hard punch (punch / cam14)
-    const R = Math.abs(tr.target - tr.entry) / Math.abs(tr.entry - tr.stop);
-    const pz = punchScale(f, T.result + 12, 1.4);
-    reveal(l1, 96, `900 30px ${AR}`, P.ink, 0);
-    ctx.save(); ctx.translate(W / 2, 156); ctx.scale(pz, pz);
-    txt(`+${R.toFixed(0)}R`, 0, 0, { font: `900 50px ${UI}`, color: P.copper, align: 'center', alpha: LS_OUT(prog(f, T.result + 12, 6)) });
-    ctx.restore();
-  } else {
-    const l1y = l2 ? 98 : 120;
-    reveal(l1, l1y, `900 30px ${AR}`, P.ink, 0);
-    if (l2) reveal(l2, 148, `900 23px ${AR}`, isTp ? P.copper : P.water5, 6);
-  }
-  ctx.restore();
 }
-
+const camKeys = () => [
+  [0, 0, 1.12, 'liq'],                 // opening framed on the liquidity
+  [T.liq, 90, 1.22, 'liq'],            // calm push-in on $$$ (push)
+  [T.liq + 90, 45, 1.14, 'last'],      // follow price into the sweep
+  [T.sweep + 42, 60, 1.0, 'bos'],      // pull-out reveals the structure level (pull)
+  [T.bos + 42, 24, 1.0, 'last'],
+  [T.split, 0, 1.32, 'fvg'],           // cut hidden by the split-open: new shot pushed on the FVG
+  [T.pos, 40, 1.0, 'tool'],            // pull-out reveals the target liquidity
+  [T.ride, 90, 1.12, 'last'],          // slow push riding with price toward the target
+  [T.tp + 42, 40, 1.0, 'center'],
+  [T.result, 0, 1.0, 'center'],
+  [T.outro, 210, 1.07, 'center']       // slow push for the closing question
+];
+function camRaw(f) {
+  const K = camKeys(), Pt = focusPts(); let k = 0; K.forEach((x, i) => { if (f >= x[0]) k = i; });
+  const cur = K[k], prev = K[Math.max(0, k - 1)], t = cur[1] ? LS_OUT(prog(f, cur[0], cur[1])) : 1;
+  const a = Pt[prev[3]], b = Pt[cur[3]];
+  return { z: prev[2] + (cur[2] - prev[2]) * t, fx: a[0] + (b[0] - a[0]) * t, fy: a[1] + (b[1] - a[1]) * t };
+}
+function camera(f) {            // temporal smoothing (heavy-camera feel), never across a cut
+  const cut = Math.max(0, ...camKeys().filter(k => k[1] === 0 && k[0] <= f).map(k => k[0]));
+  let z = 0, x = 0, y = 0, n = 0;
+  for (let j = 0; j <= 12; j += 2) { const g = f - j; if (g < cut) break; state(g); const c = camRaw(g); z += c.z; x += c.fx; y += c.fy; n++; }
+  state(f); return { z: z / n, fx: x / n, fy: y / n };
+}
 // punch: 6 in (LS-Out) + 16 hold + 20 back (LS-Spring), always on a beat
 function punchScale(f, at, peak) {
   if (f < at || f > at + 42) return 1;
@@ -257,199 +250,186 @@ function punchScale(f, at, peak) {
   if (k < 22) return peak;
   return peak - (peak - 1) * LS_SPRING((k - 22) / 20);
 }
-
-function render(f) {
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  ctx.fillStyle = P.ivory; ctx.fillRect(0, 0, W, H);
-  drawBackground();
-
-  const vis = visibleBars(f);
-  [yLo, yHi] = smoothRange(f);
-  L0 = camLeft(f, vis);
-  const last = vis[vis.length - 1];
-
-  // punches on the chart: sweep, BOS, TP (centre = the real candle)
-  let pz = 1, pcx = W / 2, pcy = H / 2;
+function punchNow(f) {
   for (const [at, i, peak, price] of [[T.sweep, T.sweepI, 1.2, T.long ? bars[T.sweepI].l : bars[T.sweepI].h],
                                       [T.bos, T.bosI, 1.2, bars[T.bosI].c], [T.tp, T.tpI, 1.4, tr.target]]) {
-    const s = punchScale(f, at, peak); if (s !== 1) { pz = s; pcx = xOf(i); pcy = yOf(price); }
+    const p = punchScale(f, at, peak); if (p !== 1) return { p, wx: xOf(i), wy: yOf(price), at };
   }
-  ctx.save();
-  ctx.beginPath(); ctx.rect(0, CARD.y - 4, W, CARD.h + 8); ctx.clip();
-  ctx.translate(pcx, pcy); ctx.scale(pz, pz); ctx.translate(-pcx, -pcy);
-  const chartA = LS_OUT(prog(f, 0, 18));
-  ctx.globalAlpha = chartA;
-  drawGlassCard();
+  return { p: 1 };
+}
+function camM(cam) { return clamp((cam.z - 1) / 0.3, 0, 1) * 0.7; }
+function applyCam(cam, pun) {
+  const m = camM(cam);
+  ctx.translate(cam.fx + (ANCHOR[0] - cam.fx) * m, cam.fy + (ANCHOR[1] - cam.fy) * m); ctx.scale(cam.z, cam.z); ctx.translate(-cam.fx, -cam.fy);
+  if (pun.p !== 1) { ctx.translate(pun.wx, pun.wy); ctx.scale(pun.p, pun.p); ctx.translate(-pun.wx, -pun.wy); }
+}
+function toScreen(cam, pun, x, y) {
+  if (pun.p !== 1) { x = pun.wx + (x - pun.wx) * pun.p; y = pun.wy + (y - pun.wy) * pun.p; }
+  const m = camM(cam);
+  return [cam.fx + (ANCHOR[0] - cam.fx) * m + (x - cam.fx) * cam.z, cam.fy + (ANCHOR[1] - cam.fy) * m + (y - cam.fy) * cam.z];
+}
 
-  // toolbar
+// ---------- layers ----------
+const mk = () => { const c = document.createElement('canvas'); c.width = W * DPR; c.height = H * DPR; return c; };
+const LAYER = mk(), OLD = mk(), ACC = mk(), FR = mk();
+let oldKey = null;
+const GRAIN = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), d = g.createImageData(256, 256);
+  let s = 7; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < d.data.length; i += 4) { const v = 120 + rnd() * 135; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
+  g.putImageData(d, 0, 0); return c;
+})();
+
+// background: approved image with parallax + depth blur, cinematic key light (window, top-right) and a backlight pool behind the focal point
+function drawBG(f, cam, pun) {
+  const bg = img('bg'), s = H / bg.naturalHeight * 1.14 * (1 + (cam.z - 1) * 0.22), w = bg.naturalWidth * s, h = bg.naturalHeight * s;
+  const px = (ANCHOR[0] - cam.fx) * 0.1 * cam.z, py = (ANCHOR[1] - cam.fy) * 0.1 * cam.z;
+  ctx.save(); ctx.filter = 'blur(2.5px)'; ctx.drawImage(bg, (W - w) / 2 + px, (H - h) / 2 + py, w, h); ctx.restore();
+  ctx.fillStyle = rgba(P.petrol, 0.12); ctx.fillRect(0, 0, W, H);                    // cool shadow grade
+  const g = ctx.createRadialGradient(W * 0.84, H * 0.04, 8, W * 0.84, H * 0.04, H * 0.8);
+  g.addColorStop(0, rgba(P.shine, 0.6)); g.addColorStop(0.45, rgba(P.shine, 0.14)); g.addColorStop(1, rgba(P.shine, 0));
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  const [sx, sy] = toScreen(cam, pun, cam.fx, cam.fy);
+  const b = ctx.createRadialGradient(sx, sy, 4, sx, sy, 300);
+  b.addColorStop(0, rgba(P.shine, 0.5)); b.addColorStop(1, rgba(P.shine, 0));
+  ctx.fillStyle = b; ctx.fillRect(0, 0, W, H);
+}
+
+function drawGlassCard(cam) {
+  const bg = img('bg'), s = H / bg.naturalHeight, w = bg.naturalWidth * s;
+  ctx.save(); ctx.shadowColor = rgba(P.stone3, 0.28); ctx.shadowBlur = 34; ctx.shadowOffsetX = -10; ctx.shadowOffsetY = 16;   // shadow cast away from the key light
+  rr(CARD.x, CARD.y, CARD.w, CARD.h, CARD.r); ctx.fillStyle = rgba(P.ivory, 0.94); ctx.fill(); ctx.restore();
+  ctx.save(); rr(CARD.x, CARD.y, CARD.w, CARD.h, CARD.r); ctx.clip();
+  ctx.filter = 'blur(6px)'; ctx.drawImage(bg, (W - w) / 2, 0, w, H); ctx.filter = 'none';
+  ctx.fillStyle = rgba(P.ivory, 0.9); ctx.fillRect(CARD.x, CARD.y, CARD.w, CARD.h);
+  // light falloff across the glass surface (never on the candles): bright toward the key light and the focal point
+  const lg = ctx.createLinearGradient(CARD.x + CARD.w, CARD.y, CARD.x, CARD.y + CARD.h);
+  lg.addColorStop(0, rgba(P.shine, 0.55)); lg.addColorStop(0.55, rgba(P.shine, 0)); lg.addColorStop(1, rgba(P.silver2, 0.14));
+  ctx.fillStyle = lg; ctx.fillRect(CARD.x, CARD.y, CARD.w, CARD.h);
+  const pg = ctx.createRadialGradient(cam.fx, cam.fy, 4, cam.fx, cam.fy, 220);
+  pg.addColorStop(0, rgba(P.shine, 0.45)); pg.addColorStop(1, rgba(P.shine, 0));
+  ctx.fillStyle = pg; ctx.fillRect(CARD.x, CARD.y, CARD.w, CARD.h);
+  ctx.restore();
+  ctx.save(); ctx.strokeStyle = rgba(P.shine, 0.95); ctx.lineWidth = 1.2;
+  rr(CARD.x + .6, CARD.y + .6, CARD.w - 1.2, CARD.h - 1.2, CARD.r); ctx.stroke(); ctx.restore();
+}
+
+// the TradingView chart itself, in world coordinates (camera applied by the caller)
+function drawChart(f, cam) {
+  const vis = VIS, last = LAST, A = D.analysis;
+  drawGlassCard(cam);
   const tY = CARD.y + TOOL_H / 2 + 1;
   txt(D.symbol, CARD.x + 16, tY, { font: `700 13px ${UI}`, color: P.ink });
-  txt(`${D.timeframe}m`, CARD.x + 16 + measure(D.symbol, `700 13px ${UI}`) + 8, tY, { font: `500 13px ${UI}`, color: P.ink });
-  txt('Replay', CARD.x + 120, tY, { font: `700 13px ${UI}`, color: P.water5 });
-  ctx.fillStyle = P.silver1; ctx.fillRect(CARD.x + 110, CARD.y + 9, 1, 13);
+  txt(`${D.timeframe}`, CARD.x + 16 + measure(D.symbol, `700 13px ${UI}`) + 8, tY, { font: `500 13px ${UI}`, color: P.ink });
+  ctx.fillStyle = P.silver1; ctx.fillRect(CARD.x + 104, CARD.y + 9, 1, 13);
+  txt('Replay', CARD.x + 114, tY, { font: `700 13px ${UI}`, color: P.water5 });
   txt(D.date + '  ·  UTC+3', CARD.x + CARD.w - 16, tY, { font: `500 11px ${UI}`, color: P.silver4, align: 'right' });
   ctx.fillStyle = P.silver1; ctx.fillRect(CARD.x, CARD.y + TOOL_H - 1, CARD.w, 1);
 
-  // grid + price scale
-  const span = yHi - yLo; let step = 50; for (const s of [0.5, 1, 2, 2.5, 5, 10, 20, 25]) if (span / s <= 9) { step = s; break; }
+  // grid + price scale (step from {1,2,2.5,5}×10ⁿ with ≥23 css px between labels)
+  const span = yHi - yLo; let step = 50;
+  for (const s of [0.1, 0.2, 0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 25]) if (s / span * PLOT.h >= 23) { step = s; break; }
   ctx.save(); ctx.beginPath(); ctx.rect(PANE.x, PANE.y, CARD.w, PANE.h); ctx.clip();
   for (let p = Math.ceil(yLo / step) * step; p <= yHi; p += step) {
-    const y = Math.round(yOf(p) * 2) / 2;
-    if (y < PLOT.y - 4) continue;
+    const y = yOf(p); if (y < PLOT.y - 4) continue;
     ctx.fillStyle = C.grid; ctx.fillRect(PANE.x, y - 0.25, PANE.w, 0.5);
     txt(p.toFixed(2), SCALE_X + 6, y, { font: `500 10.5px ${UI}` });
   }
   ctx.restore();
-  ctx.save(); ctx.beginPath(); ctx.rect(PANE.x, TAXIS_Y, PANE.w, TAXIS_H); ctx.clip();
+  ctx.save(); ctx.beginPath(); ctx.rect(PANE.x, PANE.y, PANE.w, PANE.h + TAXIS_H); ctx.clip();
   bars.forEach((b, i) => {
-    const mm = +b.t.slice(3), hh = +b.t.slice(0, 2);
-    if (mm === 0 && hh % 1 === 0) {
-      const x = xOf(i); if (x < PANE.x - 20 || x > PANE.x + PANE.w + 20) return;
-      txt(b.t, x, TAXIS_Y + TAXIS_H / 2, { font: `500 10.5px ${UI}`, align: 'center' });
-    }
+    if (+b.t.slice(3) !== 0) return;
+    const x = xOf(i); if (x < PANE.x - 20 || x > PANE.x + PANE.w + 20) return;
+    ctx.fillStyle = rgba(P.silver3, 0.08); ctx.fillRect(x - 0.25, PANE.y, 0.5, PANE.h);
+    txt(b.t, x, TAXIS_Y + TAXIS_H / 2, { font: `500 10.5px ${UI}`, align: 'center' });
   });
   ctx.restore();
   ctx.fillStyle = P.silver1; ctx.fillRect(SCALE_X, PANE.y, 1, PANE.h + TAXIS_H); ctx.fillRect(CARD.x, TAXIS_Y, CARD.w, 1);
 
-  // pane content (clipped)
   ctx.save(); ctx.beginPath(); ctx.rect(PANE.x, PANE.y, PANE.w, PANE.h); ctx.clip();
   OBST = [];
-  // candle rectangles are obstacles for every word
+  const candleRects = [];
   for (const b of vis) {
     const x = xOf(b.i); if (x < PANE.x - SLOT || x > PANE.x + PANE.w + SLOT) continue;
-    OBST.push({ x: x - BODY / 2, y: yOf(b.h), w: BODY, h: Math.max(1, yOf(b.l) - yOf(b.h)) });
+    candleRects.push({ x: x - BODY / 2, y: yOf(b.h), w: BODY, h: Math.max(1, yOf(b.l) - yOf(b.h)) });
   }
-  // legend strip is reserved
-  OBST.push({ x: PANE.x, y: PANE.y, w: PANE.w, h: LEGEND_H - 6 });
-  const words = [];
-  const A = D.analysis;
+  OBST.push(...candleRects, { x: PANE.x, y: PANE.y, w: PANE.w, h: LEGEND_H - 6 });
+  const fade = (from) => 1 - 0.55 * LS_OUT(prog(f, from, 20));      // older markup steps step back
 
-  // swept liquidity level: horizontal ray from the real swing (TradingView Horizontal Ray)
-  const liqA = LS_OUT(prog(f, T.liq, 24));
-  if (liqA > 0) {
-    const y = Math.round(yOf(A.sweep.level) * 2) / 2, x0 = xOf(T.liqI);
-    const x1 = x0 + (PANE.x + PANE.w - x0) * liqA;
-    ctx.save(); ctx.strokeStyle = P.gold; ctx.lineWidth = 1.25; ctx.setLineDash([5, 3]);
-    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke(); ctx.restore();
-    const above = !T.long;            // sell-side liquidity sits under lows, buy-side over highs
-    const s = T.long ? 'Sell-side Liquidity' : 'Buy-side Liquidity';
-    words.push([s, `700 11px ${UI}`, P.copper, prog(f, T.liq + 8, 16),
-      [[x0 + 4, y + (above ? -12 : 12), 'left'], [x0 + 4, y + (above ? 12 : -12), 'left'], [PANE.x + PANE.w - 6, y + (above ? -12 : 12), 'right'], [PANE.x + PANE.w - 6, y + (above ? 12 : -12), 'right']]]);
-  }
-  // structure level that breaks (BOS)
-  const bosA = LS_OUT(prog(f, T.bosLine, 24));
-  if (bosA > 0) {
-    const y = Math.round(yOf(A.bos.level) * 2) / 2, x0 = xOf(T.bosLvlI);
-    const endX = f >= T.bos ? xOf(T.bosI) : PANE.x + PANE.w;
-    const x1 = x0 + (endX - x0) * bosA;
-    ctx.fillStyle = P.water5; ctx.fillRect(x0, y - 0.6, x1 - x0, 1.2);
-    if (f >= T.bos) {
-      const a = LS_OUT(prog(f, T.bos, 12)), mid = (x0 + xOf(T.bosI)) / 2;
-      const up = T.long;
-      words.push(['BOS', `900 13px ${UI}`, P.water5, a,
-        [[mid, y + (up ? -11 : 11), 'center'], [mid, y + (up ? 11 : -11), 'center'], [xOf(T.bosI) + SLOT, y, 'left'], [x0 - 4, y, 'right']]]);
-    }
-  }
-  // sweep marker word
-  if (f >= T.sweep) {
-    const b = bars[T.sweepI], x = xOf(T.sweepI), py = T.long ? yOf(b.l) : yOf(b.h);
-    words.push(['Sweep', `900 12px ${UI}`, P.copper, LS_OUT(prog(f, T.sweep + 6, 12)),
-      [[x, py + (T.long ? 14 : -14), 'center'], [x, py + (T.long ? 28 : -28), 'center'], [x + SLOT * 0.8, py, 'left'], [x - SLOT * 0.8, py, 'right']]]);
-  }
-  // FVG: TradingView rectangle from candle 1, extended right; draws left→right, overshoot 4% then settles
+  // zones first (TradingView tools sit under the candles)
   const fA = prog(f, T.fvg, 24);
-  if (fA > 0) {
-    const x0 = xOf(T.fvgC1) - SLOT / 2, xEnd = PANE.x + PANE.w;
-    const k = LS_OVER(fA), x1 = x0 + (xEnd - x0) * Math.min(k, 1.04);
-    const y0 = yOf(A.fvg.top), y1 = yOf(A.fvg.bottom);
-    ctx.fillStyle = rgba(P.water2, 0.2); ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-    ctx.strokeStyle = P.water2; ctx.lineWidth = 1.5; ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
-    OBST.push({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 });
-    words.push(['FVG', `900 13px ${UI}`, P.water5, LS_OUT(prog(f, T.fvg + 8, 16)),
-      [[xOf(T.fvgC3) + SLOT * 0.7, (y0 + y1) / 2, 'left'], [xOf(T.fvgC3) + SLOT * 1.7, (y0 + y1) / 2, 'left'],
-       [x0 + 6, y0 - 11, 'left'], [x0 + 6, y1 + 11, 'left'], [xOf(T.fvgC3) + SLOT * 0.7, y0 - 11, 'left'], [xOf(T.fvgC3) + SLOT * 0.7, y1 + 11, 'left']]]);
+  let fvgR = null;
+  if (fA > 0) {   // FVG: Rectangle tool from the third candle, extended right; overshoot 4% then settle
+    const x0 = xOf(T.fvgC3) + BODY / 2 + 3, xEnd = PANE.x + PANE.w, k = Math.min(LS_OVER(fA), 1.04);
+    const y0 = yOf(A.fvg.top), y1 = yOf(A.fvg.bottom), x1 = x0 + (xEnd - x0) * k;
+    ctx.fillStyle = rgba(P.gold1, 0.42); ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+    ctx.strokeStyle = P.gold; ctx.lineWidth = 1; ctx.strokeRect(x0 + .5, y0 + .5, x1 - x0 - 1, y1 - y0 - 1);
+    fvgR = { x0, y0, x1, y1 };
   }
-  // position tool: stop zone first (bronze), target grows after +8f at double length, R counts
   const posA = f - T.pos;
-  if (posA > 0) {
-    const x0 = xOf(T.entryI) - SLOT / 2 - SLOT * 2, xR = PANE.x + PANE.w;   // placed like a limit plan, two bars before the fill
+  if (posA > 0) {   // Long/Short Position tool: stop first (gold), target grows after +8f at double length
+    const x0 = xOf(T.entryI) - SLOT * 2.5, xR = PANE.x + PANE.w;
     const ye = yOf(tr.entry), ys0 = yOf(tr.stop), yt0 = yOf(tr.target);
-    const sk = LS_OUT(prog(f, T.pos, 14)), tk = LS_OUT(prog(f, T.pos + 22, 28));
-    const ys = ye + (ys0 - ye) * sk, yt = ye + (yt0 - ye) * tk;
-    const hit = f >= T.tp, pulse = hit ? Math.sin(Math.PI * prog(f, T.tp, 24)) : 0;
+    const ys = ye + (ys0 - ye) * LS_OUT(prog(f, T.pos, 14)), yt = ye + (yt0 - ye) * LS_OUT(prog(f, T.pos + 22, 28));
+    const pulse = f >= T.tp ? Math.sin(Math.PI * prog(f, T.tp, 24)) : 0;
     ctx.fillStyle = rgba(P.gold, 0.2); ctx.fillRect(x0, Math.min(ye, ys), xR - x0, Math.abs(ys - ye));
     ctx.fillStyle = rgba(P.teal, 0.2 + 0.15 * pulse); ctx.fillRect(x0, Math.min(ye, yt), xR - x0, Math.abs(yt - ye));
     ctx.fillStyle = P.gold; ctx.fillRect(x0, ys - 0.5, xR - x0, 1);
     ctx.fillStyle = P.teal; ctx.fillRect(x0, yt - 0.5, xR - x0, 1);
     ctx.fillStyle = P.silver3; ctx.fillRect(x0, ye - 0.5, xR - x0, 1);
-    const R = Math.abs(tr.target - tr.entry) / Math.abs(tr.entry - tr.stop);
-    const rNow = R * LS_COUNT(prog(f, T.pos + 22, 40));
-    const fmt = v => v.toFixed(2);
-    const tPts = Math.abs(tr.target - tr.entry), sPts = Math.abs(tr.entry - tr.stop);
-    const la = prog(f, T.pos + 10, 16);
-    const st = f >= T.tp ? `Closed P&L: ${fmt(tPts)}` : f >= T.fill ? `Open P&L: ${fmt((last.c - tr.entry) * (T.long ? 1 : -1))}` : 'Limit order';
-    const tgtLbl = `Target: ${fmt(tPts)} (${(100 * tPts / tr.entry).toFixed(2)}%)`;
-    const stpLbl = `Stop: ${fmt(sPts)} (${(100 * sPts / tr.entry).toFixed(2)}%)`;
-    const rrLbl = `R/R ${rNow >= R - 0.005 ? R.toFixed(0) : rNow.toFixed(2)}  ·  ${st}`;
-    const far = (y, dir) => y + dir * 11;
-    const tdir = yt < ye ? -1 : 1, sdir = ys > ye ? 1 : -1;
-    words.push([tgtLbl, `700 10.5px ${UI}`, P.water5, la, [[xR - 6, far(yt, tdir), 'right'], [xR - 6, far(yt, -tdir), 'right'], [x0 + 6, far(yt, -tdir), 'left'], [x0 + 6, far(yt, tdir), 'left']]]);
-    words.push([stpLbl, `700 10.5px ${UI}`, P.copper, la, [[xR - 6, far(ys, sdir), 'right'], [xR - 6, far(ys, -sdir), 'right'], [x0 + 6, far(ys, sdir), 'left'], [x0 + 6, far(ys, -sdir), 'left']]]);
-    const midT = (ye + yt) / 2;
-    words.push([rrLbl, `700 10.5px ${UI}`, hit ? P.water5 : P.ink, la, [[xR - 6, midT, 'right'], [xR - 6, far(ye, tdir), 'right'], [xR - 6, far(ye, -tdir) , 'right'], [x0 + 6, far(ye, tdir), 'left'], [(x0 + xR) / 2, midT, 'center'], [xR - 6, (midT + yt) / 2, 'right']]]);
-    if (f >= T.fill) {
-      const ex = xOf(T.entryI), a = LS_OUT(prog(f, T.fill, 10));
-      ctx.save(); ctx.globalAlpha *= a; ctx.fillStyle = P.ink;
-      const ty = ye; ctx.beginPath();
-      if (T.long) { ctx.moveTo(ex - BODY / 2 - 9, ty); ctx.lineTo(ex - BODY / 2 - 3, ty - 4); ctx.lineTo(ex - BODY / 2 - 3, ty + 4); }
-      else { ctx.moveTo(ex - BODY / 2 - 9, ty); ctx.lineTo(ex - BODY / 2 - 3, ty - 4); ctx.lineTo(ex - BODY / 2 - 3, ty + 4); }
-      ctx.closePath(); ctx.fill(); ctx.restore();
-    }
   }
-  if (f >= T.tp) words.push(['TP', `900 13px ${UI}`, P.water5, LS_OUT(prog(f, T.tp, 10)),
-    [[xOf(T.tpI) - SLOT * 0.8, yOf(tr.target) + (T.long ? 12 : -12), 'right'], [xOf(T.tpI) + SLOT * 0.8, yOf(tr.target) + (T.long ? 12 : -12), 'left'], [xOf(T.tpI) - SLOT, yOf(tr.target) - (T.long ? 12 : -12), 'right']]]);
 
   // candles — TradingView geometry: sharp solid body, 1 output-px wick dead centre, doji = thin line
   for (const b of vis) {
     const x = xOf(b.i); if (x < PANE.x - SLOT || x > PANE.x + PANE.w + SLOT) continue;
-    const ctxCandle = b.i < T.liqI;           // context candles: real colours at 35%
-    const col = b.c >= b.o ? C.bull : C.bear;
-    ctx.save(); ctx.globalAlpha *= ctxCandle ? 0.35 : 1; ctx.fillStyle = col;
-    // grow from the open (vertical scale 0→1 over 8f)
-    const g = b.grow, yo = yOf(b.o), Y = p => yo + (yOf(p) - yo) * g;
-    const yh = Y(b.h), yl = Y(b.l);
-    ctx.fillRect(x - 0.5, yh, 1, Math.max(0.5, yl - yh));
-    const yt = Y(Math.max(b.o, b.c)), yb = Y(Math.min(b.o, b.c));
+    ctx.save(); ctx.globalAlpha *= b.i < T.liqI ? 0.35 : 1; ctx.fillStyle = b.c >= b.o ? C.bull : C.bear;
+    const yo = yOf(b.o), Y = p => yo + (yOf(p) - yo) * b.grow;
+    const yh = Y(b.h), yl = Y(b.l), yt = Y(Math.max(b.o, b.c)), yb = Y(Math.min(b.o, b.c));
+    ctx.fillRect(x - 0.25, yh, 0.5, Math.max(0.5, yl - yh));
     ctx.fillRect(x - BODY / 2, yt, BODY, Math.max(0.5, yb - yt));
     ctx.restore();
   }
 
-  // words (placed after every obstacle is known; dropped from above 6px and settled)
-  for (const [s, font, color, a, cands] of words) {
-    if (a <= 0) continue;
-    const pl = place(s, font, cands);
-    if (!pl) { console.log('NO-SPACE ' + s + ' @' + f); continue; }
-    wordAt(pl, s, font, color, a, (1 - LS_OUT(a)) * 6);
+  // lines + inline words (one markup element per step; the line starts at the wick tip and stops at the breaking candle)
+  const liqA = LS_OUT(prog(f, T.liq, 24));
+  if (liqA > 0) {
+    const y = yOf(A.sweep.level), x0 = xOf(T.liqI) + 2;
+    const end = f >= S[T.sweepI][0] ? xOf(T.sweepI) - BODY / 2 - 3 : PANE.x + PANE.w - 2;
+    segWord(x0, x0 + (end - x0) * liqA, y, '$$$', liqA * fade(T.split), { dash: true });
+  }
+  const bosA = LS_OUT(prog(f, T.bosLine, 24));
+  if (bosA > 0) {
+    const y = yOf(A.bos.level), x0 = xOf(T.bosLvlI) + 2;
+    const end = f >= S[T.bosI][0] ? xOf(T.bosI) - BODY / 2 - 3 : PANE.x + PANE.w - 2;
+    const glow = prog(f, T.split, 12) * (f < T.split + 12 ? 1 : 0);
+    segWord(x0, x0 + (end - x0) * bosA, y, f >= T.bos ? 'BOS' : '', bosA * fade(T.pos), { lw: 1.1 + glow });
+  }
+  if (fvgR) {
+    const a = LS_OUT(prog(f, T.fvg + 8, 16)) * fade(T.ride), { x0, y0, x1, y1 } = fvgR, cy = (y0 + y1) / 2;
+    const inside = y1 - y0 > 16 ? [[x0 + 10, cy, 'left'], [x0 + (x1 - x0) * 0.4, cy, 'left'], [x0 + (x1 - x0) * 0.62, cy, 'left']] : [];
+    OBST.push({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 });
+    // a word inside the box is allowed only where the box is free of candles
+    word('FVG', [...inside.filter(([x, y]) => !candleRects.some(r => hitRect({ x, y: y - 7, w: 26, h: 13 }, r, CLEAR))).map(([x, y]) => [x, y, 'left']),
+      [x0 + 6, y0 - 11, 'left'], [x0 + 6, y1 + 11, 'left'], [x0 + 60, y0 - 11, 'left'], [x0 + 60, y1 + 11, 'left']].filter(c => {
+        const r = { x: c[0], y: c[1] - 7, w: measure('FVG', MKF), h: 13 };
+        return c[1] < y0 || c[1] > y1 || !OBST.slice(0, -1).some(o => hitRect(r, o, CLEAR));
+      }), a, (1 - a) * 6);
   }
 
   // last price line
   if (last) {
-    const lc = last.c >= last.o ? C.bull : C.bear, y = Math.round(yOf(last.c) * 2) / 2;
-    ctx.strokeStyle = lc; ctx.lineWidth = 0.75; ctx.setLineDash([2, 2]);
+    const y = yOf(last.c); ctx.strokeStyle = last.c >= last.o ? C.bull : C.bear; ctx.lineWidth = 0.6; ctx.setLineDash([2, 2]);
     ctx.beginPath(); ctx.moveTo(PANE.x, y); ctx.lineTo(PANE.x + PANE.w, y); ctx.stroke(); ctx.setLineDash([]);
   }
   ctx.restore();
 
-  // scale pills
   if (posA > 0) {
     ctx.save(); ctx.globalAlpha *= prog(f, T.pos + 8, 14);
     pill(tr.target.toFixed(2), yOf(tr.target), P.teal); pill(tr.stop.toFixed(2), yOf(tr.stop), P.gold); pill(tr.entry.toFixed(2), yOf(tr.entry), P.silver4);
     ctx.restore();
   }
   if (last) pill(last.c.toFixed(2), yOf(last.c), last.c >= last.o ? P.teal : P.gold);
-
-  // legend (OHLC of the newest bar)
-  if (last) {
+  if (last) {   // legend: symbol line + OHLC of the newest bar
     const lg = PANE.y + 14, oc = last.c >= last.o ? P.water4 : P.copper;
     txt(D.legend, PANE.x + 10, lg, { font: `700 12px ${UI}`, color: P.ink });
     let lx = PANE.x + 10; const ly = lg + 17;
@@ -458,35 +438,172 @@ function render(f) {
       txt(v.toFixed(2), lx, ly, { font: `500 11px ${UI}`, color: oc }); lx += 58;
     }
   }
-  ctx.restore();   // punch transform + clip
+}
 
-  caption(f);
+function chartLayer(target, f, cam, pun) {
+  const g = target.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, target.width, target.height);
+  ctx = g; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.save(); applyCam(cam, pun); drawChart(f, cam); ctx.restore();
+}
 
-  // footer (above the bottom 20%): profile capsule + handle, and the disclaimer
-  const fy = 744;
-  ctx.save(); ctx.fillStyle = rgba(P.ivory, 0.9); rr(14, fy, 160, 30, 15); ctx.fill(); ctx.restore();
-  ctx.save(); ctx.beginPath(); ctx.arc(30, fy + 15, 11.5, 0, Math.PI * 2); ctx.clip();
-  ctx.drawImage(img('prof'), 18.5, fy + 3.5, 23, 23); ctx.restore();
+// ---------- HUD (not under the camera) ----------
+const CAPS = () => [
+  [0, ...D.captions.hook], [T.liq, ...D.captions.liq], [T.sweep, ...D.captions.sweep], [T.bosLine, ...D.captions.bosLine],
+  [T.bos, ...D.captions.bos], [T.split + 12, ...D.captions.fvg], [T.pos, ...D.captions.pos], [T.ride, ...D.captions.ride],
+  [T.tp, ...D.captions.tp], [T.result, ...D.captions.result], [T.outro, ...D.captions.outro]
+];
+function hud(f) {
+  const veil = ctx.createLinearGradient(0, 0, 0, 236);
+  veil.addColorStop(0, rgba(P.ivory, 0.96)); veil.addColorStop(0.72, rgba(P.ivory, 0.82)); veil.addColorStop(1, rgba(P.ivory, 0));
+  ctx.fillStyle = veil; ctx.fillRect(0, 0, W, 236);
+  const cs = CAPS(); let cur = 0; cs.forEach((c, i) => { if (f >= c[0]) cur = i; });
+  const [start, l1, l2] = cs[cur], next = cs[cur + 1]?.[0] ?? Infinity;
+  const lg = img('logo'), lh = 24, lw = lg.naturalWidth / lg.naturalHeight * lh;
+  ctx.drawImage(lg, (W - lw) / 2, 18, lw, lh);
+  if (f >= T.outro + 40) {   // single light sweep over the logo at the close (sweep)
+    const k = LS_SNAP(prog(f, T.outro + 40, 32));
+    ctx.save(); ctx.beginPath(); ctx.rect((W - lw) / 2, 18, lw, lh); ctx.clip();
+    const sx = (W - lw) / 2 - lw * 0.3 + (lw * 1.6) * k;
+    ctx.translate(sx, 30); ctx.rotate(18 * Math.PI / 180); ctx.fillStyle = rgba(P.shine, 0.6); ctx.fillRect(-lw * 0.09, -40, lw * 0.18, 80); ctx.restore();
+  }
+  const steps = cs.length;
+  for (let i = 0; i < steps; i++) { ctx.fillStyle = i <= cur ? P.water5 : P.silver1; ctx.fillRect(W / 2 - steps * 11 + i * 22 + 2, 52, 18, 3); }
+  const inA = LS_OUT(prog(f, start, 14)), outA = 1 - LS_IN(prog(f, next - 9, 9));
+  ctx.save(); ctx.globalAlpha = inA * outA;
+  const reveal = (s, y, font, color, delay) => {      // Arabic opens from the right
+    const a = LS_OUT(prog(f, start + delay, 16)); const w = measure(s, font) + 24;
+    ctx.save(); ctx.beginPath(); ctx.rect(W / 2 + w / 2 - w * a, y - 32, w * a, 64); ctx.clip();
+    txt(s, W / 2, y + (1 - a) * 6, { font, color, align: 'center', dir: 'rtl' }); ctx.restore();
+  };
+  if (start === T.result) {
+    const R = Math.abs(tr.target - tr.entry) / Math.abs(tr.entry - tr.stop), pz = punchScale(f, T.result + 12, 1.4);
+    reveal(l1, 98, `900 30px ${AR}`, P.ink, 0);
+    ctx.save(); ctx.translate(W / 2, 160); ctx.scale(pz, pz);
+    txt(`+${R.toFixed(0)}R`, 0, 0, { font: `900 50px ${UI}`, color: P.copper, align: 'center', alpha: LS_OUT(prog(f, T.result + 12, 6)) });
+    ctx.restore();
+    if (l2) reveal(l2, 206, `700 15px ${UI}`, P.water5, 20);
+  } else {
+    reveal(l1, l2 ? 98 : 122, `900 30px ${AR}`, P.ink, 0);
+    if (l2) reveal(l2, 150, `900 23px ${AR}`, start === T.tp ? P.copper : P.water5, 6);
+  }
+  ctx.restore();
+  const fy = 744;   // footer, above the bottom 20%
+  ctx.save(); ctx.fillStyle = rgba(P.ivory, 0.92); rr(14, fy, 160, 30, 15); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.arc(30, fy + 15, 11.5, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(img('prof'), 18.5, fy + 3.5, 23, 23); ctx.restore();
   ctx.strokeStyle = P.water5; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(30, fy + 15, 11.5, 0, Math.PI * 2); ctx.stroke();
   txt('@liquidity.state', 48, fy + 16, { font: `700 12px ${UI}`, color: P.ink });
-  ctx.save(); ctx.fillStyle = rgba(P.ivory, 0.9); rr(W - 170, fy, 156, 30, 15); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.fillStyle = rgba(P.ivory, 0.92); rr(W - 170, fy, 156, 30, 15); ctx.fill(); ctx.restore();
   txt('المحتوى تعليمي وليس توصية', W - 92, fy + 16, { font: `500 11px ${UI}`, color: P.silver4, align: 'center', dir: 'rtl' });
+}
+
+// ink reveal (spec3): blob 1 opens on the liquidity, blob 2 (70%) on the live price 8f later; organic 3–5px edge
+function blobPath(cx, cy, R, seed) {
+  ctx.beginPath();
+  for (let k = 0; k <= 96; k++) {
+    const th = k / 96 * Math.PI * 2;
+    const r = R + 2.2 * Math.sin(7 * th + seed) + 1.6 * Math.sin(13 * th + seed * 2.3) + R * 0.03 * Math.sin(3 * th + seed * 0.7);
+    const x = cx + Math.cos(th) * r, y = cy + Math.sin(th) * r; k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.closePath();
+}
+
+// ---------- compose one frame ----------
+function compose(target, f) {
+  state(f); const cam = camera(f), pun = punchNow(f);
+  ctx = target.getContext('2d'); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = P.ivory; ctx.fillRect(0, 0, W, H);
+  drawBG(f, cam, pun);
+  const liqPt = toScreen(cam, pun, xOf(T.liqI) + SLOT * 4, yOf(D.analysis.sweep.level));
+  const pricePt = LAST ? toScreen(cam, pun, SCALE_X + 20, yOf(LAST.c)) : [W / 2, H / 2];
+  chartLayer(LAYER, f, cam, pun);
+  ctx = target.getContext('2d');
+  if (f < 56) {
+    const R1 = LS_OUT(prog(f, 0, 48)) * 0.9 * Math.hypot(W, H), R2 = LS_OUT(prog(f, 8, 48)) * 0.63 * Math.hypot(W, H);
+    ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const path = new Path2D();
+    blobPath(...liqPt, Math.max(0.1, R1), 1.3); path.addPath(new Path2D()); ctx.save(); ctx.clip();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(LAYER, 0, 0); ctx.restore();
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0); blobPath(...pricePt, Math.max(0.1, R2), 4.1); ctx.save(); ctx.clip();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(LAYER, 0, 0); ctx.restore();
+    ctx.restore();
+  } else if (f >= T.split && f < T.split + 42) {
+    // split-open (mask9) from the real BOS level: the line flashes gold 12f, then the old shot parts and the new one is behind it
+    const key = 'split';
+    if (oldKey !== key) {
+      const g = T.split - 1; state(g); const c0 = camera(g); chartLayer(OLD, g, c0, { p: 1 });
+      OLD.lineY = toScreen(c0, { p: 1 }, 0, yOf(D.analysis.bos.level))[1]; oldKey = key;
+      state(f); chartLayer(LAYER, f, cam, pun); ctx = target.getContext('2d');
+    }
+    const ly = OLD.lineY * DPR, k = f - T.split;
+    if (k < 12) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(OLD, 0, 0);
+      ctx.fillStyle = rgba(P.gold1, Math.sin(Math.PI * k / 12) * 0.9); ctx.fillRect(0, ly - 2, W * DPR, 4);
+    } else {
+      const d = LS_SNAP((k - 12) / 30) * H * 0.62 * DPR;
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(LAYER, 0, 0);
+      const half = (y0, h, dy) => {
+        for (let s = 0; s < 3; s++) {   // motion blur on the halves only
+          ctx.globalAlpha = s === 0 ? 1 : 0.25; const o = dy - Math.sign(dy) * s * 6 * DPR * (1 - (k - 12) / 30);
+          ctx.drawImage(OLD, 0, y0, W * DPR, h, 0, y0 + o, W * DPR, h);
+        }
+        ctx.globalAlpha = 1;
+        const e = dy < 0 ? y0 + h + dy : y0 + dy, sh = ctx.createLinearGradient(0, e - (dy < 0 ? 24 : -24), 0, e);
+        sh.addColorStop(0, rgba(P.stone3, 0)); sh.addColorStop(1, rgba(P.stone3, 0.18));
+        ctx.fillStyle = sh; ctx.fillRect(0, Math.min(e, e - (dy < 0 ? 24 : -24)), W * DPR, 24);
+      };
+      half(0, ly, -d); half(ly, H * DPR - ly, d);
+    }
+  } else {
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(LAYER, 0, 0);
+  }
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // vignette in petrol, breathes +15% with pushes and punches
+  const push = clamp((cam.z * pun.p - 1) / 0.4, 0, 1), v = 0.22 + 0.15 * push;
+  const vg = ctx.createRadialGradient(ANCHOR[0], ANCHOR[1], H * 0.3, ANCHOR[0], ANCHOR[1], H * 0.78);
+  vg.addColorStop(0, rgba(P.petrol, 0)); vg.addColorStop(1, rgba(P.petrol, v));
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+  if (pun.p !== 1 && f - pun.at < 1.5) { ctx.fillStyle = rgba(P.shine, 0.05); ctx.fillRect(0, 0, W, H); }   // +5% lift on the first punch frame
+  hud(f);
+  // dip to petrol with the question in the dark (never an empty dark)
+  if (f >= T.dip && f < T.dip + 28) {
+    const k = f - T.dip, a = k < 10 ? LS_IN(k / 10) : k < 18 ? 1 : 1 - LS_OUT((k - 18) / 10);
+    ctx.fillStyle = rgba(P.petrol, a); ctx.fillRect(0, 0, W, H);
+    ctx.save(); ctx.globalAlpha = a * 0.07; ctx.globalCompositeOperation = 'overlay';
+    const o = (f * 37) % 256; for (let y = -o; y < H; y += 128) for (let x = -o; x < W; x += 128) ctx.drawImage(GRAIN, x, y, 128, 128);
+    ctx.restore();
+    txt(D.captions.dip, W / 2, H * 0.42, { font: `900 34px ${AR}`, color: P.ivory, align: 'center', dir: 'rtl', alpha: a });
+  }
+}
+
+// motion blur: shutter 180° (half the frame), 5 samples, only when the image moves faster than 20 output px per frame
+function screenSpeed(f) {
+  if (f < 1) return 0;
+  state(f - 1); const c0 = camera(f - 1), p0 = punchNow(f - 1); const a0 = toScreen(c0, p0, CARD.x, CARD.y), b0 = toScreen(c0, p0, CARD.x + CARD.w, CARD.y + CARD.h);
+  state(f); const c1 = camera(f), p1 = punchNow(f); const a1 = toScreen(c1, p1, CARD.x, CARD.y), b1 = toScreen(c1, p1, CARD.x + CARD.w, CARD.y + CARD.h);
+  return Math.max(Math.hypot(a1[0] - a0[0], a1[1] - a0[1]), Math.hypot(b1[0] - b0[0], b1[1] - b0[1])) * DPR;
+}
+function render(f) {
+  const out = cv.getContext('2d');
+  if (screenSpeed(f) > 20) {
+    const a = ACC.getContext('2d'); a.setTransform(1, 0, 0, 1, 0, 0); a.globalAlpha = 1;
+    for (let s = 0; s < 5; s++) {
+      compose(FR, f - 0.5 + 0.5 * s / 4);
+      a.globalAlpha = 1 / (s + 1); a.drawImage(FR, 0, 0);
+    }
+    a.globalAlpha = 1; out.setTransform(1, 0, 0, 1, 0, 0); out.drawImage(ACC, 0, 0);
+  } else { compose(FR, f); out.setTransform(1, 0, 0, 1, 0, 0); out.drawImage(FR, 0, 0); }
 }
 
 window.setup = async (data) => {
   await Promise.all(['bg', 'logo', 'prof'].map(id => img(id).decode()));
-  await Promise.all(["900 12px 'Thmanyah Display'", "900 12px 'Thmanyah Sans'", "700 12px 'Thmanyah Sans'", "500 12px 'Thmanyah Sans'"]
-    .map(f => document.fonts.load(f, 'عربي 0123')));
+  await Promise.all(["900 12px 'Thmanyah Display'", "900 12px 'Thmanyah Sans'", "700 12px 'Thmanyah Sans'", "500 12px 'Thmanyah Sans'", "400 12px 'TV Trebuchet'", "400 12px 'TV Segoe'"]
+    .map(f => document.fonts.load(f, 'عربي 0123 $BOS')));
   return init(data);
 };
 window.sched = () => Object.values(S).filter(v => isFinite(v[0]));
 window.frame = (f, type = 'image/png') => { render(f); return cv.toDataURL(type, 0.95); };
-// geometry probe for the validator: candle sizes in OUTPUT px for the bars on screen
-window.probe = (f) => {
-  render(f);
-  const vis = visibleBars(f).filter(b => b.p >= 1);
-  const onScreen = vis.filter(b => { const x = xOf(b.i); return x > PANE.x && x < PANE.x + PANE.w; });
-  return { L0, yLo, yHi, bodyPx: BODY * DPR, slotPx: SLOT * DPR, n: onScreen.length,
-    lens: onScreen.map(b => (yOf(b.l) - yOf(b.h)) * DPR) };
+window.probe = (f) => {          // candle sizes in OUTPUT px on screen (camera zoom included)
+  state(f); const cam = camera(f), pun = punchNow(f), z = cam.z * pun.p;
+  const done = VIS.filter(b => b.p >= 1).filter(b => { const [x] = toScreen(cam, pun, xOf(b.i), 0); return x > 0 && x < W && xOf(b.i) > PANE.x && xOf(b.i) < PANE.x + PANE.w; });
+  return { z, bodyPx: BODY * DPR * z, n: done.length, lens: done.map(b => (yOf(b.l) - yOf(b.h)) * DPR * z) };
 };
 </script></body></html>
