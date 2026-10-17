@@ -91,20 +91,23 @@ function init(data) {
   S = {}; EV = {}; let f = 0;
   const snap = () => { f = Math.ceil(f / BEAT) * BEAT; };
   // 1) reveal: context candles one by one, last 3 at double duration (reveal / draw5)
-  for (let i = 0; i < ctxN; i++) { const d = i >= ctxN - 3 ? 8 : 4; S[i] = [f, d]; f += d; }
-  snap(); EV.liq = f; f += 90;                         // liquidity level marked (markup)
-  const base = D.motion?.barFrames || 22;
+  const win0 = Math.max(0, ctxN - (SLOTS - RIGHT_OFFSET));
+  for (let i = 0; i < win0; i++) S[i] = [-1, 1];
+  for (let i = win0; i < ctxN; i++) { const d = i >= ctxN - 3 ? 8 : 4; S[i] = [f, d]; f += d; }
+  const M = { barFrames: 22, liqHold: 90, sweepHold: 48, bosLineHold: 60, bosHold: 18, fvgHold: 90, posHold: 110, tpHold: 60, resultHold: 290, outroHold: 210, ...(D.motion || {}) };
+  snap(); EV.liq = f; f += M.liqHold;                  // liquidity level marked (markup)
+  const base = M.barFrames;
   const replay = (from, to, slowLast = 0) => { for (let i = from; i <= to; i++) { const d = i > to - slowLast ? base * 2 : base; S[i] = [f, d]; f += d; } };
   // 2) to the sweep — sweep candle completes on a beat, then punch
   replay(ctxN, sweepI - 1); snap(); S[sweepI] = [f, base * 2]; f += base * 2; snap();
-  EV.sweep = f; f += 42 + 48;                           // punch 6+16+20, then read
-  EV.bosLine = f; f += 60;                              // structure level that must break
+  EV.sweep = f; f += 42 + M.sweepHold;                           // punch 6+16+20, then read
+  EV.bosLine = f; f += M.bosLineHold;                              // structure level that must break
   replay(sweepI + 1, bosI - 1); snap(); S[bosI] = [f, base * 2]; f += base * 2; snap();
-  EV.bos = f; f += 42 + 18; snap();
+  EV.bos = f; f += 42 + M.bosHold; snap();
   if (fvgC3 > bosI) { replay(bosI + 1, fvgC3); snap(); }
   EV.split = f; f += 12 + 30;                           // BOS line glows 12f, frame splits open from it (splitopen / mask9)
-  EV.fvg = EV.split + 18; f += 90;                      // FVG box drawn in the new shot
-  EV.pos = f; f += 40 + 110;                            // position tool (hero) as the limit plan
+  EV.fvg = EV.split + 18; f += M.fvgHold;                      // FVG box drawn in the new shot
+  EV.pos = f; f += 40 + M.posHold;                            // position tool (hero) as the limit plan
   replay(Math.max(bosI, fvgC3) + 1, entryI - 1);
   const ep = pathOf(bars[entryI]).cross(tr.entry);
   S[entryI] = [f, base * 2]; EV.fill = f + ep * base * 2; f += base * 2;
@@ -112,10 +115,10 @@ function init(data) {
   replay(entryI + 1, tpI - 1, 3);
   const tp = pathOf(bars[tpI]).cross(tr.target), dTp = base * 3;
   const hit = Math.ceil((f + tp * dTp) / BEAT) * BEAT; S[tpI] = [hit - tp * dTp, dTp]; EV.tp = hit;
-  f = hit + 42 + 60; snap();
+  f = hit + 42 + M.tpHold; snap();
   EV.dip = f; f += 28;                                  // dip to petrol with a question in the dark (dip / flash5)
-  EV.result = EV.dip + 18; f = EV.result + 290;
-  EV.outro = f; f += 210;
+  EV.result = EV.dip + 18; f = EV.result + M.resultHold;
+  EV.outro = f; f += M.outroHold;
   for (let i = tpI + 1; i < N; i++) S[i] = [Infinity, 1];
   T = { total: f, ctxN, sweepI, bosI, fvgC1, fvgC3, entryI, tpI, liqI, bosLvlI, long, ...EV };
   return T;
@@ -134,6 +137,7 @@ function visibleBars(f) {
 }
 // replay pan: continuous left index following the newest bar (time flows left→right)
 function camLeft(f, vis) {
+  if (f < T.liq) return Math.max(0, T.ctxN - (SLOTS - RIGHT_OFFSET));
   const last = vis.length ? vis[vis.length - 1] : { i: 0, p: 0 };
   return Math.max(0, last.i + (last.p ?? 1) - (SLOTS - RIGHT_OFFSET));
 }
@@ -141,12 +145,15 @@ let L0, yLo, yHi, VIS, LAST;
 const xOf = i => PANE.x + (i - L0 + 0.5) * SLOT;
 const yOf = p => PLOT.y + (yHi - p) / (yHi - yLo) * PLOT.h;
 function range(f, vis) {
-  const inView = vis.filter(b => b.i >= Math.floor(L0) - 1 && b.i <= L0 + SLOTS);
+  // price range is held fixed while the opening candles build (no jitter), then auto-fits like TradingView
+  const inView = f < T.liq ? bars.map((b, i) => ({ i, ...b })).slice(Math.max(0, T.ctxN - (SLOTS - RIGHT_OFFSET)), T.ctxN)
+    .concat([{ h: D.analysis.sweep.level, l: D.analysis.sweep.level }])
+    : vis.filter(b => b.i >= Math.floor(L0) - 1 && b.i <= L0 + SLOTS);
   let lo = Math.min(...inView.map(b => b.l)), hi = Math.max(...inView.map(b => b.h));
   const k = LS_OUT(prog(f, T.pos, 40));
   if (k > 0) { lo = Math.min(lo, lo + (Math.min(tr.stop, tr.target) - lo) * k); hi = Math.max(hi, hi + (Math.max(tr.stop, tr.target) - hi) * k); }
   if (f >= T.liq && f < T.pos) { const lv = D.analysis.sweep.level; lo = Math.min(lo, lv); hi = Math.max(hi, lv); }
-  const span = hi - lo; return [lo - span * 0.08, hi + span * 0.08];
+  const span = Math.max(hi - lo, 1); return [lo - span * 0.08, hi + span * 0.08];
 }
 function smoothRange(f) {        // TradingView-like auto-fit easing (~250ms)
   let a = 0, b = 0, n = 0;
@@ -180,7 +187,7 @@ function segWord(x0, x1, y, word, a, { dash = false, lw = 1.1, at = [0.5, 0.62, 
   if (a <= 0) return;
   const w = measure(word, MKF), h = 13;
   let gap = null;
-  for (const t of at) {
+  if (word) for (const t of at) {
     const cx = x0 + (x1 - x0) * t, r = { x: cx - w / 2, y: y - h / 2, w, h };
     if (cx - w / 2 - 5 < x0 || cx + w / 2 + 5 > x1) continue;
     if (freeRect(r)) { gap = r; break; }
@@ -191,7 +198,7 @@ function segWord(x0, x1, y, word, a, { dash = false, lw = 1.1, at = [0.5, 0.62, 
   else { ctx.moveTo(x0, y); ctx.lineTo(x1, y); }
   ctx.stroke(); ctx.restore();
   if (gap) { OBST.push(gap); txt(word, gap.x + gap.w / 2, y + 0.5, { font: MKF, color: MK, align: 'center', alpha: a }); }
-  else console.log('NO-SPACE ' + word);
+  else if (word) console.log('NO-SPACE ' + word);
 }
 function word(s, cands, a, drop = 0) {
   if (a <= 0) return;
@@ -213,22 +220,22 @@ function focusPts() {
     last: [lx - SLOT * 2.5, (midY + (LAST ? yOf(LAST.c) : midY)) / 2],
     bos: [(xOf(T.bosLvlI) + xOf(T.bosI)) / 2, yOf(A.bos.level)],
     fvg: [xOf(T.fvgC3) + SLOT * 2, yOf((A.fvg.top + A.fvg.bottom) / 2)],
-    tool: [xOf(T.entryI) + SLOT, yOf((tr.stop + tr.target) / 2)],
+    tool: [xOf(T.fvgC3) + SLOT * 3, yOf((tr.stop + tr.target) / 2)],
     center: [PANE.x + PANE.w / 2, PLOT.y + PLOT.h / 2]
   };
 }
 const camKeys = () => [
-  [0, 0, 1.12, 'liq'],                 // opening framed on the liquidity
-  [T.liq, 90, 1.22, 'liq'],            // calm push-in on $$$ (push)
-  [T.liq + 90, 45, 1.14, 'last'],      // follow price into the sweep
+  [0, 0, 1.0, 'liq'],                 // opening framed on the liquidity
+  [T.liq, T.sweep - T.liq - 120, 1.18, 'liq'],            // calm push-in on $$$ (push)
+  [T.sweep - 120, 60, 1.12, 'last'],      // follow price into the sweep
   [T.sweep + 42, 60, 1.0, 'bos'],      // pull-out reveals the structure level (pull)
   [T.bos + 42, 24, 1.0, 'last'],
-  [T.split, 0, 1.32, 'fvg'],           // cut hidden by the split-open: new shot pushed on the FVG
+  [T.split, 0, 1.25, 'fvg'],           // cut hidden by the split-open: new shot pushed on the FVG
   [T.pos, 40, 1.0, 'tool'],            // pull-out reveals the target liquidity
-  [T.ride, 90, 1.12, 'last'],          // slow push riding with price toward the target
+  [T.ride, 90, 1.1, 'last'],          // slow push riding with price toward the target
   [T.tp + 42, 40, 1.0, 'center'],
   [T.result, 0, 1.0, 'center'],
-  [T.outro, 210, 1.07, 'center']       // slow push for the closing question
+  [T.outro, T.total - T.outro, 1.06, 'center']       // slow push for the closing question
 ];
 function camRaw(f) {
   const K = camKeys(), Pt = focusPts(); let k = 0; K.forEach((x, i) => { if (f >= x[0]) k = i; });
@@ -252,21 +259,27 @@ function punchScale(f, at, peak) {
 }
 function punchNow(f) {
   for (const [at, i, peak, price] of [[T.sweep, T.sweepI, 1.2, T.long ? bars[T.sweepI].l : bars[T.sweepI].h],
-                                      [T.bos, T.bosI, 1.2, bars[T.bosI].c], [T.tp, T.tpI, 1.4, tr.target]]) {
+                                      [T.bos, T.bosI, 1.2, bars[T.bosI].c], [T.tp, T.tpI, 1.25, tr.target]]) {
     const p = punchScale(f, at, peak); if (p !== 1) return { p, wx: xOf(i), wy: yOf(price), at };
   }
   return { p: 1 };
 }
 function camM(cam) { return clamp((cam.z - 1) / 0.3, 0, 1) * 0.7; }
-function applyCam(cam, pun) {
+// screen = o + world·z; once the card is wider than the frame it always fills it horizontally (no floating card edge)
+function camX(cam) {
   const m = camM(cam);
-  ctx.translate(cam.fx + (ANCHOR[0] - cam.fx) * m, cam.fy + (ANCHOR[1] - cam.fy) * m); ctx.scale(cam.z, cam.z); ctx.translate(-cam.fx, -cam.fy);
+  let ox = cam.fx + (ANCHOR[0] - cam.fx) * m - cam.fx * cam.z; const oy = cam.fy + (ANCHOR[1] - cam.fy) * m - cam.fy * cam.z;
+  const L = CARD.x * cam.z, Rr = (CARD.x + CARD.w) * cam.z;
+  ox = Rr - L >= W ? clamp(ox, W - Rr, -L) : (W - L - Rr) / 2;
+  return { ox, oy, z: cam.z };
+}
+function applyCam(cam, pun) {
+  const c = camX(cam); ctx.translate(c.ox, c.oy); ctx.scale(c.z, c.z);
   if (pun.p !== 1) { ctx.translate(pun.wx, pun.wy); ctx.scale(pun.p, pun.p); ctx.translate(-pun.wx, -pun.wy); }
 }
 function toScreen(cam, pun, x, y) {
   if (pun.p !== 1) { x = pun.wx + (x - pun.wx) * pun.p; y = pun.wy + (y - pun.wy) * pun.p; }
-  const m = camM(cam);
-  return [cam.fx + (ANCHOR[0] - cam.fx) * m + (x - cam.fx) * cam.z, cam.fy + (ANCHOR[1] - cam.fy) * m + (y - cam.fy) * cam.z];
+  const c = camX(cam); return [c.ox + x * c.z, c.oy + y * c.z];
 }
 
 // ---------- layers ----------
@@ -333,7 +346,8 @@ function drawChart(f, cam) {
   for (let p = Math.ceil(yLo / step) * step; p <= yHi; p += step) {
     const y = yOf(p); if (y < PLOT.y - 4) continue;
     ctx.fillStyle = C.grid; ctx.fillRect(PANE.x, y - 0.25, PANE.w, 0.5);
-    txt(p.toFixed(2), SCALE_X + 6, y, { font: `500 10.5px ${UI}` });
+    const tags = [...(f > T.pos ? [tr.target, tr.stop, tr.entry] : []), ...(last ? [last.c] : [])];
+    if (!tags.some(q => Math.abs(yOf(q) - y) < 13)) txt(p.toFixed(2), SCALE_X + 6, y, { font: `500 10.5px ${UI}` });
   }
   ctx.restore();
   ctx.save(); ctx.beginPath(); ctx.rect(PANE.x, PANE.y, PANE.w, PANE.h + TAXIS_H); ctx.clip();
@@ -360,7 +374,7 @@ function drawChart(f, cam) {
   const fA = prog(f, T.fvg, 24);
   let fvgR = null;
   if (fA > 0) {   // FVG: Rectangle tool from the third candle, extended right; overshoot 4% then settle
-    const x0 = xOf(T.fvgC3) + BODY / 2 + 3, xEnd = PANE.x + PANE.w, k = Math.min(LS_OVER(fA), 1.04);
+    const x0 = xOf(T.fvgC1), xEnd = PANE.x + PANE.w, k = Math.min(LS_OVER(fA), 1.04);
     const y0 = yOf(A.fvg.top), y1 = yOf(A.fvg.bottom), x1 = x0 + (xEnd - x0) * k;
     ctx.fillStyle = rgba(P.gold1, 0.42); ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
     ctx.strokeStyle = P.gold; ctx.lineWidth = 1; ctx.strokeRect(x0 + .5, y0 + .5, x1 - x0 - 1, y1 - y0 - 1);
@@ -368,7 +382,7 @@ function drawChart(f, cam) {
   }
   const posA = f - T.pos;
   if (posA > 0) {   // Long/Short Position tool: stop first (gold), target grows after +8f at double length
-    const x0 = xOf(T.entryI) - SLOT * 2.5, xR = PANE.x + PANE.w;
+    const x0 = xOf(T.fvgC3) + SLOT * 0.62, xR = PANE.x + PANE.w;
     const ye = yOf(tr.entry), ys0 = yOf(tr.stop), yt0 = yOf(tr.target);
     const ys = ye + (ys0 - ye) * LS_OUT(prog(f, T.pos, 14)), yt = ye + (yt0 - ye) * LS_OUT(prog(f, T.pos + 22, 28));
     const pulse = f >= T.tp ? Math.sin(Math.PI * prog(f, T.tp, 24)) : 0;
@@ -408,12 +422,10 @@ function drawChart(f, cam) {
     const a = LS_OUT(prog(f, T.fvg + 8, 16)) * fade(T.ride), { x0, y0, x1, y1 } = fvgR, cy = (y0 + y1) / 2;
     const inside = y1 - y0 > 16 ? [[x0 + 10, cy, 'left'], [x0 + (x1 - x0) * 0.4, cy, 'left'], [x0 + (x1 - x0) * 0.62, cy, 'left']] : [];
     OBST.push({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 });
-    // a word inside the box is allowed only where the box is free of candles
-    word('FVG', [...inside.filter(([x, y]) => !candleRects.some(r => hitRect({ x, y: y - 7, w: 26, h: 13 }, r, CLEAR))).map(([x, y]) => [x, y, 'left']),
-      [x0 + 6, y0 - 11, 'left'], [x0 + 6, y1 + 11, 'left'], [x0 + 60, y0 - 11, 'left'], [x0 + 60, y1 + 11, 'left']].filter(c => {
-        const r = { x: c[0], y: c[1] - 7, w: measure('FVG', MKF), h: 13 };
-        return c[1] < y0 || c[1] > y1 || !OBST.slice(0, -1).some(o => hitRect(r, o, CLEAR));
-      }), a, (1 - a) * 6);
+    // the word sits inside the box, at the first spot free of candles (12 output px), else just outside it
+    OBST.pop();
+    const ins = [0.9, 0.78, 0.66, 0.54].map(t => [x0 + (x1 - x0) * t, cy, 'center']);
+    word('FVG', y1 - y0 >= 15 ? ins.concat([[x1 - 30, y0 - 11, 'center'], [x1 - 30, y1 + 11, 'center']]) : [[x1 - 30, y0 - 11, 'center'], [x1 - 30, y1 + 11, 'center'], [x1 - 80, y0 - 11, 'center'], [x1 - 80, y1 + 11, 'center']], a, (1 - a) * 6);
   }
 
   // last price line
@@ -476,11 +488,11 @@ function hud(f) {
   };
   if (start === T.result) {
     const R = Math.abs(tr.target - tr.entry) / Math.abs(tr.entry - tr.stop), pz = punchScale(f, T.result + 12, 1.4);
-    reveal(l1, 98, `900 30px ${AR}`, P.ink, 0);
-    ctx.save(); ctx.translate(W / 2, 160); ctx.scale(pz, pz);
-    txt(`+${R.toFixed(0)}R`, 0, 0, { font: `900 50px ${UI}`, color: P.copper, align: 'center', alpha: LS_OUT(prog(f, T.result + 12, 6)) });
+    reveal(l1, 82, `900 26px ${AR}`, P.ink, 0);
+    ctx.save(); ctx.translate(W / 2, 134); ctx.scale(pz, pz);
+    txt(`+${(Math.round(R * 10) / 10).toString()}R`, 0, 0, { font: `900 50px ${UI}`, color: P.copper, align: 'center', alpha: LS_OUT(prog(f, T.result + 12, 6)) });
     ctx.restore();
-    if (l2) reveal(l2, 206, `700 15px ${UI}`, P.water5, 20);
+    if (l2) reveal(l2, 184, `900 19px ${AR}`, P.water5, 20);
   } else {
     reveal(l1, l2 ? 98 : 122, `900 30px ${AR}`, P.ink, 0);
     if (l2) reveal(l2, 150, `900 23px ${AR}`, start === T.tp ? P.copper : P.water5, 6);

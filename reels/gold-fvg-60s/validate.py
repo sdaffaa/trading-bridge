@@ -45,5 +45,6 @@ if os.path.exists('probe.json'):
 # palette: every hex in the page must be in the identity table
 pal = set('FCF9F3 F5EEE5 E4DED8 DDDCD9 CFD6D7 BFC0BC A7A6A2 908F88 777771 A9D0D1 5EA8A9 3F8182 2B6567 1D4D4F 133538 6FD3D2 33B7B7 189EA0 177F82 DFC4A9 D3AE89 BF9367 855E38 164245 11282A 0C1414 323128'.split())
 hexes = set(h.upper() for h in re.findall(r'#([0-9A-Fa-f]{6})\b', open('chart.html').read()))
+pal.add('000000')  # TradingView markup colour on light pages (tv-chart-replica, Fahad 7 Oct)
 if hexes - pal: err.append(f'off-palette {hexes - pal}')
 print('ERRORS' if err else 'ALL CHECKS PASS', err)
